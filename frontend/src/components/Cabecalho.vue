@@ -5,17 +5,14 @@
         <h3>{{ auth.fullName }}</h3>
         <button @click="logout">sair</button>
       </template>
-      <!-- <template v-if="!auth.isAuthenticated"> -->
-      <router-link class="router-link" :to="{ name: 'login' }"
-        >Login</router-link
-      >
-      <router-link class="router-link" :to="{ name: 'cadastro' }"
-        >Cadastro</router-link
-      >
-      <router-link class="router-link" :to="{ name: 'dashboard' }"
-        >Dashboard</router-link
-      >
-      <!-- </template> -->
+      <template v-if="!auth.isAuthenticated">
+        <router-link class="router-link" :to="{ name: 'login' }"
+          >Login</router-link
+        >
+        <router-link class="router-link" :to="{ name: 'cadastro' }"
+          >Cadastro</router-link
+        >
+      </template>
     </div>
   </header>
 </template>

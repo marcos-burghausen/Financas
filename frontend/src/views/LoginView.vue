@@ -98,14 +98,12 @@ const errorsForm = reactive({ errors: {} });
 async function login() {
   try {
     const { data } = await http.post("/auth", user);
-    console.log(data);
     auth.setToken(data.token);
     auth.setUser(data.user);
     auth.setIsAuth(true);
     router.push({ name: "dashboard" });
   } catch (error) {
-    // errorsForm["errors"] = error.response.data;
-    // console.log(error?.response?.data);
+    errorsForm["errors"] = error.response.data;
   }
 }
 </script>
