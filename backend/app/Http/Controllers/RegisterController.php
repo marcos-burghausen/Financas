@@ -26,6 +26,11 @@ class RegisterController extends Controller
             ]
         );
 
+        $email = User::where('email', $data['email'])->first();
+        if ($email) {
+            return response()->json('email já cadastrado', 201);
+        }
+
         $password = $data['password'];
         $data['password'] =  password_hash(
             $password,

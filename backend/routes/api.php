@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::post('/auth', [AuthController::class, 'auth']);
+Route::get('/auth/verify', [AuthController::class, 'verify']);
 
 Route::post('/create', [RegisterController::class, 'create']);
 

@@ -16,14 +16,18 @@ class AuthController extends Controller
 
         $user = Auth::user();
 
-        $token = Jwt::create($user->email);
-        // return response()->json($token);
+        $token = Jwt::create($user);
         return response()->json([
             'token' => $token,
             'user' => [
                 'name' => $user->name,
                 'id' => $user->id
             ]
-        ]);
+        ], 200);
+    }
+
+    public function verify()
+    {
+        Jwt::validate();
     }
 }

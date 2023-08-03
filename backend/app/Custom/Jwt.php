@@ -10,9 +10,11 @@ class Jwt
 {
   public static function validate()
   {
+    //pega o header authorization enviado pela funçaõ checkToken
     $authorization = $_SERVER['HTTP_AUTHORIZATION'];
     $key = $_ENV['JWT_KEY'];
     try {
+      //retirando o Bearer do authorization
       $token = str_replace('Bearer ', '', $authorization);
       $decoded = JWTFirebase::decode($token, new Key($key, 'HS256'));
       return response()->json($decoded, 200);
@@ -24,7 +26,7 @@ class Jwt
   /*
     função que recebe os dados do usuario e cria um código JWT
     */
-  public static function create(String $data)
+  public static function create(User $data)
   {
     //pega o hash JWT arquivo .env
     $key = $_ENV['JWT_KEY'];
@@ -35,7 +37,7 @@ class Jwt
       //iat
       'iat' => time(),
       //data => dados do usuario recebido na função
-      'data' => $data
+      'data' => $data->email
     ];
 
     return JWTFirebase::encode($payload, $key, 'HS256');

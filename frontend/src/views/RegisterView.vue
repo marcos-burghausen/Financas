@@ -2,7 +2,7 @@
   <div class="container">
     <div class="cadastro">
       <div class="logo">
-        <router-link to="/">
+        <router-link :to="{ name: 'home' }">
           <img src="../assets/icons/logo.png" alt="logo" />
         </router-link>
         <h1>Finanças</h1>

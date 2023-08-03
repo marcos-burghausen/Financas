@@ -2,7 +2,7 @@
   <div class="container">
     <div class="login">
       <div class="logo">
-        <router-link to="/">
+        <router-link :to="{ name: 'home' }">
           <img src="../assets/icons/logo.png" alt="logo" />
         </router-link>
         <h1>Finanças</h1>
@@ -97,10 +97,11 @@ const errorsForm = reactive({ errors: {} });
 
 async function login() {
   try {
-    const { data } = await http.post("/login", user);
+    const { data } = await http.post("/auth", user);
     console.log(data);
     auth.setToken(data.token);
     auth.setUser(data.user);
+    auth.setIsAuth(true);
     router.push({ name: "dashboard" });
   } catch (error) {
     // errorsForm["errors"] = error.response.data;

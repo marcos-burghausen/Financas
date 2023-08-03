@@ -1,6 +1,10 @@
 <template>
   <header>
-    <div>
+    <div class="d-flex">
+      <template v-if="auth.isAuthenticated">
+        <h3>{{ auth.fullName }}</h3>
+        <button @click="logout">sair</button>
+      </template>
       <!-- <template v-if="!auth.isAuthenticated"> -->
       <router-link class="router-link" :to="{ name: 'login' }"
         >Login</router-link
@@ -8,13 +12,25 @@
       <router-link class="router-link" :to="{ name: 'cadastro' }"
         >Cadastro</router-link
       >
+      <router-link class="router-link" :to="{ name: 'dashboard' }"
+        >Dashboard</router-link
+      >
       <!-- </template> -->
     </div>
   </header>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { useAuth } from "@/stores/auth.js";
+import { useRouter } from "vue-router";
+
+const auth = useAuth();
+const router = useRouter();
+
+function logout() {
+  auth.clear();
+  router.push({ name: "home" });
+}
 </script>
 
 <style scoped>
