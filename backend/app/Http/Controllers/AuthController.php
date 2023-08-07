@@ -2,32 +2,54 @@
 
 namespace App\Http\Controllers;
 
-use App\Custom\Jwt;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
     public function auth(Request $request)
     {
-        if (!Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
-            return response()->json('Usuario e/ou senha invalidos', 401);
+        $credentials = $request->all(['email', 'password']);
+
+        //autenticação (email e senha)
+        $token = auth('api')->attempt($credentials);
+
+        if ($token) { //usuário autenticado com sucesso
+            return $this->respondWithToken($token);
+        } else { //erro de usuário ou senha
+            return response()->json(['erro' => 'Usuário ou senha inválido!'], 403);
+
+            //401 = Unauthorized -> não autorizado
+            //403 = forbidden -> proibido (login inválido)
         }
+        return response()->json(['token' => $token]);
+    }
 
-        $user = Auth::user();
-
-        $token = Jwt::create($user);
+    protected function respondWithToken($token)
+    {
         return response()->json([
             'token' => $token,
-            'user' => [
-                'name' => $user->name,
-                'id' => $user->id
-            ]
+            'token_type' => 'bearer',
+            'expires_in' => auth()->factory()->getTTL() * 30
         ], 200);
     }
 
-    public function verify()
+    /**
+     * Get the token array structure.
+     *
+     * @param  string $token
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+
+
+    public function me()
     {
-        Jwt::validate();
+        return response()->json(['user' => auth()->user()]);
+    }
+
+    public function logout()
+    {
+        auth('api')->logout();
+        return response()->json(['msg' => 'Logout foi realizado com sucesso!']);
     }
 }

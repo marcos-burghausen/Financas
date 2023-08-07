@@ -18,21 +18,28 @@
 </template>
 
 <script setup>
+import http from "@/services/http.js";
 import { useAuth } from "@/stores/auth.js";
 import { useRouter } from "vue-router";
 
-const auth = useAuth();
 const router = useRouter();
+const auth = useAuth();
 
-function logout() {
-  auth.clear();
-  router.push({ name: "home" });
+async function logout() {
+  try {
+    const { data } = await http.post("/logout");
+    console.log(data);
+    auth.clear();
+    router.push({ name: "home" });
+  } catch (error) {
+    console.log(error);
+  }
 }
 </script>
 
 <style scoped>
 header {
-  /* margin: 0 0 15px 0; */
+  margin: 0 0 15px 0;
   display: flex;
   align-items: center;
   justify-content: flex-end;

@@ -37,20 +37,20 @@ export const useAuth = defineStore('auth', () => {
   })
 
   //checando se o token é valido
-  async function checkToken(token) {
-    try {
-      const tokenAuth = 'Bearer ' + token.value;
-      const { data } = await http.get("/auth/verify", {
-        headers: {
-          Authorization: tokenAuth,
-        },
-      });
-      return data;
-    } catch (error) {
-      isAuth.value = false;
-      console.log(error.response.data);
-    }
-  }
+  // async function checkToken(token) {
+  //   try {
+  //     const tokenAuth = 'Bearer ' + token.value;
+  //     const { data } = await http.get("/auth/verify", {
+  //       headers: {
+  //         Authorization: tokenAuth,
+  //       },
+  //     });
+  //     return data;
+  //   } catch (error) {
+  //     isAuth.value = false;
+  //     console.log(error.response.data);
+  //   }
+  // }
 
   function clear() {
     localStorage.removeItem('token');
@@ -65,7 +65,7 @@ export const useAuth = defineStore('auth', () => {
     user,
     setToken,
     setUser,
-    checkToken,
+    // checkToken,
     isAuthenticated,
     fullName,
     clear,

@@ -99,8 +99,18 @@ async function login() {
   try {
     const { data } = await http.post("/auth", user);
     auth.setToken(data.token);
-    auth.setUser(data.user);
     auth.setIsAuth(true);
+    me();
+  } catch (error) {
+    errorsForm["errors"] = error.response.data;
+  }
+}
+
+async function me() {
+  try {
+    const { data } = await http.post("/me");
+    console.log(data);
+    auth.setUser(data.user);
     router.push({ name: "dashboard" });
   } catch (error) {
     errorsForm["errors"] = error.response.data;

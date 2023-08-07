@@ -4721,7 +4721,7 @@ textarea.form-control-lg {
 .breadcrumb-item + .breadcrumb-item::before {
   float: left;
   padding-right: var(--bs-breadcrumb-item-padding-x);
-  color: var(--bs-breadcrumb-divider-color);
+  color: var(--bs-white);
   content: var(--bs-breadcrumb-divider, "/") /* rtl: var(--bs-breadcrumb-divider, "/") */;
 }
 .breadcrumb-item.active {

@@ -28,14 +28,14 @@ const router = createRouter({
         auth:true
       }
     },
-    // {
-    //   path: '/despesas',
-    //   name: 'despesas',
-    //   component: () => import('@/views/DespesasView.vue'),
-    //   meta: {
-    //     auth:true
-    //   }
-    // },
+    {
+      path: '/despesas',
+      name: 'despesas',
+      component: () => import('@/views/DespesasView.vue'),
+      meta: {
+        auth:true
+      }
+    },
   ]
 })
 
