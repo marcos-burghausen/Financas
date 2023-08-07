@@ -97,22 +97,16 @@ const errorsForm = reactive({ errors: {} });
 
 async function login() {
   try {
-    const { data } = await http.post("/auth", user);
-    auth.setToken(data.token);
+    const res = await http.post("/auth", user);
+    auth.setToken(res.data.token);
     auth.setIsAuth(true);
-    me();
-  } catch (error) {
-    errorsForm["errors"] = error.response.data;
-  }
-}
-
-async function me() {
-  try {
-    const { data } = await http.post("/me");
-    console.log(data);
-    auth.setUser(data.user);
+    console.log(res);
+    const resp = await http.post("/me");
+    console.log(resp);
+    auth.setUser(resp.data.user);
     router.push({ name: "dashboard" });
   } catch (error) {
+    console.log(error);
     errorsForm["errors"] = error.response.data;
   }
 }
