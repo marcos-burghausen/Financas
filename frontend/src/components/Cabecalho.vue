@@ -2,7 +2,7 @@
   <header>
     <div class="d-flex">
       <template v-if="auth.isAuthenticated">
-        <h3>{{ auth.fullName }}</h3>
+        <h3 class="text-white me-3">{{ name }}</h3>
         <button @click="logout">sair</button>
       </template>
       <template v-if="!auth.isAuthenticated">
@@ -21,9 +21,19 @@
 import http from "@/services/http.js";
 import { useAuth } from "@/stores/auth.js";
 import { useRouter } from "vue-router";
+import { userData } from "@/stores/data.js";
+import { computed } from "vue";
+
+const props = defineProps({
+  name: String
+});
+const titulo = computed(() => props.name);
 
 const router = useRouter();
 const auth = useAuth();
+const data = userData();
+
+
 
 async function logout() {
   try {

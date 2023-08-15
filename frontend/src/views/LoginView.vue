@@ -85,6 +85,7 @@ import { useAuth } from "@/stores/auth.js";
 import { useRouter } from "vue-router";
 import http from "@/services/http.js";
 import { reactive } from "vue";
+import { userData } from "@/stores/data.js";
 
 const auth = useAuth();
 const router = useRouter();
@@ -96,14 +97,19 @@ const user = reactive({
 const errorsForm = reactive({ errors: {} });
 
 async function login() {
+  const data = userData();
   try {
     const res = await http.post("/auth", user);
     auth.setToken(res.data.token);
-    auth.setIsAuth(true);
-    console.log(res);
+    // console.log(res);
     const resp = await http.post("/me");
-    console.log(resp);
-    auth.setUser(resp.data.user);
+    // console.log(resp.data);
+    data.setUserName(resp.data.userName);
+    data.setTotalExpenses(resp.data.totalExpenses)
+    data.setTotalReveues(resp.data.totalReveues)
+    data.setTotalCreditCard(resp.data.totalCreditCard)
+    data.setTotalBalance(resp.data.totalBalance)
+    auth.setUser(resp.data.userName);
     router.push({ name: "dashboard" });
   } catch (error) {
     console.log(error);

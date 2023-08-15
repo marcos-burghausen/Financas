@@ -12,7 +12,7 @@ class Expense extends Model
     protected $primaryKey = 'id';
     protected $filable = [
         'valor',
-        'data',
+        'date',
         'descricao',
         'categoria',
         'carteira',

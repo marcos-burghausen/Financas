@@ -4,12 +4,12 @@ export default async function routes(to, from, next) {
   //se existir o meta para a rota que estou indo
   if (to.meta?.auth) {
     const auth = useAuth();
-    if (auth.isAuth) {
+    if (auth.isAuthenticated) {
       next();
     } else {
       next({ name: "login" });
     }
-    console.log(to.name);
+    // console.log(to.name);
   } else {
     next();
   }

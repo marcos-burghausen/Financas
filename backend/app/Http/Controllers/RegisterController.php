@@ -4,11 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Pioneira\Security\Laravel\Facades\SecurityValidation;
 
 class RegisterController extends Controller
 {
     public function create(Request $request)
     {
+        // $validateRequest = [
+        //     'new_password' => ['required', SecurityValidation::senhaFormat()]
+        // ];
+
+        // SecurityValidation::apiSecurityValidate($request, $validateRequest);
+        // return response()->json($request);
+
         $data = $request->validate(
             [
                 'name'            => 'required|min:3|string',

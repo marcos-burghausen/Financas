@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="">
-      <router-link to="/despesas">
+      <router-link class="link" :to="{ name: rota}">
         <h5 class="text-white mb-0">{{ titulo }}</h5>
         <div class="progress my-3" style="height: 3px">
           <div class="progress-bar" style="width: 100%"></div>
@@ -27,11 +27,15 @@ const rota = computed(() => props.rota);
 
 <style scoped>
 .card {
-  /* height: 140px; */
+  /* height: 100px; */
   box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
   padding: 15px 15px;
   color: #ccc;
   font-size: 30px;
   background-color: transparent;
+}
+
+.link {
+  text-decoration: none;
 }
 </style>

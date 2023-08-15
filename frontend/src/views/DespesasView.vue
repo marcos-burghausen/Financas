@@ -1,10 +1,10 @@
 <template>
-  <Cabecalho />
+  <Cabecalho :name= "name" />
   <div class="clearfix"></div>
 
   <div class="content-wrapper">
     <div class="pagetitle">
-      <nav class="d-flex justify-content-between">
+      <nav class="d-flex justify-content-between mb-3">
         <ol class="breadcrumb bg-transparent">
           <li class="breadcrumb-item">
             <router-link :to="{ name: 'dashboard' }" class="text-white"
@@ -155,18 +155,18 @@
       <div class="row justify-content-between m-0 mb-4">
         <Card
           class="card col-12 col-md-6 col-lg-6 col-xl-3 bg-transparent"
-          titulo="Despesas pendentes"
-          valor="3000,00"
+          titulo="Despesas"
+          :valor="totalExpenses"
         />
         <Card
           class="card col-12 col-md-6 col-lg-6 col-xl-3 bg-transparent"
-          titulo="Despesas"
-          valor="3000,00"
+          titulo="Despesas pendentes"
+          :valor="totalExpenses"
         />
         <Card
           class="card col-12 col-md-6 col-lg-6 col-xl-3 bg-transparent"
           titulo="Despesas pagas"
-          valor="3000,00"
+          :valor="totalExpenses"
         />
       </div>
 
@@ -176,24 +176,15 @@
             class="row justify-content-center card-header mx-0 py-1"
             style="background-color: rgba(0, 0, 0, 0.25)"
           >
-            <div class="row align-items-center col-5 ms-2">Despesas</div>
+            <!-- <div class="row align-items-center col-5 ms-2">Despesas</div> -->
             <div class="d-flex text-center col-2">
-              <form>
-                @csrf
                 <button
                   class="btn btn-outline-table text-white p-0 fs-5 bi bi-caret-left"
-                ></button>
-              </form>
-              <p class="m-0 pt-1 border rounded-pill w-75">$mesAnoBR</p>
-              <form
-                action="{{ route('despesasMes', $proximoMes + 1) }}"
-                method="POST"
-              >
-                @csrf
+                ><mdicon class="mdicon" name="chevron-left" /></button>
+              <p class="m-0 pt-1 border rounded-pill w-75 text-white">mesAnoBR</p>
                 <button
                   class="btn btn-outline-table text-white p-0 fs-5 bi bi-caret-right"
-                ></button>
-              </form>
+                ><mdicon class="mdicon" name="chevron-right" /></button>
             </div>
           </div>
           <div class="table-responsive">
@@ -294,12 +285,16 @@
 // import FormLancamentos from "../components/FormLancamentos.vue";
 import Cabecalho from "@/components/Cabecalho.vue";
 import Card from "../components/Card.vue";
-// import { useRouter } from "vue-router";
+import { useRouter } from "vue-router";
 import { ref, reactive } from "vue";
 import http from "@/services/http.js";
 // import { useAuth } from "@/stores/auth";
+import { userData } from "@/stores/data.js";
 
-// const router = useRouter();
+
+const data = userData();
+
+const router = useRouter();
 // const auth = useAuth();
 const exibir = ref(false);
 
@@ -310,6 +305,12 @@ const releases = reactive({
   categoria: "",
   carteira: "",
 });
+
+let name = ref('');
+name = data.getUserName;
+
+let totalExpenses = ref('');
+totalExpenses = data.getTotalExpenses;
 
 const errorsForm = reactive({ errors: {} });
 
@@ -398,6 +399,6 @@ async function salvarLancamentos() {
 }
 .btn {
   height: 40px;
-  margin-top: 15px;
+  /* margin-top: 15px; */
 }
 </style>

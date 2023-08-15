@@ -18,7 +18,7 @@ class ExpenseFactory extends Factory
     {
         return [
             'valor' => fake(),
-            'data' => fake(),
+            'date' => fake(),
             'descricao' => fake(),
             'categoria' => fake(),
             'carteira' => fake(),

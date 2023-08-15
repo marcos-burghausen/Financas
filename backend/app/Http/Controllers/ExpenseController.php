@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 
 class ExpenseController extends Controller
 {
-    public function saveRelease(Request $request)
+    public function saveReleases(Request $request)
     {
         $data = $request->validate(
             [
@@ -30,7 +30,7 @@ class ExpenseController extends Controller
         Expense::factory()->createOne([
             'user_id'   => $user->id,
             'valor'     => $data['valor'],
-            'data'      => $data['date'],
+            'date'      => $data['date'],
             'descricao' => $data['descricao'],
             'categoria' => $data['categoria'],
             'carteira'  => $data['carteira'],

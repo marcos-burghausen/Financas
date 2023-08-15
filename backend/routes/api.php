@@ -27,8 +27,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::middleware('jwt.auth')->group(function () {
-    Route::post('/me', [AuthController::class, 'me']);
-    Route::post('logout', [AuthController::class, 'logout']);
-    Route::post('/save-release', [ExpenseController::class, 'saveRelease']);
-    // Route::post('refresh', 'App\Http\Controllers\AuthController@refresh');
+    Route::get('/me', [AuthController::class, 'me']);
+    Route::post('refresh', [AuthController::class, 'refresh']);
+    Route::get('logout', [AuthController::class, 'logout']);
+    Route::post('/save-release', [ExpenseController::class, 'saveReleases']);
 });
