@@ -1,17 +1,21 @@
 import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
+import { userData } from "@/stores/data.js";
 import http from '@/services/http.js';
 
 export const useAuth = defineStore('auth', () => {
-
+  //criando o token no localStorage 
   const token = ref(localStorage.getItem("token"));
+  //criando o user no localStorage como string
   const user = ref(JSON.parse(localStorage.getItem("user")));
-
+  
+  //armazenando o token
   function setToken(tokenValue) {
     localStorage.setItem('token', tokenValue);
     token.value = tokenValue;
   }
-
+  
+  //armazenando o user
   function setUser(userValue) {
     localStorage.setItem('user', JSON.stringify(userValue));
     user.value = userValue;
@@ -21,30 +25,10 @@ export const useAuth = defineStore('auth', () => {
       return token.value && user.value;
   })
 
-  const fullName = computed(() => {
-    if (user.value) {
-      return user.value.firstName + ' ' + user.value.lastName;
-    }
-    return '';
-  })
-
-  async function checkToken() {
-    try {
-      const tokenAuth = 'Bearer ' + token.value;
-      const { data } = await http.get("/auth/verify", {
-        headers: {
-          Authorization: tokenAuth,
-        },
-      });
-      return data;
-    } catch (error) {
-      console.log(error.response.data);
-    }
-  }
-
   function clear() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    // localStorage.removeItem('data');
     token.value = '';
     user.value = '';
   }
@@ -54,10 +38,8 @@ export const useAuth = defineStore('auth', () => {
     user,
     setToken,
     setUser,
-    checkToken,
     isAuthenticated,
-    fullName,
-    clear
+    clear,
   }
 
 })
