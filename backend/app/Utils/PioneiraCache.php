@@ -56,16 +56,16 @@ class PioneiraCache
      */
     public static function update(string $key, mixed $value, int $ttl = null): mixed
     {
-        if (! self::has($key)) throw new CacheNotFound("The cache with the key '{$key}' does not exists and can not be updated.");
+        if (!self::has($key)) throw new CacheNotFound("The cache with the key '{$key}' does not exists and can not be updated.");
 
-        $ttl = $ttl ? 
-            $ttl : 
+        $ttl = $ttl ?
+            $ttl :
             Redis::connection('cache')->ttl(config('cache.prefix') . ':' . $key);
 
         return self::put($key, $value, $ttl);
     }
 
-     /**
+    /**
      * This method is used to delete a value in cache
      * @param string $key The cache key
      * @return void
