@@ -127,7 +127,7 @@ async function create() {
   try {
     const { data } = await http.post("/create", user);
     console.log(data);
-    // router.push({ name: "login" });
+    router.push({ name: "login" });
   } catch (error) {
     errorsForm["errors"] = error.response.data["errors"];
   }

@@ -101,7 +101,7 @@ async function login() {
   try {
     const res = await http.post("/auth", user);
     auth.setToken(res.data.token);
-    // console.log(res);
+    console.log(res);
     const resp = await http.post("/me");
     // console.log(resp.data);
     data.setUserName(resp.data.userName);

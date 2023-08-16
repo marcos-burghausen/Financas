@@ -286,10 +286,22 @@
 import Cabecalho from "@/components/Cabecalho.vue";
 import Card from "../components/Card.vue";
 import { useRouter } from "vue-router";
-import { ref, reactive } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import http from "@/services/http.js";
 // import { useAuth } from "@/stores/auth";
 import { userData } from "@/stores/data.js";
+
+onMounted(() => {
+  console.log('object');
+  (async () => {
+    try {
+      const resp = await http.post("/me");
+      console.log(resp.data);
+    } catch (error) {
+      console.log(error);
+    }
+  })()
+})
 
 
 const data = userData();

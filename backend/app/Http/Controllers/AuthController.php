@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Actions;
 use App\Enums\CacheKeys;
 use App\Enums\CacheNaming;
 use App\Http\Traits\ReleasesMonthTrait;
@@ -20,26 +21,32 @@ class AuthController extends Controller
 
         //autenticação (email e senha)
         $token = auth('api')->attempt($credentials);
-        return redirect('/api/)
-
-        if ($token) { //usuário autenticado com sucesso
-            /* O metodo put espera 3 valores
-               o primeiro valor é o valor da chve como se fosse o nome de uma variavel
-               o segundo valor é valor da chave
-               o terceiro é o tempo em segundos que a informação vai permanecer no banco
-            */
-            // Cache::put('login', 'logado com sucesso', 60);
-            PioneiraCache::put(CacheKeys::FLOW_TITLE->append($request->email), [
-                CacheNaming::EMAIL->value       => $request->email,
-            ], 60);
-            $token = $this->respondWithToken($token);
-            return response()->json($token->original);
-        } else { //erro de usuário ou senha
-            return response()->json(['erro' => 'Usuário ou senha inválido!'], 403);
-
-            //401 = Unauthorized -> não autorizado
-            //403 = forbidden -> proibido (login inválido)
+        if (!$token) {
+            LogController::addsLog($request->email, Actions::USER_OR_PASSWORD_INVALID);
+            return response()->json(['erro' => 'Usuário ou senha inválido!'], 401);
         }
+        $token = substr_replace($token, 'Bearer ', 0, 0);
+
+        //usuário autenticado com sucesso
+        /* O metodo put espera 3 valores
+            o primeiro valor é o valor da chve como se fosse o nome de uma variavel
+            o segundo valor é valor da chave
+            o terceiro é o tempo em segundos que a informação vai permanecer no banco
+            */
+        // Cache::put('login', 'logado com sucesso', 1);
+        // PioneiraCache::put(CacheKeys::FLOW_TITLE->append($request->email), [
+        //     CacheNaming::EMAIL->value       => $request->email,
+        // ], 1);
+        $token = $this->respondWithToken($token);
+
+        LogController::addsLog($request->email, Actions::LOGIN);
+
+        return response()->json($token->original);
+        //erro de usuário ou senha
+
+        //401 = Unauthorized -> não autorizado
+        //403 = forbidden -> proibido (login inválido)
+
     }
 
     /**
@@ -63,6 +70,8 @@ class AuthController extends Controller
         $totalCreditCard = 5000;
         $totalBalance = 5000;
 
+        LogController::addsLog($user->email, Actions::ME);
+
         return response()->json([
             'userName' => $user->name,
             'totalExpenses' => $totalExpenses,
@@ -70,7 +79,6 @@ class AuthController extends Controller
             'totalCreditCard'  => $totalCreditCard,
             'totalBalance'  => $totalBalance,
         ]);
-        // return response()->json(['user' => auth()->user()]);
     }
 
     public function logout()
