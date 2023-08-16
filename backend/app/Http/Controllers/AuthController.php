@@ -32,11 +32,10 @@ class AuthController extends Controller
             o primeiro valor é o valor da chve como se fosse o nome de uma variavel
             o segundo valor é valor da chave
             o terceiro é o tempo em segundos que a informação vai permanecer no banco
-            */
-        // Cache::put('login', 'logado com sucesso', 1);
-        // PioneiraCache::put(CacheKeys::FLOW_TITLE->append($request->email), [
-        //     CacheNaming::EMAIL->value       => $request->email,
-        // ], 1);
+        */
+        PioneiraCache::put(CacheKeys::FLOW_TITLE->append($request->email), [
+            CacheNaming::EMAIL->value       => $request->email,
+        ], 1);
         $token = $this->respondWithToken($token);
 
         LogController::addsLog($request->email, Actions::LOGIN);
