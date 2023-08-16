@@ -18,8 +18,6 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/me', function () {
-    return 'cheguei';
-});
-
-// Route::get('/me', [AuthController::class, 'me']);
+// Route::middleware('jwt.auth')->group(function () {
+//     Route::get('/me', [AuthController::class, 'me']);
+// });
