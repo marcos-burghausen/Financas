@@ -49,6 +49,7 @@ class RegisterController extends Controller
             'name'     => $data['name'],
             'email'    => $data['email'],
             'password' => $data['password'],
+            'categorias' => ['casa', 'transporte', 'educação']
         ]);
         return response()->json('usuario cadastrado com sucesso', 200);
     }
