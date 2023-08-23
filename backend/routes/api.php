@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\WalletsController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\RegisterController;
 use Illuminate\Http\Request;
@@ -17,18 +18,28 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+//     return $request->user();
+// });
+
 Route::post('/auth', [AuthController::class, 'auth']);
 
 Route::post('/create', [RegisterController::class, 'create']);
 
-
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
 Route::middleware('jwt.auth')->group(function () {
     Route::post('/me', [AuthController::class, 'me']);
-    Route::post('refresh', [AuthController::class, 'refresh']);
-    Route::post('logout', [AuthController::class, 'logout']);
-    Route::post('/save-release', [ExpenseController::class, 'saveReleases']);
+    Route::post('/refresh', [AuthController::class, 'refresh']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+
+    Route::post('/save-expense', [ExpenseController::class, 'saveExpense']);
+    Route::get('/get-expense', [ExpenseController::class, 'getExpense']);
+    Route::post('/edit-expense', [ExpenseController::class, 'editExpense']);
+    Route::post('/delete-expense', [ExpenseController::class, 'deleteExpense']);
+
+
+    Route::post('/edit-wallets', [WalletsController::class, 'editWallets']);
+    Route::post('/add-wallets', [WalletsController::class, 'addWallets']);
+    Route::post('/delete-wallets', [WalletsController::class, 'deletWallets']);
+    Route::post('/get-wallets', [WalletsController::class, 'getWallets']);
 });

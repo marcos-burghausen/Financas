@@ -23,6 +23,7 @@ class User extends Authenticatable implements JWTSubject
         'email',
         'password',
         'categorias',
+        'carteiras'
     ];
 
     /**
@@ -41,10 +42,18 @@ class User extends Authenticatable implements JWTSubject
      * @var array<string, string>
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password'          => 'hashed',
-        'categorias'        => 'array'
+        'email_verified_at'  => 'datetime',
+        'password'           => 'hashed',
+        'categoriasDespesas' => 'array',
+        'categoriasReceitas' => 'array',
+        'carteiras'          => 'array'
     ];
+
+    public function expenses()
+    {
+        //hasMany (tem muitos)
+        return $this->hasMany(Expense::class);
+    }
 
     // Rest omitted for brevity
 

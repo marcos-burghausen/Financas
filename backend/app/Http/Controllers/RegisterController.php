@@ -3,20 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Wallets;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Pioneira\Security\Laravel\Facades\SecurityValidation;
 
 class RegisterController extends Controller
 {
     public function create(Request $request)
     {
-        // $validateRequest = [
-        //     'new_password' => ['required', SecurityValidation::senhaFormat()]
-        // ];
-
-        // SecurityValidation::apiSecurityValidate($request, $validateRequest);
-        // return response()->json($request);
-
         $data = $request->validate(
             [
                 'name'            => 'required|min:3|string',
@@ -45,12 +40,30 @@ class RegisterController extends Controller
             PASSWORD_ARGON2I
         );
 
-        User::factory()->createOne([
-            'name'     => $data['name'],
-            'email'    => $data['email'],
-            'password' => $data['password'],
-            'categorias' => ['casa', 'transporte', 'educação']
-        ]);
+        $categoriasDespesasDefault = [
+            'Casa',
+            'Transporte',
+            'Educação',
+            'Lazer',
+            'Saúde',
+            'Outros'
+        ];
+
+        $categoriasReceitasDefault = [
+            'Salario',
+            'Investimentos',
+            'Outros'
+        ];
+
+        $user = new User;
+        $user->name = $data['name'];
+        $user->email = $data['email'];
+        $user->password = $data['password'];
+        $user->categoriasDespesas = $categoriasDespesasDefault;
+        $user->categoriasReceitas = $categoriasReceitasDefault;
+        $user->carteiras          = ['Pessoal'];
+        $user->save();
+
         return response()->json('usuario cadastrado com sucesso', 200);
     }
 }
