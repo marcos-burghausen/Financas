@@ -8,13 +8,13 @@ export const useAuth = defineStore('auth', () => {
   const token = ref(localStorage.getItem("token"));
   //criando o user no localStorage como string
   const user = ref(JSON.parse(localStorage.getItem("user")));
-  
+
   //armazenando o token
   function setToken(tokenValue) {
     localStorage.setItem('token', tokenValue);
     token.value = tokenValue;
   }
-  
+
   //armazenando o user
   function setUser(userValue) {
     localStorage.setItem('user', JSON.stringify(userValue));
@@ -22,13 +22,13 @@ export const useAuth = defineStore('auth', () => {
   }
 
   const isAuthenticated = computed(() => {
-      return token.value && user.value;
+    return token.value && user.value;
   })
 
   function clear() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    // localStorage.removeItem('data');
+    localStorage.removeItem('data');
     token.value = '';
     user.value = '';
   }

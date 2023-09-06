@@ -26,9 +26,6 @@ enum Actions
   case IMAGE_CREATE;
   case IMAGE_UPDATE;
 
-  case ASSOCIATE_DATA;
-
-
   case UPDATE_PASSWORD;
   case RECOVER_PASSWORD;
 

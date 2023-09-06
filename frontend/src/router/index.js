@@ -25,15 +25,15 @@ const router = createRouter({
       name: 'dashboard',
       component: () => import('@/views/DashboardView.vue'),
       meta: {
-        auth:true
+        auth: true
       }
     },
     {
       path: '/despesas',
       name: 'despesas',
-      component: () => import('@/views/DespesasView.vue'),
+      component: () => import('@/views/despesas/DespesasView.vue'),
       meta: {
-        auth:true
+        auth: true
       }
     },
   ]

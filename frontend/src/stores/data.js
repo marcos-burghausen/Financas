@@ -5,21 +5,22 @@ export const userData = defineStore('data', {
     // state -> propriedades reativas
     // const dataUser = reactive({ data:{}});
     state: () => ({
-        userName: '',
+        user: '',
         totalExpenses: '',
         totalReveues: '',
         totalCreditCard: '',
         totalBalance: '',
+        expenses: '',
 
     }),
-    
+
     // actions -> methods
     // function defineData(data) {
     //         dataUser['data'] = data
     //     }
     actions: {
-        setUserName(data) {
-            this.userName = data;
+        setUser(data) {
+            this.user = data;
         },
         setTotalExpenses(data) {
             this.totalExpenses = data;
@@ -33,6 +34,18 @@ export const userData = defineStore('data', {
         setTotalBalance(data) {
             this.totalBalance = data;
         },
+        setExpenses(data) {
+            this.expenses = data
+        },
+        addExpense(release) {
+            this.expenses.push(release);
+        },
+        addValor(valor) {
+            this.totalExpenses += valor;
+        },
+        decrementValor(valor) {
+            this.totalExpenses -= valor;
+        }
 
     },
 
@@ -56,6 +69,9 @@ export const userData = defineStore('data', {
         getTotalBalance() {
             return this.totalBalance;
         },
+        getExpenses() {
+            return this.expenses;
+        },
     },
     persist: true,
 
@@ -64,6 +80,6 @@ export const userData = defineStore('data', {
     //     defineData,
     //     getData
     // }
-        
+
 
 })

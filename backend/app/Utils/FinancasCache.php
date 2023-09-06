@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Redis;
 /**
  * This class is responsible to make cache operations
  */
-class PioneiraCache
+class FinancasCache
 {
     /**
      * This method is used to know if the requested cache key exists

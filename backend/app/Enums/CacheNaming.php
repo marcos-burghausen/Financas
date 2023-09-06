@@ -8,7 +8,4 @@ enum CacheNaming: string
     case EMAIL = "email";
     case CLOSED = "encerrada";
     case VERIFIED = "verified";
-    case CPF_CNPJ = "cpf_cnpj";
-    case CELL_PHONE = "celular";
-    case BANK_BRANCH = "agencia";
 }

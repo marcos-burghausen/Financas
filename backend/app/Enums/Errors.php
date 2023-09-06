@@ -14,42 +14,45 @@ enum Errors: string
      * 
      * Ranges das enums:
      * 
-     * 001 ao 100 -> Cadastro
-     * 101 ao 200 -> Tokens
-     * 201 ao 300 -> Login
-     * 401 ao 500 -> senha
+     * 001 ao 099 -> Cadastro
+     * 100 ao 199 -> Tokens
+     * 200 ao 299 -> Login
+     * 300 ao 399 -> senha
+     * 400 ao 499 -> despesas
      * ...
      * 
      * podemos ir adicionando conforme adicionamos mais features ao código
      */
 
-    case EXAMPLE_ERROR = "SP000";
+    case EXAMPLE_ERROR                  = "SP000";
 
-    case USER_ALREADY_REGISTERED = "SP001";
-    case USER_NOT_FOUND = "SP002";
-    case ACTION_AVAILABLE_ONLY_FOR_ACTIVE_ACCOUNTS = "SP003";
-    case ERROR_WHILE_GETTING_USER_DATA = "SP004";
-    case ERROR_WHILE_GETTING_USER_AGENCIA = "SP005";
-    case USER_DOES_NOT_HAVE_CELL_PHONE_AND_EMAIL_REGISTERED = "SP006";
-    case USER_CREATE_FAILED = "SP007";
-    case IMAGE_STORE_FAILED = "SP008";
-    case USER_NOT_REGISTERED = "SP009";
+    case USER_ALREADY_REGISTERED        = "SP001";          //usuario ja cadastrado
+    case ERROR_WHILE_GETTING_USER_DATA  = "SP002";          //erro ao obter dados do usuario
+        // case USER_CREATE_FAILED             = "SP002";          //falha na criação do usuario
+        // case IMAGE_STORE_FAILED             = "SP003";          //falha no armazenamento da imagem
+        // case USER_NOT_REGISTERED            = "SP004";          //usuario não registrado
 
-    case TOKEN_SEND_FAILURE = "SP101";
-    case TOKEN_RESEND_FAILURE = "SP102";
-    case TOKEN_MAX_RESENDS_REACHED = "SP103";
-    case TOKEN_MAX_ATTEMPTS_REACHED = "SP104";
-    case TOKEN_EXPIRED = "SP105";
-    case TOKEN_INCORRECT = "SP106";
-    case TOKEN_BLOCKED = "SP107";
-    case TOKEN_NOT_VERIFIED = "SP108";
+        // case TOKEN_SEND_FAILURE             = "SP100";          //
+        // case TOKEN_RESEND_FAILURE           = "SP101";          //
+        // case TOKEN_MAX_RESENDS_REACHED      = "SP102";          //
+        // case TOKEN_MAX_ATTEMPTS_REACHED     = "SP103";          //
+        // case TOKEN_EXPIRED                  = "SP104";          //
+        // case TOKEN_INCORRECT                = "SP105";          //
+        // case TOKEN_BLOCKED                  = "SP106";          //
+        // case TOKEN_NOT_VERIFIED             = "SP107";          //
 
-    case USER_DATA_EXPIRED = "SP301";
-    case USER_DATA_FETCH_FAIL = "SP302";
-    case USER_BANK_BRANCH_FETCH_FAIL = "SP303";
+    case INVALID_USERNAME_OR_PASSWORD   = "SP200";          //usuario ou senha invalidos
 
-    case PASSWORD_INCORRECT = "SP401";
-    case PASSWORD_ALREADY_USED = "SP402";
+        // case USER_DATA_EXPIRED              = "SP300";          //
+        // case USER_DATA_FETCH_FAIL           = "SP301";
+
+        // case PASSWORD_INCORRECT             = "SP302";
+        // case PASSWORD_ALREADY_USED          = "SP303";
+
+    case ERROR_REGISTERING_EXPENSE      = "SP400";          //erro ao cadastrar despesa
+    case ERROR_DELETING_EXPENSE         = "SP401";          //erro ao excluir despesa
+    case ERROR_UPDATING_EXPENSE         = "SP402";          //erro ao atualizar despesa
+    case ERROR_FETCHING_EXPENSE         = "SP403";          //erro ao buscar despesa
 
     /**
      * This method returns a Laravel Response, so you don't need to duplicate code

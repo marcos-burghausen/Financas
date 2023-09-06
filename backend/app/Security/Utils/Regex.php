@@ -1,8 +1,8 @@
 <?php
 
-namespace app\Security\Validation;
+namespace app\Security\Utils;
 
-class Regexp
+class Regex
 {
 
 	static $severity = [
@@ -32,10 +32,6 @@ class Regexp
 	const PATTERN_CPFCNPJ = '/^[0-9]{3}\.[0-9]{3}\.[0-9]{3}\-[0-9]{2}$|^[0-9]{11}$|^[0-9]{2}\.[0-9]{3}\.[0-9]{3}\/[0-9]{4}\-[0-9]{2}$|^[0-9]{14}$/';
 	const PATTERN_CPF = '/^[0-9]{3}\.[0-9]{3}\.[0-9]{3}\-[0-9]{2}$|^[0-9]{11}$/';
 	const PATTERN_CNPJ = '/^[0-9]{2}\.[0-9]{3}\.[0-9]{3}\/[0-9]{4}\-[0-9]{2}$|^[0-9]{14}$/';
-	const PATTERN_CARTEIRA = '/^[0-9]{3}$/';
-	const PATTERN_ISA = '/^[0-9]{1,2}$/';
-	const PATTERN_SCORE = '/^(1000)$|^[0-9]{1,3}$/';
-	const PATTERN_RATING = '/^AA$|^[A-H]$/';
 	const PATTERN_DATA_BR = '/^[0-9]{2}\/[0-9]{2}\/[0-9]{4}$/';
 	const PATTERN_DATA_EN = '/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/';
 	const PATTERN_HORA = '/^([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/';
@@ -51,30 +47,6 @@ class Regexp
 	const PATTERN_BOOLEAN = '/^(s|sim|1|true|verdadeiro|n|n(a|ã|Ã)o|0|fals[eo])$/i';
 	const PATTERN_TRUE = '/^(s|sim|1|true|verdadeiro)$/i';
 	const PATTERN_FALSE = '/^(n|n(a|ã|Ã)o|0|fals[eo])$/i';
-	const PATTERN_TIPO_PESSOA = '/^(1|f|pf|(pessoa )?f(i|í)sica|2|3|4|j|pj|(pessoa )?jur(i|í)dica)$/i';
-	const PATTERN_TIPO_PESSOA_PF = '/^(1|f|pf|(pessoa )?f(i|í)sica)$/i';
-	const PATTERN_TIPO_PESSOA_PJ = '/^(2|3|4|j|pj|(pessoa )?jur(i|í)dica)$/i';
-
-	const PATTERN_SEGURO_PROD_AUTO = 'AUTO|DUAS RODAS|MOTOS';
-	const PATTERN_SEGURO_PROD_VIDA = 'VIDA|ACIDENTES PESSOAIS|ALTA RENDA|PROFISSIONAL|UNIQUE|SORTE FÁCIL';
-	const PATTERN_SEGURO_PROD_RESIDENCIAL = 'RESID|CASA';
-	//	const PATTERN_SEGURO_PROD_PATRIMONIAL = '^((?!VIDA|PREVID).)*EMPRESA((?!VIDA|PREVID).)*|CONDOMÍNIO'; //não roda no operador $regexMatch do aggregate
-	const PATTERN_SEGURO_PROD_PATRIMONIAL = '^(?!.*VIDA.*)(?!.*PREVID.*).*EMPRESA(?!.*VIDA)(?!.*PREVID)|CONDOMÍNIO';
-	const PATTERN_SEGURO_PROD_RURAL = 'RURAL|GRANIZO|MAQUINAS E EQUIPAMENTOS';
-	const PATTERN_SEGURO_PROD_AGRICOLA = 'AGRICOLA';
-
-	const PATTERN_CONSORCIO_SEGMENTO_AUTOMOVEIS = '^AUTOM.VEIS$';
-	const PATTERN_CONSORCIO_SEGMENTO_IMOVEIS = '^IM.VEIS$';
-	const PATTERN_CONSORCIO_SEGMENTO_MOTOCICLETAS = '^MOTOCICLETAS$';
-	const PATTERN_CONSORCIO_SEGMENTO_SERVICOS = '^SERVI.OS$';
-	const PATTERN_CONSORCIO_SEGMENTO_MOVEIS_PLANEJADOS = '^M.VEIS PLANEJADOS$';
-	const PATTERN_CONSORCIO_SEGMENTO_CAMINHAO_TRATOR_EQUIP = '^CAMINH.O, TRATOR E EQUIP.$';
-
-	const PATTERN_PRINCIPALIDADE_MUITO_BAIXA    = '^MUITO BAIXA$';
-	const PATTERN_PRINCIPALIDADE_BAIXA          = '^BAIXA$';
-	const PATTERN_PRINCIPALIDADE_MEDIA          = '^M.DIA$';
-	const PATTERN_PRINCIPALIDADE_ALTA           = '^ALTA$';
-	const PATTERN_PRINCIPALIDADE_MUITO_ALTA     = '^MUITO ALTA$';
 
 	const PATTTERN_MULTI_DATE = '/^(\d{2}\D){2}\d{4}\D{1,3}(\d{2}\D){2}\d{4}$/';
 	const PATTERN_METHOD = '/^(create|update)$/i';

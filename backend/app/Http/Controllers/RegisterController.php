@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Errors;
 use App\Models\User;
 use App\Models\Wallets;
 use Illuminate\Http\Request;
@@ -31,7 +32,7 @@ class RegisterController extends Controller
 
         $email = User::where('email', $data['email'])->first();
         if ($email) {
-            return response()->json('email já cadastrado', 201);
+            return response()->json(Errors::USER_ALREADY_REGISTERED->response());
         }
 
         $password = $data['password'];

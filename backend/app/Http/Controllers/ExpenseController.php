@@ -2,16 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Errors;
 use App\Models\Expense;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use PhpParser\Node\Stmt\Return_;
 
 class ExpenseController extends Controller
 {
     public function saveExpense(Request $request)
     {
-
         $data = $request->validate(
             [
                 'valor'     => 'required',
@@ -28,7 +26,6 @@ class ExpenseController extends Controller
                 'carteira.required'  => 'O campo carteira senha é obrigatório',
             ]
         );
-
         $expense = new Expense;
         $expense->user_id   = auth()->user()->id;
         $expense->valor     = $data['valor'];
@@ -39,25 +36,29 @@ class ExpenseController extends Controller
         $saved = $expense->save();
 
         if (!$saved) {
-            return response()->json('erro ao cadastrar despesa');
+            return response()->json(Errors::ERROR_REGISTERING_EXPENSE->response());
         }
 
+        $expense = auth()->user()->expenses()->orderBy('id', 'DESC')->first();
         // Mail::to($user->email)->send(new DespesaRegistradaMail($despesa));
-
-        return response()->json('despesa cadastrada com sucesso', 200);
+        return response()->json([
+            'success' => 'despesa cadastrada com sucesso',
+            'expense' => $expense
+        ], 200);
     }
 
     public function deleteExpense(Request $request)
     {
-        $delete = Expense::destroy($request->id);
-        if ($delete) {
+        $deleted = Expense::destroy($request->id);
+        if ($deleted) {
             return response()->json('Despesa excluida com sucesso');
         }
-        return response()->json('Erro ao excluir despesa');
+        return response()->json(Errors::ERROR_DELETING_EXPENSE->response());
     }
 
     public function editExpense(Request $request)
     {
+        return response($request);
         $expense = Expense::find($request->id);
         $expense->valor = $request->valor;
         $expense->date = $request->date;
@@ -69,11 +70,15 @@ class ExpenseController extends Controller
         if ($saved) {
             return response()->json('Despesa atualizado com sucesso');
         }
-        return response()->json('Erro ao atualizar despesa');
+        return response()->json(Errors::ERROR_UPDATING_EXPENSE->response());
     }
 
     public function getExpense()
     {
-        return response()->json(auth()->user()->expenses()->get());
+        if ($expenses = auth()->user()->expenses()->get()) {
+            return response()->json(['expenses' => $expenses]);
+        }
+
+        return response()->json(Errors::ERROR_FETCHING_EXPENSE->response());
     }
 }

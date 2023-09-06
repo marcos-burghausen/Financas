@@ -5,11 +5,10 @@ namespace App\Http\Controllers;
 use App\Enums\Actions;
 use App\Enums\CacheKeys;
 use App\Enums\CacheNaming;
+use App\Enums\Errors;
 use App\Http\Traits\ReleasesMonthTrait;
-use App\Utils\PioneiraCache;
+use App\Utils\FinancasCache;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
 
 class AuthController extends Controller
 {
@@ -17,13 +16,24 @@ class AuthController extends Controller
 
     public function auth(Request $request)
     {
+        $request->validate(
+            [
+                'email'           => 'required|email',
+                'password'        => 'required|string',
+            ],
+            [
+                'email.required'           => 'O campo email é obrigatório',
+                'email.email'             => 'O email precisa ter um formato de email válido',
+                'password.required'        => 'O campo senha é obrigatório',
+            ]
+        );
         $credentials = $request->all(['email', 'password']);
 
         //autenticação (email e senha)
         $token = auth('api')->attempt($credentials);
         if (!$token) {
             LogController::addsLog($request->email, Actions::USER_OR_PASSWORD_INVALID);
-            return response()->json(['erro' => 'Usuário ou senha inválido!'], 401);
+            return Errors::INVALID_USERNAME_OR_PASSWORD->response();
         }
 
         //usuário autenticado com sucesso
@@ -32,19 +42,15 @@ class AuthController extends Controller
             o segundo valor é valor da chave
             o terceiro é o tempo em segundos que a informação vai permanecer no banco
         */
-        PioneiraCache::put(CacheKeys::FLOW_TITLE->append($request->email), [
-            CacheNaming::EMAIL->value       => $request->email,
+        FinancasCache::put(CacheKeys::FLOW_TITLE->append($request->email), [
+            CacheNaming::EMAIL->value => $request->email,
         ], 30);
+
         $token = $this->respondWithToken($token);
 
         LogController::addsLog($request->email, Actions::LOGIN);
 
         return response()->json($token->original);
-        //erro de usuário ou senha
-
-        //401 = Unauthorized -> não autorizado
-        //403 = forbidden -> proibido (login inválido)
-
     }
 
     /**
@@ -56,27 +62,29 @@ class AuthController extends Controller
      */
     public function me()
     {
-        $user = auth()->user();
+        if ($user = auth()->user()) {
 
-        $expenses = DB::table('expenses')
-            ->where('user_id', $user->id)
-            ->get();
+            $expenses = auth()->user()->expenses()->get();
 
-        $totalExpenses = $this->valueReleasesMonth($expenses, date('m'));
+            $totalExpenses = $this->valueReleasesMonth($expenses, date('m'));
 
-        $totalReveues = 5000;
-        $totalCreditCard = 5000;
-        $totalBalance = 5000;
+            $totalReveues = 5000;
+            $totalCreditCard = 5000;
+            $totalBalance = 5000;
 
-        LogController::addsLog($user->email, Actions::ME);
+            LogController::addsLog($user->email, Actions::ME);
 
-        return response()->json([
-            'userName' => $user->name,
-            'totalExpenses' => $totalExpenses,
-            'totalReveues'  => $totalReveues,
-            'totalCreditCard'  => $totalCreditCard,
-            'totalBalance'  => $totalBalance,
-        ]);
+            return response()->json([
+                'user' => $user,
+                'expenses' => $expenses,
+                'totalExpenses' => $totalExpenses,
+                'totalReveues'  => $totalReveues,
+                'totalCreditCard'  => $totalCreditCard,
+                'totalBalance'  => $totalBalance,
+            ]);
+        }
+
+        return response()->json(Errors::ERROR_WHILE_GETTING_USER_DATA->response());
     }
 
     public function logout()

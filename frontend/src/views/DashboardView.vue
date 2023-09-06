@@ -1,36 +1,23 @@
 <template>
-  <Cabecalho :name= "name" />
-  <!-- <Corpo /> -->
-  <div class="content-wrapper">
-    <div class="container-fluid">
-      <!--Start Dashboard Content-->
-      <div class="row row-group mt-3" style="background-color: transparent">
-        <Card
-          class="card col-12 col-md-6 col-lg-6 col-xl-3"
-          titulo="Receitas"
-          :valor="totalReveues"
-          rota="despesas"
-        />
-        <Card
-          class="card col-12 col-md-6 col-lg-6 col-xl-3"
-          titulo="Despesas"
-          :valor="totalExpenses"
-          rota="despesas"
-        />
-        <Card
-          class="card col-12 col-md-6 col-lg-6 col-xl-3"
-          titulo="Cartão de crédito"
-          :valor="totalCreditCard"
-          rota="despesas"
-        />
-        <Card
-          class="card col-12 col-md-6 col-lg-6 col-xl-3"
-          titulo="Saldo atual"
-          :valor="totalBalance"
-          rota="despesas"
-        />
-      </div>
-      <!-- <div class="row">
+    <div class="d-flex">
+        <MenuLateral :menuExpandido="menuExpandido" />
+        <div class="dashboard">
+            <Cabecalho :name="name" v-on:expandirMenu="menuExpandido = !menuExpandido" :menuExpandido="menuExpandido" />
+            <!-- <Corpo /> -->
+            <div class="content-wrapper">
+                <div class="container-fluid">
+                    <!--Start Dashboard Content-->
+                    <div class="row row-group mt-3" style="background-color: transparent">
+                        <Card class="card col-12 col-md-6 col-lg-6 col-xl-3" titulo="Receitas" :valor="totalReveues"
+                            rota="despesas" />
+                        <Card class="card col-12 col-md-6 col-lg-6 col-xl-3" titulo="Despesas" :valor="totalExpenses"
+                            rota="despesas" />
+                        <Card class="card col-12 col-md-6 col-lg-6 col-xl-3" titulo="Cartão de crédito"
+                            :valor="totalCreditCard" rota="despesas" />
+                        <Card class="card col-12 col-md-6 col-lg-6 col-xl-3" titulo="Saldo atual" :valor="totalBalance"
+                            rota="despesas" />
+                    </div>
+                    <!-- <div class="row">
         <div class="col-12 col-lg-8 col-xl-8">
           <div class="card">
             <div class="card-header">Site Traffic</div>
@@ -141,9 +128,9 @@
           </div>
         </div>
       </div> -->
-      <!--End Row-->
+                    <!--End Row-->
 
-      <!-- <div class="row">
+                    <!-- <div class="row">
         <div class="col-12 col-lg-12">
           <div class="card">
             <div class="card-header">Recent Order Tables</div>
@@ -324,26 +311,32 @@
           </div>
         </div>
       </div> -->
+                </div>
+                <!--End Row-->
+
+                <!--End Dashboard Content-->
+
+                <!--start overlay-->
+                <div class="overlay toggle-menu"></div>
+                <!--end overlay-->
+            </div>
+        </div>
     </div>
-    <!--End Row-->
-
-    <!--End Dashboard Content-->
-
-    <!--start overlay-->
-    <div class="overlay toggle-menu"></div>
-    <!--end overlay-->
-  </div>
 </template>
 
 <script setup>
 import Cabecalho from "@/components/Cabecalho.vue";
 import Card from "@/components/Card.vue";
+import MenuLateral from "@/components/MenuLateral.vue"
+
 import { userData } from "@/stores/data.js";
+import http from "@/services/http.js";
 import { ref } from "vue";
 
 
 const data = userData();
 
+const menuExpandido = ref('true');
 let name = ref('');
 name = data.getUserName;
 
@@ -359,7 +352,19 @@ totalCreditCard = data.getTotalCreditCard;
 let totalBalance = ref('');
 totalBalance = data.getTotalBalance;
 
+// const getExpenses = async () => {
+//     try {
+//         const res = await http.get('/get-expense');
+//         console.log(res);
+//     } catch (error) {
+//         console.log(error);
+//     }
+// }
+
 </script>
 
-<style>
+<style scoped>
+.dashboard {
+    width: 100%;
+}
 </style>
