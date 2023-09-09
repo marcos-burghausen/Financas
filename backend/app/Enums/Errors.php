@@ -53,6 +53,7 @@ enum Errors: string
     case ERROR_DELETING_EXPENSE         = "SP401";          //erro ao excluir despesa
     case ERROR_UPDATING_EXPENSE         = "SP402";          //erro ao atualizar despesa
     case ERROR_FETCHING_EXPENSE         = "SP403";          //erro ao buscar despesa
+    case ERROR_PAY_EXPENSE              = "SP404";          //erro ao pagar despesa
 
     /**
      * This method returns a Laravel Response, so you don't need to duplicate code

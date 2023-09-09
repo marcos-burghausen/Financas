@@ -13,6 +13,14 @@ return new class extends Migration
     {
         Schema::create('revenues', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('user_id');
+            $table->foreign('user_id')->references('id')->on('users');
+            $table->float('valor', 10, 2);
+            $table->date('date');
+            $table->string('descricao', 255);
+            $table->string('categoria', 255);
+            $table->string('carteira', 255);
+            $table->string('status', 10)->default('AGUARDANDO');
             $table->timestamps();
         });
     }

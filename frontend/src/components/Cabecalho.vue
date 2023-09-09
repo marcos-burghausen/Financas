@@ -36,7 +36,6 @@ const data = userData();
 async function logout() {
     try {
         const { data } = await http.post("/logout");
-        console.log(data);
         auth.clear();
         router.push({ name: "home" });
     } catch (error) {

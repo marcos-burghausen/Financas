@@ -77,15 +77,15 @@ async function login() {
   try {
     const res = await http.post("/auth", user);
     auth.setToken(res.data.token);
-    console.log(res);
     const resp = await http.post("/me");
-    console.log(resp.data);
     data.setUser(resp.data.user);
     data.setTotalExpenses(resp.data.totalExpenses);
     data.setTotalReveues(resp.data.totalReveues);
     data.setTotalCreditCard(resp.data.totalCreditCard);
     data.setTotalBalance(resp.data.totalBalance);
     data.setExpenses(resp.data.expenses);
+    data.setTotalPayExpenses(resp.data.expenses);
+    data.setTotalPendingExpenses(resp.data.expenses);
     auth.setUser(resp.data.user.name);
     router.push({ name: "dashboard" });
   } catch (error) {

@@ -34,6 +34,7 @@ Route::middleware('jwt.auth')->group(function () {
 
     Route::post('/save-expense', [ExpenseController::class, 'saveExpense']);
     Route::get('/get-expense', [ExpenseController::class, 'getExpense']);
+    Route::post('/pay-expense', [ExpenseController::class, 'payExpense']);
     Route::post('/edit-expense', [ExpenseController::class, 'editExpense']);
     Route::post('/delete-expense', [ExpenseController::class, 'deleteExpense']);
 

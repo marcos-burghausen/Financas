@@ -3,11 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Errors;
-use App\Models\Expense;
-use Illuminate\Http\Request;
 use App\Http\Traits\ReleasesMonthTrait;
+use Illuminate\Http\Request;
 
-class ExpenseController extends Controller
+class RevenuesController extends Controller
 {
     use ReleasesMonthTrait;
 
