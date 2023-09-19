@@ -4,7 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\WalletsController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\RegisterController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\RevenueController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -37,6 +37,13 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('/pay-expense', [ExpenseController::class, 'payExpense']);
     Route::post('/edit-expense', [ExpenseController::class, 'editExpense']);
     Route::post('/delete-expense', [ExpenseController::class, 'deleteExpense']);
+
+
+    Route::post('/save-revenue', [RevenueController::class, 'saveRevenue']);
+    Route::get('/get-revenue', [RevenueController::class, 'getRevenue']);
+    Route::post('/received-revenue', [RevenueController::class, 'receivedRevenue']);
+    Route::post('/edit-revenue', [RevenueController::class, 'editRevenue']);
+    Route::post('/delete-revenue', [RevenueController::class, 'deleteRevenue']);
 
 
     Route::post('/edit-wallets', [WalletsController::class, 'editWallets']);

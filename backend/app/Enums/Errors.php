@@ -19,6 +19,7 @@ enum Errors: string
      * 200 ao 299 -> Login
      * 300 ao 399 -> senha
      * 400 ao 499 -> despesas
+     * 500 ao 599 -> receitas
      * ...
      * 
      * podemos ir adicionando conforme adicionamos mais features ao código
@@ -54,6 +55,12 @@ enum Errors: string
     case ERROR_UPDATING_EXPENSE         = "SP402";          //erro ao atualizar despesa
     case ERROR_FETCHING_EXPENSE         = "SP403";          //erro ao buscar despesa
     case ERROR_PAY_EXPENSE              = "SP404";          //erro ao pagar despesa
+
+    case ERROR_REGISTERING_REVENUE      = "SP500";          //erro ao cadastrar receita
+    case ERROR_DELETING_REVENUE         = "SP501";          //erro ao excluir receita
+    case ERROR_UPDATING_REVENUE         = "SP502";          //erro ao atualizar receita
+    case ERROR_FETCHING_REVENUE         = "SP503";          //erro ao buscar receita
+    case ERROR_PAY_REVENUE              = "SP504";          //erro ao pagar receita
 
     /**
      * This method returns a Laravel Response, so you don't need to duplicate code

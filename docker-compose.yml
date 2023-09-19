@@ -4,7 +4,7 @@ services:
 
   #php+apache
   php:
-    image: harbor.infrastructure.sicredipioneira.com.br/pioneira-common/php:8.1-apache2.4 
+    image: harbor.infrastructure.sicredipioneira.com.br/pioneira-common/php:8.1-apache2.4
     container_name: backend
     working_dir: /var/www/html/
     depends_on:
@@ -23,7 +23,7 @@ services:
       MYSQL_PASSWORD: user
       MYSQL_USER: user
       MYSQL_DATABASE: idr_database
-      REDIS_HOST: redis 
+      REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: senha
 
@@ -44,8 +44,8 @@ services:
       # - "../packages/Pioneira/Ui/src/lib:/pioneira-ui"
     environment:
       BACK_HOST: php:4081/api
-      CHOKIDAR_USEPOLLING: 'true'     
-  
+      CHOKIDAR_USEPOLLING: 'true'
+
   #mysql
   mysql:
     image: mysql:8.0
@@ -75,7 +75,7 @@ services:
       - "4033:80"
     environment:
       PMA_HOST: mysql
-      PMA_PORT: 3306 
+      PMA_PORT: 3306
 
   #redis
   redis:
@@ -99,10 +99,9 @@ services:
       - REDIS_PORT=6379
       - REDIS_PASSWORD=senha
     ports:
-      - "8082:8081"  
+      - "8082:8081"
     networks:
       - network
-
 
 volumes:
   mysql_db:

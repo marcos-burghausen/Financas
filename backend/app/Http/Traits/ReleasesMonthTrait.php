@@ -27,14 +27,16 @@ trait ReleasesMonthTrait
         return $valueReleasesMonth = array_sum($valueReleasesMonth);
     }
 
-    public function valuePending(array $dados, string $status): int
+    public function valuePending(object $data, string $month, string $status): int
     {
-        $valorPendente = [];
-        foreach ($dados as $dado) {
+        $releasesMonth = $this->releasesMonth($data, $month);
+
+        $valuePendingMonth = [];
+        foreach ($releasesMonth as $dado) {
             if ($dado->status === $status) {
-                $valorPendente[] = $dado->valor;
+                $valuePendingMonth[] = $dado->valor;
             }
         }
-        return $valorPendente = array_sum($valorPendente);
+        return $valuePendingMonth = array_sum($valuePendingMonth);
     }
 }

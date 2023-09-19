@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Errors;
-use App\Models\Expense;
 use Illuminate\Http\Request;
 use App\Http\Traits\ReleasesMonthTrait;
+use App\Models\Expense;
 
 class ExpenseController extends Controller
 {
@@ -20,6 +20,7 @@ class ExpenseController extends Controller
                 'descricao' => 'required|string',
                 'categoria' => 'required|string',
                 'carteira'  => 'required|string',
+                'status'    => 'string'
             ],
             [
                 'valor.required'     => 'O campo valor é obrigatório',
@@ -36,17 +37,29 @@ class ExpenseController extends Controller
         $expense->descricao = $data['descricao'];
         $expense->categoria = $data['categoria'];
         $expense->carteira  = $data['carteira'];
+        $expense->status    = $data['status'];
         $saved = $expense->save();
 
         if (!$saved) {
             return response()->json(Errors::ERROR_REGISTERING_EXPENSE->response());
         }
 
-        $expense = auth()->user()->expenses()->orderBy('id', 'DESC')->first();
+        $expenses = auth()->user()->expenses()->get();
+
+        $valueTotalExpensesMonth = $this->valueReleasesMonth($expenses, date('m'));
+        $valuePending = $this->valuePending($expenses, date('m'), "AGUARDANDO");
+        $valuePay = $this->valuePending($expenses, date('m'), "PAGA");
+        $expensesMonth = $this->releasesMonth($expenses, date('m'));
+
+        // $expense = auth()->user()->expenses()->orderBy('id', 'DESC')->first();
         // Mail::to($user->email)->send(new DespesaRegistradaMail($despesa));
         return response()->json([
             'success' => 'despesa cadastrada com sucesso',
-            'expense' => $expense
+            'valueTotalExpensesMonth' => $valueTotalExpensesMonth,
+            'expenses' => $expenses,
+            'valuePay' => $valuePay,
+            'valuePending' => $valuePending,
+            'expensesMonth' => $expensesMonth
         ], 200);
     }
 
@@ -58,16 +71,18 @@ class ExpenseController extends Controller
         if (!$saved) {
             return Errors::ERROR_PAY_EXPENSE->response();
         }
-        return response()->json('Despesa paga com sucesso');
-    }
 
-    public function deleteExpense(Request $request)
-    {
-        $deleted = Expense::destroy($request->id);
-        if ($deleted) {
-            return response()->json('Despesa excluida com sucesso');
-        }
-        return response()->json(Errors::ERROR_DELETING_EXPENSE->response());
+        $expenses = auth()->user()->expenses()->get();
+        $valuePending = $this->valuePending($expenses, date('m'), "AGUARDANDO");
+        $valuePay = $this->valuePending($expenses, date('m'), "PAGA");
+        $expensesMonth = $this->releasesMonth($expenses, date('m'));
+
+        return response()->json([
+            'msg' => 'Despesa paga com sucesso',
+            'valuePending' => $valuePending,
+            'valuePay' => $valuePay,
+            'expensesMonth' => $expensesMonth
+        ]);
     }
 
     public function editExpense(Request $request)
@@ -84,14 +99,40 @@ class ExpenseController extends Controller
         if (!$saved) return response()->json(Errors::ERROR_UPDATING_EXPENSE->response());
 
         $expenses = auth()->user()->expenses()->get();
-
-        $totalExpenses = $this->valueReleasesMonth($expenses, date('m'));
+        $valuePending = $this->valuePending($expenses, date('m'), "AGUARDANDO");
+        $valuePay = $this->valuePending($expenses, date('m'), "PAGA");
+        $expensesMonth = $this->releasesMonth($expenses, date('m'));
 
         return response()->json([
             'msg' => 'Despesa atualizado com sucesso',
-            'totalExpenses' => $totalExpenses
+            'valuePending' => $valuePending,
+            'valuePay' => $valuePay,
+            'expensesMonth' => $expensesMonth
         ]);
     }
+
+    public function deleteExpense(Request $request)
+    {
+        $deleted = Expense::destroy($request->id);
+        if (!$deleted) {
+            return response()->json(Errors::ERROR_DELETING_EXPENSE->response());
+        }
+
+        $expenses = auth()->user()->expenses()->get();
+        $valuePending = $this->valuePending($expenses, date('m'), "AGUARDANDO");
+        $valuePay = $this->valuePending($expenses, date('m'), "PAGA");
+        $expensesMonth = $this->releasesMonth($expenses, date('m'));
+        $valueTotalExpensesMonth = $this->valueReleasesMonth($expenses, date('m'));
+
+        return response()->json([
+            'msg' => 'Despesa excluida com sucesso',
+            'valuePending' => $valuePending,
+            'valuePay' => $valuePay,
+            'expensesMonth' => $expensesMonth,
+            'valueTotalExpensesMonth' => $valueTotalExpensesMonth,
+        ]);
+    }
+
 
     public function getExpense()
     {

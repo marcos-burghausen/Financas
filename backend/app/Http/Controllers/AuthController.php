@@ -65,10 +65,17 @@ class AuthController extends Controller
         if ($user = auth()->user()) {
 
             $expenses = auth()->user()->expenses()->get();
+            $expensesMonth = $this->releasesMonth($expenses, date('m'));
+            $valuePayExpenses = $this->valuePending($expenses, date('m'), "PAGA");
+            $valuePendingExpenses = $this->valuePending($expenses, date('m'), "AGUARDANDO");
+            $valueTotalExpensesMonth = $this->valueReleasesMonth($expenses, date('m'));
 
-            $totalExpenses = $this->valueReleasesMonth($expenses, date('m'));
+            $revenues = auth()->user()->revenues()->get();
+            $revenuesMonth = $this->releasesMonth($revenues, date('m'));
+            $valueReceived = $this->valuePending($revenues, date('m'), "RECEBIDA");
+            $valuePendingRevenues = $this->valuePending($revenues, date('m'), "AGUARDANDO");
+            $valueTotalRevenuesMonth = $this->valueReleasesMonth($revenues, date('m'));
 
-            $totalReveues = 5000;
             $totalCreditCard = 5000;
             $totalBalance = 5000;
 
@@ -77,10 +84,18 @@ class AuthController extends Controller
             return response()->json([
                 'user' => $user,
                 'expenses' => $expenses,
-                'totalExpenses' => $totalExpenses,
-                'totalReveues'  => $totalReveues,
+                'expensesMonth' => $expensesMonth,
+                'valuePayExpenses' => $valuePayExpenses,
+                'valuePendingExpenses' => $valuePendingExpenses,
+                'valueTotalExpensesMonth' => $valueTotalExpensesMonth,
+                'revenues' => $revenues,
+                'revenuesMonth' => $revenuesMonth,
+                'valueRevenuesReceived'  => $valueReceived,
+                'valuePendingRevenues'  => $valuePendingRevenues,
+                'valueTotalRevenuesMonth'  => $valueTotalRevenuesMonth,
                 'totalCreditCard'  => $totalCreditCard,
                 'totalBalance'  => $totalBalance,
+
             ]);
         }
 

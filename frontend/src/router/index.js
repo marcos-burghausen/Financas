@@ -10,16 +10,16 @@ const router = createRouter({
       name: 'home',
       component: HomeView
     },
-    {
-      path: '/login',
-      name: 'login',
-      component: () => import('@/views/LoginView.vue')
-    },
-    {
-      path: '/cadastro',
-      name: 'cadastro',
-      component: () => import('@/views/RegisterView.vue')
-    },
+    // {
+    //   path: '/login',
+    //   name: 'login',
+    //   component: () => import('@/views/LoginView.vue')
+    // },
+    // {
+    //   path: '/cadastro',
+    //   name: 'cadastro',
+    //   component: () => import('@/views/RegisterView.vue')
+    // },
     {
       path: '/dashboard',
       name: 'dashboard',
@@ -40,6 +40,14 @@ const router = createRouter({
       path: '/receitas',
       name: 'receitas',
       component: () => import('@/views/receitas/ReceitasView.vue'),
+      meta: {
+        auth: true
+      }
+    },
+    {
+      path: '/cartao',
+      name: 'cartao',
+      component: () => import('@/views/cartaoCredito/CartaoCreditoView.vue'),
       meta: {
         auth: true
       }

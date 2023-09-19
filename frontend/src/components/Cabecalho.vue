@@ -19,10 +19,9 @@ import http from "@/services/http.js";
 import { useAuth } from "@/stores/auth.js";
 import { useRouter } from "vue-router";
 import { userData } from "@/stores/data.js";
-import { computed } from "vue";
+import { ref, computed } from "vue";
 
 const props = defineProps({
-    name: String,
     menuExpandido: Boolean
 });
 const titulo = computed(() => props.name);
@@ -31,6 +30,9 @@ const router = useRouter();
 const auth = useAuth();
 const data = userData();
 
+let name = ref('');
+
+name = auth.user;
 
 
 async function logout() {
@@ -46,7 +48,7 @@ async function logout() {
 
 <style scoped>
 .mdicon {
-    color: #0097a7;
+    color: #77d08e;
     cursor: pointer;
     padding: 10px;
     box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;

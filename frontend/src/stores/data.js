@@ -5,13 +5,18 @@ export const userData = defineStore('data', {
     // state -> propriedades reativas
     state: () => ({
         user: null,
-        totalExpenses: null,
-        totalPayExpenses: null,
-        totalPendingExpenses: null,
-        totalReveues: null,
+        valueTotalExpensesMonth: null,
+        valuePayExpenses: null,
+        valuePendingExpenses: null,
+        expenses: null,
+        expensesMonth: null,
+        valueTotalRevenuesMonth: null,
+        valueReceivedRevenues: null,
+        valuePendingRevenues: null,
         totalCreditCard: null,
         totalBalance: null,
-        expenses: null,
+        revenues: null,
+        revenuesMonth: null,
 
     }),
 
@@ -21,47 +26,52 @@ export const userData = defineStore('data', {
             this.user = data;
         },
         //////////////////////////////////////
-        setTotalExpenses(data) {
-            this.totalExpenses = data;
+        setValueTotalExpensesMonth(value) {
+            this.valueTotalExpensesMonth = value;
         },
-        addValorTotalExpense(valor) {
-            this.totalExpenses += valor;
-        },
-        decrementValorTotalExpense(valor) {
-            this.totalExpenses -= valor;
+
+        setValuePayExpenses(value) {
+            this.valuePayExpenses = value;
         },
         /////////////////////////////////////
-        setTotalPayExpenses(expenses) {
-            for (let i = 0; i < expenses.length; i++) {
-                if (expenses[i].status === 'PAGA') {
-                    this.totalPayExpenses += expenses[i].valor;
-                }
-            }
-        },
-        addTotalPayExpenses(valor) {
-            this.totalPayExpenses += valor;
-        },
-        decrementTotalPayExpenses(valor) {
-            this.totalPayExpenses -= valor;
+        setValuePendingExpenses(value) {
+            this.valuePendingExpenses = value;
         },
         /////////////////////////////////////
-        setTotalPendingExpenses(expenses) {
-            for (let i = 0; i < expenses.length; i++) {
-                if (expenses[i].status === 'AGUARDANDO') {
-                    this.totalPendingExpenses += expenses[i].valor;
-                }
-            }
-        },
-        addTotalPendingExpenses(valor) {
-            this.totalPendingExpenses += valor;
-        },
-        decrementTotalPendingExpenses(valor) {
-            this.totalPendingExpenses -= valor;
+        setExpenses(data) {
+            this.expenses = data
         },
         /////////////////////////////////////
-        setTotalReveues(data) {
-            this.totalReveues = data;
+        setExpensesMonth(data) {
+            this.expensesMonth = data;
         },
+
+
+
+
+
+        /////////////////////////////////////
+        setValueTotalRevenuesMonth(value) {
+            this.valueTotalRevenuesMonth = value;
+        },
+        /////////////////////////////////////
+        setValueReceivedRevenues(value) {
+            this.valueReceivedRevenues = value;
+        },
+        /////////////////////////////////////
+        setValuePendingRevenues(value) {
+            this.valuePendingRevenues = value;
+        },
+        setRevenues(data) {
+            this.revenues = data
+        },
+        setRevenuesMonth(valor) {
+            this.revenuesMonth = valor;
+        },
+
+
+
+
         /////////////////////////////////////
         setTotalCreditCard(data) {
             this.totalCreditCard = data;
@@ -70,13 +80,10 @@ export const userData = defineStore('data', {
         setTotalBalance(data) {
             this.totalBalance = data;
         },
+
         /////////////////////////////////////
-        setExpenses(data) {
-            this.expenses = data
-        },
-        addExpense(release) {
-            this.expenses.push(release);
-        },
+
+
 
 
 
@@ -85,13 +92,13 @@ export const userData = defineStore('data', {
     // getters -> propriedades computadas
     getters: {
         getUserName() {
-            return this.userName;
+            return this.user.name;
         },
         getTotalExpenses() {
             return this.totalExpenses;
         },
-        getTotalReveues() {
-            return this.totalReveues;
+        getTotalRevenues() {
+            return this.totalRevenues;
         },
         getTotalCreditCard() {
             return this.totalCreditCard;

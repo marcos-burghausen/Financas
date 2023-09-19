@@ -1,5 +1,4 @@
 <template>
-    <Cabecalho :name="name" />
     <div class="clearfix"></div>
 
     <div class="content-wrapper">
@@ -9,7 +8,8 @@
                     <li class="breadcrumb-item text-white">
                         Dashboard
                     </li>
-                    <li :class="{ opaco: !formStoreExpense & !formEditExpense }" class="breadcrumb-item text-white">
+                    <li :class="{ opaco: !formStoreExpense & !formEditExpense }" @click="returnExpense"
+                        class="breadcrumb-item text-white">
                         despesas
                     </li>
                     <li :class="{ opaco: formStoreExpense }" class="breadcrumb-item" v-if="formStoreExpense">
@@ -44,6 +44,11 @@
                                 errorsForm["errors"].valor[0]
                             }}</span>
                         </div>
+                        <div class="form-check form-switch text-white">
+                            <input v-model="status" class="form-check-input" type="checkbox" id="flexSwitchCheckChecked"
+                                checked>
+                            <label class="form-check-label" for="flexSwitchCheckChecked">Foi paga</label>
+                        </div>
                         <div class="inputSimples">
                             <!-- <mdicon class="mdicon" name="account" /> -->
                             <input v-model="releases.date" type="text" onfocus="this.type='date'" onblur="this.type='text'"
@@ -69,8 +74,10 @@
                         <div class="inputSimples">
                             <select v-model="releases.categoria" class="input" name="categoria"
                                 aria-label="Default select example" required>
-                                <option class="options" selected></option>
-                                <option v-for="categoria in categorias" class="options" :value="categoria">{{ categoria }}
+                                <!-- <option class="options" selected></option> -->
+                                <option v-for="categoria in categorias" class="options" :value="categoria">{{
+                                    categoria
+                                }}
                                 </option>
                             </select>
                             <label for="categoria" class="label">Categoria</label>
@@ -83,8 +90,9 @@
                         <div class="inputSimples">
                             <select v-model="releases.carteira" class="input" name="carteira"
                                 aria-label="Default select example" required>
-                                <option class="options" selected></option>
-                                <option v-for="carteira in carteiras" class="options" :value="carteira">{{ carteira }}
+                                <!-- <option class="options" selected></option> -->
+                                <option v-for="carteira in carteiras" class="options" :value="carteira">{{ carteira
+                                }}
                                 </option>
 
                             </select>
@@ -124,7 +132,7 @@
                             <mdicon class="mdicon" name="account" />
                             <input v-model="expenseEdit.valor" class="input" id="valor" name="valor" type="number"
                                 required />
-                            <!-- <label class="label" for="valor">Valor</label> -->
+                            <label class="label" for="valor">Valor</label>
                         </div>
                         <div class="error">
                             <span v-if="errorsForm['errors'].valor" class="span-error">{{
@@ -134,7 +142,7 @@
                         <div class="inputSimples">
                             <mdicon class="mdicon" name="account" />
                             <input v-model="expenseEdit.date" type="date" name="date" class="input" id="date" required />
-                            <!-- <label for="date" class="label">Data</label> -->
+                            <label for="date" class="label">Data</label>
                         </div>
                         <div class="error">
                             <span v-if="errorsForm['errors'].date" class="span-error">{{
@@ -145,7 +153,7 @@
                             <mdicon class="mdicon" name="account" />
                             <input v-model="expenseEdit.descricao" type="text" name="descricao" class="input" id="descricao"
                                 required />
-                            <!-- <label for="descricao" class="label">Descricao</label> -->
+                            <label for="descricao" class="label">Descricao</label>
                         </div>
                         <div class="error">
                             <span v-if="errorsForm['errors'].descricao" class="span-error">{{
@@ -153,13 +161,24 @@
                             }}</span>
                         </div>
                         <div class="inputSimples">
+                            <select v-model="expenseEdit.status" class="input" name="categoria"
+                                aria-label="Default select example" required>
+                                <option class="options" selected></option>
+                                <option class="options" value="PAGA"> PAGA </option>
+                                <option class="options" value="AGUARDANDO"> AGUARDANDO </option>
+                            </select>
+                            <label for="categoria" class="label">Status</label>
+                        </div>
+                        <div class="inputSimples">
                             <select v-model="expenseEdit.categoria" class="input" name="categoria"
                                 aria-label="Default select example" required>
                                 <option class="options" selected></option>
-                                <option v-for="categoria in categorias" class="options" :value="categoria">{{ categoria }}
+                                <option v-for="categoria in categorias" class="options" :value="categoria">{{
+                                    categoria
+                                }}
                                 </option>
                             </select>
-                            <!-- <label for="categoria" class="label">Categoria</label> -->
+                            <label for="categoria" class="label">Categoria</label>
                         </div>
                         <div class="error">
                             <span v-if="errorsForm['errors'].categoria" class="span-error">{{
@@ -170,10 +189,11 @@
                             <select v-model="expenseEdit.carteira" class="input" name="carteira"
                                 aria-label="Default select example" required>
                                 <option class="options" selected></option>
-                                <option v-for="carteira in carteiras" class="options" :value="carteira">{{ carteira }}
+                                <option v-for="carteira in carteiras" class="options" :value="carteira">{{ carteira
+                                }}
                                 </option>
                             </select>
-                            <!-- <label for="carteira" class="label">Carteira</label> -->
+                            <label for="carteira" class="label">Carteira</label>
                         </div>
                         <div class="error">
                             <span v-if="errorsForm['errors'].carteira" class="span-error">{{
@@ -202,14 +222,15 @@
         <div class="container-fluid" v-if="!formStoreExpense & !formEditExpense">
             <div class="row justify-content-between m-0 mb-4">
                 <Card class="card col-12 col-md-6 col-lg-6 col-xl-3 bg-transparent" titulo="Despesas"
-                    :valor="totalExpenses" />
+                    :valor="valueTotalExpensesMonth" />
                 <Card class="card col-12 col-md-6 col-lg-6 col-xl-3 bg-transparent" titulo="Despesas pendentes"
-                    :valor="pending" />
-                <Card class="card col-12 col-md-6 col-lg-6 col-xl-3 bg-transparent" titulo="Despesas pagas" :valor="pay" />
+                    :valor="valuePending" />
+                <Card class="card col-12 col-md-6 col-lg-6 col-xl-3 bg-transparent" titulo="Despesas pagas"
+                    :valor="valuePay" />
             </div>
 
             <div class="row">
-                <div v-if="expenses.length >= 1" class="col-12 col-lg-12">
+                <div v-if="expensesMonth.length >= 1" class="col-12 col-lg-12">
                     <div class="row justify-content-center card-header mx-0 py-1"
                         style="background-color: rgba(0, 0, 0, 0.25)">
                         <!-- <div class="row align-items-center col-5 ms-2">Despesas</div> -->
@@ -229,24 +250,24 @@
                         <table class="table" style="background-color: rgba(0, 0, 0, 0.25); color: black;">
                             <thead>
                                 <tr>
-                                    <th style="color: #fefefe;">Data</th>
-                                    <th style="color: #fefefe;">Descrição</th>
-                                    <th style="color: #fefefe;">Categoria</th>
-                                    <th style="color: #fefefe;">Conta</th>
-                                    <th style="color: #fefefe;">Valor</th>
-                                    <th style="color: #fefefe;">Ações</th>
+                                    <th class="text-white text-center">Data</th>
+                                    <th class="text-white text-center">Descrição</th>
+                                    <th class="text-white text-center">Categoria</th>
+                                    <th class="text-white text-center">Carteira</th>
+                                    <th class="text-white text-center">Valor</th>
+                                    <th class="text-white text-center">Ações</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="(expense, key) in expenses" :key="expense.id">
-                                    <td style="color: #fefefe;">{{ expense.date }}</td>
-                                    <td style="color: #fefefe;">{{ expense.descricao }}</td>
-                                    <td style="color: #fefefe;">{{ expense.categoria }}</td>
-                                    <td style="color: #fefefe;">{{ expense.carteira }}</td>
-                                    <td style="color: #fefefe;">R$ {{ expense.valor }}</td>
-                                    <td class="d-flex py-0">
-                                        <button @click="payExpense(expense.id)" style="color: #fefefe;"
-                                            class="btn btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 "
+                                <tr v-for="(expense, key) in expensesMonth" :key="expense.id">
+                                    <td class="text-white text-center">{{ expense.date }}</td>
+                                    <td class="text-white text-center">{{ expense.descricao }}</td>
+                                    <td class="text-white text-center">{{ expense.categoria }}</td>
+                                    <td class="text-white text-center">{{ expense.carteira }}</td>
+                                    <td class="text-white text-center">R$ {{ expense.valor }}</td>
+                                    <td class="d-flex py-0 justify-content-center">
+                                        <button @click="payExpense(expense)"
+                                            class="btn btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 text-white"
                                             :class="{ pay: expense.status === 'PAGA' }"
                                             :disabled="expense.status === 'PAGA'">
                                             <mdicon name="check-circle-outline" />
@@ -285,12 +306,12 @@
 </template>
 
 <script setup>
-import Cabecalho from "@/components/Cabecalho.vue";
-import { ref, reactive } from "vue";
-import { userData } from "@/stores/data.js";
 import Card from "@/components/Card.vue";
+
+import { userData } from "@/stores/data.js";
 import { useRouter } from "vue-router";
 import http from "@/services/http.js";
+import { ref, reactive, watch } from "vue";
 
 const router = useRouter();
 const data = userData();
@@ -299,27 +320,27 @@ let formStoreExpense = ref(false);
 let formEditExpense = ref(false);
 let categorias = reactive({});
 let carteiras = reactive({});
-let expenses = reactive({});
+let expensesMonth = reactive({});
 let expenseEdit = reactive({});
-let pay = ref('');
-let pending = ref('');
-let totalExpenses = ref(null);
+let valuePay = ref(null);
+let valuePending = ref(null);
+let valueTotalExpensesMonth = ref(null);
 let releases = reactive({
     valor: null,
     date: null,
+    status: null,
     descricao: null,
     categoria: null,
     carteira: null,
 });
-let name = ref('');
+let status = ref(true);
 
 categorias = data.user.categoriasDespesas;
-totalExpenses = data.getTotalExpenses;
+valueTotalExpensesMonth = data.valueTotalExpensesMonth;
 carteiras = data.user.carteiras;
-expenses = data.getExpenses;
-name = data.user.name;
-pay = data.totalPayExpenses;
-pending = data.totalPendingExpenses;
+expensesMonth = data.expensesMonth;
+valuePay = data.valuePayExpenses;
+valuePending = data.valuePendingExpenses;
 
 const errorsForm = reactive({ errors: {} });
 
@@ -331,14 +352,23 @@ const clearInputs = () => {
     releases.carteira = null;
 }
 
+const returnExpense = () => {
+    formStoreExpense.value = formStoreExpense.value === true ? !formStoreExpense.value : formStoreExpense.value;
+    formEditExpense.value = formEditExpense.value === true ? !formEditExpense.value : formEditExpense.value;
+}
+
 const salvarLancamentos = async () => {
     try {
+        releases.status = status.value ? "PAGA" : "AGUARDANDO";
         const res = await http.post("/save-expense", releases);
-        totalExpenses += releases.valor;
-        data.addValorTotalExpense(releases.valor);
-        pending += releases.valor;
-        data.addTotalPendingExpenses(releases.valor);
-        expenses.push(res.data.expense);
+        valueTotalExpensesMonth = res.data.valueTotalExpensesMonth;
+        data.setValueTotalExpensesMonth(res.data.valueTotalExpensesMonth);
+        valuePay = res.data.valuePay;
+        data.setValuePayExpenses(res.data.valuePay);
+        valuePending = res.data.valuePending;
+        data.setValuePendingExpenses(res.data.valuePending);
+        expensesMonth = res.data.expenses;
+        data.setExpensesMonth(res.data.expenses);
         clearInputs();
         formStoreExpense.value = false;
     } catch (error) {
@@ -346,42 +376,19 @@ const salvarLancamentos = async () => {
     }
 }
 
-const payExpense = async (id) => {
+const payExpense = async (expense) => {
     try {
-        await http.post('/pay-expense', { 'id': id });
-        for (let i = 0; i < expenses.length; i++) {
-            if (expenses[i].id === id) {
-                expenses[i].status = 'PAGA';
-                pending -= expenses[i].valor;
-                data.decrementTotalPendingExpenses(expenses[i].valor);
-                pay += expenses[i].valor;
-                data.addTotalPayExpenses(expenses[i].valor);
+        const res = await http.post('/pay-expense', { 'id': expense.id });
+        valuePending = res.data.valuePendig;
+        data.setValuePendingExpenses(res.data.valuePending);
+        valuePay = res.data.valuePay;
+        data.setValuePayExpenses(res.data.valuePay);
+        // expense.status = 'PAGA';
+        expensesMonth.forEach(expenses => {
+            if (expenses.id === expense.id) {
+                expense.status = "PAGA";
             }
-        }
-
-    } catch (error) {
-        console.log(error);
-    }
-}
-
-const deletar = async (id) => {
-    try {
-        const res = await http.post('/delete-expense', { 'id': id })
-        for (let i = 0; i < expenses.length; i++) {
-            if (expenses[i].id === id & expenses[i].status === 'PAGA') {
-                totalExpenses -= expenses[i].valor;
-                data.decrementValorTotalExpense(expenses[i].valor);
-                pay -= expenses[i].valor;
-                data.decrementTotalPayExpenses(expenses[i].valor);
-                expenses.splice(i, 1);
-            } else if (expenses[i].id === id & expenses[i].status === 'AGUARDANDO') {
-                totalExpenses -= expenses[i].valor;
-                data.decrementValorTotalExpense(expenses[i].valor);
-                pending -= expenses[i].valor;
-                data.decrementTotalPendingExpenses(expenses[i].valor);
-                expenses.splice(i, 1);
-            }
-        }
+        });
     } catch (error) {
         console.log(error);
     }
@@ -395,12 +402,12 @@ function displayFormEditExpense(expense) {
 const saveEditedExpense = async () => {
     try {
         const res = await http.post("/edit-expense", expenseEdit);
-        for (let i = 0; i < expenses.length; i++) {
-            if (expenses[i] === expenseEdit.id) {
-                expenses[i] = expenseEdit;
-            }
-        }
-        totalExpenses = res.data.totalExpenses;
+        valuePending = res.data.valuePending;
+        data.setValuePendingExpenses(res.data.valuePending);
+        valuePay = res.data.valuePay;
+        data.setValuePayExpenses(res.data.valuePay);
+        expensesMonth = res.data.expensesMonth
+        data.setExpensesMonth(res.data.expensesMonth);
     } catch (error) {
         console.log(error);
     }
@@ -409,9 +416,31 @@ const saveEditedExpense = async () => {
 
 };
 
+const deletar = async (id) => {
+    try {
+        const res = await http.post('/delete-expense', { 'id': id });
+        valueTotalExpensesMonth = res.data.valueTotalExpensesMonth;
+        data.setValueTotalExpensesMonth(res.data.valueTotalExpensesMonth);
+        valuePending = res.data.valuePending;
+        data.setValuePendingExpenses(res.data.valuePending);
+        valuePay = res.data.valuePay;
+        data.setValuePayExpenses(res.data.valuePay);
+        expensesMonth = res.data.expensesMonth;
+        data.setExpensesMonth(res.data.expensesMonth);
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+
+
 </script>
 
-<style>
+<style scoped>
+.dashboard {
+    width: 100%;
+}
+
 .opaco {
     color: #6c757d !important;
 }

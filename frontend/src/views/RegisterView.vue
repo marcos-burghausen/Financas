@@ -13,14 +13,7 @@
         <form class="form" @submit.prevent="create">
           <div class="inputSimples">
             <mdicon class="mdicon" name="account" />
-            <input
-              v-model="user.name"
-              class="input"
-              id="name"
-              name="name"
-              type="text"
-              required
-            />
+            <input v-model="user.name" class="input" id="name" name="name" type="text" required />
             <label class="label" for="name">Nome</label>
           </div>
           <div class="error">
@@ -30,14 +23,7 @@
           </div>
           <div class="inputSimples">
             <mdicon class="mdicon" name="email" />
-            <input
-              v-model="user.email"
-              class="input"
-              id="email"
-              name="email"
-              type="text"
-              required
-            />
+            <input v-model="user.email" class="input" id="email" name="email" type="text" required />
             <label class="label" for="email">Email</label>
           </div>
           <div class="error">
@@ -47,14 +33,7 @@
           </div>
           <div class="inputSimples">
             <mdicon class="mdicon" name="lock" />
-            <input
-              v-model="user.password"
-              class="input"
-              id="senha"
-              name="password"
-              type="password"
-              required
-            />
+            <input v-model="user.password" class="input" id="senha" name="password" type="password" required />
             <label for="senha" class="label">Senha</label>
           </div>
           <div class="error">
@@ -64,17 +43,9 @@
           </div>
           <div class="inputSimples">
             <mdicon class="mdicon" name="lock-plus" />
-            <input
-              v-model="user.confirmPassword"
-              class="input"
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              required
-            />
-            <label for="confirmPassword" class="label"
-              >Confirme sua senha</label
-            >
+            <input v-model="user.confirmPassword" class="input" id="confirmPassword" name="confirmPassword"
+              type="password" required />
+            <label for="confirmPassword" class="label">Confirme sua senha</label>
           </div>
           <div class="error">
             <span v-if="errorsForm['errors'].password" class="span-error">{{
@@ -83,13 +54,7 @@
           </div>
           <div class="container-termos">
             <div class="container-check">
-              <input
-                aria-checked="false"
-                id="concordar"
-                role="checkbox"
-                type="checkbox"
-                value=""
-              />
+              <input aria-checked="false" id="concordar" role="checkbox" type="checkbox" value="" />
               <label for="concordar">Concordar com</label>
               <a href=""> termos e politicas de privacidade.</a>
             </div>
@@ -99,7 +64,7 @@
           </button>
           <div class="Conecte">
             Já tem conta ?
-            <a href="/login"> Conecte-se </a>
+            <router-link to="/login"> Conecte-se </router-link>
           </div>
         </form>
       </div>
@@ -141,6 +106,7 @@ async function create() {
   justify-content: center;
   align-items: center;
 }
+
 .cadastro {
   box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
   padding-top: 15px;
@@ -149,13 +115,16 @@ async function create() {
   flex-direction: column;
   align-items: center;
 }
+
 .logo {
   display: flex;
   justify-content: center;
 }
+
 .logo img {
   width: 90px;
 }
+
 .logo h1 {
   margin: 0px;
   text-align: center;
@@ -163,21 +132,26 @@ async function create() {
   margin: 15px 0 0 10px;
   font-size: 50px;
 }
+
 .mdicon {
   color: white;
 }
+
 .bem-vindo {
   margin: 10px 0;
   color: #ccc;
 }
+
 .form-container {
   display: flex;
   justify-content: center;
   width: 100%;
 }
+
 .form {
   width: 90%;
 }
+
 .inputSimples {
   background-color: #1e1e1e;
   margin: 20px 0 0 0;
@@ -187,15 +161,18 @@ async function create() {
   position: relative;
   border-radius: 5px;
 }
+
 .error {
   height: 20px;
 }
+
 .span-error {
   color: rgb(194, 4, 4);
   position: relative;
   top: 0;
   left: 0;
 }
+
 .input {
   color: #ccc;
   width: 260px;
@@ -204,11 +181,13 @@ async function create() {
   border: 0;
   outline: 0;
 }
-.input:focus ~ label,
-.input:valid ~ label {
+
+.input:focus~label,
+.input:valid~label {
   transform: translateY(-32px);
   opacity: 0.9;
 }
+
 .label {
   color: #ccc;
   position: absolute;
@@ -218,18 +197,22 @@ async function create() {
   cursor: text;
   transition: 0.5s ease-in-out;
 }
+
 .container-termos {
   display: flex;
   justify-content: space-between;
   margin: 15px 0;
 }
+
 .container-termos label {
   color: #ccc;
 }
+
 .container-termos a {
   text-decoration: none;
   color: #0097a7;
 }
+
 .btn-login {
   width: 100%;
   height: 35px;
@@ -238,12 +221,14 @@ async function create() {
   background-color: hsla(0, 0%, 100%, 0.12);
   margin-bottom: 15px;
 }
+
 .Conecte {
   display: flex;
   justify-content: center;
   color: #ccc;
   margin: 20px 0;
 }
+
 .Conecte a {
   margin-left: 8px;
   text-decoration: none;

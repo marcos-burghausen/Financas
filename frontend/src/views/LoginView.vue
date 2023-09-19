@@ -79,15 +79,23 @@ async function login() {
     auth.setToken(res.data.token);
     const resp = await http.post("/me");
     data.setUser(resp.data.user);
-    data.setTotalExpenses(resp.data.totalExpenses);
-    data.setTotalReveues(resp.data.totalReveues);
+
+    data.setExpenses(resp.data.expenses);
+    data.setExpensesMonth(resp.data.expensesMonth);
+    data.setValuePayExpenses(resp.data.valuePayExpenses);
+    data.setValuePendingExpenses(resp.data.valuePendingExpenses);
+    data.setValueTotalExpensesMonth(resp.data.valueTotalExpensesMonth);
+
+    data.setRevenues(resp.data.revenues);
+    data.setRevenuesMonth(resp.data.revenuesMonth);
+    data.setValueTotalRevenuesMonth(resp.data.valueTotalRevenuesMonth);
+    data.setValueReceivedRevenues(resp.data.valueRevenuesReceived);
+    data.setValuePendingRevenues(resp.data.valuePendingRevenues);
+
     data.setTotalCreditCard(resp.data.totalCreditCard);
     data.setTotalBalance(resp.data.totalBalance);
-    data.setExpenses(resp.data.expenses);
-    data.setTotalPayExpenses(resp.data.expenses);
-    data.setTotalPendingExpenses(resp.data.expenses);
     auth.setUser(resp.data.user.name);
-    router.push({ name: "dashboard" });
+    // router.push({ name: "dashboard" });
   } catch (error) {
     console.log(error);
     errorsForm["errors"] = error.response.data;

@@ -1,5 +1,4 @@
 <template>
-    <Cabecalho :name="name" />
     <div class="clearfix"></div>
 
     <div class="content-wrapper">
@@ -9,7 +8,8 @@
                     <li class="breadcrumb-item text-white">
                         Dashboard
                     </li>
-                    <li :class="{ opaco: !formStoreRevenue & !formEditRevenue }" class="breadcrumb-item text-white">
+                    <li :class="{ opaco: !formStoreRevenue & !formEditRevenue }" @click="returnRevenue"
+                        class="breadcrumb-item text-white">
                         receitas
                     </li>
                     <li :class="{ opaco: formStoreRevenue }" class="breadcrumb-item" v-if="formStoreRevenue">
@@ -36,13 +36,19 @@
                     <form class="form">
                         <div class="inputSimples">
                             <!-- <mdicon class="mdicon" name="account" /> -->
-                            <input v-model="releases.valor" class="input" id="valor" name="valor" type="number" required />
+                            <input v-model="releases.valor" class="input" id="valor" autocomplete="off" name="valor"
+                                type="number" required />
                             <label class="label" for="valor">Valor</label>
                         </div>
                         <div class="error">
                             <span v-if="errorsForm['errors'].valor" class="span-error">{{
                                 errorsForm["errors"].valor[0]
                             }}</span>
+                        </div>
+                        <div class="form-check form-switch text-white">
+                            <input v-model="status" class="form-check-input" type="checkbox" id="flexSwitchCheckChecked"
+                                checked>
+                            <label class="form-check-label" for="flexSwitchCheckChecked">Recebida</label>
                         </div>
                         <div class="inputSimples">
                             <!-- <mdicon class="mdicon" name="account" /> -->
@@ -57,8 +63,8 @@
                         </div>
                         <div class="inputSimples">
                             <!-- <mdicon class="mdicon" name="account" /> -->
-                            <input v-model="releases.descricao" type="text" name="descricao" class="input" id="descricao"
-                                required />
+                            <input v-model="releases.descricao" type="text" name="descricao" autocomplete="off"
+                                class="input" id="descricao" required />
                             <label for="descricao" class="label">Descricao</label>
                         </div>
                         <div class="error">
@@ -119,7 +125,7 @@
         <div class="container-fluid" v-if="formEditRevenue">
             <div class="container d-flex justify-content-center">
                 <div class="cadastro">
-                    <form class="form" @submit.prevent="saveEditedExpense">
+                    <form class="form" @submit.prevent="saveEditedRevenue">
                         <div class="inputSimples">
                             <mdicon class="mdicon" name="account" />
                             <input v-model="revenueEdit.valor" class="input" id="valor" name="valor" type="number"
@@ -151,6 +157,15 @@
                             <span v-if="errorsForm['errors'].descricao" class="span-error">{{
                                 errorsForm["errors"].descricao[0]
                             }}</span>
+                        </div>
+                        <div class="inputSimples">
+                            <select v-model="revenueEdit.status" class="input" name="categoria"
+                                aria-label="Default select example" required>
+                                <option class="options" selected></option>
+                                <option class="options" value="RECEBIDA"> RECEBIDA </option>
+                                <option class="options" value="AGUARDANDO"> AGUARDANDO </option>
+                            </select>
+                            <label for="categoria" class="label">Status</label>
                         </div>
                         <div class="inputSimples">
                             <select v-model="revenueEdit.categoria" class="input" name="categoria"
@@ -202,14 +217,15 @@
         <div class="container-fluid" v-if="!formStoreRevenue & !formEditRevenue">
             <div class="row justify-content-between m-0 mb-4">
                 <Card class="card col-12 col-md-6 col-lg-6 col-xl-3 bg-transparent" titulo="Receitas"
-                    :valor="totalRevenues" />
-                <Card class="card col-12 col-md-6 col-lg-6 col-xl-3 bg-transparent" titulo="Receitas pendentes"
-                    :valor="pending" />
-                <Card class="card col-12 col-md-6 col-lg-6 col-xl-3 bg-transparent" titulo="Receitas pagas" :valor="pay" />
+                    :valor="valueTotalRevenuesMonth" />
+                <Card class="card col-12 col-md-6 col-lg-6 col-xl-3 bg-transparent" titulo="Pendentes"
+                    :valor="valuePending" />
+                <Card class="card col-12 col-md-6 col-lg-6 col-xl-3 bg-transparent" titulo="Recebidas"
+                    :valor="valueReceived" />
             </div>
 
             <div class="row">
-                <div v-if="revenues.length >= 1" class="col-12 col-lg-12">
+                <div v-if="revenuesMonth.length >= 1" class="col-12 col-lg-12">
                     <div class="row justify-content-center card-header mx-0 py-1"
                         style="background-color: rgba(0, 0, 0, 0.25)">
                         <!-- <div class="row align-items-center col-5 ms-2">Despesas</div> -->
@@ -238,29 +254,29 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="(expense, key) in revenues" :key="expense.id">
-                                    <td style="color: #fefefe;">{{ expense.date }}</td>
-                                    <td style="color: #fefefe;">{{ expense.descricao }}</td>
-                                    <td style="color: #fefefe;">{{ expense.categoria }}</td>
-                                    <td style="color: #fefefe;">{{ expense.carteira }}</td>
-                                    <td style="color: #fefefe;">R$ {{ expense.valor }}</td>
+                                <tr v-for="(revenue, key) in revenuesMonth" :key="revenue.id">
+                                    <td style="color: #fefefe;">{{ revenue.date }}</td>
+                                    <td style="color: #fefefe;">{{ revenue.descricao }}</td>
+                                    <td style="color: #fefefe;">{{ revenue.categoria }}</td>
+                                    <td style="color: #fefefe;">{{ revenue.carteira }}</td>
+                                    <td style="color: #fefefe;">R$ {{ revenue.valor }}</td>
                                     <td class="d-flex py-0">
-                                        <button @click="payExpense(expense.id)" style="color: #fefefe;"
+                                        <button @click="receivedRevenue(revenue)" style="color: #fefefe;"
                                             class="btn btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 "
-                                            :class="{ pay: expense.status === 'PAGA' }"
-                                            :disabled="expense.status === 'PAGA'">
+                                            :class="{ received: revenue.status === 'RECEBIDA' }"
+                                            :disabled="revenue.status === 'RECEBIDA'">
                                             <mdicon name="check-circle-outline" />
                                         </button>
                                         <!-- <button class="btn btn-outline-table p-0 text-white fs-4 bi bi-paperclip mx-2"
                                             title="anexar arquivo">
                                             <mdicon name="paperclip" />
                                         </button> -->
-                                        <button @click="displayFormEditExpense(expense)"
+                                        <button @click="displayFormEditRevenue(revenue)"
                                             class="btn btn-outline-table p-0 text-white fs-4 bi bi-pencil mx-2"
                                             title="editar">
                                             <mdicon name="pencil-outline" />
                                         </button>
-                                        <button @click="deletar(expense.id)" type="submit"
+                                        <button @click="deletar(revenue.id)" type="submit"
                                             class="btn btn-outline-table p-0 text-white fs-4 bi bi-trash3 mx-2"
                                             title="deletar">
                                             <mdicon name="trash-can-outline" />
@@ -285,7 +301,6 @@
 </template>
 
 <script setup>
-import Cabecalho from "@/components/Cabecalho.vue";
 import { ref, reactive } from "vue";
 import { userData } from "@/stores/data.js";
 import Card from "@/components/Card.vue";
@@ -299,11 +314,11 @@ let formStoreRevenue = ref(false);
 let formEditRevenue = ref(false);
 let categorias = reactive({});
 let carteiras = reactive({});
-let revenues = reactive({});
+let revenuesMonth = reactive({});
 let revenueEdit = reactive({});
-let pay = ref('');
-let pending = ref('');
-let totalRevenues = ref(null);
+let valueReceived = ref(null);
+let valuePending = ref(null);
+let valueTotalRevenuesMonth = ref(null);
 let releases = reactive({
     valor: null,
     date: null,
@@ -311,15 +326,14 @@ let releases = reactive({
     categoria: null,
     carteira: null,
 });
-let name = ref('');
+let status = ref(true);
 
 categorias = data.user.categoriasReceitas;
-totalRevenues = data.getTotalRevenues;
+valueTotalRevenuesMonth.value = data.valueTotalRevenuesMonth;
 carteiras = data.user.carteiras;
-revenues = data.getExpenses;
-name = data.user.name;
-pay = data.totalPayExpenses;
-pending = data.totalPendingExpenses;
+revenuesMonth = data.revenuesMonth;
+valueReceived = data.valueReceivedRevenues;
+valuePending.value = data.valuePendingRevenues;
 
 const errorsForm = reactive({ errors: {} });
 
@@ -331,14 +345,24 @@ const clearInputs = () => {
     releases.carteira = null;
 }
 
+const returnRevenue = () => {
+    formStoreRevenue.value = formStoreRevenue.value === true ? !formStoreRevenue.value : formStoreRevenue.value;
+    formEditRevenue.value = formEditRevenue.value === true ? !formEditRevenue.value : formEditRevenue.value;
+}
+
 const salvarLancamentos = async () => {
+    console.log(releases);
     try {
-        const res = await http.post("/save-expense", releases);
-        totalRevenues += releases.valor;
-        data.addValorTotalExpense(releases.valor);
-        pending += releases.valor;
-        data.addTotalPendingExpenses(releases.valor);
-        revenues.push(res.data.expense);
+        releases.status = status.value ? "RECEBIDA" : "AGUARDANDO";
+        const res = await http.post("/save-revenue", releases);
+        valueTotalRevenuesMonth = res.data.valueTotalRevenuesMonth;
+        data.setValueTotalRevenuesMonth(res.data.valueTotalRevenuesMonth);
+        valueReceived = res.data.valueReceived;
+        data.setValueReceivedRevenues(res.data.valueReceived);
+        valuePending = res.data.valuePending;
+        data.setValuePendingRevenues(res.data.valuePending);
+        revenuesMonth = res.data.revenues;
+        data.setRevenuesMonth(res.data.revenues);
         clearInputs();
         formStoreRevenue.value = false;
     } catch (error) {
@@ -346,61 +370,39 @@ const salvarLancamentos = async () => {
     }
 }
 
-const payExpense = async (id) => {
+const receivedRevenue = async (revenue) => {
     try {
-        await http.post('/pay-expense', { 'id': id });
-        for (let i = 0; i < revenues.length; i++) {
-            if (revenues[i].id === id) {
-                revenues[i].status = 'PAGA';
-                pending -= revenues[i].valor;
-                data.decrementTotalPendingExpenses(revenues[i].valor);
-                pay += revenues[i].valor;
-                data.addTotalPayExpenses(revenues[i].valor);
+        const res = await http.post('/received-revenue', { 'id': revenue.id });
+        valuePending = res.data.valuePendig;
+        data.setValuePendingRevenues(res.data.valuePending);
+        valueReceived = res.data.valueReceived;
+        data.setValueReceivedRevenues(res.data.valueReceived);
+        // revenue.status = 'PAGA';
+        revenuesMonth.forEach(revenues => {
+            if (revenues.id === revenue.id) {
+                revenues.status = "RECEBIDA";
             }
-        }
+        });
 
     } catch (error) {
         console.log(error);
     }
 }
 
-const deletar = async (id) => {
-    try {
-        const res = await http.post('/delete-expense', { 'id': id })
-        for (let i = 0; i < revenues.length; i++) {
-            if (revenues[i].id === id & revenues[i].status === 'PAGA') {
-                totalRevenues -= revenues[i].valor;
-                data.decrementValorTotalExpense(revenues[i].valor);
-                pay -= revenues[i].valor;
-                data.decrementTotalPayExpenses(revenues[i].valor);
-                revenues.splice(i, 1);
-            } else if (revenues[i].id === id & revenues[i].status === 'AGUARDANDO') {
-                totalRevenues -= revenues[i].valor;
-                data.decrementValorTotalExpense(revenues[i].valor);
-                pending -= revenues[i].valor;
-                data.decrementTotalPendingExpenses(revenues[i].valor);
-                revenues.splice(i, 1);
-            }
-        }
-    } catch (error) {
-        console.log(error);
-    }
-}
-
-function displayFormEditExpense(expense) {
-    revenueEdit = expense;
+function displayFormEditRevenue(revenue) {
+    revenueEdit = revenue;
     formEditRevenue.value = true;
 }
 
-const saveEditedExpense = async () => {
+const saveEditedRevenue = async () => {
     try {
-        const res = await http.post("/edit-expense", revenueEdit);
-        for (let i = 0; i < revenues.length; i++) {
-            if (revenues[i] === revenueEdit.id) {
-                revenues[i] = revenueEdit;
-            }
-        }
-        totalRevenues = res.data.totalRevenues;
+        const res = await http.post("/edit-revenue", revenueEdit);
+        valuePending.value = res.data.valuePending;
+        data.setValuePendingRevenues(res.data.valuePending);
+        valueReceived = res.data.valueReceived;
+        data.setValueReceivedRevenues(res.data.valueReceived);
+        expensesMonth = res.data.expensesMonth
+        data.setRevenuesMonth(res.data.revenuesMonth);
     } catch (error) {
         console.log(error);
     }
@@ -408,6 +410,22 @@ const saveEditedExpense = async () => {
     formEditRevenue.value = false;
 
 };
+
+const deletar = async (id) => {
+    try {
+        const res = await http.post('/delete-revenue', { 'id': id })
+        valueTotalRevenuesMonth = res.data.valueTotalRevenuesMonth;
+        data.setValueTotalRevenuesMonth(res.data.valueTotalRevenuesMonth);
+        valuePending = res.data.valuePending;
+        data.setValuePendingExpenses(res.data.valuePending);
+        valueReceived = res.data.valueReceived;
+        data.setValueReceivedRevenues(res.data.valueReceived);
+        revenuesMonth = res.data.revenuesMonth;
+        data.setRevenuesMonth(res.data.revenuesMonth);
+    } catch (error) {
+        console.log(error);
+    }
+}
 
 </script>
 
@@ -508,7 +526,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     /* margin-top: 15px; */
 }
 
-.pay {
+.received {
     color: #1dbb01 !important;
 }
 </style>
