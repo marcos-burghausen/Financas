@@ -22,9 +22,18 @@ import { useAuth } from "@/stores/auth.js";
 const auth = useAuth();
 
 const menuExpandido = ref(true);
-let uri = ref('');
-uri = window.location.pathname;
-console.log(uri);
+window.addEventListener('resize', function () {
+    let width = this.window.innerWidth;
+    console.log(width);
+    if (width < 900) {
+        menuExpandido.value = false;
+    } else {
+        menuExpandido.value = true;
+    }
+})
+// let uri = ref('');
+// uri = window.location.pathname;
+// console.log(uri);
 </script>
 
 <style scoped>

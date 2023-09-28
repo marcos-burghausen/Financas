@@ -1,12 +1,12 @@
 <template>
-    <div class="clearfix"></div>
-
     <div class="content-wrapper">
         <div class="pagetitle">
             <nav class="d-flex justify-content-between mb-3">
-                <ol class="breadcrumb bg-transparent">
+                <ol class="breadcrumb bg-transparent ">
                     <li class="breadcrumb-item text-white">
-                        Dashboard
+                        <router-link class="link" :to="{ name: 'dashboard' }">
+                            Dashboard
+                        </router-link>
                     </li>
                     <li :class="{ opaco: !formStoreRevenue & !formEditRevenue }" @click="returnRevenue"
                         class="breadcrumb-item text-white">
@@ -215,13 +215,10 @@
 
 
         <div class="container-fluid" v-if="!formStoreRevenue & !formEditRevenue">
-            <div class="row justify-content-between m-0 mb-4">
-                <Card class="card col-12 col-md-6 col-lg-6 col-xl-3 bg-transparent" titulo="Receitas"
-                    :valor="valueTotalRevenuesMonth" />
-                <Card class="card col-12 col-md-6 col-lg-6 col-xl-3 bg-transparent" titulo="Pendentes"
-                    :valor="valuePending" />
-                <Card class="card col-12 col-md-6 col-lg-6 col-xl-3 bg-transparent" titulo="Recebidas"
-                    :valor="valueReceived" />
+            <div class="row justify-content-between m-0 mb-4 card__container">
+                <Card class="card col-12 col-md-6 col-lg-6 col-xl-4" titulo="Receitas" :valor="valueTotalRevenuesMonth" />
+                <Card class="card col-12 col-md-6 col-lg-6 col-xl-4" titulo="Pendentes" :valor="valuePending" />
+                <Card class="card col-12 col-md-6 col-lg-6 col-xl-4" titulo="Recebidas" :valor="valueReceived" />
             </div>
 
             <div class="row">
@@ -434,6 +431,11 @@ const deletar = async (id) => {
     color: #6c757d !important;
 }
 
+.link {
+    text-decoration: none;
+    color: #fefefe;
+}
+
 .cadastro {
     box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
     padding-top: 15px;
@@ -514,11 +516,16 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     transition: 0.5s ease-in-out;
 }
 
-.card {
-    height: 140px;
+.card__container {
     box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+}
+
+.card {
+    /* height: 140px; */
+    /* box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23; */
     color: #ccc;
     font-size: 30px;
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 .btn {
@@ -528,5 +535,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .received {
     color: #1dbb01 !important;
+}
+
+.container__table {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.table {
+    background-color: rgba(0, 0, 0, 0.1);
 }
 </style>

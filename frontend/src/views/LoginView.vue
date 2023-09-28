@@ -62,9 +62,11 @@ import { useRouter } from "vue-router";
 import http from "@/services/http.js";
 import { reactive } from "vue";
 import { userData } from "@/stores/data.js";
+import { useUserStore} from "@/stores/user.ts"
 
 const auth = useAuth();
 const router = useRouter();
+const userStore = useUserStore();
 
 const user = reactive({
   email: "marcos@gmail.com",
@@ -78,7 +80,7 @@ async function login() {
     const res = await http.post("/auth", user);
     auth.setToken(res.data.token);
     const resp = await http.post("/me");
-    data.setUser(resp.data.user);
+    userStore.setUser(resp.data.user);
 
     data.setExpenses(resp.data.expenses);
     data.setExpensesMonth(resp.data.expensesMonth);

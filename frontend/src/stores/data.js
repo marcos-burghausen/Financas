@@ -1,4 +1,3 @@
-// import { computed, reactive } from 'vue';
 import { defineStore } from 'pinia';
 
 export const userData = defineStore('data', {
@@ -17,6 +16,7 @@ export const userData = defineStore('data', {
         totalBalance: null,
         revenues: null,
         revenuesMonth: null,
+        routerCurrent: null,
 
     }),
 
@@ -25,7 +25,7 @@ export const userData = defineStore('data', {
         setUser(data) {
             this.user = data;
         },
-        //////////////////////////////////////
+        ////////////////////////////////////
         setValueTotalExpensesMonth(value) {
             this.valueTotalExpensesMonth = value;
         },
@@ -84,7 +84,9 @@ export const userData = defineStore('data', {
         /////////////////////////////////////
 
 
-
+        setRouterCurrent(router) {
+            this.routerCurrent = router;
+        }
 
 
     },

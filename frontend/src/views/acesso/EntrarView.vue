@@ -67,31 +67,31 @@
 </template>
 
 <script setup>
+import { userData } from "@/stores/data.js";
 import { useAuth } from "@/stores/auth.js";
 import { useRouter } from "vue-router";
 import http from "@/services/http.js";
 import { ref, reactive } from "vue";
-import { userData } from "@/stores/data.js";
 
 let entrar = ref(true);
 let none = ref(false);
 
-const auth = useAuth();
-const router = useRouter();
+const errorsForm = reactive({ errors: {} });
 const emits = defineEmits(["nextStep"]);
-
+const router = useRouter();
+const auth = useAuth();
 const user = reactive({
     name: "Marcos Rafael",
     email: "marcos@gmail.com",
     password: "123",
 });
-const errorsForm = reactive({ errors: {} });
 
 async function login() {
     const data = userData();
     try {
         const res = await http.post("/auth", user);
         auth.setToken(res.data.token);
+
         const resp = await http.post("/me");
         data.setUser(resp.data.user);
 
@@ -103,9 +103,9 @@ async function login() {
 
         data.setRevenues(resp.data.revenues);
         data.setRevenuesMonth(resp.data.revenuesMonth);
-        data.setValueTotalRevenuesMonth(resp.data.valueTotalRevenuesMonth);
-        data.setValueReceivedRevenues(resp.data.valueRevenuesReceived);
         data.setValuePendingRevenues(resp.data.valuePendingRevenues);
+        data.setValueReceivedRevenues(resp.data.valueRevenuesReceived);
+        data.setValueTotalRevenuesMonth(resp.data.valueTotalRevenuesMonth);
 
         data.setTotalCreditCard(resp.data.totalCreditCard);
         data.setTotalBalance(resp.data.totalBalance);

@@ -1,12 +1,12 @@
 <template>
-    <div class="clearfix"></div>
-
     <div class="content-wrapper">
         <div class="pagetitle">
             <nav class="d-flex justify-content-between mb-3">
                 <ol class="breadcrumb bg-transparent">
                     <li class="breadcrumb-item text-white">
-                        Dashboard
+                        <router-link class="link" :to="{ name: 'dashboard' }">
+                            Dashboard
+                        </router-link>
                     </li>
                     <li :class="{ opaco: !formStoreExpense & !formEditExpense }" @click="returnExpense"
                         class="breadcrumb-item text-white">
@@ -220,13 +220,10 @@
 
 
         <div class="container-fluid" v-if="!formStoreExpense & !formEditExpense">
-            <div class="row justify-content-between m-0 mb-4">
-                <Card class="card col-12 col-md-6 col-lg-6 col-xl-3 bg-transparent" titulo="Despesas"
-                    :valor="valueTotalExpensesMonth" />
-                <Card class="card col-12 col-md-6 col-lg-6 col-xl-3 bg-transparent" titulo="Despesas pendentes"
-                    :valor="valuePending" />
-                <Card class="card col-12 col-md-6 col-lg-6 col-xl-3 bg-transparent" titulo="Despesas pagas"
-                    :valor="valuePay" />
+            <div class="row justify-content-between m-0 mb-4 card__container">
+                <Card class="card col-12 col-md-6 col-lg-6 col-xl-4" titulo="Despesas" :valor="valueTotalExpensesMonth" />
+                <Card class="card col-12 col-md-6 col-lg-6 col-xl-4" titulo="Despesas pendentes" :valor="valuePending" />
+                <Card class="card col-12 col-md-6 col-lg-6 col-xl-4" titulo="Despesas pagas" :valor="valuePay" />
             </div>
 
             <div class="row">
@@ -441,6 +438,11 @@ const deletar = async (id) => {
     width: 100%;
 }
 
+.link {
+    text-decoration: none;
+    color: #fefefe;
+}
+
 .opaco {
     color: #6c757d !important;
 }
@@ -525,11 +527,16 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     transition: 0.5s ease-in-out;
 }
 
-.card {
-    height: 140px;
+.card__container {
     box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+}
+
+.card {
+    /* height: 140px; */
+    /* box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23; */
     color: #ccc;
     font-size: 30px;
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 .btn {

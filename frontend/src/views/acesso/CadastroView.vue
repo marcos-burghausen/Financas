@@ -79,9 +79,9 @@
 </template>
 
 <script setup>
+import { useRouter } from "vue-router";
 import http from "@/services/http.js";
 import { reactive } from "vue";
-import { useRouter } from "vue-router";
 
 const emits = defineEmits(["nextStep"]);
 const user = reactive({
@@ -90,10 +90,10 @@ const user = reactive({
     password: "123",
     confirmPassword: "123",
 });
-const router = useRouter();
 const errorsForm = reactive({
     errors: {},
 });
+const router = useRouter();
 
 async function create() {
     try {

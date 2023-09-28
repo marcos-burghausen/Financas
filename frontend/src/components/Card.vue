@@ -1,23 +1,19 @@
 <template>
-  <div>
-    <div class="">
-      <router-link class="link" :to="{ name: rota }">
-        <h5 class="text-white mb-0">{{ titulo }}</h5>
-        <div class="progress my-3" style="height: 3px">
-          <div class="progress-bar" style="width: 100%"></div>
-        </div>
-        <p class="mb-0 text-white small-font">R$ {{ valor }}</p>
-      </router-link>
+    <div>
+        <router-link class="link" :to="{ name: rota }">
+            <h5 class="title">{{ titulo }}</h5>
+            <div class="progress__bar"></div>
+            <p class="value">R$ {{ valor }}</p>
+        </router-link>
     </div>
-  </div>
 </template>
 
 <script setup>
 import { computed } from "vue";
 const props = defineProps({
-  titulo: String,
-  valor: Number,
-  rota: String,
+    titulo: String,
+    valor: Number,
+    rota: String,
 });
 
 const titulo = computed(() => props.titulo);
@@ -26,16 +22,24 @@ const rota = computed(() => props.rota);
 </script>
 
 <style scoped>
-.card {
-  /* height: 100px; */
-  box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
-  padding: 15px;
-  color: #ccc;
-  font-size: 30px;
-  background-color: transparent;
+.link {
+    text-decoration: none;
 }
 
-.link {
-  text-decoration: none;
+.title {
+    color: #fefefe;
+    text-align: center;
+}
+
+.progress__bar {
+    width: 100%;
+    height: 3px;
+    background: #77d08e;
+}
+
+.value {
+    color: #fefefe;
+    margin-bottom: 0;
+    text-align: center;
 }
 </style>

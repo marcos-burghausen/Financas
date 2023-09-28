@@ -1,320 +1,74 @@
 <template>
-  <!-- <Corpo /> -->
-  <div class="content-wrapper">
-    <div class="container-fluid">
-      <!--Start Dashboard Content-->
-      <div class="row row-group mt-3" style="background-color: transparent">
-        <Card class="card col-12 col-md-6 col-lg-6 col-xl-3" titulo="Receitas" :valor="valueTotalRevenuesMonth"
-          rota="receitas" />
-        <Card class="card col-12 col-md-6 col-lg-6 col-xl-3" titulo="Despesas" :valor="valueTotalExpensesMonth"
-          rota="despesas" />
-        <Card class="card col-12 col-md-6 col-lg-6 col-xl-3" titulo="Cartão de crédito" :valor="totalCreditCard"
-          rota="cartao" />
-        <Card class="card col-12 col-md-6 col-lg-6 col-xl-3" titulo="Saldo atual" :valor="totalBalance" rota="despesas" />
-      </div>
-      <!-- <div class="row">
-        <div class="col-12 col-lg-8 col-xl-8">
-          <div class="card">
-            <div class="card-header">Site Traffic</div>
-            <div class="card-body">
-              <div class="chart-container-1 mt-5">
-                <canvas id="chart1"></canvas>
-              </div>
-            </div>
-            <div
-              class="row m-0 row-group text-center border-top border-light-3"
-            >
-              <div class="col-12 col-lg-4">
-                <div class="p-3">
-                  <h5 class="mb-0">45.87M</h5>
-                  <small class="mb-0"
-                    >Overall Visitor
-                    <span> <i class="fa fa-arrow-up"></i> 2.43%</span></small
-                  >
-                </div>
-              </div>
-              <div class="col-12 col-lg-4">
-                <div class="p-3">
-                  <h5 class="mb-0">15:48</h5>
-                  <small class="mb-0"
-                    >Visitor Duration
-                    <span> <i class="fa fa-arrow-up"></i> 12.65%</span></small
-                  >
-                </div>
-              </div>
-              <div class="col-12 col-lg-4">
-                <div class="p-3">
-                  <h5 class="mb-0">245.65</h5>
-                  <small class="mb-0"
-                    >Pages/Visit
-                    <span> <i class="fa fa-arrow-up"></i> 5.62%</span></small
-                  >
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-12 col-lg-4 col-xl-4">
-          <div class="card">
-            <div class="card-header">
-              Weekly sales
-              <div class="card-action">
-                <div class="dropdown">
-                  <a
-                    href="javascript:void();"
-                    class="dropdown-toggle dropdown-toggle-nocaret"
-                    data-toggle="dropdown"
-                  >
-                    <i class="icon-options"></i>
-                  </a>
-                  <div class="dropdown-menu dropdown-menu-right">
-                    <a class="dropdown-item" href="javascript:void();"
-                      >Action</a
-                    >
-                    <a class="dropdown-item" href="javascript:void();"
-                      >Another action</a
-                    >
-                    <a class="dropdown-item" href="javascript:void();"
-                      >Something else here</a
-                    >
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="javascript:void();"
-                      >Separated link</a
-                    >
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="card-body">
-              <div class="chart-container-2">
-                <canvas id="chart2"></canvas>
-              </div>
-            </div>
-            <div class="table-responsive">
-              <table class="table align-items-center">
-                <tbody>
-                  <tr>
-                    <td><i class="fa fa-circle text-white mr-2"></i> Direct</td>
-                    <td>$5856</td>
-                    <td>+55%</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <i class="fa fa-circle text-light-1 mr-2"></i>Affiliate
-                    </td>
-                    <td>$2602</td>
-                    <td>+25%</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <i class="fa fa-circle text-light-2 mr-2"></i>E-mail
-                    </td>
-                    <td>$1802</td>
-                    <td>+15%</td>
-                  </tr>
-                  <tr>
-                    <td><i class="fa fa-circle text-light-3 mr-2"></i>Other</td>
-                    <td>$1105</td>
-                    <td>+5%</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div> -->
-      <!--End Row-->
+    <div class="content-wrapper">
+        <div class="clearfix"></div>
 
-      <!-- <div class="row">
-        <div class="col-12 col-lg-12">
-          <div class="card">
-            <div class="card-header">Recent Order Tables</div>
-            <div class="card-action">
-              <div class="dropdown">
-                <a
-                  href="javascript:void();"
-                  class="dropdown-toggle dropdown-toggle-nocaret"
-                  data-toggle="dropdown"
-                >
-                  <i class="icon-options"></i>
-                </a>
-                <div class="dropdown-menu dropdown-menu-right">
-                  <a class="dropdown-item" href="javascript:void();">Action</a>
-                  <a class="dropdown-item" href="javascript:void();"
-                    >Another action</a
-                  >
-                  <a class="dropdown-item" href="javascript:void();"
-                    >Something else here</a
-                  >
-                  <div class="dropdown-divider"></div>
-                  <a class="dropdown-item" href="javascript:void();"
-                    >Separated link</a
-                  >
+        <div class="pagetitle">
+            <nav class="d-flex justify-content-between">
+                <ol class="breadcrumb bg-transparent m-0">
+                    <li class="breadcrumb-item opaco">
+                        Dashboard
+                    </li>
+                </ol>
+            </nav>
+        </div>
+        <div class="container-fluid">
+            <div class="row row-group mt-3 card__container">
+                <Card class="card" titulo="Receitas" :valor="valueTotalRevenuesMonth" rota="receitas" />
+                <Card class="card" titulo="Despesas" :valor="valueTotalExpensesMonth" rota="despesas" />
+                <!-- <Card class="card col-12 col-md-6 col-lg-6 col-xl-3" titulo="Cartão de crédito" :valor="totalCreditCard"
+                    rota="cartao" /> -->
+                <Card class="card" titulo="Saldo atual" :valor="totalBalance" rota="despesas" />
+            </div>
+
+
+
+
+            <div class="row mt-3">
+
+
+                <div class="container__charts">
+                    <div class="col-8 chart__des__rev">
+                        <apexchart width="100%" height="353" type="bar" :options="options" :series="series">
+                        </apexchart>
+                    </div>
+                    <div class="col-4 chart1">
+
+                        <apexchart width="100%" height="353" type="pie" :options="options1" :series="series1">
+                        </apexchart>
+                    </div>
                 </div>
+                <!-- <div class="col-6 p-0">
+          <div class="card">
+            <div class="card-header">Receitas por categoria</div>
+            <div class="card-body">
+              <div class="chart-container-1">
+                <canvas id="Chart2"></canvas>
               </div>
             </div>
           </div>
-          <div class="table-responsive">
-            <table
-              class="table align-items-center table-flush table-borderless"
-            >
-              <thead>
-                <tr>
-                  <th>Product</th>
-                  <th>Photo</th>
-                  <th>Product ID</th>
-                  <th>Amount</th>
-                  <th>Date</th>
-                  <th>Shipping</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Iphone 5</td>
-                  <td>
-                    <img
-                      src="https://via.placeholder.com/110x110"
-                      class="product-img"
-                      alt="product img"
-                    />
-                  </td>
-                  <td>#9405822</td>
-                  <td>$ 1250.00</td>
-                  <td>03 Aug 2017</td>
-                  <td>
-                    <div class="progress shadow" style="height: 3px">
-                      <div
-                        class="progress-bar"
-                        role="progressbar"
-                        style="width: 90%"
-                      ></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Earphone GL</td>
-                  <td>
-                    <img
-                      src="https://via.placeholder.com/110x110"
-                      class="product-img"
-                      alt="product img"
-                    />
-                  </td>
-                  <td>#9405820</td>
-                  <td>$ 1500.00</td>
-                  <td>03 Aug 2017</td>
-                  <td>
-                    <div class="progress shadow" style="height: 3px">
-                      <div
-                        class="progress-bar"
-                        role="progressbar"
-                        style="width: 60%"
-                      ></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>HD Hand Camera</td>
-                  <td>
-                    <img
-                      src="https://via.placeholder.com/110x110"
-                      class="product-img"
-                      alt="product img"
-                    />
-                  </td>
-                  <td>#9405830</td>
-                  <td>$ 1400.00</td>
-                  <td>03 Aug 2017</td>
-                  <td>
-                    <div class="progress shadow" style="height: 3px">
-                      <div
-                        class="progress-bar"
-                        role="progressbar"
-                        style="width: 70%"
-                      ></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Clasic Shoes</td>
-                  <td>
-                    <img
-                      src="https://via.placeholder.com/110x110"
-                      class="product-img"
-                      alt="product img"
-                    />
-                  </td>
-                  <td>#9405825</td>
-                  <td>$ 1200.00</td>
-                  <td>03 Aug 2017</td>
-                  <td>
-                    <div class="progress shadow" style="height: 3px">
-                      <div
-                        class="progress-bar"
-                        role="progressbar"
-                        style="width: 100%"
-                      ></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Hand Watch</td>
-                  <td>
-                    <img
-                      src="https://via.placeholder.com/110x110"
-                      class="product-img"
-                      alt="product img"
-                    />
-                  </td>
-                  <td>#9405840</td>
-                  <td>$ 1800.00</td>
-                  <td>03 Aug 2017</td>
-                  <td>
-                    <div class="progress shadow" style="height: 3px">
-                      <div
-                        class="progress-bar"
-                        role="progressbar"
-                        style="width: 40%"
-                      ></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Clasic Shoes</td>
-                  <td>
-                    <img
-                      src="https://via.placeholder.com/110x110"
-                      class="product-img"
-                      alt="product img"
-                    />
-                  </td>
-                  <td>#9405825</td>
-                  <td>$ 1200.00</td>
-                  <td>03 Aug 2017</td>
-                  <td>
-                    <div class="progress shadow" style="height: 3px">
-                      <div
-                        class="progress-bar"
-                        role="progressbar"
-                        style="width: 100%"
-                      ></div>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+        </div> -->
+                <!-- <div class="col-4 p-0">
+          <div class="card">
+            <div class="card-header">Despesas por categoria</div>
+            <div class="card-body">
+              <div class="chart-container-1">
+                <canvas id="Chart1"></canvas>
+              </div>
+            </div>
           </div>
+        </div> -->
+            </div>
+            <!--End Row -->
+
         </div>
-      </div> -->
+        <!--End Row-->
+
+        <!--End Dashboard Content-->
+
+        <!--start overlay-->
+        <div class="overlay toggle-menu"></div>
+        <!--end overlay-->
     </div>
-    <!--End Row-->
-
-    <!--End Dashboard Content-->
-
-    <!--start overlay-->
-    <div class="overlay toggle-menu"></div>
-    <!--end overlay-->
-  </div>
 </template>
 
 <script setup>
@@ -322,7 +76,6 @@ import Card from "@/components/Card.vue";
 
 import { userData } from "@/stores/data.js";
 import { ref } from "vue";
-
 
 const data = userData();
 
@@ -336,12 +89,187 @@ let totalCreditCard = ref('');
 totalCreditCard = data.getTotalCreditCard;
 
 let totalBalance = ref('');
-totalBalance = data.getTotalBalance;
+totalBalance = valueTotalRevenuesMonth - valueTotalExpensesMonth;
+
+const options = {
+    chart: {
+        id: 'vuechart-example',
+        foreColor: '#fefefe'
+    },
+    title: {
+        text: 'receitas & despesas',
+        align: 'left',
+        style: {
+            color: '#fefefe'
+        }
+    },
+    dataLabels: {
+        enabled: false,
+    },
+    labels: {
+        style: {
+            color: '#fefefe'
+        }
+    },
+    colors: ['#fb0404', '#77d08e'],
+    xaxis: {
+        categories: ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'],
+    },
+    tooltip: {
+        y: {
+            formatter: function (val) {
+                return "$ " + val
+            }
+        }, theme: "dark",
+    }
+}
+const series = [
+    {
+        name: 'despesas',
+        data: [30, 40, 45, 50, 49, 60, 70, 91],
+    },
+    {
+        name: 'receitas',
+        data: [30, 40, 45, 50, 49, 60, 70, 100]
+    }
+]
+const options1 = {
+    chart: {
+        id: 'vuechart-example',
+        foreColor: '#fefefe'
+    },
+    title: {
+        text: 'receitas & despesas',
+        align: 'center',
+        style: {
+            color: '#fefefe'
+        }
+    },
+    legend: {
+        position: 'bottom'
+    },
+    labels: ['Apple', 'Mango', 'Orange', 'Watermelon']
+}
+const series1 = [44, 55, 13, 33]
+
+// onMounted(() => {
+//   const receitaDespesa = {
+//     labels: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
+//     datasets: [{
+//       label: 'Receitas',
+//       data: [65, 59, 80, 81, 196, 55, 40, 69, valueTotalRevenuesMonth],
+//       backgroundColor: [
+//         '#77d08e',
+//       ],
+//     },
+//     {
+//       label: 'Receitas',
+//       data: [65, 59, 80, 81, 196, 55, 40, 84, valueTotalExpensesMonth],
+//       backgroundColor: [
+//         '#fb0404',
+//       ],
+//     }
+//     ]
+
+//   }
+//   const configReceitaDespesa = {
+//     type: "bar",
+//     data: receitaDespesa,
+//     options: {
+//       scales: {
+//         y: {
+//           beginAtZero: false
+//         }
+//       }
+//     },
+//   }
+
+
+//   const ctx1 = document.getElementById('Chart1');
+//   const Chart1 = new Chart(ctx1, configReceitaDespesa);
+//   Chart1;
+
+//   const categoriaReceita = {
+//     labels: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
+//     datasets: [{
+//       label: 'Receitas',
+//       data: [65, 59, 80, 81, 196, 55, 40],
+//       backgroundColor: [
+//         '#77d08e',
+//       ],
+//     },
+//     {
+//       label: 'Receitas',
+//       data: [65, 59, 80, 81, 196, 55, 40],
+//       backgroundColor: [
+//         '#fb0404',
+//       ],
+//     }
+//     ]
+
+//   }
+//   const configCategoriaReceita = {
+//     type: "pie",
+//     data: receitaDespesa,
+//     options: {
+//       responsive: true,
+//       plugins: {
+//         legend: {
+//           position: 'top',
+//         },
+//         title: {
+//           dispĺay: true,
+//           text: 'pizza'
+//         }
+//       }
+//     },
+//   }
+
+
+//   const ctx2 = document.getElementById('Chart1');
+//   const Chart2 = new Chart(ctx2, configReceitaDespesa);
+//   Chart2;
+// })
 
 </script>
 
 <style scoped>
 .dashboard {
-  width: 100%;
+    width: 100%;
+    background: #fb0404;
+}
+
+.opaco {
+    color: #6c757d !important;
+}
+
+.card__container {
+    box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+}
+
+.card {
+    width: 33.33%;
+    color: #ccc;
+    font-size: 30px;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.chart__des__rev {
+    background: transparent;
+    /* height: 400px; */
+}
+
+.container__charts {
+    box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+    background-color: rgba(0, 0, 0, 0.1);
+    display: flex;
+    padding: 0;
+    height: 100%;
+}
+
+@media screen and (max-width: 1280px) {
+    .card {
+        width: 33.33%;
+    }
 }
 </style>
