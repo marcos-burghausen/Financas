@@ -13,6 +13,7 @@ class RevenueController extends Controller
 
     public function saveRevenue(Request $request)
     {
+        // return response()->json($request);
         $data = $request->validate(
             [
                 'valor'     => 'required',
@@ -27,7 +28,7 @@ class RevenueController extends Controller
                 'date.required'      => 'O campo data é obrigatório',
                 'descricao.unique'   => 'O campo descricao é obrigatório',
                 'categoria.required' => 'O campo categoria é obrigatório',
-                'carteira.required'  => 'O campo carteira senha é obrigatório',
+                'carteira.required'  => 'O campo carteira é obrigatório',
             ]
         );
         $revenue = new Revenue;

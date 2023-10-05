@@ -8,7 +8,8 @@
                 <h1 :class="{ displayNone: !menuExpandido }" class="title">Gerenciador Financeiro</h1>
             </div>
             <ul>
-                <li v-for="(item, index) in itensSideBar" :class="{ efeitoClick: elementoAtivoSideBar }" :key="index">
+                <li v-for="(item, index) in itensSideBar" :class="{ efeitoClick: elementoAtivoSideBar === index }"
+                    :key="index">
                     <!-- @click="elementoAtivoSideBar = index"> -->
                     <router-link :to="{ name: item.route }">
                         <span class="icon">
@@ -30,10 +31,7 @@ import { useRoute } from "vue-router";
 
 const route = useRoute()
 
-let rota = ref();
-// rota = route.name;
-// console.log(rota);
-let elementoAtivoSideBar = ref(0);
+let elementoAtivoSideBar = ref();
 
 watch(route, (value) => {
     switch (value.name) {
@@ -47,7 +45,6 @@ watch(route, (value) => {
             elementoAtivoSideBar.value = 2;
             break;
     }
-    console.log(value.name);
 
 })
 

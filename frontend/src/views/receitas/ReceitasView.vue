@@ -1,5 +1,5 @@
 <template>
-    <div class="content-wrapper">
+    <div class="content-wrapper" style="height: 100%;">
         <div class="pagetitle">
             <nav class="d-flex justify-content-between mb-3">
                 <ol class="breadcrumb bg-transparent ">
@@ -215,14 +215,15 @@
 
 
         <div class="container-fluid" v-if="!formStoreRevenue & !formEditRevenue">
-            <div class="row justify-content-between m-0 mb-4 card__container">
-                <Card class="card col-12 col-md-6 col-lg-6 col-xl-4" titulo="Receitas" :valor="valueTotalRevenuesMonth" />
-                <Card class="card col-12 col-md-6 col-lg-6 col-xl-4" titulo="Pendentes" :valor="valuePending" />
-                <Card class="card col-12 col-md-6 col-lg-6 col-xl-4" titulo="Recebidas" :valor="valueReceived" />
+            <div class="card__container">
+                <Card class="card" titulo="Receitas" :valor="valueTotalRevenuesMonth" />
+                <Card class="card" titulo="Pendentes" :valor="valuePending" />
+                <Card class="card" titulo="Recebidas" :valor="valueReceived" />
             </div>
 
-            <div class="row">
-                <div v-if="revenuesMonth.length >= 1" class="col-12 col-lg-12">
+            <div class="container__table">
+                <!-- <div v-if="revenuesMonth.length >= 1" class="col-12 col-lg-12"> -->
+                <div v-if="revenuesMonth" class="col-12 col-lg-12">
                     <div class="row justify-content-center card-header mx-0 py-1"
                         style="background-color: rgba(0, 0, 0, 0.25)">
                         <!-- <div class="row align-items-center col-5 ms-2">Despesas</div> -->
@@ -289,23 +290,28 @@
                     </div>
                 </div>
                 <h5 v-else class="card-title text-white text-center">
-                    Você não possui despesas a serem exibidas
+                    Você não possui receitas a serem exibidas
                 </h5>
             </div>
         </div>
-        <div class="overlay toggle-menu"></div>
     </div>
 </template>
 
-<script setup>
-import { ref, reactive } from "vue";
-import { userData } from "@/stores/data.js";
+<script setup lang="ts">
 import Card from "@/components/Card.vue";
-import { useRouter } from "vue-router";
-import http from "@/services/http.js";
 
-const router = useRouter();
+import { ref, reactive } from "vue";
+
+import type { Lancamentos } from "@/types/lancamentos";
+
+import { useRevenuesStore } from "@/stores/revenues";
+import { useUserStore } from "@/stores/user";
+import { userData } from "@/stores/data";
+import http from "@/services/http";
+
+const useRevenues = useRevenuesStore();
 const data = userData();
+const userStore = useUserStore();
 
 let formStoreRevenue = ref(false);
 let formEditRevenue = ref(false);
@@ -313,33 +319,33 @@ let categorias = reactive({});
 let carteiras = reactive({});
 let revenuesMonth = reactive({});
 let revenueEdit = reactive({});
-let valueReceived = ref(null);
-let valuePending = ref(null);
-let valueTotalRevenuesMonth = ref(null);
+let valueReceived = ref();
+let valuePending = ref();
+let valueTotalRevenuesMonth = ref();
 let releases = reactive({
-    valor: null,
-    date: null,
-    descricao: null,
-    categoria: null,
-    carteira: null,
+    valor: '',
+    date: '',
+    descricao: '',
+    categoria: '',
+    carteira: '',
+    status: ''
 });
 let status = ref(true);
-
-categorias = data.user.categoriasReceitas;
-valueTotalRevenuesMonth.value = data.valueTotalRevenuesMonth;
-carteiras = data.user.carteiras;
-revenuesMonth = data.revenuesMonth;
-valueReceived = data.valueReceivedRevenues;
-valuePending.value = data.valuePendingRevenues;
+categorias = userStore.user.categoriasReceitas;
+valueTotalRevenuesMonth.value = useRevenues.valueTotalRevenuesMonth;
+carteiras = userStore.user.carteiras;
+revenuesMonth = useRevenues.revenuesMonth;
+valueReceived.value = useRevenues.valueReceivedRevenues;
+valuePending.value = useRevenues.valuePendingRevenues;
 
 const errorsForm = reactive({ errors: {} });
 
 const clearInputs = () => {
-    releases.valor = null;
-    releases.date = null;
-    releases.descricao = null;
-    releases.categoria = null;
-    releases.carteira = null;
+    releases.valor = '';
+    releases.date = '';
+    releases.descricao = '';
+    releases.categoria = '';
+    releases.carteira = '';
 }
 
 const returnRevenue = () => {
@@ -348,18 +354,17 @@ const returnRevenue = () => {
 }
 
 const salvarLancamentos = async () => {
-    console.log(releases);
     try {
         releases.status = status.value ? "RECEBIDA" : "AGUARDANDO";
         const res = await http.post("/save-revenue", releases);
-        valueTotalRevenuesMonth = res.data.valueTotalRevenuesMonth;
-        data.setValueTotalRevenuesMonth(res.data.valueTotalRevenuesMonth);
-        valueReceived = res.data.valueReceived;
-        data.setValueReceivedRevenues(res.data.valueReceived);
-        valuePending = res.data.valuePending;
-        data.setValuePendingRevenues(res.data.valuePending);
-        revenuesMonth = res.data.revenues;
-        data.setRevenuesMonth(res.data.revenues);
+        useRevenues.setValueTotalRevenuesMonth(res.data.valueTotalRevenuesMonth);
+        valueTotalRevenuesMonth.value = res.data.valueTotalRevenuesMonth;
+        valueReceived.value = res.data.valueReceived;
+        useRevenues.setValueReceivedRevenues(res.data.valueReceived);
+        valuePending.value = res.data.valuePending;
+        useRevenues.setValuePendingRevenues(res.data.valuePending);
+        revenuesMonth = res.data.revenuesMonth;
+        useRevenues.setRevenuesMonth(res.data.revenuesMonth);
         clearInputs();
         formStoreRevenue.value = false;
     } catch (error) {
@@ -367,13 +372,14 @@ const salvarLancamentos = async () => {
     }
 }
 
-const receivedRevenue = async (revenue) => {
+const receivedRevenue = async (revenue: Lancamentos) => {
     try {
         const res = await http.post('/received-revenue', { 'id': revenue.id });
-        valuePending = res.data.valuePendig;
-        data.setValuePendingRevenues(res.data.valuePending);
-        valueReceived = res.data.valueReceived;
-        data.setValueReceivedRevenues(res.data.valueReceived);
+        valuePending.value = res.data.valuePendig;
+        console.log(valuePending.value);
+        useRevenues.setValuePendingRevenues(res.data.valuePending);
+        valueReceived.value = res.data.valueReceived;
+        useRevenues.setValueReceivedRevenues(res.data.valueReceived);
         // revenue.status = 'PAGA';
         revenuesMonth.forEach(revenues => {
             if (revenues.id === revenue.id) {
@@ -386,7 +392,7 @@ const receivedRevenue = async (revenue) => {
     }
 }
 
-function displayFormEditRevenue(revenue) {
+function displayFormEditRevenue(revenue: Lancamentos) {
     revenueEdit = revenue;
     formEditRevenue.value = true;
 }
@@ -395,11 +401,11 @@ const saveEditedRevenue = async () => {
     try {
         const res = await http.post("/edit-revenue", revenueEdit);
         valuePending.value = res.data.valuePending;
-        data.setValuePendingRevenues(res.data.valuePending);
-        valueReceived = res.data.valueReceived;
-        data.setValueReceivedRevenues(res.data.valueReceived);
-        expensesMonth = res.data.expensesMonth
-        data.setRevenuesMonth(res.data.revenuesMonth);
+        useRevenues.setValuePendingRevenues(res.data.valuePending);
+        valueReceived.value = res.data.valueReceived;
+        useRevenues.setValueReceivedRevenues(res.data.valueReceived);
+        revenuesMonth = res.data.expensesMonth
+        useRevenues.setRevenuesMonth(res.data.revenuesMonth);
     } catch (error) {
         console.log(error);
     }
@@ -408,17 +414,17 @@ const saveEditedRevenue = async () => {
 
 };
 
-const deletar = async (id) => {
+const deletar = async (id: number) => {
     try {
         const res = await http.post('/delete-revenue', { 'id': id })
-        valueTotalRevenuesMonth = res.data.valueTotalRevenuesMonth;
-        data.setValueTotalRevenuesMonth(res.data.valueTotalRevenuesMonth);
-        valuePending = res.data.valuePending;
-        data.setValuePendingExpenses(res.data.valuePending);
+        valueTotalRevenuesMonth.value = res.data.valueTotalRevenuesMonth;
+        useRevenues.setValueTotalRevenuesMonth(res.data.valueTotalRevenuesMonth);
+        valuePending.value = res.data.valuePending;
+        useRevenues.setValuePendingRevenues(res.data.valuePending);
         valueReceived = res.data.valueReceived;
-        data.setValueReceivedRevenues(res.data.valueReceived);
+        useRevenues.setValueReceivedRevenues(res.data.valueReceived);
         revenuesMonth = res.data.revenuesMonth;
-        data.setRevenuesMonth(res.data.revenuesMonth);
+        useRevenues.setRevenuesMonth(res.data.revenuesMonth);
     } catch (error) {
         console.log(error);
     }
@@ -443,6 +449,12 @@ const deletar = async (id) => {
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+
+.container__table {
+    box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+    margin-top: 15px;
+
 }
 
 .inputSimples {
@@ -518,11 +530,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .card__container {
     box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+    display: flex;
 }
 
 .card {
-    /* height: 140px; */
-    /* box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23; */
+    width: 33.33%;
     color: #ccc;
     font-size: 30px;
     background-color: rgba(0, 0, 0, 0.1);

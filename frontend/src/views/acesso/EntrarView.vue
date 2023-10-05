@@ -66,18 +66,21 @@
     </div>
 </template>
 
-<script setup>
-import { userData } from "@/stores/data.js";
-import { useAuth } from "@/stores/auth.js";
+<script setup lang="ts">
+import { useUserStore } from "@/stores/user";
+import { userData } from "@/stores/data";
+import { useAuth } from "@/stores/auth";
+import { useExpensesStore } from "@/stores/expenses";
 import { useRouter } from "vue-router";
-import http from "@/services/http.js";
+import http from "@/services/http";
 import { ref, reactive } from "vue";
-
-let entrar = ref(true);
-let none = ref(false);
+import { useRevenuesStore } from "@/stores/revenues";
 
 const errorsForm = reactive({ errors: {} });
 const emits = defineEmits(["nextStep"]);
+const useUser = useUserStore();
+const useExpenses = useExpensesStore();
+const useRevenues = useRevenuesStore();
 const router = useRouter();
 const auth = useAuth();
 const user = reactive({
@@ -85,34 +88,34 @@ const user = reactive({
     email: "marcos@gmail.com",
     password: "123",
 });
+const data = userData();
 
 async function login() {
-    const data = userData();
     try {
         const res = await http.post("/auth", user);
         auth.setToken(res.data.token);
 
         const resp = await http.post("/me");
-        data.setUser(resp.data.user);
+        useUser.setUserData(resp.data.user);
 
-        data.setExpenses(resp.data.expenses);
-        data.setExpensesMonth(resp.data.expensesMonth);
-        data.setValuePayExpenses(resp.data.valuePayExpenses);
-        data.setValuePendingExpenses(resp.data.valuePendingExpenses);
-        data.setValueTotalExpensesMonth(resp.data.valueTotalExpensesMonth);
+        useExpenses.setExpenses(resp.data.expenses);
+        useExpenses.setExpensesMonth(resp.data.expensesMonth);
+        useExpenses.setValuePayExpenses(resp.data.valuePayExpenses);
+        useExpenses.setValuePendingExpenses(resp.data.valuePendingExpenses);
+        useExpenses.setValueTotalExpensesMonth(resp.data.valueTotalExpensesMonth);
 
-        data.setRevenues(resp.data.revenues);
-        data.setRevenuesMonth(resp.data.revenuesMonth);
-        data.setValuePendingRevenues(resp.data.valuePendingRevenues);
-        data.setValueReceivedRevenues(resp.data.valueRevenuesReceived);
-        data.setValueTotalRevenuesMonth(resp.data.valueTotalRevenuesMonth);
+        useRevenues.setRevenues(resp.data.revenues);
+        useRevenues.setRevenuesMonth(resp.data.revenuesMonth);
+        useRevenues.setValuePendingRevenues(resp.data.valuePendingRevenues);
+        useRevenues.setValueReceivedRevenues(resp.data.valueRevenuesReceived);
+        useRevenues.setValueTotalRevenuesMonth(resp.data.valueTotalRevenuesMonth);
 
         data.setTotalCreditCard(resp.data.totalCreditCard);
         data.setTotalBalance(resp.data.totalBalance);
         auth.setUser(resp.data.user.name);
         router.push({ name: "dashboard" });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         errorsForm["errors"] = error.response.data;
     }
 }

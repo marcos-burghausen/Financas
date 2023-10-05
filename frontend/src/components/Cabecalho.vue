@@ -8,11 +8,11 @@
     </header>
 </template>
 
-<script setup>
-import { userData } from "@/stores/data.js";
-import { useAuth } from "@/stores/auth.js";
+<script setup lang="ts">
+import { userData } from "@/stores/data.ts";
+import { useAuth } from "@/stores/auth.ts";
 import { useRouter } from "vue-router";
-import http from "@/services/http.js";
+import http from "@/services/http.ts";
 import { ref, computed } from "vue";
 
 const props = defineProps({

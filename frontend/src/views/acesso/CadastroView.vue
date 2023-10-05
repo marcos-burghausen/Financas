@@ -78,9 +78,9 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useRouter } from "vue-router";
-import http from "@/services/http.js";
+import http from "@/services/http.ts";
 import { reactive } from "vue";
 
 const emits = defineEmits(["nextStep"]);

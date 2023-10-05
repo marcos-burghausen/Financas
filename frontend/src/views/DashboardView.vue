@@ -11,56 +11,57 @@
                 </ol>
             </nav>
         </div>
-        <div class="container-fluid">
-            <div class="row row-group mt-3 card__container">
-                <Card class="card" titulo="Receitas" :valor="valueTotalRevenuesMonth" rota="receitas" />
-                <Card class="card" titulo="Despesas" :valor="valueTotalExpensesMonth" rota="despesas" />
-                <!-- <Card class="card col-12 col-md-6 col-lg-6 col-xl-3" titulo="Cartão de crédito" :valor="totalCreditCard"
+        <!-- <div class="container-fluid"> -->
+        <!-- <div class="row row-group mt-3 card__container"> -->
+        <div class="card__container">
+            <Card class="card" titulo="Receitas" :valor="valueTotalRevenuesMonth" rota="receitas" />
+            <Card class="card" titulo="Despesas" :valor="valueTotalExpensesMonth" rota="despesas" />
+            <!-- <Card class="card col-12 col-md-6 col-lg-6 col-xl-3" titulo="Cartão de crédito" :valor="totalCreditCard"
                     rota="cartao" /> -->
-                <Card class="card" titulo="Saldo atual" :valor="totalBalance" rota="despesas" />
-            </div>
-
-
-
-
-            <div class="row mt-3">
-
-
-                <div class="container__charts">
-                    <div class="col-8 chart__des__rev">
-                        <apexchart width="100%" height="353" type="bar" :options="options" :series="series">
-                        </apexchart>
-                    </div>
-                    <div class="col-4 chart1">
-
-                        <apexchart width="100%" height="353" type="pie" :options="options1" :series="series1">
-                        </apexchart>
-                    </div>
-                </div>
-                <!-- <div class="col-6 p-0">
-          <div class="card">
-            <div class="card-header">Receitas por categoria</div>
-            <div class="card-body">
-              <div class="chart-container-1">
-                <canvas id="Chart2"></canvas>
-              </div>
-            </div>
-          </div>
-        </div> -->
-                <!-- <div class="col-4 p-0">
-          <div class="card">
-            <div class="card-header">Despesas por categoria</div>
-            <div class="card-body">
-              <div class="chart-container-1">
-                <canvas id="Chart1"></canvas>
-              </div>
-            </div>
-          </div>
-        </div> -->
-            </div>
-            <!--End Row -->
-
+            <Card class="card" titulo="Saldo atual" :valor="totalBalance" rota="despesas" />
         </div>
+
+
+
+
+        <div class="chart__container">
+
+
+            <div class="container__charts">
+                <div class="col-8 chart__des__rev">
+                    <apexchart width="100%" height="353" type="bar" :options="options" :series="series">
+                    </apexchart>
+                </div>
+                <div class="col-4 chart1">
+
+                    <apexchart width="100%" height="353" type="pie" :options="options1" :series="series1">
+                    </apexchart>
+                </div>
+            </div>
+            <!-- <div class="col-6 p-0">
+                    <div class="card">
+                        <div class="card-header">Receitas por categoria</div>
+                        <div class="card-body">
+                            <div class="chart-container-1">
+                                <canvas id="Chart2"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div> -->
+            <!-- <div class="col-4 p-0">
+                    <div class="card">
+                        <div class="card-header">Despesas por categoria</div>
+                        <div class="card-body">
+                            <div class="chart-container-1">
+                                <canvas id="Chart1"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div> -->
+        </div>
+        <!--End Row -->
+
+        <!-- </div> -->
         <!--End Row-->
 
         <!--End Dashboard Content-->
@@ -71,25 +72,32 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Card from "@/components/Card.vue";
 
-import { userData } from "@/stores/data.js";
-import { ref } from "vue";
+import { reactive, ref } from "vue";
 
+import type { Ref } from "vue";
+
+import { useRevenuesStore } from "@/stores/revenues";
+import { useUserStore } from "@/stores/user";
+import { userData } from "@/stores/data";
+
+const useRevenues = useRevenuesStore();
 const data = userData();
+const useUser = useUserStore();
 
-let valueTotalExpensesMonth = ref('');
-valueTotalExpensesMonth = data.valueTotalExpensesMonth;
+let valueTotalExpensesMonth: Ref<number> = ref(0);
+let valueTotalRevenuesMonth: Ref<number> = ref(0);
+let totalCreditCard: Ref<number> = ref(0);
+let totalBalance: Ref<number> = ref(0);
 
-let valueTotalRevenuesMonth = ref('');
-valueTotalRevenuesMonth = data.valueTotalRevenuesMonth;
+valueTotalExpensesMonth.value = data.valueTotalExpensesMonth;
+valueTotalRevenuesMonth.value = useRevenues.valueTotalRevenuesMonth;
+totalBalance.value = valueTotalRevenuesMonth.value - valueTotalExpensesMonth.value;
+// totalCreditCard = data.getTotalCreditCard;
 
-let totalCreditCard = ref('');
-totalCreditCard = data.getTotalCreditCard;
 
-let totalBalance = ref('');
-totalBalance = valueTotalRevenuesMonth - valueTotalExpensesMonth;
 
 const options = {
     chart: {
@@ -245,6 +253,13 @@ const series1 = [44, 55, 13, 33]
 
 .card__container {
     box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+    display: flex;
+}
+
+.chart__container {
+    box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+    margin-top: 15px;
+    height: calc(100% - 125px);
 }
 
 .card {
@@ -256,11 +271,10 @@ const series1 = [44, 55, 13, 33]
 
 .chart__des__rev {
     background: transparent;
-    /* height: 400px; */
 }
 
 .container__charts {
-    box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+    /* box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23; */
     background-color: rgba(0, 0, 0, 0.1);
     display: flex;
     padding: 0;

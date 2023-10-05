@@ -302,26 +302,26 @@
     </div>
 </template>
 
-<script setup>
-import Card from "@/components/Card.vue";
-
-import { userData } from "@/stores/data.js";
-import { useRouter } from "vue-router";
-import http from "@/services/http.js";
+<script setup lang="ts">
+import { userData } from "@/stores/data.ts";
 import { ref, reactive, watch } from "vue";
+import Card from "@/components/Card.vue";
+import { useRouter } from "vue-router";
+import http from "@/services/http.ts";
 
 const router = useRouter();
 const data = userData();
 
+let errorsForm = reactive({ errors: {} });
+let valueTotalExpensesMonth = ref(null);
 let formStoreExpense = ref(false);
 let formEditExpense = ref(false);
-let categorias = reactive({});
-let carteiras = reactive({});
 let expensesMonth = reactive({});
 let expenseEdit = reactive({});
-let valuePay = ref(null);
+let categorias = reactive({});
+let carteiras = reactive({});
 let valuePending = ref(null);
-let valueTotalExpensesMonth = ref(null);
+let valuePay = ref(null);
 let releases = reactive({
     valor: null,
     date: null,
@@ -332,14 +332,13 @@ let releases = reactive({
 });
 let status = ref(true);
 
-categorias = data.user.categoriasDespesas;
 valueTotalExpensesMonth = data.valueTotalExpensesMonth;
-carteiras = data.user.carteiras;
+categorias = data.user.categoriasDespesas;
+valuePending = data.valuePendingExpenses;
 expensesMonth = data.expensesMonth;
 valuePay = data.valuePayExpenses;
-valuePending = data.valuePendingExpenses;
+carteiras = data.user.carteiras;
 
-const errorsForm = reactive({ errors: {} });
 
 const clearInputs = () => {
     releases.valor = null;
@@ -364,7 +363,7 @@ const salvarLancamentos = async () => {
         data.setValuePayExpenses(res.data.valuePay);
         valuePending = res.data.valuePending;
         data.setValuePendingExpenses(res.data.valuePending);
-        expensesMonth = res.data.expenses;
+        expensesMonth = res.data.expensesMonth;
         data.setExpensesMonth(res.data.expenses);
         clearInputs();
         formStoreExpense.value = false;

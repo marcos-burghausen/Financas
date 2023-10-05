@@ -2,13 +2,16 @@
     <div>
         <router-link class="link" :to="{ name: rota }">
             <h5 class="title">{{ titulo }}</h5>
-            <div class="progress__bar"></div>
+            <div class="progres">
+
+                <div class="progress__bar"></div>
+            </div>
             <p class="value">R$ {{ valor }}</p>
         </router-link>
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from "vue";
 const props = defineProps({
     titulo: String,
@@ -29,6 +32,10 @@ const rota = computed(() => props.rota);
 .title {
     color: #fefefe;
     text-align: center;
+}
+
+.progres {
+    padding: 0 10px;
 }
 
 .progress__bar {
