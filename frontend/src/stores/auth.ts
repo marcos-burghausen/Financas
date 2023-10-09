@@ -2,13 +2,10 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 
 export const useAuth = defineStore('auth', () => {
-  //criando o token no localStorage 
   const token = ref(localStorage.getItem("token"));
-  //criando o user no localStorage como string
   const user = ref(JSON.parse(localStorage.getItem("user")));
 
-  //armazenando o token
-  function setToken(tokenValue) {
+  function setToken(tokenValue: string) {
     localStorage.setItem('token', tokenValue);
     token.value = tokenValue;
   }
@@ -24,6 +21,8 @@ export const useAuth = defineStore('auth', () => {
   })
 
   function clear() {
+    localStorage.removeItem('revenuesData');
+    localStorage.removeItem('expensesData');
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('data');

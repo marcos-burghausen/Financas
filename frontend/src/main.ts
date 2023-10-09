@@ -11,9 +11,9 @@ import VueApexCharts from "vue3-apexcharts";
 
 const app = createApp(App)
 const pinia = createPinia();
-// app.use(createPinia())
-pinia.use(piniaPluginPersistedState)
+app.use(createPinia())
 app.use(pinia)
+pinia.use(piniaPluginPersistedState)
 app.use(mdiVue, {
     icons: mdijs
 })

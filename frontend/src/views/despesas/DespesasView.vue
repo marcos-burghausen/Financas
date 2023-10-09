@@ -103,7 +103,7 @@
                                 errorsForm["errors"].carteira[0]
                             }}</span>
                         </div>
-                        <div class="form-group m-0 container d-flex justify-content-around col-12 pb-3">
+                        <div class="form-group p-0 container d-flex justify-content-between col-12 mt-2 mb-4">
                             <button @click="{ formStoreExpense = !formStoreExpense }; clearInputs()"
                                 class="btn btn-danger px-5">
                                 Cancelar
@@ -169,6 +169,11 @@
                             </select>
                             <label for="categoria" class="label">Status</label>
                         </div>
+                        <div class="error">
+                            <span v-if="errorsForm['errors'].descricao" class="span-error">{{
+                                errorsForm["errors"].descricao[0]
+                            }}</span>
+                        </div>
                         <div class="inputSimples">
                             <select v-model="expenseEdit.categoria" class="input" name="categoria"
                                 aria-label="Default select example" required>
@@ -200,7 +205,7 @@
                                 errorsForm["errors"].carteira[0]
                             }}</span>
                         </div>
-                        <div class="form-group m-0 container d-flex justify-content-around col-12 pb-3">
+                        <div class="form-group p-0 container d-flex justify-content-between col-12 mt-2 mb-4">
                             <button @click="formEditExpense = !formEditExpense" class="btn btn-danger px-5">
                                 Cancelar
                             </button>
@@ -220,17 +225,15 @@
 
 
         <div class="container-fluid" v-if="!formStoreExpense & !formEditExpense">
-            <div class="row justify-content-between m-0 mb-4 card__container">
-                <Card class="card col-12 col-md-6 col-lg-6 col-xl-4" titulo="Despesas" :valor="valueTotalExpensesMonth" />
-                <Card class="card col-12 col-md-6 col-lg-6 col-xl-4" titulo="Despesas pendentes" :valor="valuePending" />
-                <Card class="card col-12 col-md-6 col-lg-6 col-xl-4" titulo="Despesas pagas" :valor="valuePay" />
+            <div class="card__container">
+                <Card class="card" titulo="Despesas" :valor="valueTotalExpensesMonth" />
+                <Card class="card" titulo="pendentes" :valor="valuePending" />
+                <Card class="card" titulo="pagas" :valor="valuePay" />
             </div>
-
-            <div class="row">
-                <div v-if="expensesMonth.length >= 1" class="col-12 col-lg-12">
+            <div class="container__table">
+                <div v-if="expensesMonth" class="col-12 col-lg-12">
                     <div class="row justify-content-center card-header mx-0 py-1"
                         style="background-color: rgba(0, 0, 0, 0.25)">
-                        <!-- <div class="row align-items-center col-5 ms-2">Despesas</div> -->
                         <div class="d-flex text-center col-2">
                             <button class="btn btn-outline-table text-white p-0 fs-5 bi bi-caret-left">
                                 <mdicon class="mdicon" name="chevron-left" />
@@ -243,7 +246,6 @@
                     </div>
                     <div class="table-responsive">
 
-                        <!-- <table class="table align-items-center table-flush table-borderless" -->
                         <table class="table" style="background-color: rgba(0, 0, 0, 0.25); color: black;">
                             <thead>
                                 <tr>
@@ -303,49 +305,56 @@
 </template>
 
 <script setup lang="ts">
-import { userData } from "@/stores/data.ts";
-import { ref, reactive, watch } from "vue";
 import Card from "@/components/Card.vue";
-import { useRouter } from "vue-router";
-import http from "@/services/http.ts";
 
+import { ref, reactive } from "vue";
+
+import type { Lancamentos } from "@/types/lancamentos";
+
+import { useExpensesStore } from "@/stores/expenses";
+import { useUserStore } from "@/stores/user";
+import { userData } from "@/stores/data";
+import { useRouter } from "vue-router";
+import http from "@/services/http";
+
+const useExpenses = useExpensesStore();
+const userStore = useUserStore();
 const router = useRouter();
 const data = userData();
 
 let errorsForm = reactive({ errors: {} });
-let valueTotalExpensesMonth = ref(null);
+let valueTotalExpensesMonth = ref();
 let formStoreExpense = ref(false);
 let formEditExpense = ref(false);
 let expensesMonth = reactive({});
 let expenseEdit = reactive({});
 let categorias = reactive({});
 let carteiras = reactive({});
-let valuePending = ref(null);
-let valuePay = ref(null);
+let valuePending = ref();
+let valuePay = ref();
 let releases = reactive({
-    valor: null,
-    date: null,
-    status: null,
-    descricao: null,
-    categoria: null,
-    carteira: null,
+    valor: '',
+    date: '',
+    status: '',
+    descricao: '',
+    categoria: '',
+    carteira: '',
 });
 let status = ref(true);
 
-valueTotalExpensesMonth = data.valueTotalExpensesMonth;
-categorias = data.user.categoriasDespesas;
-valuePending = data.valuePendingExpenses;
-expensesMonth = data.expensesMonth;
-valuePay = data.valuePayExpenses;
-carteiras = data.user.carteiras;
-
+categorias = userStore.user.categoriasDespesas;
+valueTotalExpensesMonth.value = useExpenses.expensesData.valueTotalExpensesMonth;
+valuePending.value = useExpenses.expensesData.valuePendingExpenses;
+expensesMonth = useExpenses.expensesData.expensesMonth;
+valuePay.value = useExpenses.expensesData.valuePayExpenses;
+carteiras = userStore.user.carteiras;
 
 const clearInputs = () => {
-    releases.valor = null;
-    releases.date = null;
-    releases.descricao = null;
-    releases.categoria = null;
-    releases.carteira = null;
+    releases.valor = '';
+    releases.date = '';
+    releases.descricao = '';
+    releases.categoria = '';
+    releases.carteira = '';
 }
 
 const returnExpense = () => {
@@ -357,28 +366,25 @@ const salvarLancamentos = async () => {
     try {
         releases.status = status.value ? "PAGA" : "AGUARDANDO";
         const res = await http.post("/save-expense", releases);
-        valueTotalExpensesMonth = res.data.valueTotalExpensesMonth;
-        data.setValueTotalExpensesMonth(res.data.valueTotalExpensesMonth);
-        valuePay = res.data.valuePay;
-        data.setValuePayExpenses(res.data.valuePay);
-        valuePending = res.data.valuePending;
-        data.setValuePendingExpenses(res.data.valuePending);
+        useExpenses.setExpensesData(res.data.expenses, res.data.valueTotalExpensesMonth, res.data.valuePay, res.data.valuePending, res.data.expensesMonth);
+        valueTotalExpensesMonth.value = res.data.valueTotalExpensesMonth;
+        valuePay.value = res.data.valuePay;
+        valuePending.value = res.data.valuePending;
         expensesMonth = res.data.expensesMonth;
-        data.setExpensesMonth(res.data.expenses);
         clearInputs();
         formStoreExpense.value = false;
     } catch (error) {
         console.log(error);
+        errorsForm["errors"] = error.response.data.errors;
     }
 }
 
-const payExpense = async (expense) => {
+const payExpense = async (expense: Lancamentos) => {
     try {
         const res = await http.post('/pay-expense', { 'id': expense.id });
-        valuePending = res.data.valuePendig;
-        data.setValuePendingExpenses(res.data.valuePending);
-        valuePay = res.data.valuePay;
-        data.setValuePayExpenses(res.data.valuePay);
+        useExpenses.setExpensesData(res.data.expenses, res.data.valueTotalExpensesMonth, res.data.valuePay, res.data.valuePending, res.data.expensesMonth);
+        valuePending.value = res.data.valuePendig;
+        valuePay.value = res.data.valuePay;
         // expense.status = 'PAGA';
         expensesMonth.forEach(expenses => {
             if (expenses.id === expense.id) {
@@ -390,7 +396,7 @@ const payExpense = async (expense) => {
     }
 }
 
-function displayFormEditExpense(expense) {
+function displayFormEditExpense(expense: Lancamentos) {
     expenseEdit = expense;
     formEditExpense.value = true;
 }
@@ -398,12 +404,11 @@ function displayFormEditExpense(expense) {
 const saveEditedExpense = async () => {
     try {
         const res = await http.post("/edit-expense", expenseEdit);
-        valuePending = res.data.valuePending;
-        data.setValuePendingExpenses(res.data.valuePending);
-        valuePay = res.data.valuePay;
-        data.setValuePayExpenses(res.data.valuePay);
+        useExpenses.setExpensesData(res.data.expenses, res.data.valueTotalExpensesMonth, res.data.valuePay, res.data.valuePending, res.data.expensesMonth);
+        valueTotalExpensesMonth.value = res.data.valueTotalExpensesMonth;
+        valuePending.value = res.data.valuePending;
         expensesMonth = res.data.expensesMonth
-        data.setExpensesMonth(res.data.expensesMonth);
+        valuePay.value = res.data.valuePay;
     } catch (error) {
         console.log(error);
     }
@@ -412,23 +417,18 @@ const saveEditedExpense = async () => {
 
 };
 
-const deletar = async (id) => {
+const deletar = async (id: number) => {
     try {
         const res = await http.post('/delete-expense', { 'id': id });
-        valueTotalExpensesMonth = res.data.valueTotalExpensesMonth;
-        data.setValueTotalExpensesMonth(res.data.valueTotalExpensesMonth);
-        valuePending = res.data.valuePending;
-        data.setValuePendingExpenses(res.data.valuePending);
-        valuePay = res.data.valuePay;
-        data.setValuePayExpenses(res.data.valuePay);
+        useExpenses.setExpensesData(res.data.expenses, res.data.valueTotalExpensesMonth, res.data.valuePay, res.data.valuePending, res.data.expensesMonth);
+        valueTotalExpensesMonth.value = res.data.valueTotalExpensesMonth;
+        valuePending.value = res.data.valuePending;
         expensesMonth = res.data.expensesMonth;
-        data.setExpensesMonth(res.data.expensesMonth);
+        valuePay.value = res.data.valuePay;
     } catch (error) {
         console.log(error);
     }
 }
-
-
 
 </script>
 
@@ -453,6 +453,12 @@ const deletar = async (id) => {
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+
+.container__table {
+    box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+    margin-top: 15px;
+
 }
 
 .inputSimples {
@@ -508,7 +514,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .input:focus~label,
 .input:valid~label {
-    transform: translateY(-35px);
+    transform: translateY(-30px);
     opacity: 0.9;
 }
 
@@ -528,11 +534,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .card__container {
     box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+    display: flex;
 }
 
 .card {
-    /* height: 140px; */
-    /* box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23; */
+    width: 33.33%;
     color: #ccc;
     font-size: 30px;
     background-color: rgba(0, 0, 0, 0.1);

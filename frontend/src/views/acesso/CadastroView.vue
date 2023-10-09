@@ -279,7 +279,6 @@ async function create() {
     text-transform: uppercase;
     color: #fff;
     font-size: 10px;
-    /* padding: 10px 50px; */
     padding: 5px;
     cursor: pointer;
     font-weight: bold;
@@ -342,7 +341,6 @@ async function create() {
         margin: 15px 0;
         background: transparent;
         border: none;
-        /* text-align: center; */
     }
 
     .container__button {

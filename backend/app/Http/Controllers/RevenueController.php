@@ -13,7 +13,6 @@ class RevenueController extends Controller
 
     public function saveRevenue(Request $request)
     {
-        // return response()->json($request);
         $data = $request->validate(
             [
                 'valor'     => 'required',
@@ -40,20 +39,16 @@ class RevenueController extends Controller
         $revenue->carteira  = $data['carteira'];
         $revenue->status    = $data['status'];
         $saved = $revenue->save();
-        // return response($request);
 
         if (!$saved) {
             return response()->json(Errors::ERROR_REGISTERING_REVENUE->response());
         }
 
         $revenues = auth()->user()->revenues()->get();
-
         $valueTotalRevenuesMonth = $this->valueReleasesMonth($revenues, date('m'));
         $valuePending = $this->valuePending($revenues, date('m'), "AGUARDANDO");
         $valueReceived = $this->valuePending($revenues, date('m'), "RECEBIDA");
         $revenuesMonth = $this->releasesMonth($revenues, date('m'));
-
-        // $revenue = auth()->user()->revenues()->orderBy('id', 'DESC')->first();
 
         // Mail::to($user->email)->send(new DespesaRegistradaMail($despesa));
         return response()->json([
@@ -76,16 +71,19 @@ class RevenueController extends Controller
         }
 
         $revenues = auth()->user()->revenues()->get();
+        $valueTotalRevenuesMonth = $this->valueReleasesMonth($revenues, date('m'));
         $valuePending = $this->valuePending($revenues, date('m'), "AGUARDANDO");
         $valueReceived = $this->valuePending($revenues, date('m'), "RECEBIDA");
         $revenuesMonth = $this->releasesMonth($revenues, date('m'));
 
         return response()->json([
             'msg' => 'Receita recebida com sucesso',
-            'valuePending' => $valuePending,
+            'valueTotalRevenuesMonth' => $valueTotalRevenuesMonth,
             'valueReceived' => $valueReceived,
-            'revenuesMonth' => $revenuesMonth
-        ]);
+            'revenuesMonth' => $revenuesMonth,
+            'valuePending' => $valuePending,
+            'revenues' => $revenues,
+        ],200);
     }
 
     public function editRevenue(Request $request)
@@ -102,39 +100,42 @@ class RevenueController extends Controller
         if (!$saved) return response()->json(Errors::ERROR_UPDATING_REVENUE->response());
 
         $revenues = auth()->user()->revenues()->get();
+        $valueTotalRevenuesMonth = $this->valueReleasesMonth($revenues, date('m'));
         $valuePending = $this->valuePending($revenues, date('m'), "AGUARDANDO");
         $valueReceived = $this->valuePending($revenues, date('m'), "RECEBIDA");
-        $expensesMonth = $this->releasesMonth($revenues, date('m'));
+        $revenuesMonth = $this->releasesMonth($revenues, date('m'));
 
         return response()->json([
-            'msg' => 'Despesa atualizado com sucesso',
-            'valuePending' => $valuePending,
+            'msg' => 'Receita recebida com sucesso',
+            'valueTotalRevenuesMonth' => $valueTotalRevenuesMonth,
             'valueReceived' => $valueReceived,
-            'expensesMonth' => $expensesMonth
-        ]);
+            'revenuesMonth' => $revenuesMonth,
+            'valuePending' => $valuePending,
+            'revenues' => $revenues,
+        ],200);
     }
 
     public function deleteRevenue(Request $request)
     {
-        // return response($request);
         $deleted = Revenue::destroy($request->id);
         if (!$deleted) {
             return response()->json(Errors::ERROR_DELETING_REVENUE->response());
         }
 
         $revenues = auth()->user()->revenues()->get();
+        $valueTotalRevenuesMonth = $this->valueReleasesMonth($revenues, date('m'));
         $valuePending = $this->valuePending($revenues, date('m'), "AGUARDANDO");
         $valueReceived = $this->valuePending($revenues, date('m'), "RECEBIDA");
         $revenuesMonth = $this->releasesMonth($revenues, date('m'));
-        $valueTotalRevenuesMonth = $this->valueReleasesMonth($revenues, date('m'));
 
         return response()->json([
-            'msg' => 'Receita excluida com sucesso',
-            'valuePending' => $valuePending,
+            'msg' => 'Receita recebida com sucesso',
+            'valueTotalRevenuesMonth' => $valueTotalRevenuesMonth,
             'valueReceived' => $valueReceived,
             'revenuesMonth' => $revenuesMonth,
-            'valueTotalRevenuesMonth' => $valueTotalRevenuesMonth,
-        ]);
+            'valuePending' => $valuePending,
+            'revenues' => $revenues,
+        ],200);
     }
 
 

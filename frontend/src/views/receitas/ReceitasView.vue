@@ -101,7 +101,7 @@
                                 errorsForm["errors"].carteira[0]
                             }}</span>
                         </div>
-                        <div class="form-group m-0 container d-flex justify-content-around col-12 pb-3">
+                        <div class="form-group p-0 container d-flex justify-content-between col-12 mt-2 mb-4">
                             <button @click="{ formStoreRevenue = !formStoreRevenue }; clearInputs()"
                                 class="btn btn-danger px-5">
                                 Cancelar
@@ -122,7 +122,7 @@
         <!-- ========================================================================= -->
         <!-- =================== inicio formulario editar receita= =================== -->
         <!-- ========================================================================= -->
-        <div class="container-fluid" v-if="formEditRevenue">
+        <div class="container-fluid" style="padding: 0 !important;" v-if="formEditRevenue">
             <div class="container d-flex justify-content-center">
                 <div class="cadastro">
                     <form class="form" @submit.prevent="saveEditedRevenue">
@@ -195,7 +195,7 @@
                                 errorsForm["errors"].carteira[0]
                             }}</span>
                         </div>
-                        <div class="form-group m-0 container d-flex justify-content-around col-12 pb-3">
+                        <div class="form-group p-0 container d-flex justify-content-between col-12 mt-2 mb-4">
                             <button @click="formEditRevenue = !formEditRevenue" class="btn btn-danger px-5">
                                 Cancelar
                             </button>
@@ -222,11 +222,9 @@
             </div>
 
             <div class="container__table">
-                <!-- <div v-if="revenuesMonth.length >= 1" class="col-12 col-lg-12"> -->
                 <div v-if="revenuesMonth" class="col-12 col-lg-12">
                     <div class="row justify-content-center card-header mx-0 py-1"
                         style="background-color: rgba(0, 0, 0, 0.25)">
-                        <!-- <div class="row align-items-center col-5 ms-2">Despesas</div> -->
                         <div class="d-flex text-center col-2">
                             <button class="btn btn-outline-table text-white p-0 fs-5 bi bi-caret-left">
                                 <mdicon class="mdicon" name="chevron-left" />
@@ -313,6 +311,8 @@ const useRevenues = useRevenuesStore();
 const data = userData();
 const userStore = useUserStore();
 
+let errorsForm = reactive({ errors: {} });
+let valueTotalRevenuesMonth = ref();
 let formStoreRevenue = ref(false);
 let formEditRevenue = ref(false);
 let categorias = reactive({});
@@ -321,7 +321,6 @@ let revenuesMonth = reactive({});
 let revenueEdit = reactive({});
 let valueReceived = ref();
 let valuePending = ref();
-let valueTotalRevenuesMonth = ref();
 let releases = reactive({
     valor: '',
     date: '',
@@ -331,14 +330,13 @@ let releases = reactive({
     status: ''
 });
 let status = ref(true);
-categorias = userStore.user.categoriasReceitas;
-valueTotalRevenuesMonth.value = useRevenues.valueTotalRevenuesMonth;
-carteiras = userStore.user.carteiras;
-revenuesMonth = useRevenues.revenuesMonth;
-valueReceived.value = useRevenues.valueReceivedRevenues;
-valuePending.value = useRevenues.valuePendingRevenues;
 
-const errorsForm = reactive({ errors: {} });
+categorias = userStore.user.categoriasReceitas;
+valueTotalRevenuesMonth.value = useRevenues.revenuesData.valueTotalRevenuesMonth;
+carteiras = userStore.user.carteiras;
+revenuesMonth = useRevenues.revenuesData.revenuesMonth;
+valueReceived.value = useRevenues.revenuesData.valueReceivedRevenues;
+valuePending.value = useRevenues.revenuesData.valuePendingRevenues;
 
 const clearInputs = () => {
     releases.valor = '';
@@ -357,29 +355,25 @@ const salvarLancamentos = async () => {
     try {
         releases.status = status.value ? "RECEBIDA" : "AGUARDANDO";
         const res = await http.post("/save-revenue", releases);
-        useRevenues.setValueTotalRevenuesMonth(res.data.valueTotalRevenuesMonth);
+        useRevenues.setRevenuesData(res.data.revenues, res.data.valueTotalRevenuesMonth, res.data.valueReceived, res.data.valuePending, res.data.revenuesMonth);
         valueTotalRevenuesMonth.value = res.data.valueTotalRevenuesMonth;
         valueReceived.value = res.data.valueReceived;
-        useRevenues.setValueReceivedRevenues(res.data.valueReceived);
         valuePending.value = res.data.valuePending;
-        useRevenues.setValuePendingRevenues(res.data.valuePending);
         revenuesMonth = res.data.revenuesMonth;
-        useRevenues.setRevenuesMonth(res.data.revenuesMonth);
         clearInputs();
         formStoreRevenue.value = false;
     } catch (error) {
-        console.log(error);
+        console.log(error.response.data.errors);
+        errorsForm["errors"] = error.response.data.errors;
     }
 }
 
 const receivedRevenue = async (revenue: Lancamentos) => {
     try {
         const res = await http.post('/received-revenue', { 'id': revenue.id });
-        valuePending.value = res.data.valuePendig;
-        console.log(valuePending.value);
-        useRevenues.setValuePendingRevenues(res.data.valuePending);
+        useRevenues.setRevenuesData(res.data.revenues, res.data.valueTotalRevenuesMonth, res.data.valueReceived, res.data.valuePending, res.data.revenuesMonth);
         valueReceived.value = res.data.valueReceived;
-        useRevenues.setValueReceivedRevenues(res.data.valueReceived);
+        valuePending.value = res.data.valuePending;
         // revenue.status = 'PAGA';
         revenuesMonth.forEach(revenues => {
             if (revenues.id === revenue.id) {
@@ -400,12 +394,11 @@ function displayFormEditRevenue(revenue: Lancamentos) {
 const saveEditedRevenue = async () => {
     try {
         const res = await http.post("/edit-revenue", revenueEdit);
-        valuePending.value = res.data.valuePending;
-        useRevenues.setValuePendingRevenues(res.data.valuePending);
+        useRevenues.setRevenuesData(res.data.revenues, res.data.valueTotalRevenuesMonth, res.data.valueReceived, res.data.valuePending, res.data.revenuesMonth);
+        valueTotalRevenuesMonth.value = res.data.valueTotalRevenuesMonth;
         valueReceived.value = res.data.valueReceived;
-        useRevenues.setValueReceivedRevenues(res.data.valueReceived);
-        revenuesMonth = res.data.expensesMonth
-        useRevenues.setRevenuesMonth(res.data.revenuesMonth);
+        valuePending.value = res.data.valuePending;
+        revenuesMonth = res.data.revenuesMonth
     } catch (error) {
         console.log(error);
     }
@@ -417,14 +410,11 @@ const saveEditedRevenue = async () => {
 const deletar = async (id: number) => {
     try {
         const res = await http.post('/delete-revenue', { 'id': id })
+        useRevenues.setRevenuesData(res.data.revenues, res.data.valueTotalRevenuesMonth, res.data.valueReceived, res.data.valuePending, res.data.revenuesMonth);
         valueTotalRevenuesMonth.value = res.data.valueTotalRevenuesMonth;
-        useRevenues.setValueTotalRevenuesMonth(res.data.valueTotalRevenuesMonth);
         valuePending.value = res.data.valuePending;
-        useRevenues.setValuePendingRevenues(res.data.valuePending);
         valueReceived = res.data.valueReceived;
-        useRevenues.setValueReceivedRevenues(res.data.valueReceived);
         revenuesMonth = res.data.revenuesMonth;
-        useRevenues.setRevenuesMonth(res.data.revenuesMonth);
     } catch (error) {
         console.log(error);
     }
@@ -510,7 +500,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .input:focus~label,
 .input:valid~label {
-    transform: translateY(-35px);
+    transform: translateY(-30px);
     opacity: 0.9;
 }
 

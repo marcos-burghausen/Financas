@@ -98,17 +98,9 @@ async function login() {
         const resp = await http.post("/me");
         useUser.setUserData(resp.data.user);
 
-        useExpenses.setExpenses(resp.data.expenses);
-        useExpenses.setExpensesMonth(resp.data.expensesMonth);
-        useExpenses.setValuePayExpenses(resp.data.valuePayExpenses);
-        useExpenses.setValuePendingExpenses(resp.data.valuePendingExpenses);
-        useExpenses.setValueTotalExpensesMonth(resp.data.valueTotalExpensesMonth);
+        useExpenses.setExpensesData(resp.data.expenses, resp.data.valueTotalExpensesMonth, resp.data.valuePayExpenses, resp.data.valuePendingExpenses, resp.data.expensesMonth);
 
-        useRevenues.setRevenues(resp.data.revenues);
-        useRevenues.setRevenuesMonth(resp.data.revenuesMonth);
-        useRevenues.setValuePendingRevenues(resp.data.valuePendingRevenues);
-        useRevenues.setValueReceivedRevenues(resp.data.valueRevenuesReceived);
-        useRevenues.setValueTotalRevenuesMonth(resp.data.valueTotalRevenuesMonth);
+        useRevenues.setRevenuesData(resp.data.revenues, resp.data.valueTotalRevenuesMonth, resp.data.valueRevenuesReceived, resp.data.valuePendingRevenues, resp.data.revenuesMonth);
 
         data.setTotalCreditCard(resp.data.totalCreditCard);
         data.setTotalBalance(resp.data.totalBalance);
@@ -173,7 +165,6 @@ async function login() {
 }
 
 .link__social__media:hover .item__social__media {
-    /* background-color: #0097a7; */
     color: #fff !important;
     border-color: #77d08e;
 }

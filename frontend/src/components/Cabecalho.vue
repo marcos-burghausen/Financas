@@ -9,10 +9,10 @@
 </template>
 
 <script setup lang="ts">
-import { userData } from "@/stores/data.ts";
-import { useAuth } from "@/stores/auth.ts";
+import { userData } from "@/stores/data";
+import { useAuth } from "@/stores/auth";
 import { useRouter } from "vue-router";
-import http from "@/services/http.ts";
+import http from "@/services/http";
 import { ref, computed } from "vue";
 
 const props = defineProps({
@@ -29,7 +29,7 @@ name = auth.user;
 
 async function logout() {
     try {
-        const { data } = await http.post("/logout");
+        const res = await http.post("/logout");
         auth.clear();
         router.push({ name: "home" });
     } catch (error) {
