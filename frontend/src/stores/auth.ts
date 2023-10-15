@@ -3,15 +3,18 @@ import { defineStore } from 'pinia'
 
 export const useAuth = defineStore('auth', () => {
   const token = ref(localStorage.getItem("token"));
-  const user = ref(JSON.parse(localStorage.getItem("user")));
+  const user = ref(
+    localStorage.getItem("user")
+      ? JSON.parse(localStorage.getItem("user") as string)
+      : "");
 
   function setToken(tokenValue: string) {
     localStorage.setItem('token', tokenValue);
     token.value = tokenValue;
   }
 
-  //armazenando o user
-  function setUser(userValue) {
+
+  function setUser(userValue: string) {
     localStorage.setItem('user', JSON.stringify(userValue));
     user.value = userValue;
   }

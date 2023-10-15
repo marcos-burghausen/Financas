@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Errors;
+use App\Http\Traits\GroupReleasesTrait;
 use App\Http\Traits\ReleasesMonthTrait;
 use App\Models\Revenue;
 use Illuminate\Http\Request;
 
 class RevenueController extends Controller
 {
-    use ReleasesMonthTrait;
+    use ReleasesMonthTrait, GroupReleasesTrait;
 
     public function saveRevenue(Request $request)
     {
@@ -45,19 +46,26 @@ class RevenueController extends Controller
         }
 
         $revenues = auth()->user()->revenues()->get();
-        $valueTotalRevenuesMonth = $this->valueReleasesMonth($revenues, date('m'));
-        $valuePending = $this->valuePending($revenues, date('m'), "AGUARDANDO");
-        $valueReceived = $this->valuePending($revenues, date('m'), "RECEBIDA");
         $revenuesMonth = $this->releasesMonth($revenues, date('m'));
+        $valueReceivedRevenues = $this->valuePending($revenues, date('m'), "RECEBIDA");
+        $valuePendingRevenues = $this->valuePending($revenues, date('m'), "AGUARDANDO");
+        $valueTotalRevenuesMonth = $this->valueReleasesMonth($revenues, date('m'));
+        $revenuesGroupByMonth = $this->groupByMonth($revenues);
+        $revenuesAddTotalVelueMonth = $this->addTotalValueMonth($revenuesGroupByMonth);
+        $revenuesData = [
+            'revenues' => $revenues,
+            'revenuesMonth' => $revenuesMonth,
+            'valueReceivedRevenues' => $valueReceivedRevenues,
+            'valuePendingRevenues' => $valuePendingRevenues,
+            'valueTotalRevenuesMonth' => $valueTotalRevenuesMonth,
+            'revenuesGroupByMonth' => $revenuesGroupByMonth,
+            'revenuesAddTotalVelueMonth' => $revenuesAddTotalVelueMonth,
+        ];
 
         // Mail::to($user->email)->send(new DespesaRegistradaMail($despesa));
         return response()->json([
             'success' => 'Receita cadastrada com sucesso',
-            'valueTotalRevenuesMonth' => $valueTotalRevenuesMonth,
-            'revenues' => $revenues,
-            'valueReceived' => $valueReceived,
-            'valuePending' => $valuePending,
-            'revenuesMonth' => $revenuesMonth
+            'revenuesData' => $revenuesData,
         ], 200);
     }
 
@@ -71,19 +79,26 @@ class RevenueController extends Controller
         }
 
         $revenues = auth()->user()->revenues()->get();
-        $valueTotalRevenuesMonth = $this->valueReleasesMonth($revenues, date('m'));
-        $valuePending = $this->valuePending($revenues, date('m'), "AGUARDANDO");
-        $valueReceived = $this->valuePending($revenues, date('m'), "RECEBIDA");
         $revenuesMonth = $this->releasesMonth($revenues, date('m'));
+        $valueReceivedRevenues = $this->valuePending($revenues, date('m'), "RECEBIDA");
+        $valuePendingRevenues = $this->valuePending($revenues, date('m'), "AGUARDANDO");
+        $valueTotalRevenuesMonth = $this->valueReleasesMonth($revenues, date('m'));
+        $revenuesGroupByMonth = $this->groupByMonth($revenues);
+        $revenuesAddTotalVelueMonth = $this->addTotalValueMonth($revenuesGroupByMonth);
+        $revenuesData = [
+            'revenues' => $revenues,
+            'revenuesMonth' => $revenuesMonth,
+            'valueReceivedRevenues' => $valueReceivedRevenues,
+            'valuePendingRevenues' => $valuePendingRevenues,
+            'valueTotalRevenuesMonth' => $valueTotalRevenuesMonth,
+            'revenuesGroupByMonth' => $revenuesGroupByMonth,
+            'revenuesAddTotalVelueMonth' => $revenuesAddTotalVelueMonth,
+        ];
 
         return response()->json([
             'msg' => 'Receita recebida com sucesso',
-            'valueTotalRevenuesMonth' => $valueTotalRevenuesMonth,
-            'valueReceived' => $valueReceived,
-            'revenuesMonth' => $revenuesMonth,
-            'valuePending' => $valuePending,
-            'revenues' => $revenues,
-        ],200);
+            'revenuesData' => $revenuesData,
+        ], 200);
     }
 
     public function editRevenue(Request $request)
@@ -100,19 +115,26 @@ class RevenueController extends Controller
         if (!$saved) return response()->json(Errors::ERROR_UPDATING_REVENUE->response());
 
         $revenues = auth()->user()->revenues()->get();
-        $valueTotalRevenuesMonth = $this->valueReleasesMonth($revenues, date('m'));
-        $valuePending = $this->valuePending($revenues, date('m'), "AGUARDANDO");
-        $valueReceived = $this->valuePending($revenues, date('m'), "RECEBIDA");
         $revenuesMonth = $this->releasesMonth($revenues, date('m'));
+        $valueReceivedRevenues = $this->valuePending($revenues, date('m'), "RECEBIDA");
+        $valuePendingRevenues = $this->valuePending($revenues, date('m'), "AGUARDANDO");
+        $valueTotalRevenuesMonth = $this->valueReleasesMonth($revenues, date('m'));
+        $revenuesGroupByMonth = $this->groupByMonth($revenues);
+        $revenuesAddTotalVelueMonth = $this->addTotalValueMonth($revenuesGroupByMonth);
+        $revenuesData = [
+            'revenues' => $revenues,
+            'revenuesMonth' => $revenuesMonth,
+            'valueReceivedRevenues' => $valueReceivedRevenues,
+            'valuePendingRevenues' => $valuePendingRevenues,
+            'valueTotalRevenuesMonth' => $valueTotalRevenuesMonth,
+            'revenuesGroupByMonth' => $revenuesGroupByMonth,
+            'revenuesAddTotalVelueMonth' => $revenuesAddTotalVelueMonth,
+        ];
 
         return response()->json([
-            'msg' => 'Receita recebida com sucesso',
-            'valueTotalRevenuesMonth' => $valueTotalRevenuesMonth,
-            'valueReceived' => $valueReceived,
-            'revenuesMonth' => $revenuesMonth,
-            'valuePending' => $valuePending,
-            'revenues' => $revenues,
-        ],200);
+            'msg' => 'Receita editada com sucesso',
+            'revenuesData' => $revenuesData,
+        ], 200);
     }
 
     public function deleteRevenue(Request $request)
@@ -123,19 +145,26 @@ class RevenueController extends Controller
         }
 
         $revenues = auth()->user()->revenues()->get();
-        $valueTotalRevenuesMonth = $this->valueReleasesMonth($revenues, date('m'));
-        $valuePending = $this->valuePending($revenues, date('m'), "AGUARDANDO");
-        $valueReceived = $this->valuePending($revenues, date('m'), "RECEBIDA");
         $revenuesMonth = $this->releasesMonth($revenues, date('m'));
+        $valueReceivedRevenues = $this->valuePending($revenues, date('m'), "RECEBIDA");
+        $valuePendingRevenues = $this->valuePending($revenues, date('m'), "AGUARDANDO");
+        $valueTotalRevenuesMonth = $this->valueReleasesMonth($revenues, date('m'));
+        $revenuesGroupByMonth = $this->groupByMonth($revenues);
+        $revenuesAddTotalVelueMonth = $this->addTotalValueMonth($revenuesGroupByMonth);
+        $revenuesData = [
+            'revenues' => $revenues,
+            'revenuesMonth' => $revenuesMonth,
+            'valueReceivedRevenues' => $valueReceivedRevenues,
+            'valuePendingRevenues' => $valuePendingRevenues,
+            'valueTotalRevenuesMonth' => $valueTotalRevenuesMonth,
+            'revenuesGroupByMonth' => $revenuesGroupByMonth,
+            'revenuesAddTotalVelueMonth' => $revenuesAddTotalVelueMonth,
+        ];
 
         return response()->json([
-            'msg' => 'Receita recebida com sucesso',
-            'valueTotalRevenuesMonth' => $valueTotalRevenuesMonth,
-            'valueReceived' => $valueReceived,
-            'revenuesMonth' => $revenuesMonth,
-            'valuePending' => $valuePending,
-            'revenues' => $revenues,
-        ],200);
+            'msg' => 'Receita alterada com sucesso',
+            'revenuesData' => $revenuesData,
+        ], 200);
     }
 
 

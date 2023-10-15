@@ -42,23 +42,23 @@ import type { Ref } from "vue";
 
 import { useExpensesStore } from "@/stores/expenses";
 import { useRevenuesStore } from "@/stores/revenues";
-import { useUserStore } from "@/stores/user";
-import { userData } from "@/stores/data";
 
 const useExpenses = useExpensesStore();
 const useRevenues = useRevenuesStore();
 
-let valueTotalExpensesMonth: Ref<number> = ref(0);
-let valueTotalRevenuesMonth: Ref<number> = ref(0);
-let totalCreditCard: Ref<number> = ref(0);
-let totalBalance: Ref<number> = ref(0);
-
-valueTotalExpensesMonth.value = useExpenses.expensesData.valueTotalExpensesMonth;
-valueTotalRevenuesMonth.value = useRevenues.revenuesData.valueTotalRevenuesMonth;
-totalBalance.value = valueTotalRevenuesMonth.value - valueTotalExpensesMonth.value;
-// totalCreditCard = data.getTotalCreditCard;
+let valueTotalExpensesMonth = ref(useExpenses.expensesData.expenses.valueTotalExpensesMonth);
+let valueTotalRevenuesMonth = ref(useRevenues.revenuesData.revenues.valueTotalRevenuesMonth);
+let totalBalance = ref(valueTotalRevenuesMonth.value - valueTotalExpensesMonth.value);
+let totalCreditCard = ref(0);
+let expensesAddTotalVelueMonth = ref(useExpenses.expensesData.expenses.expensesAddTotalVelueMonth);
+let revenuesAddTotalVelueMonth = ref(useRevenues.revenuesData.revenues.revenuesAddTotalVelueMonth);
+let totalByCategoryExpnses = ref(useExpenses.expensesData.expenses.totalByCategoryExpnses);
 
 
+// =============================== grafico de barras inicio =============================== //
+
+let totalYearValueExpenses = ref(Object.values(expensesAddTotalVelueMonth.value));
+let totalYearValueRevenues = ref(Object.values(revenuesAddTotalVelueMonth.value));
 
 const options = {
     chart: {
@@ -95,20 +95,26 @@ const options = {
 const series = [
     {
         name: 'despesas',
-        data: [30, 40, 45, 50, 49, 60, 70, 91],
+        data: totalYearValueExpenses.value,
     },
     {
         name: 'receitas',
-        data: [30, 40, 45, 50, 49, 60, 70, 100]
+        data: totalYearValueRevenues.value,
     }
 ]
+// =============================== grafico de barras fim =============================== //
+
+// =============================== grafico de pizza inicio =============================== //
+let category = ref(Object.keys(totalByCategoryExpnses.value));
+let valuesCategory = ref(Object.values(totalByCategoryExpnses.value));
+
 const options1 = {
     chart: {
         id: 'vuechart-example',
         foreColor: '#fefefe'
     },
     title: {
-        text: 'receitas & despesas',
+        text: 'despesas por categoria',
         align: 'center',
         style: {
             color: '#fefefe'
@@ -117,9 +123,10 @@ const options1 = {
     legend: {
         position: 'bottom'
     },
-    labels: ['Apple', 'Mango', 'Orange', 'Watermelon']
+    labels: category.value
 }
-const series1 = [44, 55, 13, 33]
+const series1 = valuesCategory.value
+// =============================== grafico de pizza fim =============================== //
 
 
 </script>

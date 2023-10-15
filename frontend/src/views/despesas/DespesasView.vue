@@ -8,7 +8,7 @@
                             Dashboard
                         </router-link>
                     </li>
-                    <li :class="{ opaco: !formStoreExpense & !formEditExpense }" @click="returnExpense"
+                    <li :class="{ opaco: !formStoreExpense && !formEditExpense }" @click="returnExpense"
                         class="breadcrumb-item text-white">
                         despesas
                     </li>
@@ -19,7 +19,7 @@
                         editar de despesa
                     </li>
                 </ol>
-                <button v-if="!formStoreExpense & !formEditExpense" class="btn btn-danger text-whit"
+                <button v-if="!formStoreExpense && !formEditExpense" class="btn btn-danger text-whit"
                     @click="formStoreExpense = !formStoreExpense">
                     nova despesa
                 </button>
@@ -129,7 +129,6 @@
                 <div class="cadastro">
                     <form class="form" @submit.prevent="saveEditedExpense">
                         <div class="inputSimples">
-                            <mdicon class="mdicon" name="account" />
                             <input v-model="expenseEdit.valor" class="input" id="valor" name="valor" type="number"
                                 required />
                             <label class="label" for="valor">Valor</label>
@@ -140,7 +139,6 @@
                             }}</span>
                         </div>
                         <div class="inputSimples">
-                            <mdicon class="mdicon" name="account" />
                             <input v-model="expenseEdit.date" type="date" name="date" class="input" id="date" required />
                             <label for="date" class="label">Data</label>
                         </div>
@@ -150,7 +148,6 @@
                             }}</span>
                         </div>
                         <div class="inputSimples">
-                            <mdicon class="mdicon" name="account" />
                             <input v-model="expenseEdit.descricao" type="text" name="descricao" class="input" id="descricao"
                                 required />
                             <label for="descricao" class="label">Descricao</label>
@@ -227,8 +224,8 @@
         <div class="container-fluid" v-if="!formStoreExpense & !formEditExpense">
             <div class="card__container">
                 <Card class="card" titulo="Despesas" :valor="valueTotalExpensesMonth" />
-                <Card class="card" titulo="pendentes" :valor="valuePending" />
-                <Card class="card" titulo="pagas" :valor="valuePay" />
+                <Card class="card" titulo="Pendentes" :valor="valuePending" />
+                <Card class="card" titulo="Pagas" :valor="valuePay" />
             </div>
             <div class="container__table">
                 <div v-if="expensesMonth" class="col-12 col-lg-12">
@@ -343,10 +340,10 @@ let releases = reactive({
 let status = ref(true);
 
 categorias = userStore.user.categoriasDespesas;
-valueTotalExpensesMonth.value = useExpenses.expensesData.valueTotalExpensesMonth;
-valuePending.value = useExpenses.expensesData.valuePendingExpenses;
-expensesMonth = useExpenses.expensesData.expensesMonth;
-valuePay.value = useExpenses.expensesData.valuePayExpenses;
+valueTotalExpensesMonth.value = useExpenses.expensesData.expenses.valueTotalExpensesMonth;
+valuePending.value = useExpenses.expensesData.expenses.valuePendingExpenses;
+expensesMonth = useExpenses.expensesData.expenses.expensesMonth;
+valuePay.value = useExpenses.expensesData.expenses.valuePayExpenses;
 carteiras = userStore.user.carteiras;
 
 const clearInputs = () => {
@@ -366,11 +363,11 @@ const salvarLancamentos = async () => {
     try {
         releases.status = status.value ? "PAGA" : "AGUARDANDO";
         const res = await http.post("/save-expense", releases);
-        useExpenses.setExpensesData(res.data.expenses, res.data.valueTotalExpensesMonth, res.data.valuePay, res.data.valuePending, res.data.expensesMonth);
-        valueTotalExpensesMonth.value = res.data.valueTotalExpensesMonth;
-        valuePay.value = res.data.valuePay;
-        valuePending.value = res.data.valuePending;
-        expensesMonth = res.data.expensesMonth;
+        useExpenses.setExpensesData(res.data.expensesData);
+        valueTotalExpensesMonth.value = res.data.expensesData.valueTotalExpensesMonth;
+        valuePay.value = res.data.expensesData.valuePayExpenses;
+        valuePending.value = res.data.expensesData.valuePendingExpenses;
+        expensesMonth = res.data.expensesData.expensesMonth;
         clearInputs();
         formStoreExpense.value = false;
     } catch (error) {
@@ -382,9 +379,9 @@ const salvarLancamentos = async () => {
 const payExpense = async (expense: Lancamentos) => {
     try {
         const res = await http.post('/pay-expense', { 'id': expense.id });
-        useExpenses.setExpensesData(res.data.expenses, res.data.valueTotalExpensesMonth, res.data.valuePay, res.data.valuePending, res.data.expensesMonth);
-        valuePending.value = res.data.valuePendig;
-        valuePay.value = res.data.valuePay;
+        useExpenses.setExpensesData(res.data.expensesData);
+        valuePending.value = res.data.expensesData.valuePendingExpenses;
+        valuePay.value = res.data.expensesData.valuePayExpenses;
         // expense.status = 'PAGA';
         expensesMonth.forEach(expenses => {
             if (expenses.id === expense.id) {
@@ -404,11 +401,11 @@ function displayFormEditExpense(expense: Lancamentos) {
 const saveEditedExpense = async () => {
     try {
         const res = await http.post("/edit-expense", expenseEdit);
-        useExpenses.setExpensesData(res.data.expenses, res.data.valueTotalExpensesMonth, res.data.valuePay, res.data.valuePending, res.data.expensesMonth);
-        valueTotalExpensesMonth.value = res.data.valueTotalExpensesMonth;
-        valuePending.value = res.data.valuePending;
-        expensesMonth = res.data.expensesMonth
-        valuePay.value = res.data.valuePay;
+        useExpenses.setExpensesData(res.data.expensesData);
+        valueTotalExpensesMonth.value = res.data.expensesData.valueTotalExpensesMonth;
+        valuePending.value = res.data.expensesData.valuePendingExpenses;
+        expensesMonth = res.data.expensesData.expensesMonth;
+        valuePay.value = res.data.expensesData.valuePayExpenses;
     } catch (error) {
         console.log(error);
     }
@@ -420,11 +417,11 @@ const saveEditedExpense = async () => {
 const deletar = async (id: number) => {
     try {
         const res = await http.post('/delete-expense', { 'id': id });
-        useExpenses.setExpensesData(res.data.expenses, res.data.valueTotalExpensesMonth, res.data.valuePay, res.data.valuePending, res.data.expensesMonth);
-        valueTotalExpensesMonth.value = res.data.valueTotalExpensesMonth;
-        valuePending.value = res.data.valuePending;
-        expensesMonth = res.data.expensesMonth;
-        valuePay.value = res.data.valuePay;
+        useExpenses.setExpensesData(res.data.expensesData);
+        valueTotalExpensesMonth.value = res.data.expensesData.valueTotalExpensesMonth;
+        valuePending.value = res.data.expensesData.valuePendingExpenses;
+        valuePay.value = res.data.expensesData.valuePayExpenses;
+        expensesMonth = res.data.expensesData.expensesMonth;
     } catch (error) {
         console.log(error);
     }

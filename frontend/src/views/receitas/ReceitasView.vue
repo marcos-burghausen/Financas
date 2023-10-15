@@ -1,5 +1,5 @@
 <template>
-    <div class="content-wrapper" style="height: 100%;">
+    <div class="content-wrapper">
         <div class="pagetitle">
             <nav class="d-flex justify-content-between mb-3">
                 <ol class="breadcrumb bg-transparent ">
@@ -32,10 +32,8 @@
         <div class="container-fluid" v-if="formStoreRevenue">
             <div class="container d-flex justify-content-center">
                 <div class="cadastro">
-                    <!-- <form class="form" @submit.prevent="salvarLancamentos"> -->
                     <form class="form">
                         <div class="inputSimples">
-                            <!-- <mdicon class="mdicon" name="account" /> -->
                             <input v-model="releases.valor" class="input" id="valor" autocomplete="off" name="valor"
                                 type="number" required />
                             <label class="label" for="valor">Valor</label>
@@ -51,7 +49,6 @@
                             <label class="form-check-label" for="flexSwitchCheckChecked">Recebida</label>
                         </div>
                         <div class="inputSimples">
-                            <!-- <mdicon class="mdicon" name="account" /> -->
                             <input v-model="releases.date" type="text" onfocus="this.type='date'" onblur="this.type='text'"
                                 name="date" class="input" id="date" required />
                             <label for="date" class="label">Data</label>
@@ -62,7 +59,6 @@
                             }}</span>
                         </div>
                         <div class="inputSimples">
-                            <!-- <mdicon class="mdicon" name="account" /> -->
                             <input v-model="releases.descricao" type="text" name="descricao" autocomplete="off"
                                 class="input" id="descricao" required />
                             <label for="descricao" class="label">Descricao</label>
@@ -127,10 +123,9 @@
                 <div class="cadastro">
                     <form class="form" @submit.prevent="saveEditedRevenue">
                         <div class="inputSimples">
-                            <mdicon class="mdicon" name="account" />
                             <input v-model="revenueEdit.valor" class="input" id="valor" name="valor" type="number"
                                 required />
-                            <!-- <label class="label" for="valor">Valor</label> -->
+                            <label class="label" for="valor">Valor</label>
                         </div>
                         <div class="error">
                             <span v-if="errorsForm['errors'].valor" class="span-error">{{
@@ -138,9 +133,8 @@
                             }}</span>
                         </div>
                         <div class="inputSimples">
-                            <mdicon class="mdicon" name="account" />
                             <input v-model="revenueEdit.date" type="date" name="date" class="input" id="date" required />
-                            <!-- <label for="date" class="label">Data</label> -->
+                            <label for="date" class="label">Data</label>
                         </div>
                         <div class="error">
                             <span v-if="errorsForm['errors'].date" class="span-error">{{
@@ -148,10 +142,9 @@
                             }}</span>
                         </div>
                         <div class="inputSimples">
-                            <mdicon class="mdicon" name="account" />
                             <input v-model="revenueEdit.descricao" type="text" name="descricao" class="input" id="descricao"
                                 required />
-                            <!-- <label for="descricao" class="label">Descricao</label> -->
+                            <label for="descricao" class="label">Descricao</label>
                         </div>
                         <div class="error">
                             <span v-if="errorsForm['errors'].descricao" class="span-error">{{
@@ -167,6 +160,11 @@
                             </select>
                             <label for="categoria" class="label">Status</label>
                         </div>
+                        <div class="error">
+                            <span v-if="errorsForm['errors'].date" class="span-error">{{
+                                errorsForm["errors"].date[0]
+                            }}</span>
+                        </div>
                         <div class="inputSimples">
                             <select v-model="revenueEdit.categoria" class="input" name="categoria"
                                 aria-label="Default select example" required>
@@ -174,7 +172,7 @@
                                 <option v-for="categoria in categorias" class="options" :value="categoria">{{ categoria }}
                                 </option>
                             </select>
-                            <!-- <label for="categoria" class="label">Categoria</label> -->
+                            <label for="categoria" class="label">Categoria</label>
                         </div>
                         <div class="error">
                             <span v-if="errorsForm['errors'].categoria" class="span-error">{{
@@ -188,7 +186,7 @@
                                 <option v-for="carteira in carteiras" class="options" :value="carteira">{{ carteira }}
                                 </option>
                             </select>
-                            <!-- <label for="carteira" class="label">Carteira</label> -->
+                            <label for="carteira" class="label">Carteira</label>
                         </div>
                         <div class="error">
                             <span v-if="errorsForm['errors'].carteira" class="span-error">{{
@@ -241,22 +239,22 @@
                         <table class="table" style="background-color: rgba(0, 0, 0, 0.25); color: black;">
                             <thead>
                                 <tr>
-                                    <th style="color: #fefefe;">Data</th>
-                                    <th style="color: #fefefe;">Descrição</th>
-                                    <th style="color: #fefefe;">Categoria</th>
-                                    <th style="color: #fefefe;">Conta</th>
-                                    <th style="color: #fefefe;">Valor</th>
-                                    <th style="color: #fefefe;">Ações</th>
+                                    <th class="text-white text-center">Data</th>
+                                    <th class="text-white text-center">Descrição</th>
+                                    <th class="text-white text-center">Categoria</th>
+                                    <th class="text-white text-center">Conta</th>
+                                    <th class="text-white text-center">Valor</th>
+                                    <th class="text-white text-center">Ações</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="(revenue, key) in revenuesMonth" :key="revenue.id">
-                                    <td style="color: #fefefe;">{{ revenue.date }}</td>
-                                    <td style="color: #fefefe;">{{ revenue.descricao }}</td>
-                                    <td style="color: #fefefe;">{{ revenue.categoria }}</td>
-                                    <td style="color: #fefefe;">{{ revenue.carteira }}</td>
-                                    <td style="color: #fefefe;">R$ {{ revenue.valor }}</td>
-                                    <td class="d-flex py-0">
+                                    <td class="text-white text-center">{{ revenue.date }}</td>
+                                    <td class="text-white text-center">{{ revenue.descricao }}</td>
+                                    <td class="text-white text-center">{{ revenue.categoria }}</td>
+                                    <td class="text-white text-center">{{ revenue.carteira }}</td>
+                                    <td class="text-white text-center">R$ {{ revenue.valor }}</td>
+                                    <td class="d-flex py-0 justify-content-center">
                                         <button @click="receivedRevenue(revenue)" style="color: #fefefe;"
                                             class="btn btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 "
                                             :class="{ received: revenue.status === 'RECEBIDA' }"
@@ -332,11 +330,11 @@ let releases = reactive({
 let status = ref(true);
 
 categorias = userStore.user.categoriasReceitas;
-valueTotalRevenuesMonth.value = useRevenues.revenuesData.valueTotalRevenuesMonth;
+valueTotalRevenuesMonth.value = useRevenues.revenuesData.revenues.valueTotalRevenuesMonth;
 carteiras = userStore.user.carteiras;
-revenuesMonth = useRevenues.revenuesData.revenuesMonth;
-valueReceived.value = useRevenues.revenuesData.valueReceivedRevenues;
-valuePending.value = useRevenues.revenuesData.valuePendingRevenues;
+revenuesMonth = useRevenues.revenuesData.revenues.revenuesMonth;
+valueReceived.value = useRevenues.revenuesData.revenues.valueReceivedRevenues;
+valuePending.value = useRevenues.revenuesData.revenues.valuePendingRevenues;
 
 const clearInputs = () => {
     releases.valor = '';
@@ -355,11 +353,11 @@ const salvarLancamentos = async () => {
     try {
         releases.status = status.value ? "RECEBIDA" : "AGUARDANDO";
         const res = await http.post("/save-revenue", releases);
-        useRevenues.setRevenuesData(res.data.revenues, res.data.valueTotalRevenuesMonth, res.data.valueReceived, res.data.valuePending, res.data.revenuesMonth);
-        valueTotalRevenuesMonth.value = res.data.valueTotalRevenuesMonth;
-        valueReceived.value = res.data.valueReceived;
-        valuePending.value = res.data.valuePending;
-        revenuesMonth = res.data.revenuesMonth;
+        useRevenues.setRevenuesData(res.data.revenuesData,);
+        valueTotalRevenuesMonth.value = res.data.revenuesData.valueTotalRevenuesMonth;
+        valuePending.value = res.data.revenuesData.valuePendingRevenues;
+        valueReceived.value = res.data.revenuesData.valueReceivedRevenues;
+        revenuesMonth = res.data.revenuesData.revenuesMonth;
         clearInputs();
         formStoreRevenue.value = false;
     } catch (error) {
@@ -371,9 +369,9 @@ const salvarLancamentos = async () => {
 const receivedRevenue = async (revenue: Lancamentos) => {
     try {
         const res = await http.post('/received-revenue', { 'id': revenue.id });
-        useRevenues.setRevenuesData(res.data.revenues, res.data.valueTotalRevenuesMonth, res.data.valueReceived, res.data.valuePending, res.data.revenuesMonth);
-        valueReceived.value = res.data.valueReceived;
-        valuePending.value = res.data.valuePending;
+        useRevenues.setRevenuesData(res.data.revenuesData);
+        valueReceived.value = res.data.revenuesData.valueReceivedRevenues;
+        valuePending.value = res.data.revenuesData.valuePendingRevenues;
         // revenue.status = 'PAGA';
         revenuesMonth.forEach(revenues => {
             if (revenues.id === revenue.id) {
@@ -394,11 +392,11 @@ function displayFormEditRevenue(revenue: Lancamentos) {
 const saveEditedRevenue = async () => {
     try {
         const res = await http.post("/edit-revenue", revenueEdit);
-        useRevenues.setRevenuesData(res.data.revenues, res.data.valueTotalRevenuesMonth, res.data.valueReceived, res.data.valuePending, res.data.revenuesMonth);
-        valueTotalRevenuesMonth.value = res.data.valueTotalRevenuesMonth;
-        valueReceived.value = res.data.valueReceived;
-        valuePending.value = res.data.valuePending;
-        revenuesMonth = res.data.revenuesMonth
+        useRevenues.setRevenuesData(res.data.revenuesData);
+        valueTotalRevenuesMonth.value = res.data.revenuesData.valueTotalRevenuesMonth;
+        valueReceived.value = res.data.revenuesData.valueReceivedRevenues;
+        valuePending.value = res.data.revenuesData.valuePendingRevenues;
+        revenuesMonth = res.data.revenuesData.revenuesMonth
     } catch (error) {
         console.log(error);
     }
@@ -410,11 +408,11 @@ const saveEditedRevenue = async () => {
 const deletar = async (id: number) => {
     try {
         const res = await http.post('/delete-revenue', { 'id': id })
-        useRevenues.setRevenuesData(res.data.revenues, res.data.valueTotalRevenuesMonth, res.data.valueReceived, res.data.valuePending, res.data.revenuesMonth);
-        valueTotalRevenuesMonth.value = res.data.valueTotalRevenuesMonth;
-        valuePending.value = res.data.valuePending;
-        valueReceived = res.data.valueReceived;
-        revenuesMonth = res.data.revenuesMonth;
+        useRevenues.setRevenuesData(res.data.revenuesData);
+        valueTotalRevenuesMonth.value = res.data.revenuesData.valueTotalRevenuesMonth;
+        valuePending.value = res.data.revenuesData.valuePendingRevenues;
+        valueReceived = res.data.revenuesData.valueReceivedRevenues;
+        revenuesMonth = res.data.revenuesData.revenuesMonth;
     } catch (error) {
         console.log(error);
     }

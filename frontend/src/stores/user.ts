@@ -6,9 +6,9 @@ import type { UserDAta } from "@/types/userData";
 export const useUserStore = defineStore("user", () => {
     // state
     const user = reactive({
-        id: 0 as number,
-        name: "" as string,
-        email: "" as string,
+        id: 0,
+        name: "",
+        email: "",
         carteiras: [],
         categoriasDespesas: [],
         categoriasReceitas: [],

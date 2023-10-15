@@ -112,6 +112,7 @@ async function create() {
     border-radius: 10px;
     padding: 0;
     width: 80%;
+    max-width: 1250px;
 }
 
 .container__dados {

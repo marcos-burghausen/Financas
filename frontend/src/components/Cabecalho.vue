@@ -18,7 +18,7 @@ import { ref, computed } from "vue";
 const props = defineProps({
     menuExpandido: Boolean
 });
-const titulo = computed(() => props.name);
+// const titulo = computed(() => props.name);
 const router = useRouter();
 const data = userData();
 const auth = useAuth();

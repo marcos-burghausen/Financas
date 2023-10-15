@@ -6,13 +6,16 @@ use App\Enums\Actions;
 use App\Enums\CacheKeys;
 use App\Enums\CacheNaming;
 use App\Enums\Errors;
+use App\Http\Traits\GroupReleasesTrait;
 use App\Http\Traits\ReleasesMonthTrait;
+use App\Http\Traits\TotalByCategoryTrait;
 use App\Utils\FinancasCache;
+use DateTime;
 use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
-    use ReleasesMonthTrait;
+    use ReleasesMonthTrait, GroupReleasesTrait, TotalByCategoryTrait;
 
     public function auth(Request $request)
     {
@@ -69,32 +72,50 @@ class AuthController extends Controller
             $valuePayExpenses = $this->valuePending($expenses, date('m'), "PAGA");
             $valuePendingExpenses = $this->valuePending($expenses, date('m'), "AGUARDANDO");
             $valueTotalExpensesMonth = $this->valueReleasesMonth($expenses, date('m'));
+            $expensesGroupByMonth = $this->groupByMonth($expenses);
+            $expensesAddTotalVelueMonth = $this->addTotalValueMonth($expensesGroupByMonth);
+            $totalByCategoryExpnses = $this->totalByCategory($expenses);
+            $expensesData = [
+                'expenses' => $expenses,
+                'expensesMonth' => $expensesMonth,
+                'valuePayExpenses' => $valuePayExpenses,
+                'valuePendingExpenses' => $valuePendingExpenses,
+                'valueTotalExpensesMonth' => $valueTotalExpensesMonth,
+                'expensesGroupByMonth' => $expensesGroupByMonth,
+                'expensesAddTotalVelueMonth' => $expensesAddTotalVelueMonth,
+                'totalByCategoryExpnses' => $totalByCategoryExpnses,
+            ];
 
             $revenues = auth()->user()->revenues()->get();
             $revenuesMonth = $this->releasesMonth($revenues, date('m'));
             $valueReceived = $this->valuePending($revenues, date('m'), "RECEBIDA");
             $valuePendingRevenues = $this->valuePending($revenues, date('m'), "AGUARDANDO");
             $valueTotalRevenuesMonth = $this->valueReleasesMonth($revenues, date('m'));
+            $revenuesGroupByMonth = $this->groupByMonth($revenues);
+            $revenuesAddTotalVelueMonth = $this->addTotalValueMonth($revenuesGroupByMonth);
+            $revenuesData = [
+                'revenues' => $revenues,
+                'revenuesMonth' => $revenuesMonth,
+                'valueReceived' => $valueReceived,
+                'valuePendingRevenues' => $valuePendingRevenues,
+                'valueTotalRevenuesMonth' => $valueTotalRevenuesMonth,
+                'revenuesGroupByMonth' => $revenuesGroupByMonth,
+                'revenuesAddTotalVelueMonth' => $revenuesAddTotalVelueMonth,
+            ];
 
             $totalCreditCard = 5000;
             $totalBalance = 5000;
 
             LogController::addsLog($user->email, Actions::ME);
 
+
+
             return response()->json([
                 'user' => $user,
-                'expenses' => $expenses,
-                'expensesMonth' => $expensesMonth,
-                'valuePayExpenses' => $valuePayExpenses,
-                'valuePendingExpenses' => $valuePendingExpenses,
-                'valueTotalExpensesMonth' => $valueTotalExpensesMonth,
-                'revenues' => $revenues,
-                'revenuesMonth' => $revenuesMonth,
-                'valueRevenuesReceived'  => $valueReceived,
-                'valuePendingRevenues'  => $valuePendingRevenues,
-                'valueTotalRevenuesMonth'  => $valueTotalRevenuesMonth,
-                'totalCreditCard'  => $totalCreditCard,
+                'expensesData' => $expensesData,
+                'revenuesData' => $revenuesData,
                 'totalBalance'  => $totalBalance,
+                'totalCreditCard'  => $totalCreditCard,
 
             ]);
         }

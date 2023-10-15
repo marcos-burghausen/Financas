@@ -3,13 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Errors;
+use App\Http\Traits\GroupReleasesTrait;
 use Illuminate\Http\Request;
 use App\Http\Traits\ReleasesMonthTrait;
+use App\Http\Traits\TotalByCategoryTrait;
 use App\Models\Expense;
 
 class ExpenseController extends Controller
 {
-    use ReleasesMonthTrait;
+    use ReleasesMonthTrait, GroupReleasesTrait, TotalByCategoryTrait;
 
     public function saveExpense(Request $request)
     {
@@ -45,19 +47,28 @@ class ExpenseController extends Controller
         }
 
         $expenses = auth()->user()->expenses()->get();
-        $valueTotalExpensesMonth = $this->valueReleasesMonth($expenses, date('m'));
-        $valuePending = $this->valuePending($expenses, date('m'), "AGUARDANDO");
-        $valuePay = $this->valuePending($expenses, date('m'), "PAGA");
         $expensesMonth = $this->releasesMonth($expenses, date('m'));
+        $valuePayExpenses = $this->valuePending($expenses, date('m'), "PAGA");
+        $valuePendingExpenses = $this->valuePending($expenses, date('m'), "AGUARDANDO");
+        $valueTotalExpensesMonth = $this->valueReleasesMonth($expenses, date('m'));
+        $expensesGroupByMonth = $this->groupByMonth($expenses);
+        $expensesAddTotalVelueMonth = $this->addTotalValueMonth($expensesGroupByMonth);
+        $totalByCategoryExpnses = $this->totalByCategory($expenses);
+        $expensesData = [
+            'expenses' => $expenses,
+            'expensesMonth' => $expensesMonth,
+            'valuePayExpenses' => $valuePayExpenses,
+            'valuePendingExpenses' => $valuePendingExpenses,
+            'valueTotalExpensesMonth' => $valueTotalExpensesMonth,
+            'expensesGroupByMonth' => $expensesGroupByMonth,
+            'expensesAddTotalVelueMonth' => $expensesAddTotalVelueMonth,
+            'totalByCategoryExpnses' => $totalByCategoryExpnses,
+        ];
 
         // Mail::to($user->email)->send(new DespesaRegistradaMail($despesa));
         return response()->json([
             'success' => 'despesa cadastrada com sucesso',
-            'valueTotalExpensesMonth' => $valueTotalExpensesMonth,
-            'expenses' => $expenses,
-            'valuePay' => $valuePay,
-            'valuePending' => $valuePending,
-            'expensesMonth' => $expensesMonth
+            'expensesData' => $expensesData,
         ], 200);
     }
 
@@ -71,18 +82,27 @@ class ExpenseController extends Controller
         }
 
         $expenses = auth()->user()->expenses()->get();
-        $valueTotalExpensesMonth = $this->valueReleasesMonth($expenses, date('m'));
-        $valuePending = $this->valuePending($expenses, date('m'), "AGUARDANDO");
-        $valuePay = $this->valuePending($expenses, date('m'), "PAGA");
         $expensesMonth = $this->releasesMonth($expenses, date('m'));
+        $valuePayExpenses = $this->valuePending($expenses, date('m'), "PAGA");
+        $valuePendingExpenses = $this->valuePending($expenses, date('m'), "AGUARDANDO");
+        $valueTotalExpensesMonth = $this->valueReleasesMonth($expenses, date('m'));
+        $expensesGroupByMonth = $this->groupByMonth($expenses);
+        $expensesAddTotalVelueMonth = $this->addTotalValueMonth($expensesGroupByMonth);
+        $totalByCategoryExpnses = $this->totalByCategory($expenses);
+        $expensesData = [
+            'expenses' => $expenses,
+            'expensesMonth' => $expensesMonth,
+            'valuePayExpenses' => $valuePayExpenses,
+            'valuePendingExpenses' => $valuePendingExpenses,
+            'valueTotalExpensesMonth' => $valueTotalExpensesMonth,
+            'expensesGroupByMonth' => $expensesGroupByMonth,
+            'expensesAddTotalVelueMonth' => $expensesAddTotalVelueMonth,
+            'totalByCategoryExpnses' => $totalByCategoryExpnses,
+        ];
 
         return response()->json([
             'success' => 'despesa cadastrada com sucesso',
-            'valueTotalExpensesMonth' => $valueTotalExpensesMonth,
-            'expenses' => $expenses,
-            'valuePay' => $valuePay,
-            'valuePending' => $valuePending,
-            'expensesMonth' => $expensesMonth
+            'expensesData' => $expensesData,
         ], 200);
     }
 
@@ -100,18 +120,27 @@ class ExpenseController extends Controller
         if (!$saved) return response()->json(Errors::ERROR_UPDATING_EXPENSE->response());
 
         $expenses = auth()->user()->expenses()->get();
-        $valueTotalExpensesMonth = $this->valueReleasesMonth($expenses, date('m'));
-        $valuePending = $this->valuePending($expenses, date('m'), "AGUARDANDO");
-        $valuePay = $this->valuePending($expenses, date('m'), "PAGA");
         $expensesMonth = $this->releasesMonth($expenses, date('m'));
+        $valuePayExpenses = $this->valuePending($expenses, date('m'), "PAGA");
+        $valuePendingExpenses = $this->valuePending($expenses, date('m'), "AGUARDANDO");
+        $valueTotalExpensesMonth = $this->valueReleasesMonth($expenses, date('m'));
+        $expensesGroupByMonth = $this->groupByMonth($expenses);
+        $expensesAddTotalVelueMonth = $this->addTotalValueMonth($expensesGroupByMonth);
+        $totalByCategoryExpnses = $this->totalByCategory($expenses);
+        $expensesData = [
+            'expenses' => $expenses,
+            'expensesMonth' => $expensesMonth,
+            'valuePayExpenses' => $valuePayExpenses,
+            'valuePendingExpenses' => $valuePendingExpenses,
+            'valueTotalExpensesMonth' => $valueTotalExpensesMonth,
+            'expensesGroupByMonth' => $expensesGroupByMonth,
+            'expensesAddTotalVelueMonth' => $expensesAddTotalVelueMonth,
+            'totalByCategoryExpnses' => $totalByCategoryExpnses,
+        ];
 
         return response()->json([
             'success' => 'despesa cadastrada com sucesso',
-            'valueTotalExpensesMonth' => $valueTotalExpensesMonth,
-            'expenses' => $expenses,
-            'valuePay' => $valuePay,
-            'valuePending' => $valuePending,
-            'expensesMonth' => $expensesMonth
+            'expensesData' => $expensesData,
         ], 200);
     }
 
@@ -123,18 +152,27 @@ class ExpenseController extends Controller
         }
 
         $expenses = auth()->user()->expenses()->get();
-        $valueTotalExpensesMonth = $this->valueReleasesMonth($expenses, date('m'));
-        $valuePending = $this->valuePending($expenses, date('m'), "AGUARDANDO");
-        $valuePay = $this->valuePending($expenses, date('m'), "PAGA");
         $expensesMonth = $this->releasesMonth($expenses, date('m'));
+        $valuePayExpenses = $this->valuePending($expenses, date('m'), "PAGA");
+        $valuePendingExpenses = $this->valuePending($expenses, date('m'), "AGUARDANDO");
+        $valueTotalExpensesMonth = $this->valueReleasesMonth($expenses, date('m'));
+        $expensesGroupByMonth = $this->groupByMonth($expenses);
+        $expensesAddTotalVelueMonth = $this->addTotalValueMonth($expensesGroupByMonth);
+        $totalByCategoryExpnses = $this->totalByCategory($expenses);
+        $expensesData = [
+            'expenses' => $expenses,
+            'expensesMonth' => $expensesMonth,
+            'valuePayExpenses' => $valuePayExpenses,
+            'valuePendingExpenses' => $valuePendingExpenses,
+            'valueTotalExpensesMonth' => $valueTotalExpensesMonth,
+            'expensesGroupByMonth' => $expensesGroupByMonth,
+            'expensesAddTotalVelueMonth' => $expensesAddTotalVelueMonth,
+            'totalByCategoryExpnses' => $totalByCategoryExpnses,
+        ];
 
         return response()->json([
             'success' => 'despesa cadastrada com sucesso',
-            'valueTotalExpensesMonth' => $valueTotalExpensesMonth,
-            'expenses' => $expenses,
-            'valuePay' => $valuePay,
-            'valuePending' => $valuePending,
-            'expensesMonth' => $expensesMonth
+            'expensesData' => $expensesData,
         ], 200);
     }
 

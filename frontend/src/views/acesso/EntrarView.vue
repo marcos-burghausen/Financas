@@ -30,8 +30,8 @@
                         name="email">
                 </div>
                 <div class="error">
-                    <span v-if="errorsForm['errors'].email" class="span__error">{{
-                        errorsForm["errors"].email[0]
+                    <span v-if="errorsForm.email" class="span__error">{{
+                        errorsForm.email[0]
                     }}</span>
                 </div>
                 <div class="container__input">
@@ -41,8 +41,8 @@
                         name="password">
                 </div>
                 <div class="error">
-                    <span v-if="errorsForm['errors'].password" class="span__error">{{
-                        errorsForm["errors"].password[0]
+                    <span v-if="errorsForm.password" class="span__error">{{
+                        errorsForm.password[0]
                     }}</span>
                 </div>
                 <div class="container__button">
@@ -73,10 +73,14 @@ import { useAuth } from "@/stores/auth";
 import { useExpensesStore } from "@/stores/expenses";
 import { useRouter } from "vue-router";
 import http from "@/services/http";
-import { ref, reactive } from "vue";
+import { ref, reactive, type Ref } from "vue";
 import { useRevenuesStore } from "@/stores/revenues";
+import type { ErrorsFormLogin } from "@/types/errorsFormLogin";
 
-const errorsForm = reactive({ errors: {} });
+const errorsForm: ErrorsFormLogin = reactive({
+    email: "",
+    password: ""
+});
 const emits = defineEmits(["nextStep"]);
 const useUser = useUserStore();
 const useExpenses = useExpensesStore();
@@ -84,7 +88,8 @@ const useRevenues = useRevenuesStore();
 const router = useRouter();
 const auth = useAuth();
 const user = reactive({
-    name: "Marcos Rafael",
+    // email: "",
+    // password: ""
     email: "marcos@gmail.com",
     password: "123",
 });
@@ -98,17 +103,18 @@ async function login() {
         const resp = await http.post("/me");
         useUser.setUserData(resp.data.user);
 
-        useExpenses.setExpensesData(resp.data.expenses, resp.data.valueTotalExpensesMonth, resp.data.valuePayExpenses, resp.data.valuePendingExpenses, resp.data.expensesMonth);
+        useExpenses.setExpensesData(resp.data.expensesData);
 
-        useRevenues.setRevenuesData(resp.data.revenues, resp.data.valueTotalRevenuesMonth, resp.data.valueRevenuesReceived, resp.data.valuePendingRevenues, resp.data.revenuesMonth);
+        useRevenues.setRevenuesData(resp.data.revenuesData);
 
         data.setTotalCreditCard(resp.data.totalCreditCard);
         data.setTotalBalance(resp.data.totalBalance);
         auth.setUser(resp.data.user.name);
         router.push({ name: "dashboard" });
     } catch (error) {
-        console.error(error);
-        errorsForm["errors"] = error.response.data;
+        console.log(error.response.data.errors);
+        errorsForm.email = error.response.data.errors.email;
+        errorsForm.password = error.response.data.errors.password;
     }
 }
 </script>
@@ -119,6 +125,7 @@ async function login() {
     border-radius: 10px;
     padding: 0;
     width: 80%;
+    max-width: 1250px;
 }
 
 .container__dados {

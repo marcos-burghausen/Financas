@@ -30,25 +30,9 @@ enum Errors: string
     case USER_ALREADY_REGISTERED        = "SP001";          //usuario ja cadastrado
     case ERROR_WHILE_GETTING_USER_DATA  = "SP002";          //erro ao obter dados do usuario
         // case USER_CREATE_FAILED             = "SP002";          //falha na criação do usuario
-        // case IMAGE_STORE_FAILED             = "SP003";          //falha no armazenamento da imagem
-        // case USER_NOT_REGISTERED            = "SP004";          //usuario não registrado
-
-        // case TOKEN_SEND_FAILURE             = "SP100";          //
-        // case TOKEN_RESEND_FAILURE           = "SP101";          //
-        // case TOKEN_MAX_RESENDS_REACHED      = "SP102";          //
-        // case TOKEN_MAX_ATTEMPTS_REACHED     = "SP103";          //
-        // case TOKEN_EXPIRED                  = "SP104";          //
-        // case TOKEN_INCORRECT                = "SP105";          //
-        // case TOKEN_BLOCKED                  = "SP106";          //
-        // case TOKEN_NOT_VERIFIED             = "SP107";          //
 
     case INVALID_USERNAME_OR_PASSWORD   = "SP200";          //usuario ou senha invalidos
 
-        // case USER_DATA_EXPIRED              = "SP300";          //
-        // case USER_DATA_FETCH_FAIL           = "SP301";
-
-        // case PASSWORD_INCORRECT             = "SP302";
-        // case PASSWORD_ALREADY_USED          = "SP303";
 
     case ERROR_REGISTERING_EXPENSE      = "SP400";          //erro ao cadastrar despesa
     case ERROR_DELETING_EXPENSE         = "SP401";          //erro ao excluir despesa
