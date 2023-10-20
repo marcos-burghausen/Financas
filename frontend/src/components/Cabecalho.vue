@@ -14,6 +14,7 @@ import { useAuth } from "@/stores/auth";
 import { useRouter } from "vue-router";
 import http from "@/services/http";
 import { ref, computed } from "vue";
+import { useUserStore } from "@/stores/user";
 
 const props = defineProps({
     menuExpandido: Boolean
@@ -22,10 +23,9 @@ const props = defineProps({
 const router = useRouter();
 const data = userData();
 const auth = useAuth();
+const useUser = useUserStore();
 
-let name = ref(null);
-
-name = auth.user;
+let name = ref(useUser.user.data.name);
 
 async function logout() {
     try {

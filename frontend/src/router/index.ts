@@ -35,6 +35,14 @@ const router = createRouter({
       }
     },
     {
+      path: '/categorias',
+      name: 'categorias',
+      component: () => import('@/views/CategoriasView.vue'),
+      meta: {
+        auth: true
+      }
+    },
+    {
       path: '/cartao',
       name: 'cartao',
       component: () => import('@/views/cartaoCredito/CartaoCreditoView.vue'),

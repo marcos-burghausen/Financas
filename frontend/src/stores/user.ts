@@ -1,18 +1,14 @@
 import { defineStore } from "pinia";
-import { reactive } from "vue";
+import { ref } from "vue";
 
 import type { UserDAta } from "@/types/userData";
 
 export const useUserStore = defineStore("user", () => {
     // state
-    const user = reactive({
-        id: 0,
-        name: "",
-        email: "",
-        carteiras: [],
-        categoriasDespesas: [],
-        categoriasReceitas: [],
-    });
+    const user = ref(
+        localStorage.getItem("user")
+            ? JSON.parse(localStorage.getItem("user") as string)
+            : "");
 
     // getters
     const getCarteias = () => {
@@ -20,13 +16,11 @@ export const useUserStore = defineStore("user", () => {
     }
 
     // actions
-    function setUserData(value: UserDAta) {
-        user.id = value.id;
-        user.name = value.name;
-        user.email = value.email;
-        user.carteiras = value.carteiras;
-        user.categoriasDespesas = value.categoriasDespesas;
-        user.categoriasReceitas = value.categoriasReceitas;
+    function setUserData(data: UserDAta): void {
+        user.value = {
+            data
+        };
+        localStorage.setItem('user', JSON.stringify(user.value));
     }
 
 

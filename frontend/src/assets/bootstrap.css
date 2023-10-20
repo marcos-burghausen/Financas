@@ -3924,7 +3924,7 @@ fieldset:disabled .btn {
   --bs-dropdown-header-padding-y: 0.5rem;
   position: absolute;
   z-index: var(--bs-dropdown-zindex);
-  display: none;
+  /* display: none; */
   min-width: var(--bs-dropdown-min-width);
   padding: var(--bs-dropdown-padding-y) var(--bs-dropdown-padding-x);
   margin: 0;
@@ -5381,8 +5381,7 @@ fieldset:disabled .btn {
   padding-right: var(--bs-breadcrumb-item-padding-x);
   color: var(--bs-white);
   content: var(--bs-breadcrumb-divider, "/")
-    /* rtl: var(--bs-breadcrumb-divider, "/") */
-  ;
+    /* rtl: var(--bs-breadcrumb-divider, "/"); */
 }
 
 .breadcrumb-item.active {
@@ -6220,7 +6219,7 @@ fieldset:disabled .btn {
   top: 0;
   left: 0;
   z-index: var(--bs-modal-zindex);
-  display: none;
+  /* display: none; */
   width: 100%;
   height: 100%;
   overflow-x: hidden;

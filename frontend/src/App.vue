@@ -21,15 +21,16 @@ import { useAuth } from "@/stores/auth.js";
 
 const auth = useAuth();
 
-const menuExpandido = ref(true);
-window.addEventListener('resize', function () {
-  let width = this.window.innerWidth;
-  if (width < 900) {
-    menuExpandido.value = false;
-  } else {
-    menuExpandido.value = true;
-  }
-})
+const menuExpandido = ref(false);
+
+// window.addEventListener('resize', function () {
+//   let width = this.window.innerWidth;
+//   if (width < 900) {
+//     menuExpandido.value = false;
+//   } else {
+//     menuExpandido.value = true;
+//   }
+// })
 
 </script>
 

@@ -44,6 +44,9 @@ watch(route, (value) => {
         case 'despesas':
             elementoAtivoSideBar.value = 2;
             break;
+        case 'categorias':
+            elementoAtivoSideBar.value = 3;
+            break;
     }
 
 })
@@ -56,6 +59,7 @@ const itensSideBar = ref([
     { name: "DashBoard", icon: "view-dashboard", route: "dashboard" },
     { name: "Receitas", icon: "view-dashboard", route: "receitas" },
     { name: "Despesas", icon: "view-dashboard", route: "despesas" },
+    { name: "Categorias", icon: "bookmark-minus-outline", route: "categorias" },
     { name: "Mais Opçõs", icon: "dots-horizontal", route: 'dashboard' },
 ]);
 </script>

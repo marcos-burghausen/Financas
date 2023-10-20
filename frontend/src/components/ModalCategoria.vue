@@ -1,0 +1,390 @@
+<template>
+    <mdicon @click="openModal = true" type="button" title="adcionar nova categoria" name="plus" class="mdicon"
+        :class="cor" />
+
+    <div v-if="openModal" class="container__modal">
+        <div class="modal">
+            <header class="header__modal">
+                <span class="title">Cadastrar nova categoria</span>
+                <mdicon class="mdicon__close" type="buttom" name="close"
+                    @click="openModal = false; selectedIcon = ''; selectedColor = ''" />
+            </header>
+            <div class="inputSimples">
+                <input type="text" name="descricao" class="input" id="descricao" required />
+                <label for="descricao" class="label">Nome</label>
+            </div>
+            <!-- <div class="error">
+            <span v-if="errorsForm['errors'].descricao" class="span-error">{{
+                errorsForm["errors"].descricao[0]
+            }}</span>
+        </div> -->
+            <div class="cor__icon">
+                <div class="container__cor__categoria">
+                    <div class="cor__categoria">
+                        <span>
+                            cor da categoria
+                        </span>
+                        <div v-if="selectedColor" class="cor__forma" :class="selectedColor"></div>
+                    </div>
+                    <ModalColors :item="selectedColor" :items="colors" @atualizarVariavel="updateSelectedColor" />
+                </div>
+                <div class="container__cor__categoria">
+                    <div class="icon__categoria">
+                        <span>
+                            icone da categoria
+                        </span>
+                        <mdicon v-if="selectedIcon" :name="selectedIcon" />
+                    </div>
+                    <ModalIcons :item="selectedIcon" :items="icons" @atualizarVariavel="updateSelectedIcon" />
+                </div>
+            </div>
+            <footer class="footer__modal">
+                <button class="btn__modal" @click="openModal = false">Salvar</button>
+            </footer>
+        </div>
+    </div>
+</template>
+<script setup lang="ts">
+import ModalColors from "@/components/ModalColors.vue"
+import ModalIcons from "@/components/ModalIcons.vue"
+
+import { reactive, ref } from 'vue'
+
+const selectedColor = ref('');
+const selectedIcon = ref('');
+const openModal = ref(false);
+const props = defineProps({
+    cor: String
+});
+
+const updateSelectedIcon = (novoValor: string) => {
+    selectedIcon.value = novoValor;
+};
+const updateSelectedColor = (novoValor: string) => {
+    selectedColor.value = novoValor;
+};
+
+const colors = reactive([
+    { cor: 'cor__1' },
+    { cor: 'cor__2' },
+    { cor: 'cor__3' },
+    { cor: 'cor__4' },
+    { cor: 'cor__5' },
+    { cor: 'cor__6' },
+    { cor: 'cor__7' },
+    { cor: 'cor__8' },
+    { cor: 'cor__9' },
+    { cor: 'cor__10' },
+    { cor: 'cor__11' },
+    { cor: 'cor__12' },
+    { cor: 'cor__13' },
+    { cor: 'cor__14' },
+    { cor: 'cor__15' },
+    { cor: 'cor__16' },
+    { cor: 'cor__17' },
+    { cor: 'cor__18' },
+    { cor: 'cor__19' },
+    { cor: 'cor__20' },
+    // { cor: 'cor__21' },
+    // { cor: 'cor__22' },
+    // { cor: 'cor__23' },
+    // { cor: 'cor__24' },
+    // { cor: 'cor__25' }
+]);
+const icons = reactive([
+    { icon: 'car-estate' },
+    { icon: 'umbrella-beach-outline' },
+    { icon: 'silverware-fork-knife' },
+    { icon: 'account-school-outline' },
+    { icon: 'airplane' },
+    { icon: 'medical-bag' },
+    { icon: 'dots-horizontal' },
+    { icon: 'currency-usd' },
+    { icon: 'finance' },
+    { icon: 'tshirt-crew-outline' },
+    { icon: 'heart-pulse' },
+    { icon: 'home-outline' },
+    { icon: 'star-outline' },
+    { icon: 'book-open-variant' },
+    { icon: 'cash' },
+    { icon: 'school' },
+    { icon: 'chart-line-variant' },
+    { icon: 'gift-outline' },
+    { icon: 'bag-suitcase-outline' },
+    { icon: 'bike' },
+    { icon: 'bus' },
+    { icon: 'cake-variant-outline' },
+    { icon: 'calculator' },
+    { icon: 'video-minus' },
+    { icon: 'calculator-variant' },
+    { icon: 'baby-carriage' },
+    { icon: 'broom' },
+    { icon: 'bone' },
+    { icon: 'wallet-bifold-outline' },
+    { icon: 'cart-outline' },
+    { icon: 'bank-outline' }
+]);
+
+</script>
+
+<style scoped>
+.mdicon {
+    cursor: pointer;
+    padding: 10px;
+    box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+    border-radius: 20px;
+}
+
+.color__despesa {
+    color: rgb(255, 82, 82);
+}
+
+.color__despesa:hover {
+    color: rgb(204, 0, 0);
+}
+
+.color__receita {
+    color: #00c853;
+}
+
+.color__receita:hover {
+    color: green;
+}
+
+.container__modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.50);
+}
+
+.modal {
+    background: #2c2c2e;
+    position: fixed;
+    color: #fefefe;
+    z-index: 999;
+    top: 20%;
+    left: 50%;
+    width: 450px;
+    height: auto;
+    margin-left: -200px;
+    border-radius: 20px;
+    padding: 15px;
+}
+
+.header__modal {
+    display: flex;
+    justify-content: space-between;
+}
+
+.title {
+    text-align: center;
+}
+
+.mdicon__close {
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.mdicon__close:hover {
+    color: #fefefe;
+}
+
+.inputSimples {
+    background-color: #1e1e1e;
+    margin: 20px 0 0 0;
+    display: flex;
+    align-items: center;
+    padding-left: 5px;
+    position: relative;
+    border-radius: 5px;
+}
+
+input {
+    color: #ccc;
+    width: 300px;
+    height: 40px;
+    background-color: transparent;
+    border: 0;
+    outline: 0;
+}
+
+.input:internal-autofill-selected {
+    background-color: transparent;
+}
+
+.label {
+    color: #ccc;
+    position: absolute;
+    left: 10px;
+    top: 8px;
+    opacity: 0.4;
+    cursor: text;
+    transition: 0.5s ease-in-out;
+}
+
+.input:focus~label,
+.input:valid~label {
+    transform: translateY(-30px);
+    opacity: 0.9;
+}
+
+.error {
+    height: 20px;
+}
+
+.span__error {
+    color: rgb(194, 4, 4);
+    position: relative;
+    top: 0;
+    left: 0;
+}
+
+.cor__icon {
+    display: flex;
+}
+
+.container__cor__categoria {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.cor__categoria {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    margin-block: 10px;
+}
+
+.cor__forma {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+}
+
+.icon__categoria {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    margin-block: 10px;
+}
+
+.footer__modal {
+    margin-top: 20px;
+    display: flex;
+    justify-content: end;
+}
+
+.btn__modal {
+    border: none;
+    border-radius: 20px;
+    padding-block: 5px;
+    padding-inline: 20px;
+    color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.cor__1 {
+    background: #ff8a00;
+}
+
+.cor__2 {
+    background: #cc0000;
+}
+
+.cor__3 {
+    background: #2cb1e1;
+}
+
+.cor__4 {
+    background: #c58be2;
+}
+
+.cor__5 {
+    background: #99cc00;
+}
+
+.cor__6 {
+    background: #c5e26d;
+}
+
+.cor__7 {
+    background: #9933cc;
+}
+
+.cor__8 {
+    background: #3b3b3b;
+}
+
+.cor__9 {
+    background: #686868;
+}
+
+.cor__10 {
+    background: #ff4444;
+}
+
+.cor__11 {
+    background: #2a14ff;
+}
+
+.cor__12 {
+    background: #d6adeb;
+}
+
+.cor__13 {
+    background: #bcbcbc;
+}
+
+.cor__14 {
+    background: #669900;
+}
+
+.cor__15 {
+    background: #439996;
+}
+
+.cor__16 {
+    background: #ffbd21;
+}
+
+.cor__17 {
+    background: #ff9494;
+}
+
+.cor__18 {
+    background: #8f8f8f;
+}
+
+.cor__19 {
+    background: #8ad5f0;
+}
+
+.cor__20 {
+    background: #000000;
+}
+
+.cor__21 {
+    background: #24847a;
+}
+
+.cor__22 {
+    background: #a2b6c2;
+}
+
+.cor__23 {
+    background: #930101;
+}
+
+.cor__24 {
+    background: #bb6e00;
+}
+
+.cor__25 {
+    background: #0099cc;
+}
+</style>

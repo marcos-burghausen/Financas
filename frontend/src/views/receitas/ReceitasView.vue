@@ -19,7 +19,7 @@
                         editar de receita
                     </li>
                 </ol>
-                <button v-if="!formStoreRevenue & !formEditRevenue" class="btn btn-danger text-whit"
+                <button v-if="!formStoreRevenue && !formEditRevenue" class="btn btn-danger text-whit"
                     @click="formStoreRevenue = !formStoreRevenue">
                     nova receita
                 </button>
@@ -72,7 +72,8 @@
                             <select v-model="releases.categoria" class="input" name="categoria"
                                 aria-label="Default select example" required>
                                 <option class="options" selected></option>
-                                <option v-for="categoria in categorias" class="options" :value="categoria">{{ categoria }}
+                                <option v-for="categoria in categorias" class="options" :value="categoria.name">{{
+                                    categoria.name }}
                                 </option>
                             </select>
                             <label for="categoria" class="label">Categoria</label>
@@ -212,7 +213,7 @@
 
 
 
-        <div class="container-fluid" v-if="!formStoreRevenue & !formEditRevenue">
+        <div class="container-fluid" v-if="!formStoreRevenue && !formEditRevenue">
             <div class="card__container">
                 <Card class="card" titulo="Receitas" :valor="valueTotalRevenuesMonth" />
                 <Card class="card" titulo="Pendentes" :valor="valuePending" />
@@ -310,15 +311,15 @@ const data = userData();
 const userStore = useUserStore();
 
 let errorsForm = reactive({ errors: {} });
-let valueTotalRevenuesMonth = ref();
+let valueTotalRevenuesMonth = ref(useRevenues.revenuesData.revenues.valueTotalRevenuesMonth);
 let formStoreRevenue = ref(false);
 let formEditRevenue = ref(false);
-let categorias = reactive({});
-let carteiras = reactive({});
-let revenuesMonth = reactive({});
+let categorias = ref(userStore.user.data.categoriasReceitas);
+let carteiras = ref(userStore.user.data.carteiras);
+let revenuesMonth = ref(useRevenues.revenuesData.revenues.revenuesMonth);
 let revenueEdit = reactive({});
-let valueReceived = ref();
-let valuePending = ref();
+let valueReceived = ref(useRevenues.revenuesData.revenues.valueReceived);
+let valuePending = ref(useRevenues.revenuesData.revenues.valuePendingRevenues);
 let releases = reactive({
     valor: '',
     date: '',
@@ -329,12 +330,6 @@ let releases = reactive({
 });
 let status = ref(true);
 
-categorias = userStore.user.categoriasReceitas;
-valueTotalRevenuesMonth.value = useRevenues.revenuesData.revenues.valueTotalRevenuesMonth;
-carteiras = userStore.user.carteiras;
-revenuesMonth = useRevenues.revenuesData.revenues.revenuesMonth;
-valueReceived.value = useRevenues.revenuesData.revenues.valueReceivedRevenues;
-valuePending.value = useRevenues.revenuesData.revenues.valuePendingRevenues;
 
 const clearInputs = () => {
     releases.valor = '';

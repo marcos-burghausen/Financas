@@ -42,18 +42,20 @@ class RegisterController extends Controller
         );
 
         $categoriasDespesasDefault = [
-            'Casa',
-            'Transporte',
-            'Educação',
-            'Lazer',
-            'Saúde',
-            'Outros'
+            ['name' => 'Casa',       'cor' => 'cor__1', 'icon' => 'home-outline', 'edit' => false],
+            ['name' => 'Transporte', 'cor' => 'cor__2', 'icon' => 'car-estate', 'edit' => false],
+            ['name' => 'Educação',   'cor' => 'cor__3', 'icon' => 'account-school-outline', 'edit' => false],
+            ['name' => 'Lazer',      'cor' => 'cor__4', 'icon' => 'umbrella-beach-outline', 'edit' => false],
+            ['name' => 'Vestuario',  'cor' => 'cor__5', 'icon' => 'tshirt-crew-outline', 'edit' => false],
+            ['name' => 'Viagem',     'cor' => 'cor__6', 'icon' => 'airplane', 'edit' => false],
+            ['name' => 'Saúde',      'cor' => 'cor__7', 'icon' => 'medical-bag', 'edit' => false],
+            ['name' => 'Outros',     'cor' => 'cor__8', 'icon' => 'dots-horizontal', 'edit' => false],
         ];
 
         $categoriasReceitasDefault = [
-            'Salario',
-            'Investimentos',
-            'Outros'
+            ['name' => 'Salario',       'cor' => 'cor__12', 'icon' => 'currency-usd', 'edit' => false],
+            ['name' => 'Investimentos', 'cor' => 'cor__11', 'icon' => 'finance', 'edit' => false],
+            ['name' => 'Outros',        'cor' => 'cor__7', 'icon' => 'dots-horizontal', 'edit' => false],
         ];
 
         $user = new User;

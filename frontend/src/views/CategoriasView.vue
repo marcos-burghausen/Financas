@@ -1,0 +1,358 @@
+<template>
+    <div class="">
+        <div class="">
+            <nav class="nav">
+                <ul class="ul__local">
+                    <li class="">
+                        <router-link class="link" :to="{ name: 'dashboard' }">
+                            Dashboard
+                        </router-link>
+                    </li>
+                    <li class="li__separador">/</li>
+                    <li class="opaco  ">
+                        categorias
+                    </li>
+                </ul>
+                <div>
+                    <button @click="toggleDropdown" class="btn__dropdown dropdown-toggle"
+                        :class="selectedOption === 'categoria por despesas' ? 'despesa' : 'receita'" type="button">
+                        {{ selectedOption }}
+                    </button>
+                    <ul class="ul__dropdown" v-if="isDropdownOpen">
+                        <li v-for="(item, index) in options" :key="index" @click=" selectOption(item.name)">
+                            {{ item.name }}</li>
+                    </ul>
+                </div>
+                <!-- <mdicon type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop" name="plus" class="mdicon"
+                    :class="selectedOption === 'categoria por despesas' ? 'color__despesa' : 'color__receita'" /> -->
+
+                <Modal :cor="selectedOption === 'categoria por despesas' ? 'color__despesa' : 'color__receita'" />
+            </nav>
+        </div>
+
+        <table v-if="selectedOption === 'categoria por despesas'" class="tabl">
+            <thead>
+                <tr>
+                    <th style="padding: 10px;" class="text-white text-center first__th">Nome</th>
+                    <th class="text-white text-center">Cor</th>
+                    <th class="text-white text-center">Icone</th>
+                    <th class="text-white text-center last__th">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(categoria) in categoriasDespesas">
+                    <td class="text-white text-center">{{ categoria.name }}</td>
+                    <td class="text-white text-center">
+                        <div class="cor__forma" :class="categoria.cor"></div>
+                    </td>
+                    <td class="text-white text-center">
+                        <mdicon :name="categoria.icon" />
+                    </td>
+                    <td class="d-flex py-0 justify-content-center">
+                        <!-- <button @click="" style="color: #fefefe;"
+                                            class="btn btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 "
+                                            title="relatório">
+                                            <mdicon name="clipboard-text-outline" />
+                                        </button> -->
+                        <button class="btn btn-outline-table p-0 text-white fs-4 bi bi-pencil mx-2" title="editar">
+                            <mdicon name="pencil-outline" />
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <table v-else class="tabl">
+            <thead>
+                <tr>
+                    <th style="padding: 10px;" class="text-white text-center first__th">Nome</th>
+                    <th class="text-white text-center">Cor</th>
+                    <th class="text-white text-center">Icone</th>
+                    <th class="text-white text-center last__th">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(categoria) in categoriasReceitas">
+                    <td class="text-white text-center">{{ categoria.name }}</td>
+                    <td class="text-white text-center">
+                        <div class="cor__forma" :class="categoria.cor"></div>
+                    </td>
+                    <td class="text-white text-center">
+                        <mdicon :name="categoria.icon" />
+                    </td>
+                    <td class="d-flex py-0 justify-content-center">
+                        <!-- <button @click="" style="color: #fefefe;"
+                                            class="btn btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 "
+                                            title="relatório">
+                                            <mdicon name="clipboard-text-outline" />
+                                        </button> -->
+                        <button class="btn btn-outline-table p-0 text-white fs-4 bi bi-pencil mx-2" title="editar">
+                            <mdicon name="pencil-outline" />
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</template>
+<script setup lang="ts">
+import Modal from "@/components/ModalCategoria.vue";
+import { useUserStore } from "@/stores/user";
+import { ref, reactive } from "vue";
+
+const useUser = useUserStore();
+
+let categoriasDespesas = ref(useUser.user.data.categoriasDespesas);
+let categoriasReceitas = ref(useUser.user.data.categoriasReceitas);
+
+
+const isDropdownOpen = ref(false);
+const selectedOption = ref('categoria por despesas');
+
+const options = reactive([
+    { name: 'categoria por despesas' },
+    { name: 'categoria por receitas' }
+]);
+
+const toggleDropdown = () => {
+    isDropdownOpen.value = !isDropdownOpen.value;
+};
+
+const selectOption = (option: string) => {
+    selectedOption.value = option;
+    isDropdownOpen.value = false;
+};
+
+
+</script>
+<style scoped>
+.cor__forma {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    border: 1px solid white;
+}
+
+.nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.ul__local {
+    --bs-breadcrumb-item-padding-x: 0.5rem;
+    display: flex;
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    list-style: none;
+}
+
+.link {
+    text-decoration: none;
+    color: #fefefe;
+}
+
+.li__separador {
+    color: #fefefe;
+    margin-inline: 5px;
+}
+
+.opaco {
+    color: #6c757d !important;
+}
+
+.btn__dropdown {
+    border: none;
+    border-radius: 10px;
+    color: #fefefe !important;
+    padding: 5px;
+    width: 200px;
+}
+
+.ul__dropdown {
+    position: absolute;
+    padding: var(--bs-dropdown-padding-y) var(--bs-dropdown-padding-x);
+    list-style: none;
+    border-radius: 10px;
+    width: 200px;
+    background-color: rgb(44, 44, 46);
+}
+
+.ul__dropdown li {
+    text-align: center;
+    color: #fefefe;
+    cursor: pointer;
+}
+
+.ul__dropdown li:hover {
+    background: rgba(0, 0, 0, 0.25);
+}
+
+.mdicon {
+    color: #77d08e;
+    cursor: pointer;
+    padding: 10px;
+    box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+    border-radius: 20px;
+}
+
+.despesa {
+    background: rgb(255, 82, 82);
+}
+
+.despesa:hover {
+    background: rgb(204, 0, 0);
+}
+
+.receita {
+    background: #00c853;
+}
+
+.receita:hover {
+    background: green;
+}
+
+.color__despesa {
+    color: rgb(255, 82, 82);
+}
+
+.color__despesa:hover {
+    color: rgb(204, 0, 0);
+}
+
+.color__receita {
+    color: #00c853;
+}
+
+.color__receita:hover {
+    color: green;
+}
+
+.tabl {
+    border-radius: 20px;
+    background-color: rgba(0, 0, 0, 0.25);
+    width: 100%;
+}
+
+.tabl thead tr {
+    background: rgba(0, 0, 0, 0.25);
+    border-bottom: 1px solid rgba(219, 218, 218, 0.35);
+}
+
+.first__th {
+    border-top-left-radius: 20px;
+}
+
+.last__th {
+    border-top-right-radius: 20px;
+}
+
+
+.tabl tr:not(:last-child) {
+    border-bottom: 1px solid rgba(219, 218, 218, 0.35);
+}
+
+/* tr:nth-child(even) {
+    background: rgba(0, 0, 0, 0.35);
+} */
+.cor__1 {
+    background: #ff8a00;
+}
+
+.cor__2 {
+    background: #cc0000;
+}
+
+.cor__3 {
+    background: #2cb1e1;
+}
+
+.cor__4 {
+    background: #c58be2;
+}
+
+.cor__5 {
+    background: #99cc00;
+}
+
+.cor__6 {
+    background: #c5e26d;
+}
+
+.cor__7 {
+    background: #9933cc;
+}
+
+.cor__8 {
+    background: #3b3b3b;
+}
+
+.cor__9 {
+    background: #686868;
+}
+
+.cor__10 {
+    background: #ff4444;
+}
+
+.cor__11 {
+    background: #2a14ff;
+}
+
+.cor__12 {
+    background: #04af0f;
+}
+
+.cor__13 {
+    background: #bcbcbc;
+}
+
+.cor__14 {
+    background: #669900;
+}
+
+.cor__15 {
+    background: #439996;
+}
+
+.cor__16 {
+    background: #ffbd21;
+}
+
+.cor__17 {
+    background: #ff9494;
+}
+
+.cor__18 {
+    background: #8f8f8f;
+}
+
+.cor__19 {
+    background: #8ad5f0;
+}
+
+.cor__20 {
+    background: #000000;
+}
+
+.cor__21 {
+    background: #24847a;
+}
+
+.cor__22 {
+    background: #a2b6c2;
+}
+
+.cor__23 {
+    background: #930101;
+}
+
+.cor__24 {
+    background: #bb6e00;
+}
+
+.cor__25 {
+    background: #0099cc;
+}
+</style>

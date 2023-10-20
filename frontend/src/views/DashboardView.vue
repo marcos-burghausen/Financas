@@ -19,7 +19,8 @@
             <Card class="card" titulo="Saldo atual" :valor="totalBalance" rota="despesas" />
         </div>
         <div class="chart__container">
-            <div class="container__charts">
+            <div v-if="!isAllZeros(totalYearValueExpenses) || !isAllZeros(totalYearValueRevenues)"
+                class="container__charts">
                 <div class="col-8 chart__des__rev">
                     <apexchart width="100%" height="353" type="bar" :options="options" :series="series">
                     </apexchart>
@@ -53,6 +54,10 @@ let totalCreditCard = ref(0);
 let expensesAddTotalVelueMonth = ref(useExpenses.expensesData.expenses.expensesAddTotalVelueMonth);
 let revenuesAddTotalVelueMonth = ref(useRevenues.revenuesData.revenues.revenuesAddTotalVelueMonth);
 let totalByCategoryExpnses = ref(useExpenses.expensesData.expenses.totalByCategoryExpnses);
+
+const isAllZeros = (arr) => {
+    return arr.every(value => value === 0);
+}
 
 
 // =============================== grafico de barras inicio =============================== //
