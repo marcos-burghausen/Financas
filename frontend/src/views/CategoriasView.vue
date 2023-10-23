@@ -23,10 +23,9 @@
                             {{ item.name }}</li>
                     </ul>
                 </div>
-                <!-- <mdicon type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop" name="plus" class="mdicon"
-                    :class="selectedOption === 'categoria por despesas' ? 'color__despesa' : 'color__receita'" /> -->
-
-                <Modal :cor="selectedOption === 'categoria por despesas' ? 'color__despesa' : 'color__receita'" />
+                <Modal :color="selectedOption === 'categoria por despesas' ? 'color__despesa' : 'color__receita'"
+                    @updateCategoriasDespesas="updateCategoriasDespesas"
+                    @updateCategoriasReceitas="updateCategoriasReceitas" />
             </nav>
         </div>
 
@@ -41,12 +40,12 @@
             </thead>
             <tbody>
                 <tr v-for="(categoria) in categoriasDespesas">
-                    <td class="text-white text-center">{{ categoria.name }}</td>
-                    <td class="text-white text-center">
+                    <td class="text-white ps-3">{{ categoria.name }}</td>
+                    <td class="d-flex justify-content-center">
                         <div class="cor__forma" :class="categoria.cor"></div>
                     </td>
                     <td class="text-white text-center">
-                        <mdicon :name="categoria.icon" />
+                        <mdicon v-if="categoria.icon" :name="categoria.icon" />
                     </td>
                     <td class="d-flex py-0 justify-content-center">
                         <!-- <button @click="" style="color: #fefefe;"
@@ -73,11 +72,11 @@
             <tbody>
                 <tr v-for="(categoria) in categoriasReceitas">
                     <td class="text-white text-center">{{ categoria.name }}</td>
-                    <td class="text-white text-center">
+                    <td class="text-white d-flex align-items-center">
                         <div class="cor__forma" :class="categoria.cor"></div>
                     </td>
                     <td class="text-white text-center">
-                        <mdicon :name="categoria.icon" />
+                        <mdicon v-if="categoria.icon" :name="categoria.icon" />
                     </td>
                     <td class="d-flex py-0 justify-content-center">
                         <!-- <button @click="" style="color: #fefefe;"
@@ -112,6 +111,12 @@ const options = reactive([
     { name: 'categoria por despesas' },
     { name: 'categoria por receitas' }
 ]);
+const updateCategoriasDespesas = (novoValor) => {
+    categoriasDespesas.value = novoValor;
+};
+const updateCategoriasReceitas = (novoValor) => {
+    categoriasReceitas.value = novoValor;
+};
 
 const toggleDropdown = () => {
     isDropdownOpen.value = !isDropdownOpen.value;
@@ -129,7 +134,6 @@ const selectOption = (option: string) => {
     width: 25px;
     height: 25px;
     border-radius: 50%;
-    border: 1px solid white;
 }
 
 .nav {

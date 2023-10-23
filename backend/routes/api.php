@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\WalletsController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\RegisterController;
@@ -50,4 +51,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('/add-wallets', [WalletsController::class, 'addWallets']);
     Route::post('/delete-wallets', [WalletsController::class, 'deletWallets']);
     Route::post('/get-wallets', [WalletsController::class, 'getWallets']);
+
+
+    Route::post('save-category', [CategoryController::class, 'saveCategory']);
 });

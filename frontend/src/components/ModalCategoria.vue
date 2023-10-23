@@ -1,16 +1,16 @@
 <template>
     <mdicon @click="openModal = true" type="button" title="adcionar nova categoria" name="plus" class="mdicon"
-        :class="cor" />
+        :class="color" />
 
     <div v-if="openModal" class="container__modal">
         <div class="modal">
             <header class="header__modal">
                 <span class="title">Cadastrar nova categoria</span>
                 <mdicon class="mdicon__close" type="buttom" name="close"
-                    @click="openModal = false; selectedIcon = ''; selectedColor = ''" />
+                    @click="openModal = false; selectedIcon = ''; selectedColor = ''; nameCategory = ''" />
             </header>
             <div class="inputSimples">
-                <input type="text" name="descricao" class="input" id="descricao" required />
+                <input v-model="nameCategory" type="text" name="categori" class="input" id="descricao" required />
                 <label for="descricao" class="label">Nome</label>
             </div>
             <!-- <div class="error">
@@ -39,31 +39,33 @@
                 </div>
             </div>
             <footer class="footer__modal">
-                <button class="btn__modal" @click="openModal = false">Salvar</button>
+                <button class="btn__modal" @click="saveCategory">Salvar</button>
             </footer>
         </div>
     </div>
 </template>
 <script setup lang="ts">
-import ModalColors from "@/components/ModalColors.vue"
-import ModalIcons from "@/components/ModalIcons.vue"
+import ModalColors from "@/components/ModalColors.vue";
+import ModalIcons from "@/components/ModalIcons.vue";
 
-import { reactive, ref } from 'vue'
+import { useUserStore } from "@/stores/user";
+import { reactive, ref } from 'vue';
+import http from "@/services/http";
+
+const useUser = useUserStore();
 
 const selectedColor = ref('');
 const selectedIcon = ref('');
 const openModal = ref(false);
+const nameCategory = ref('');
 const props = defineProps({
-    cor: String
+    color: String,
 });
 
-const updateSelectedIcon = (novoValor: string) => {
-    selectedIcon.value = novoValor;
-};
-const updateSelectedColor = (novoValor: string) => {
-    selectedColor.value = novoValor;
-};
-
+const emit = defineEmits([
+    'updateCategoriasDespesas',
+    'updateCategoriasReceitas'
+]);
 const colors = reactive([
     { cor: 'cor__1' },
     { cor: 'cor__2' },
@@ -85,11 +87,11 @@ const colors = reactive([
     { cor: 'cor__18' },
     { cor: 'cor__19' },
     { cor: 'cor__20' },
-    // { cor: 'cor__21' },
-    // { cor: 'cor__22' },
-    // { cor: 'cor__23' },
-    // { cor: 'cor__24' },
-    // { cor: 'cor__25' }
+    { cor: 'cor__21' },
+    { cor: 'cor__22' },
+    { cor: 'cor__23' },
+    { cor: 'cor__24' },
+    { cor: 'cor__25' }
 ]);
 const icons = reactive([
     { icon: 'car-estate' },
@@ -124,6 +126,45 @@ const icons = reactive([
     { icon: 'cart-outline' },
     { icon: 'bank-outline' }
 ]);
+
+
+const updateSelectedIcon = (novoValor: string) => {
+    selectedIcon.value = novoValor;
+};
+const updateSelectedColor = (novoValor: string) => {
+    selectedColor.value = novoValor;
+};
+const saveCategory = async () => {
+    const data = ref({
+        name: nameCategory.value,
+        color: selectedColor.value,
+        icon: selectedIcon.value,
+        typeCategory: '',
+        edit: true
+    })
+    try {
+        if (props.color === 'color__despesa') {
+            data.value.typeCategory = 'despesa';
+        } else {
+            data.value.typeCategory = 'receita';
+        }
+        const res = await http.post('/save-category', data.value)
+        useUser.setUserData(res.data.user)
+        if (res.data.categoriasDespesas) {
+            emit('updateCategoriasDespesas', res.data.categoriasDespesas);
+            console.log('despesa');
+        }
+        if (res.data.categoriasReceitas) {
+            emit('updateCategoriasReceitas', res.data.categoriasReceitas);
+            console.log('receita');
+        }
+        openModal.value = false;
+    } catch (error) {
+
+    }
+}
+
+
 
 </script>
 

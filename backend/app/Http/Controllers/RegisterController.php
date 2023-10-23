@@ -42,20 +42,20 @@ class RegisterController extends Controller
         );
 
         $categoriasDespesasDefault = [
-            ['name' => 'Casa',       'cor' => 'cor__1', 'icon' => 'home-outline', 'edit' => false],
-            ['name' => 'Transporte', 'cor' => 'cor__2', 'icon' => 'car-estate', 'edit' => false],
-            ['name' => 'Educação',   'cor' => 'cor__3', 'icon' => 'account-school-outline', 'edit' => false],
-            ['name' => 'Lazer',      'cor' => 'cor__4', 'icon' => 'umbrella-beach-outline', 'edit' => false],
-            ['name' => 'Vestuario',  'cor' => 'cor__5', 'icon' => 'tshirt-crew-outline', 'edit' => false],
-            ['name' => 'Viagem',     'cor' => 'cor__6', 'icon' => 'airplane', 'edit' => false],
-            ['name' => 'Saúde',      'cor' => 'cor__7', 'icon' => 'medical-bag', 'edit' => false],
-            ['name' => 'Outros',     'cor' => 'cor__8', 'icon' => 'dots-horizontal', 'edit' => false],
+            ['name' => 'Casa',       'cor' => 'cor__1', 'icon' => 'home-outline',           'edit' => false, 'typeCategory' => 'despesa'],
+            ['name' => 'Transporte', 'cor' => 'cor__2', 'icon' => 'car-estate',             'edit' => false, 'typeCategory' => 'despesa'],
+            ['name' => 'Educação',   'cor' => 'cor__3', 'icon' => 'account-school-outline', 'edit' => false, 'typeCategory' => 'despesa'],
+            ['name' => 'Lazer',      'cor' => 'cor__4', 'icon' => 'umbrella-beach-outline', 'edit' => false, 'typeCategory' => 'despesa'],
+            ['name' => 'Vestuario',  'cor' => 'cor__5', 'icon' => 'tshirt-crew-outline',    'edit' => false, 'typeCategory' => 'despesa'],
+            ['name' => 'Viagem',     'cor' => 'cor__6', 'icon' => 'airplane',               'edit' => false, 'typeCategory' => 'despesa'],
+            ['name' => 'Saúde',      'cor' => 'cor__7', 'icon' => 'medical-bag',            'edit' => false, 'typeCategory' => 'despesa'],
+            ['name' => 'Outros',     'cor' => 'cor__8', 'icon' => 'dots-horizontal',        'edit' => false, 'typeCategory' => 'despesa'],
         ];
 
         $categoriasReceitasDefault = [
-            ['name' => 'Salario',       'cor' => 'cor__12', 'icon' => 'currency-usd', 'edit' => false],
-            ['name' => 'Investimentos', 'cor' => 'cor__11', 'icon' => 'finance', 'edit' => false],
-            ['name' => 'Outros',        'cor' => 'cor__7', 'icon' => 'dots-horizontal', 'edit' => false],
+            ['name' => 'Salario',       'cor' => 'cor__12', 'icon' => 'currency-usd',    'edit' => false, 'typeCategory' => 'recita'],
+            ['name' => 'Investimentos', 'cor' => 'cor__11', 'icon' => 'finance',         'edit' => false, 'typeCategory' => 'recita'],
+            ['name' => 'Outros',        'cor' => 'cor__7',  'icon' => 'dots-horizontal', 'edit' => false, 'typeCategory' => 'recita'],
         ];
 
         $user = new User;
