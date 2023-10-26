@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 
 import type { UserDAta } from "@/types/userData";
+import type { Category } from "@/types/category";
 
 export const useUserStore = defineStore("user", () => {
     // state
@@ -17,9 +18,17 @@ export const useUserStore = defineStore("user", () => {
 
     // actions
     function setUserData(data: UserDAta): void {
-        user.value = {
-            data
-        };
+        user.value = data;
+        localStorage.setItem('user', JSON.stringify(user.value));
+    }
+
+    function setCategoriasDespesas(categoriasDespesas: Category) {
+        user.value.categoriasDespesas = categoriasDespesas;
+        localStorage.setItem('user', JSON.stringify(user.value));
+    }
+
+    function setCategoriasReceitas(categoriasReceitas: Category) {
+        user.value.categoriasReceitas = categoriasReceitas;
         localStorage.setItem('user', JSON.stringify(user.value));
     }
 
@@ -28,5 +37,7 @@ export const useUserStore = defineStore("user", () => {
         user,
         getCarteias,
         setUserData,
+        setCategoriasDespesas,
+        setCategoriasReceitas,
     };
 });

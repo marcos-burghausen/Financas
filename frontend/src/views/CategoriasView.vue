@@ -42,20 +42,23 @@
                 <tr v-for="(categoria) in categoriasDespesas">
                     <td class="text-white ps-3">{{ categoria.name }}</td>
                     <td class="d-flex justify-content-center">
-                        <div class="cor__forma" :class="categoria.cor"></div>
+                        <div class="cor__forma" :class="categoria.color"></div>
                     </td>
                     <td class="text-white text-center">
                         <mdicon v-if="categoria.icon" :name="categoria.icon" />
                     </td>
                     <td class="d-flex py-0 justify-content-center">
-                        <!-- <button @click="" style="color: #fefefe;"
-                                            class="btn btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 "
-                                            title="relatório">
-                                            <mdicon name="clipboard-text-outline" />
-                                        </button> -->
                         <button class="btn btn-outline-table p-0 text-white fs-4 bi bi-pencil mx-2" title="editar">
                             <mdicon name="pencil-outline" />
                         </button>
+                        <button v-if="categoria.edit === true" @click="deleteCategory(categoria)" style="color: #fefefe;"
+                            class="btn btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 " title="apagar">
+                            <mdicon name="trash-can-outline" />
+                        </button>
+                        <!-- <button @click="" style="color: #fefefe;"
+                            class="btn btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 " title="relatório">
+                            <mdicon name="clipboard-text-outline" />
+                        </button> -->
                     </td>
                 </tr>
             </tbody>
@@ -87,6 +90,10 @@
                         <button class="btn btn-outline-table p-0 text-white fs-4 bi bi-pencil mx-2" title="editar">
                             <mdicon name="pencil-outline" />
                         </button>
+                        <button v-if="categoria.edit === true" @click="deleteCategory(categoria)" style="color: #fefefe;"
+                            class="btn btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 " title="apagar">
+                            <mdicon name="trash-can-outline" />
+                        </button>
                     </td>
                 </tr>
             </tbody>
@@ -95,13 +102,16 @@
 </template>
 <script setup lang="ts">
 import Modal from "@/components/ModalCategoria.vue";
+
+import type { Category } from "@/types/category";
 import { useUserStore } from "@/stores/user";
 import { ref, reactive } from "vue";
+import http from "@/services/http";
 
 const useUser = useUserStore();
 
-let categoriasDespesas = ref(useUser.user.data.categoriasDespesas);
-let categoriasReceitas = ref(useUser.user.data.categoriasReceitas);
+const categoriasDespesas = ref(useUser.user.categoriasDespesas);
+const categoriasReceitas = ref(useUser.user.categoriasReceitas);
 
 
 const isDropdownOpen = ref(false);
@@ -111,10 +121,10 @@ const options = reactive([
     { name: 'categoria por despesas' },
     { name: 'categoria por receitas' }
 ]);
-const updateCategoriasDespesas = (novoValor) => {
+const updateCategoriasDespesas = (novoValor: Array<Category>) => {
     categoriasDespesas.value = novoValor;
 };
-const updateCategoriasReceitas = (novoValor) => {
+const updateCategoriasReceitas = (novoValor: Array<Category>) => {
     categoriasReceitas.value = novoValor;
 };
 
@@ -126,6 +136,22 @@ const selectOption = (option: string) => {
     selectedOption.value = option;
     isDropdownOpen.value = false;
 };
+
+const deleteCategory = async (category: Category) => {
+    try {
+        const res = await http.post('delete-category', category)
+        if (res.data.categoriasDespesas) {
+            useUser.setCategoriasDespesas(res.data.categoriasDespesas);
+            categoriasDespesas.value = res.data.categoriasDespesas;
+        }
+        if (res.data.categoriasReceitas) {
+            useUser.setCategoriasReceitas(res.data.categoriasReceitas);
+            categoriasReceitas.value = res.data.categoriasReceitas;
+        }
+    } catch (error) {
+
+    }
+}
 
 
 </script>

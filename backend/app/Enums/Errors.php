@@ -17,9 +17,10 @@ enum Errors: string
      * 001 ao 099 -> Cadastro
      * 100 ao 199 -> Tokens
      * 200 ao 299 -> Login
-     * 300 ao 399 -> senha
-     * 400 ao 499 -> despesas
-     * 500 ao 599 -> receitas
+     * 300 ao 399 -> Senha
+     * 400 ao 499 -> Despesas
+     * 500 ao 599 -> Receitas
+     * 600 ao 699 -> Categorias
      * ...
      * 
      * podemos ir adicionando conforme adicionamos mais features ao código
@@ -29,7 +30,7 @@ enum Errors: string
 
     case USER_ALREADY_REGISTERED        = "SP001";          //usuario ja cadastrado
     case ERROR_WHILE_GETTING_USER_DATA  = "SP002";          //erro ao obter dados do usuario
-        // case USER_CREATE_FAILED             = "SP002";          //falha na criação do usuario
+    case USER_CREATE_FAILED             = "SP003";          //falha na criação do usuario
 
     case INVALID_USERNAME_OR_PASSWORD   = "SP200";          //usuario ou senha invalidos
 
@@ -45,6 +46,9 @@ enum Errors: string
     case ERROR_UPDATING_REVENUE         = "SP502";          //erro ao atualizar receita
     case ERROR_FETCHING_REVENUE         = "SP503";          //erro ao buscar receita
     case ERROR_PAY_REVENUE              = "SP504";          //erro ao pagar receita
+
+    case ERROR_REGISTER_CATEGORY        = "SP600";          //erro ao registrar categoria
+    case ERROR_DELETE_CATEGORY        = "SP601";          //erro ao deletar categoria
 
     /**
      * This method returns a Laravel Response, so you don't need to duplicate code

@@ -25,7 +25,7 @@ const data = userData();
 const auth = useAuth();
 const useUser = useUserStore();
 
-let name = ref(useUser.user.data.name);
+let name = ref(useUser.user.name);
 
 async function logout() {
     try {

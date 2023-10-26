@@ -35,7 +35,7 @@
                     <form class="form">
                         <div class="inputSimples">
                             <input v-model="releases.valor" class="input" id="valor" autocomplete="off" name="valor"
-                                type="number" required />
+                                type="tel" required />
                             <label class="label" for="valor">Valor</label>
                         </div>
                         <div class="error">
@@ -310,16 +310,17 @@ const useRevenues = useRevenuesStore();
 const data = userData();
 const userStore = useUserStore();
 
-let errorsForm = reactive({ errors: {} });
 let valueTotalRevenuesMonth = ref(useRevenues.revenuesData.revenues.valueTotalRevenuesMonth);
+let valuePending = ref(useRevenues.revenuesData.revenues.valuePendingRevenues);
+let revenuesMonth = ref(useRevenues.revenuesData.revenues.revenuesMonth);
+let valueReceived = ref(useRevenues.revenuesData.revenues.valueReceived);
+let categorias = ref(userStore.user.categoriasReceitas);
+let carteiras = ref(userStore.user.carteiras);
+let errorsForm = ref({ errors: {} });
+console.log(errorsForm);
 let formStoreRevenue = ref(false);
 let formEditRevenue = ref(false);
-let categorias = ref(userStore.user.data.categoriasReceitas);
-let carteiras = ref(userStore.user.data.carteiras);
-let revenuesMonth = ref(useRevenues.revenuesData.revenues.revenuesMonth);
 let revenueEdit = reactive({});
-let valueReceived = ref(useRevenues.revenuesData.revenues.valueReceived);
-let valuePending = ref(useRevenues.revenuesData.revenues.valuePendingRevenues);
 let releases = reactive({
     valor: '',
     date: '',

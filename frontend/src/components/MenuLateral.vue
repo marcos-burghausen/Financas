@@ -57,8 +57,8 @@ const props = defineProps({
 
 const itensSideBar = ref([
     { name: "DashBoard", icon: "view-dashboard", route: "dashboard" },
-    { name: "Receitas", icon: "view-dashboard", route: "receitas" },
-    { name: "Despesas", icon: "view-dashboard", route: "despesas" },
+    { name: "Receitas", icon: "arrow-top-right-bold-outline", route: "receitas" },
+    { name: "Despesas", icon: "arrow-bottom-right-bold-outline", route: "despesas" },
     { name: "Categorias", icon: "bookmark-minus-outline", route: "categorias" },
     { name: "Mais Opçõs", icon: "dots-horizontal", route: 'dashboard' },
 ]);

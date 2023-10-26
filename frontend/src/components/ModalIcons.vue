@@ -14,15 +14,12 @@ import { ref } from 'vue'
 
 const openModal = ref(false)
 const props = defineProps({
-    item: String,
     items: {}
 });
 const emit = defineEmits(['atualizarVariavel']);
 const items = ref(props.items)
-const item = ref(props.item);
 
 const selectItem = (value: string) => {
-    item.value = value;
     emit('atualizarVariavel', value);
 };
 

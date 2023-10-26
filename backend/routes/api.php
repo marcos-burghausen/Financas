@@ -54,4 +54,5 @@ Route::middleware('jwt.auth')->group(function () {
 
 
     Route::post('save-category', [CategoryController::class, 'saveCategory']);
+    Route::post('delete-category', [CategoryController::class, 'deleteCategory']);
 });

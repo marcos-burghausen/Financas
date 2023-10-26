@@ -3,25 +3,29 @@
 
     <div v-if="openModal" class="modal__icons" @click="openModal = false">
         <ul class="ul__dropdown">
-            <li v-for="(item, index) in items" :key="index" @click="selectItem(item.cor)" :class="item.cor">
+            <li v-for="(item, index) in items" :key="index" @click="selectItem(item.color)" :class="item.color">
             </li>
         </ul>
     </div>
 </template>
 <script setup lang="ts">
+import type { Colors } from '@/types/colors';
 import { ref } from 'vue'
+
+interface IColor {
+    color: string
+}
 
 const openModal = ref(false)
 const props = defineProps({
-    item: String,
-    items: {}
+    items: {
+        type: Array<IColor>
+    }
 });
 const emit = defineEmits(['atualizarVariavel']);
 const items = ref(props.items)
-const item = ref(props.item);
 
 const selectItem = (value: string) => {
-    item.value = value;
     emit('atualizarVariavel', value);
 };
 

@@ -26,7 +26,7 @@
                         </span>
                         <div v-if="selectedColor" class="cor__forma" :class="selectedColor"></div>
                     </div>
-                    <ModalColors :item="selectedColor" :items="colors" @atualizarVariavel="updateSelectedColor" />
+                    <ModalColors :items="colors" @atualizarVariavel="updateSelectedColor" />
                 </div>
                 <div class="container__cor__categoria">
                     <div class="icon__categoria">
@@ -35,7 +35,7 @@
                         </span>
                         <mdicon v-if="selectedIcon" :name="selectedIcon" />
                     </div>
-                    <ModalIcons :item="selectedIcon" :items="icons" @atualizarVariavel="updateSelectedIcon" />
+                    <ModalIcons :items="icons" @atualizarVariavel="updateSelectedIcon" />
                 </div>
             </div>
             <footer class="footer__modal">
@@ -67,31 +67,31 @@ const emit = defineEmits([
     'updateCategoriasReceitas'
 ]);
 const colors = reactive([
-    { cor: 'cor__1' },
-    { cor: 'cor__2' },
-    { cor: 'cor__3' },
-    { cor: 'cor__4' },
-    { cor: 'cor__5' },
-    { cor: 'cor__6' },
-    { cor: 'cor__7' },
-    { cor: 'cor__8' },
-    { cor: 'cor__9' },
-    { cor: 'cor__10' },
-    { cor: 'cor__11' },
-    { cor: 'cor__12' },
-    { cor: 'cor__13' },
-    { cor: 'cor__14' },
-    { cor: 'cor__15' },
-    { cor: 'cor__16' },
-    { cor: 'cor__17' },
-    { cor: 'cor__18' },
-    { cor: 'cor__19' },
-    { cor: 'cor__20' },
-    { cor: 'cor__21' },
-    { cor: 'cor__22' },
-    { cor: 'cor__23' },
-    { cor: 'cor__24' },
-    { cor: 'cor__25' }
+    { color: 'cor__1' },
+    { color: 'cor__2' },
+    { color: 'cor__3' },
+    { color: 'cor__4' },
+    { color: 'cor__5' },
+    { color: 'cor__6' },
+    { color: 'cor__7' },
+    { color: 'cor__8' },
+    { color: 'cor__9' },
+    { color: 'cor__10' },
+    { color: 'cor__11' },
+    { color: 'cor__12' },
+    { color: 'cor__13' },
+    { color: 'cor__14' },
+    { color: 'cor__15' },
+    { color: 'cor__16' },
+    { color: 'cor__17' },
+    { color: 'cor__18' },
+    { color: 'cor__19' },
+    { color: 'cor__20' },
+    { color: 'cor__21' },
+    { color: 'cor__22' },
+    { color: 'cor__23' },
+    { color: 'cor__24' },
+    { color: 'cor__25' }
 ]);
 const icons = reactive([
     { icon: 'car-estate' },
@@ -143,21 +143,19 @@ const saveCategory = async () => {
         edit: true
     })
     try {
-        if (props.color === 'color__despesa') {
-            data.value.typeCategory = 'despesa';
-        } else {
-            data.value.typeCategory = 'receita';
-        }
+        data.value.typeCategory = props.color === 'color__despesa' ? 'despesa' : 'receita';
+
         const res = await http.post('/save-category', data.value)
         useUser.setUserData(res.data.user)
         if (res.data.categoriasDespesas) {
             emit('updateCategoriasDespesas', res.data.categoriasDespesas);
-            console.log('despesa');
         }
         if (res.data.categoriasReceitas) {
             emit('updateCategoriasReceitas', res.data.categoriasReceitas);
-            console.log('receita');
         }
+        nameCategory.value = '';
+        selectedColor.value = '';
+        selectedIcon.value = '';
         openModal.value = false;
     } catch (error) {
 

@@ -36,7 +36,7 @@
                     <form class="form">
                         <div class="inputSimples">
                             <!-- <mdicon class="mdicon" name="account" /> -->
-                            <input v-model="releases.valor" class="input" id="valor" name="valor" type="number" required />
+                            <input v-model="releases.valor" class="input" id="valor" name="valor" type="tel" required />
                             <label class="label" for="valor">Valor</label>
                         </div>
                         <div class="error">
@@ -75,8 +75,8 @@
                             <select v-model="releases.categoria" class="input" name="categoria"
                                 aria-label="Default select example" required>
                                 <!-- <option class="options" selected></option> -->
-                                <option v-for="categoria in categorias" class="options" :value="categoria">{{
-                                    categoria
+                                <option v-for="categoria in categorias" class="options" :value="categoria.name">{{
+                                    categoria.name
                                 }}
                                 </option>
                             </select>
@@ -243,7 +243,8 @@
                     </div>
                     <div class="table-responsive">
 
-                        <table class="table" style="background-color: rgba(0, 0, 0, 0.25); color: black;">
+                        <table v-if="expensesMonth" class="table"
+                            style="background-color: rgba(0, 0, 0, 0.25); color: black;">
                             <thead>
                                 <tr>
                                     <th class="text-white text-center">Data</th>
@@ -290,6 +291,9 @@
                                 </tr>
                             </tbody>
                         </table>
+                        <span v-else>
+                            Você não possui lançamentos a serem exibidos
+                        </span>
                     </div>
                 </div>
                 <h5 v-else class="card-title text-white text-center">
@@ -319,16 +323,16 @@ const userStore = useUserStore();
 const router = useRouter();
 const data = userData();
 
+let valueTotalExpensesMonth = ref(useExpenses.expensesData.expenses.valueTotalExpensesMonth);
+let valuePending = ref(useExpenses.expensesData.expenses.valuePendingExpenses);
+let expensesMonth = reactive(useExpenses.expensesData.expenses.expensesMonth);
+let valuePay = ref(useExpenses.expensesData.expenses.valuePayExpenses);
+let categorias = reactive(userStore.user.categoriasDespesas);
+let carteiras = reactive(userStore.user.carteiras);
 let errorsForm = reactive({ errors: {} });
-let valueTotalExpensesMonth = ref();
 let formStoreExpense = ref(false);
 let formEditExpense = ref(false);
-let expensesMonth = reactive({});
 let expenseEdit = reactive({});
-let categorias = reactive({});
-let carteiras = reactive({});
-let valuePending = ref();
-let valuePay = ref();
 let releases = reactive({
     valor: '',
     date: '',
@@ -338,13 +342,6 @@ let releases = reactive({
     carteira: '',
 });
 let status = ref(true);
-
-categorias = userStore.user.categoriasDespesas;
-valueTotalExpensesMonth.value = useExpenses.expensesData.expenses.valueTotalExpensesMonth;
-valuePending.value = useExpenses.expensesData.expenses.valuePendingExpenses;
-expensesMonth = useExpenses.expensesData.expenses.expensesMonth;
-valuePay.value = useExpenses.expensesData.expenses.valuePayExpenses;
-carteiras = userStore.user.carteiras;
 
 const clearInputs = () => {
     releases.valor = '';
