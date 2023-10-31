@@ -1,5 +1,6 @@
 <template>
-    <div class="box">
+    <Loading v-if="isLoading" />
+    <div v-else class="box">
         <div class="container__dados">
             <h2 class="title">faça login no Mr Finanças</h2>
             <div class="social__media">
@@ -67,6 +68,7 @@
 </template>
 
 <script setup lang="ts">
+import Loading from "@/components/Loading.vue";
 import { useUserStore } from "@/stores/user";
 import { userData } from "@/stores/data";
 import { useAuth } from "@/stores/auth";
@@ -81,6 +83,8 @@ const errorsForm: ErrorsFormLogin = reactive({
     email: "",
     password: ""
 });
+
+const isLoading = ref(false);
 const emits = defineEmits(["nextStep"]);
 const useUser = useUserStore();
 const useExpenses = useExpensesStore();
@@ -96,6 +100,7 @@ const user = reactive({
 const data = userData();
 
 async function login() {
+    isLoading.value = true;
     try {
         const res = await http.post("/auth", user);
         auth.setToken(res.data.token);
@@ -115,7 +120,10 @@ async function login() {
         console.log(error.response.data.errors);
         errorsForm.email = error.response.data.errors.email;
         errorsForm.password = error.response.data.errors.password;
+    } finally {
+        isLoading.value = false;
     }
+
 }
 </script>
 <style scoped>

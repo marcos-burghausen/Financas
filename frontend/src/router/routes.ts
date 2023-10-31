@@ -1,4 +1,4 @@
-import { useAuth } from "@/stores/auth.ts";
+import { useAuth } from "@/stores/auth";
 
 export default async function routes(to, from, next) {
     //se existir o meta para a rota que estou indo

@@ -1,5 +1,6 @@
 <template>
     <div class="content-wrapper">
+
         <div class="clearfix"></div>
 
         <div class="pagetitle">
