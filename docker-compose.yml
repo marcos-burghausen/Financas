@@ -5,7 +5,7 @@ services:
   #php+apache
   php:
     image: marcosrafaelburghausen/php8.1-apache2.4
-    container_name: backend
+    container_name: Mr_backend
     working_dir: /var/www/html/
     depends_on:
       - mysql
@@ -21,7 +21,7 @@ services:
       MYSQL_HOST: mysql
       MYSQL_PASSWORD: user
       MYSQL_USER: user
-      MYSQL_DATABASE: idr_database
+      MYSQL_DATABASE: Mr_database
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: senha
@@ -29,7 +29,7 @@ services:
   #node
   node:
     image: marcosrafaelburghausen/node-19
-    container_name: frontend
+    container_name: Mr_frontend
     working_dir: /home/node/app
     stdin_open: true
     tty: true
@@ -47,7 +47,7 @@ services:
   #mysql
   mysql:
     image: mysql:8.0
-    container_name: database
+    container_name: Mr_database
     networks:
       - network
     ports:
@@ -60,7 +60,7 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_PASSWORD: user
       MYSQL_USER: user
-      MYSQL_DATABASE: idr_database
+      MYSQL_DATABASE: Mr_database
 
   #phpmyadmin
   dbadmin:
@@ -78,7 +78,7 @@ services:
   #redis
   redis:
     image: redis:7.0
-    container_name: idr_session_database
+    container_name: Mr_session_database
     command: bash -c "redis-server --requirepass senha"
     networks:
       - network
