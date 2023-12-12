@@ -223,7 +223,7 @@ async function create() {
     background-color: transparent;
     position: absolute;
     left: 10px;
-    top: -30px;
+    top: -25px;
     opacity: 0.4;
     cursor: text;
     transition: 0.5s ease-in-out;

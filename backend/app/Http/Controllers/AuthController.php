@@ -19,7 +19,6 @@ class AuthController extends Controller
 
     public function auth(Request $request)
     {
-        // return response()->json($request);
         $request->validate(
             [
                 'email'           => 'required|email',
@@ -121,7 +120,7 @@ class AuthController extends Controller
             ]);
         }
 
-        return response()->json(Errors::ERROR_WHILE_GETTING_USER_DATA->response());
+        return Errors::ERROR_WHILE_GETTING_USER_DATA->response();
     }
 
     public function logout()

@@ -32,7 +32,7 @@ class RegisterController extends Controller
 
         $email = User::where('email', $data['email'])->first();
         if ($email) {
-            return response()->json(Errors::USER_ALREADY_REGISTERED->response());
+            return Errors::USER_ALREADY_REGISTERED->response();
         }
 
         $password = $data['password'];

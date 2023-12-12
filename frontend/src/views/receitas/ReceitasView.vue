@@ -317,7 +317,6 @@ let valueReceived = ref(useRevenues.revenuesData.revenues.valueReceived);
 let categorias = ref(userStore.user.categoriasReceitas);
 let carteiras = ref(userStore.user.carteiras);
 let errorsForm = ref({ errors: {} });
-console.log(errorsForm);
 let formStoreRevenue = ref(false);
 let formEditRevenue = ref(false);
 let revenueEdit = reactive({});
@@ -358,7 +357,7 @@ const salvarLancamentos = async () => {
         formStoreRevenue.value = false;
     } catch (error) {
         console.log(error.response.data.errors);
-        errorsForm["errors"] = error.response.data.errors;
+        errorsForm.value["errors"] = error.response.data["errors"];
     }
 }
 
@@ -492,12 +491,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     outline: 0;
 }
 
-.input:focus~label,
-.input:valid~label {
-    transform: translateY(-30px);
-    opacity: 0.9;
-}
-
 .input:internal-autofill-selected {
     background-color: transparent;
 }
@@ -506,7 +499,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     color: #ccc;
     position: absolute;
     left: 10px;
-    top: 8px;
+    top: -25px;
     opacity: 0.4;
     cursor: text;
     transition: 0.5s ease-in-out;
