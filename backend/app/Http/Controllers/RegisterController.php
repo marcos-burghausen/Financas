@@ -18,7 +18,7 @@ class RegisterController extends Controller
                 'name'            => 'required|min:3|string',
                 'email'           => 'required|email',
                 'password'        => 'required|string',
-                'confirmPassword' => 'required|string',
+//                'confirmPassword' => 'required|string',
             ],
             [
                 'name.required'            => 'O campo nome é obrigatório',
@@ -26,7 +26,7 @@ class RegisterController extends Controller
                 'email.required'           => 'O campo email é obrigatório',
                 'email.unique'             => 'Já existe um usuário cadastrado com esse email',
                 'password.required'        => 'O campo senha é obrigatório',
-                'confirmPassword.required' => 'O campo confirmação de senha é obrigatório',
+  //              'confirmPassword.required' => 'O campo confirmação de senha é obrigatório',
             ]
         );
 

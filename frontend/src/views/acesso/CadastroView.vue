@@ -1,5 +1,6 @@
 <template>
-    <div class="box">
+    <Loading v-if="isLoading" />
+    <div v-else class="box">
         <div class="container__decription">
             <figure class="figure">
                 <img src="@/assets/img/Mr.png" style="width: 200px;" alt="logo" />
@@ -41,8 +42,8 @@
                     <input v-model="user.name" class="form-control" type="text" autocomplete="off" id="name" name="name">
                 </div>
                 <div class="error">
-                    <span v-if="errorsForm['errors'].name" class="span__error">{{
-                        errorsForm["errors"].name[0]
+                    <span v-if="errorsForm.name" class="span__error">{{
+                        errorsForm.name[0]
                     }}</span>
                 </div>
                 <div class="container__input">
@@ -52,8 +53,8 @@
                         name="email">
                 </div>
                 <div class="error">
-                    <span v-if="errorsForm['errors'].email" class="span__error">{{
-                        errorsForm["errors"].email[0]
+                    <span v-if="errorsForm.email" class="span__error">{{
+                        errorsForm.email[0]
                     }}</span>
                 </div>
                 <div class="container__input">
@@ -63,8 +64,8 @@
                         name="password">
                 </div>
                 <div class="error">
-                    <span v-if="errorsForm['errors'].password" class="span__error">{{
-                        errorsForm["errors"].password[0]
+                    <span v-if="errorsForm.password" class="span__error">{{
+                        errorsForm.password[0]
                     }}</span>
                 </div>
                 <div class="container__button">
@@ -79,29 +80,29 @@
 </template>
 
 <script setup lang="ts">
+import Loading from "@/components/Loading.vue";
 import { useRouter } from "vue-router";
 import http from "@/services/http.ts";
-import { reactive } from "vue";
+import { reactive, ref } from "vue";
+import type { ErrorsFormCadastro } from "@/types/errorsFormCadastro";
 
+const isLoading = ref(false)
 const emits = defineEmits(["nextStep"]);
-const user = reactive({
-    name: "Marcos",
-    email: "marcos@gmail.com",
-    password: "123",
-    confirmPassword: "123",
+const user = ref({
 });
-const errorsForm = reactive({
-    errors: {},
-});
+const errorsForm: ErrorsFormCadastro = ref({});
 const router = useRouter();
 
 async function create() {
+    isLoading.value = true;
     try {
-        const { data } = await http.post("/create", user);
+        const { data } = await http.post("/create", user.value);
         console.log(data);
         emits("nextStep");
     } catch (error) {
-        errorsForm["errors"] = error.response.data["errors"];
+        errorsForm.value = error.response.data["errors"];
+    } finally {
+        isLoading.value = false;
     }
 }
 </script>

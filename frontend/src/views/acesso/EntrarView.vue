@@ -79,10 +79,7 @@ import { ref, reactive, type Ref } from "vue";
 import { useRevenuesStore } from "@/stores/revenues";
 import type { ErrorsFormLogin } from "@/types/errorsFormLogin";
 
-const errorsForm: ErrorsFormLogin = reactive({
-    email: "",
-    password: ""
-});
+const errorsForm: ErrorsFormLogin = ref({});
 
 const isLoading = ref(false);
 const emits = defineEmits(["nextStep"]);
@@ -91,18 +88,13 @@ const useExpenses = useExpensesStore();
 const useRevenues = useRevenuesStore();
 const router = useRouter();
 const auth = useAuth();
-const user = reactive({
-    // email: "",
-    // password: ""
-    email: "marcos@gmail.com",
-    password: "123",
-});
+const user = ref({});
 const data = userData();
 
 async function login() {
     isLoading.value = true;
     try {
-        const res = await http.post("/auth", user);
+        const res = await http.post("/auth", user.value);
         auth.setToken(res.data.token);
 
         const resp = await http.post("/me");
@@ -118,8 +110,7 @@ async function login() {
         router.push({ name: "dashboard" });
     } catch (error) {
         console.log(error.response.data.errors);
-        errorsForm.email = error.response.data.errors.email;
-        errorsForm.password = error.response.data.errors.password;
+        errorsForm.value = error.response.data["errors"];
     } finally {
         isLoading.value = false;
     }
