@@ -35,6 +35,7 @@
                 </ul>
             </div>
             <p class="sub__title">ou use seu e-mail para inscrição:</p>
+            <ErrorMessage :errorCode="errorMessage" />
             <form class="form" @submit.prevent="create">
                 <div class="container__input">
                     <label class="label" for="name">Nome</label>
@@ -80,15 +81,20 @@
 </template>
 
 <script setup lang="ts">
+import ErrorMessage from "@/components/ErrorMessage.vue";
 import Loading from "@/components/Loading.vue";
+
 import { useRouter } from "vue-router";
 import http from "@/services/http.ts";
-import { reactive, ref } from "vue";
+import { ref } from "vue";
 import type { ErrorsFormCadastro } from "@/types/errorsFormCadastro";
 
 const isLoading = ref(false)
 const emits = defineEmits(["nextStep"]);
 const user = ref({
+    name: "Marcos",
+    email: "rafael@gmail.com",
+    password: "Teste123@"
 });
 const errorsForm: ErrorsFormCadastro = ref({});
 const router = useRouter();
@@ -101,6 +107,7 @@ async function create() {
         emits("nextStep");
     } catch (error) {
         errorsForm.value = error.response.data["errors"];
+        errorStore.setErrorFromResponse(error);
     } finally {
         isLoading.value = false;
     }

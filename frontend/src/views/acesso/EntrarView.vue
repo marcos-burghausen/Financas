@@ -1,6 +1,6 @@
 <template>
     <Loading v-if="isLoading" />
-    <div v-else class="box">
+    <div class="box">
         <div class="container__dados">
             <h2 class="title">faça login no Mr Finanças</h2>
             <div class="social__media">
@@ -24,6 +24,7 @@
             </div>
             <p class="sub__title">ou use sua conta de e-mail:</p>
             <form class="form" @submit.prevent="login">
+                <ErrorMessage />
                 <div class="container__input">
                     <label class="label" for="email">Email</label>
                     <mdicon class="icon__modify" name="email-outline" />
@@ -68,29 +69,38 @@
 </template>
 
 <script setup lang="ts">
+import ErrorMessage from "@/components/ErrorMessage.vue";
 import Loading from "@/components/Loading.vue";
+
+import { useExpensesStore } from "@/stores/expenses";
+import { useRevenuesStore } from "@/stores/revenues";
 import { useUserStore } from "@/stores/user";
 import { userData } from "@/stores/data";
 import { useAuth } from "@/stores/auth";
-import { useExpensesStore } from "@/stores/expenses";
 import { useRouter } from "vue-router";
+import { useErrorStore } from "@/stores/error";
 import http from "@/services/http";
-import { ref, reactive, type Ref } from "vue";
-import { useRevenuesStore } from "@/stores/revenues";
+
+import { ref, type Ref } from "vue";
 import type { ErrorsFormLogin } from "@/types/errorsFormLogin";
 
-const errorsForm: ErrorsFormLogin = ref({});
+const errorsForm = ref({});
 
 const isLoading = ref(false);
+
 const emits = defineEmits(["nextStep"]);
-const useUser = useUserStore();
 const useExpenses = useExpensesStore();
 const useRevenues = useRevenuesStore();
+const errorStore = useErrorStore();
+const useUser = useUserStore();
 const router = useRouter();
 const auth = useAuth();
-const user = ref({});
+const user = ref({
+    email: "marcos@gmail.com",
+    password: "Teste123@"
+});
 const data = userData();
-
+// 
 async function login() {
     isLoading.value = true;
     try {
@@ -110,7 +120,8 @@ async function login() {
         router.push({ name: "dashboard" });
     } catch (error) {
         console.log(error.response.data.errors);
-        errorsForm.value = error.response.data["errors"];
+        errorsForm.value = error.response.data.errors;
+        errorStore.setErrorFromResponse(error);
     } finally {
         isLoading.value = false;
     }
