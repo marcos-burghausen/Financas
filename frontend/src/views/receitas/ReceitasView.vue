@@ -301,9 +301,9 @@ import { ref, reactive } from "vue";
 
 import type { Lancamentos } from "@/types/lancamentos";
 
-import { useRevenuesStore } from "@/stores/revenues";
-import { useUserStore } from "@/stores/user";
-import { userData } from "@/stores/data";
+import { useRevenuesStore } from "@/store/revenues";
+import { useUserStore } from "@/store/user";
+import { userData } from "@/store/data";
 import http from "@/services/http";
 
 const useRevenues = useRevenuesStore();

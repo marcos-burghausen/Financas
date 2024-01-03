@@ -13,7 +13,7 @@
     align-items: center;
     justify-content: center;
     color: #fefefe;
-    position: fixed;
+    position: relative;
     top: 0;
     left: 0;
     width: 100%;

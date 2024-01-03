@@ -11,7 +11,6 @@ import errorCodes from "@/assets/errorCodes.json";
 export const useErrorStore = defineStore("error", () => {
     // state
     const errorCode: Ref<ErrorCodes | null> = ref(null);
-    // errorCode.value = "SP000";
 
     // getters
     const errorMessage = computed(() =>
@@ -28,10 +27,14 @@ export const useErrorStore = defineStore("error", () => {
             errorCode.value = error.response.data.error_code;
         }
     }
-    console.log(errorCode.value);
+
+    function setCustomError(code: ErrorCodes): void {
+        errorCode.value = code;
+    }
+
     function unsetError(): void {
         errorCode.value = null;
     }
 
-    return { errorCode, errorMessage, setErrorFromResponse, unsetError };
+    return { errorMessage, setErrorFromResponse, unsetError, setCustomError };
 });

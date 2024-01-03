@@ -42,8 +42,8 @@ import { reactive, ref } from "vue";
 
 import type { Ref } from "vue";
 
-import { useExpensesStore } from "@/stores/expenses";
-import { useRevenuesStore } from "@/stores/revenues";
+import { useExpensesStore } from "@/store/expenses";
+import { useRevenuesStore } from "@/store/revenues";
 
 const useExpenses = useExpensesStore();
 const useRevenues = useRevenuesStore();

@@ -72,56 +72,51 @@
 import ErrorMessage from "@/components/ErrorMessage.vue";
 import Loading from "@/components/Loading.vue";
 
-import { useExpensesStore } from "@/stores/expenses";
-import { useRevenuesStore } from "@/stores/revenues";
-import { useUserStore } from "@/stores/user";
-import { userData } from "@/stores/data";
-import { useAuth } from "@/stores/auth";
+import { useExpensesStore } from "@/store/expenses";
+import { useRevenuesStore } from "@/store/revenues";
+import { useErrorStore } from "@/store/error";
+import { useUserStore } from "@/store/user";
+import { userData } from "@/store/data";
+import { useAuth } from "@/store/auth";
 import { useRouter } from "vue-router";
-import { useErrorStore } from "@/stores/error";
 import http from "@/services/http";
 
+import type { FormLogin } from "@/types/formLogin";
 import { ref, type Ref } from "vue";
-import type { ErrorsFormLogin } from "@/types/errorsFormLogin";
-
-const errorsForm = ref({});
-
-const isLoading = ref(false);
 
 const emits = defineEmits(["nextStep"]);
 const useExpenses = useExpensesStore();
 const useRevenues = useRevenuesStore();
+const errorsForm: FormLogin = ref({});
 const errorStore = useErrorStore();
+const user: FormLogin = ref({});
 const useUser = useUserStore();
+const isLoading = ref(false);
 const router = useRouter();
-const auth = useAuth();
-const user = ref({
-    email: "marcos@gmail.com",
-    password: "Teste123@"
-});
 const data = userData();
-// 
+const auth = useAuth();
+
 async function login() {
     isLoading.value = true;
     try {
         const res = await http.post("/auth", user.value);
         auth.setToken(res.data.token);
 
-        const resp = await http.post("/me");
-        useUser.setUserData(resp.data.user);
+        const response = await http.post("/me");
+        useUser.setUserData(response.data.user);
+        useExpenses.setExpensesData(response.data.expensesData);
+        useRevenues.setRevenuesData(response.data.revenuesData);
+        data.setTotalCreditCard(response.data.totalCreditCard);
+        data.setTotalBalance(response.data.totalBalance);
+        auth.setUser(response.data.user.name);
 
-        useExpenses.setExpensesData(resp.data.expensesData);
-
-        useRevenues.setRevenuesData(resp.data.revenuesData);
-
-        data.setTotalCreditCard(resp.data.totalCreditCard);
-        data.setTotalBalance(resp.data.totalBalance);
-        auth.setUser(resp.data.user.name);
         router.push({ name: "dashboard" });
     } catch (error) {
-        console.log(error.response.data.errors);
-        errorsForm.value = error.response.data.errors;
-        errorStore.setErrorFromResponse(error);
+        if (error.response?.data?.errors) {
+            errorsForm.value = error.response?.data?.errors;
+        } else {
+            errorStore.setErrorFromResponse(error);
+        }
     } finally {
         isLoading.value = false;
     }

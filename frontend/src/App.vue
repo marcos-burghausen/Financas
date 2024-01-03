@@ -17,7 +17,7 @@ import MenuLateral from "@/components/MenuLateral.vue"
 import Cabecalho from "@/components/Cabecalho.vue";
 
 import { ref } from "vue";
-import { useAuth } from "@/stores/auth.js";
+import { useAuth } from "@/store/auth.js";
 
 const auth = useAuth();
 

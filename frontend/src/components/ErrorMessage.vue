@@ -6,10 +6,9 @@
 </template>
 
 <script setup lang="ts">
-import { useErrorStore } from "@/stores/error";
+import { useErrorStore } from "@/store/error";
 import { onMounted } from "vue";
 const errorStore = useErrorStore();
-import errorCodes from "@/assets/errorCodes.json";
 
 onMounted(() => {
     errorStore.unsetError();

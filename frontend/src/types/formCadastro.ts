@@ -1,5 +1,5 @@
 
-export interface ErrorsFormLogin {
+export interface FormLogin {
     name: string;
     email: string;
     password: string;

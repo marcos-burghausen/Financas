@@ -35,7 +35,7 @@
                 </ul>
             </div>
             <p class="sub__title">ou use seu e-mail para inscrição:</p>
-            <ErrorMessage :errorCode="errorMessage" />
+            <ErrorMessage />
             <form class="form" @submit.prevent="create">
                 <div class="container__input">
                     <label class="label" for="name">Nome</label>
@@ -84,30 +84,32 @@
 import ErrorMessage from "@/components/ErrorMessage.vue";
 import Loading from "@/components/Loading.vue";
 
+import { useErrorStore } from "@/store/error";
 import { useRouter } from "vue-router";
 import http from "@/services/http.ts";
-import { ref } from "vue";
-import type { ErrorsFormCadastro } from "@/types/errorsFormCadastro";
 
-const isLoading = ref(false)
+import { ref } from "vue";
+import type { FormCadastro } from "@/types/formCadastro";
+
+const errorsForm: FormCadastro = ref({});
 const emits = defineEmits(["nextStep"]);
-const user = ref({
-    name: "Marcos",
-    email: "rafael@gmail.com",
-    password: "Teste123@"
-});
-const errorsForm: ErrorsFormCadastro = ref({});
+const errorStore = useErrorStore();
+const user: FormCadastro = ref({});
+const isLoading = ref(false)
 const router = useRouter();
 
 async function create() {
     isLoading.value = true;
     try {
         const { data } = await http.post("/create", user.value);
-        console.log(data);
         emits("nextStep");
     } catch (error) {
-        errorsForm.value = error.response.data["errors"];
-        errorStore.setErrorFromResponse(error);
+        if (error.response?.data?.errors) {
+            errorsForm.value = error.response?.data?.errors;
+        } else {
+            console.log(error);
+            errorStore.setErrorFromResponse(error);
+        }
     } finally {
         isLoading.value = false;
     }

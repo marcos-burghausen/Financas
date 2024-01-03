@@ -9,12 +9,12 @@
 </template>
 
 <script setup lang="ts">
-import { userData } from "@/stores/data";
-import { useAuth } from "@/stores/auth";
+import { userData } from "@/store/data";
+import { useAuth } from "@/store/auth";
 import { useRouter } from "vue-router";
 import http from "@/services/http";
 import { ref, computed } from "vue";
-import { useUserStore } from "@/stores/user";
+import { useUserStore } from "@/store/user";
 
 const props = defineProps({
     menuExpandido: Boolean
