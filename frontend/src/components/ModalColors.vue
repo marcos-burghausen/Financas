@@ -1,32 +1,44 @@
 <template>
-    <button class="btn__selec__cor" @click="openModal = true">Selecionar cor</button>
+  <button
+    class="btn__selec__cor"
+    @click="openModal = true"
+  >
+    Selecionar cor
+  </button>
 
-    <div v-if="openModal" class="modal__icons" @click="openModal = false">
-        <ul class="ul__dropdown">
-            <li v-for="(item, index) in items" :key="index" @click="selectItem(item.color)" :class="item.color">
-            </li>
-        </ul>
-    </div>
+  <div
+    v-if="openModal"
+    class="modal__icons"
+    @click="openModal = false"
+  >
+    <ul class="ul__dropdown">
+      <li
+        v-for="(item, index) in items"
+        :key="index"
+        :class="item.color"
+        @click="selectItem(item.color)"
+      />
+    </ul>
+  </div>
 </template>
 <script setup lang="ts">
-import type { Colors } from '@/types/colors';
-import { ref } from 'vue'
+import { ref } from "vue";
 
 interface IColor {
     color: string
 }
 
-const openModal = ref(false)
+const openModal = ref(false);
 const props = defineProps({
     items: {
         type: Array<IColor>
     }
 });
-const emit = defineEmits(['atualizarVariavel']);
-const items = ref(props.items)
+const emit = defineEmits(["atualizarVariavel"]);
+const items = ref(props.items);
 
 const selectItem = (value: string) => {
-    emit('atualizarVariavel', value);
+    emit("atualizarVariavel", value);
 };
 
 </script>

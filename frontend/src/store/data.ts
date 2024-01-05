@@ -1,6 +1,6 @@
-import { defineStore } from 'pinia';
+import { defineStore } from "pinia";
 
-export const userData = defineStore('data', {
+export const userData = defineStore("data", {
     state: () => ({
         totalCreditCard: 0 as number,
         totalBalance: 0 as number,
@@ -18,4 +18,4 @@ export const userData = defineStore('data', {
     },
     // persist: true,
 
-})
+});

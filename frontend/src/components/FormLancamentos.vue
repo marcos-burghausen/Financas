@@ -6,37 +6,55 @@
       <div class="cadastro">
         <form class="form">
           <div class="inputSimples">
-            <mdicon class="mdicon" name="account" />
+            <mdicon
+              class="mdicon"
+              name="account"
+            />
             <input
+              id="valor"
               v-model="lancamentos.valor"
               class="input"
-              id="valor"
               name="valor"
               type="text"
-            />
-            <label class="label" for="valor">Valor</label>
+            >
+            <label
+              class="label"
+              for="valor"
+            >Valor</label>
           </div>
           <div class="inputSimples">
-            <mdicon class="mdicon" name="account" />
+            <mdicon
+              class="mdicon"
+              name="account"
+            />
             <input
+              id="data"
               v-model="lancamentos.data"
               type="date"
               name="data"
               class="input"
-              id="data"
-            />
-            <label for="data" class="label">Data</label>
+            >
+            <label
+              for="data"
+              class="label"
+            >Data</label>
           </div>
           <div class="inputSimples">
-            <mdicon class="mdicon" name="account" />
+            <mdicon
+              class="mdicon"
+              name="account"
+            />
             <input
+              id="descricao"
               v-model="lancamentos.descricao"
               type="text"
               name="descricao"
               class="input"
-              id="descricao"
-            />
-            <label for="descricao" class="label">Descricao</label>
+            >
+            <label
+              for="descricao"
+              class="label"
+            >Descricao</label>
           </div>
           <div class="inputSimples">
             <select
@@ -45,12 +63,21 @@
               name="categoria"
               aria-label="Default select example"
             >
-              <option selected></option>
-              <option value="Carro">Carro</option>
-              <option value="casa">casa</option>
-              <option value="Mercado">Mercado</option>
+              <option selected />
+              <option value="Carro">
+                Carro
+              </option>
+              <option value="casa">
+                casa
+              </option>
+              <option value="Mercado">
+                Mercado
+              </option>
             </select>
-            <label for="categoria" class="label">Categoria</label>
+            <label
+              for="categoria"
+              class="label"
+            >Categoria</label>
           </div>
           <div class="inputSimples">
             <select
@@ -59,24 +86,36 @@
               name="carteira"
               aria-label="Default select example"
             >
-              <option selected></option>
-              <option value="Sicredi">Sicredi</option>
-              <option value="BB">BB</option>
-              <option value="Caixa">Caixa</option>
+              <option selected />
+              <option value="Sicredi">
+                Sicredi
+              </option>
+              <option value="BB">
+                BB
+              </option>
+              <option value="Caixa">
+                Caixa
+              </option>
             </select>
-            <label for="carteira" class="label">Carteira</label>
+            <label
+              for="carteira"
+              class="label"
+            >Carteira</label>
           </div>
           <div
             class="form-group m-0 container d-flex justify-content-around col-12 pb-3"
           >
             <button
               type="submit"
-              @click="$emit(salvar)"
               class="btn btn-light px-5"
+              @click="$emit(salvar)"
             >
               Cadastrar
             </button>
-            <button @click="$emit('esconder')" class="btn btn-danger px-5">
+            <button
+              class="btn btn-danger px-5"
+              @click="$emit('esconder')"
+            >
               Cancelar
             </button>
           </div>
@@ -88,8 +127,8 @@
   <!-- End container-fluid-->
 </template>
 
-<script setup>
-import { inject, reactive } from "vue";
+<script setup lang="ts">
+import { inject } from "vue";
 
 const lancamentos = inject("lancamentos");
 

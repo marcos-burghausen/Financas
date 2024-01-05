@@ -1,26 +1,39 @@
 <template>
-    <button class="btn__selec__icon" @click="openModal = true">Selecionar icone</button>
+  <button
+    class="btn__selec__icon"
+    @click="openModal = true"
+  >
+    Selecionar icone
+  </button>
 
-    <div v-if="openModal" class="modal__icons" @click="openModal = false">
-        <ul class="ul__dropdown">
-            <li v-for="(item, index) in items" :key="index" @click="selectItem(item.icon)">
-                <mdicon :name="item.icon" />
-            </li>
-        </ul>
-    </div>
+  <div
+    v-if="openModal"
+    class="modal__icons"
+    @click="openModal = false"
+  >
+    <ul class="ul__dropdown">
+      <li
+        v-for="(item, index) in items"
+        :key="index"
+        @click="selectItem(item.icon)"
+      >
+        <mdicon :name="item.icon" />
+      </li>
+    </ul>
+  </div>
 </template>
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref } from "vue";
 
-const openModal = ref(false)
+const openModal = ref(false);
 const props = defineProps({
     items: {}
 });
-const emit = defineEmits(['atualizarVariavel']);
-const items = ref(props.items)
+const emit = defineEmits(["atualizarVariavel"]);
+const items = ref(props.items);
 
 const selectItem = (value: string) => {
-    emit('atualizarVariavel', value);
+    emit("atualizarVariavel", value);
 };
 
 </script>

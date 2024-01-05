@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { ref, type Ref } from "vue";
+import { ref } from "vue";
 
 import type { Lancamentos } from "@/types/lancamentos";
 
@@ -25,11 +25,11 @@ export const useRevenuesStore = defineStore("revenues", () => {
         revenuesData.value = {
             revenues
         };
-        localStorage.setItem('revenuesData', JSON.stringify(revenuesData.value));
+        localStorage.setItem("revenuesData", JSON.stringify(revenuesData.value));
     }
 
     return {
         revenuesData,
         setRevenuesData,
-    }
+    };
 });

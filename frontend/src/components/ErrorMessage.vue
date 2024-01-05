@@ -1,8 +1,14 @@
 <template>
-    <div class="error" v-show="errorStore.errorMessage" role="alert">
-        <!-- <p class="error__message">{{ errorCode }}</p> -->
-        <p class="error__message">{{ errorStore.errorMessage }}</p>
-    </div>
+  <div
+    v-show="errorStore.errorMessage"
+    class="error"
+    role="alert"
+  >
+    <!-- <p class="error__message">{{ errorCode }}</p> -->
+    <p class="error__message">
+      {{ errorStore.errorMessage }}
+    </p>
+  </div>
 </template>
 
 <script setup lang="ts">

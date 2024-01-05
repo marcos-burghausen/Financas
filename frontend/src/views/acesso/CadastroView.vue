@@ -1,83 +1,181 @@
 <template>
-    <Loading v-if="isLoading" />
-    <div v-else class="box">
-        <div class="container__decription">
-            <figure class="figure">
-                <img src="@/assets/img/Mr.png" style="width: 200px;" alt="logo" />
-                <h2 class="title__2 mt-5 me-2">
-                    Bem vindo
-                </h2>
-            </figure>
-            <h4 class="sub__title__2">Ao seu gerenciador de finaças!</h4>
-            <p class="sub__title__2 mt-5">Insira seus dados pessoais</p>
-            <p class="sub__title__2">e comece a jornada conosco</p>
-            <button @click="emits('nextStep')" class="btn btn__link">entrar</button>
-        </div>
-        <div class="container__dados">
-            <h2 class="title">Criar Uma Conta</h2>
-            <div class="social__media">
-                <ul class="list__social__media">
-                    <a class="link__social__media" href="#">
-                        <li class="item__social__media">
-                            <mdicon class="icon__modify" name="facebook" />
-                        </li>
-                    </a>
-                    <a class="link__social__media" href="#">
-                        <li class="item__social__media">
-                            <mdicon class="icon__modify" name="google" />
-                        </li>
-                    </a>
-                    <a class="link__social__media" href="#">
-                        <li class="item__social__media">
-                            <mdicon class="icon__modify" name="linkedin" />
-                        </li>
-                    </a>
-                </ul>
-            </div>
-            <p class="sub__title">ou use seu e-mail para inscrição:</p>
-            <ErrorMessage />
-            <form class="form" @submit.prevent="create">
-                <div class="container__input">
-                    <label class="label" for="name">Nome</label>
-                    <mdicon class="icon__modify" name="account-outline" />
-                    <input v-model="user.name" class="form-control" type="text" autocomplete="off" id="name" name="name">
-                </div>
-                <div class="error">
-                    <span v-if="errorsForm.name" class="span__error">{{
-                        errorsForm.name[0]
-                    }}</span>
-                </div>
-                <div class="container__input">
-                    <label class="label" for="email">Email</label>
-                    <mdicon class="icon__modify" name="email-outline" />
-                    <input v-model="user.email" class="form-control" type="email" autocomplete="off" id="email"
-                        name="email">
-                </div>
-                <div class="error">
-                    <span v-if="errorsForm.email" class="span__error">{{
-                        errorsForm.email[0]
-                    }}</span>
-                </div>
-                <div class="container__input">
-                    <label class="label" for="password">Password</label>
-                    <mdicon class="icon__modify" name="lock" />
-                    <input v-model="user.password" class="form-control" type="password" autocomplete="off" id="password"
-                        name="password">
-                </div>
-                <div class="error">
-                    <span v-if="errorsForm.password" class="span__error">{{
-                        errorsForm.password[0]
-                    }}</span>
-                </div>
-                <div class="container__button">
-                    <button @click.prevent="emits('nextStep')" class="btn__register"><span>já tem uma
-                            conta </span>conecte-se.</button>
-                </div>
-                <button class="btn btn__submit" type="submit">cadastro</button>
-            </form>
-        </div>
-
+  <Loading v-if="isLoading" />
+  <div
+    v-else
+    class="box"
+  >
+    <div class="container__decription">
+      <figure class="figure">
+        <img
+          src="@/assets/img/Mr.png"
+          style="width: 200px;"
+          alt="logo"
+        >
+        <h2 class="title__2 mt-5 me-2">
+          Bem vindo
+        </h2>
+      </figure>
+      <h4 class="sub__title__2">
+        Ao seu gerenciador de finaças!
+      </h4>
+      <p class="sub__title__2 mt-5">
+        Insira seus dados pessoais
+      </p>
+      <p class="sub__title__2">
+        e comece a jornada conosco
+      </p>
+      <button
+        class="btn btn__link"
+        @click="emits('nextStep')"
+      >
+        entrar
+      </button>
     </div>
+    <div class="container__dados">
+      <h2 class="title">
+        Criar Uma Conta
+      </h2>
+      <div class="social__media">
+        <ul class="list__social__media">
+          <a
+            class="link__social__media"
+            href="#"
+          >
+            <li class="item__social__media">
+              <mdicon
+                class="icon__modify"
+                name="facebook"
+              />
+            </li>
+          </a>
+          <a
+            class="link__social__media"
+            href="#"
+          >
+            <li class="item__social__media">
+              <mdicon
+                class="icon__modify"
+                name="google"
+              />
+            </li>
+          </a>
+          <a
+            class="link__social__media"
+            href="#"
+          >
+            <li class="item__social__media">
+              <mdicon
+                class="icon__modify"
+                name="linkedin"
+              />
+            </li>
+          </a>
+        </ul>
+      </div>
+      <p class="sub__title">
+        ou use seu e-mail para inscrição:
+      </p>
+      <ErrorMessage />
+      <form
+        class="form"
+        @submit.prevent="create"
+      >
+        <div class="container__input">
+          <label
+            class="label"
+            for="name"
+          >Nome</label>
+          <mdicon
+            class="icon__modify"
+            name="account-outline"
+          />
+          <input
+            id="name"
+            v-model="user.name"
+            class="form-control"
+            type="text"
+            autocomplete="off"
+            name="name"
+          >
+        </div>
+        <div class="error">
+          <span
+            v-if="errorsForm.name"
+            class="span__error"
+          >{{
+            errorsForm.name[0]
+          }}</span>
+        </div>
+        <div class="container__input">
+          <label
+            class="label"
+            for="email"
+          >Email</label>
+          <mdicon
+            class="icon__modify"
+            name="email-outline"
+          />
+          <input
+            id="email"
+            v-model="user.email"
+            class="form-control"
+            type="email"
+            autocomplete="off"
+            name="email"
+          >
+        </div>
+        <div class="error">
+          <span
+            v-if="errorsForm.email"
+            class="span__error"
+          >{{
+            errorsForm.email[0]
+          }}</span>
+        </div>
+        <div class="container__input">
+          <label
+            class="label"
+            for="password"
+          >Password</label>
+          <mdicon
+            class="icon__modify"
+            name="lock"
+          />
+          <input
+            id="password"
+            v-model="user.password"
+            class="form-control"
+            type="password"
+            autocomplete="off"
+            name="password"
+          >
+        </div>
+        <div class="error">
+          <span
+            v-if="errorsForm.password"
+            class="span__error"
+          >{{
+            errorsForm.password[0]
+          }}</span>
+        </div>
+        <div class="container__button">
+          <button
+            class="btn__register"
+            @click.prevent="emits('nextStep')"
+          >
+            <span>já tem uma
+              conta </span>conecte-se.
+          </button>
+        </div>
+        <button
+          class="btn btn__submit"
+          type="submit"
+        >
+          cadastro
+        </button>
+      </form>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -85,8 +183,7 @@ import ErrorMessage from "@/components/ErrorMessage.vue";
 import Loading from "@/components/Loading.vue";
 
 import { useErrorStore } from "@/store/error";
-import { useRouter } from "vue-router";
-import http from "@/services/http.ts";
+import http from "@/services/http";
 
 import { ref } from "vue";
 import type { FormCadastro } from "@/types/formCadastro";
@@ -95,15 +192,14 @@ const errorsForm: FormCadastro = ref({});
 const emits = defineEmits(["nextStep"]);
 const errorStore = useErrorStore();
 const user: FormCadastro = ref({});
-const isLoading = ref(false)
-const router = useRouter();
+const isLoading = ref(false);
 
 async function create() {
     isLoading.value = true;
     try {
-        const { data } = await http.post("/create", user.value);
+        await http.post("/create", user.value);
         emits("nextStep");
-    } catch (error) {
+    } catch (error: unknown) {
         if (error.response?.data?.errors) {
             errorsForm.value = error.response?.data?.errors;
         } else {

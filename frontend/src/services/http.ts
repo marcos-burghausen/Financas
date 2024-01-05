@@ -1,11 +1,11 @@
-import axios from 'axios';
+import axios from "axios";
 import { useAuth } from "@/store/auth";
 
 const axiosInstance = axios.create({
-    baseURL: 'http://localhost:4080/api',
+    baseURL: "http://localhost:4080/api",
     headers: {
-        'Accept': 'application/json',
-        'Content-type': 'application/json'
+        "Accept": "application/json",
+        "Content-type": "application/json"
     }
 });
 
@@ -15,26 +15,26 @@ axiosInstance.interceptors.request.use(
         const auth = useAuth();
         const token = auth.token;
         if (token) {
-            config.headers.Authorization = `Bearer ${token}`
+            config.headers.Authorization = `Bearer ${token}`;
         }
-        console.log('Interceptando o request antes do envio', config);
+        console.log("Interceptando o request antes do envio", config);
         return config;
     },
     error => {
-        console.log('Erro na requisição: ', error);
+        console.log("Erro na requisição: ", error);
         return Promise.reject(error);
     }
-)
+);
 
 axiosInstance.interceptors.response.use(
     response => {
-        console.log('Interceptando o response antes da aplicação', response);
+        console.log("Interceptando o response antes da aplicação", response);
         return response;
     },
     error => {
-        console.log('Erro na resposta: ', error);
+        console.log("Erro na resposta: ", error);
         return Promise.reject(error);
     }
-)
+);
 
 export default axiosInstance;

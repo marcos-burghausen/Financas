@@ -1,110 +1,189 @@
 <template>
+  <div class="">
     <div class="">
-        <div class="">
-            <nav class="nav">
-                <ul class="ul__local">
-                    <li class="">
-                        <router-link class="link" :to="{ name: 'dashboard' }">
-                            Dashboard
-                        </router-link>
-                    </li>
-                    <li class="li__separador">/</li>
-                    <li class="opaco  ">
-                        categorias
-                    </li>
-                </ul>
-                <div>
-                    <button @click="toggleDropdown" class="btn__dropdown dropdown-toggle"
-                        :class="selectedOption === 'categoria por despesas' ? 'despesa' : 'receita'" type="button">
-                        {{ selectedOption }}
-                    </button>
-                    <ul class="ul__dropdown" v-if="isDropdownOpen">
-                        <li v-for="(item, index) in options" :key="index" @click=" selectOption(item.name)">
-                            {{ item.name }}</li>
-                    </ul>
-                </div>
-                <Modal :color="selectedOption === 'categoria por despesas' ? 'color__despesa' : 'color__receita'"
-                    @updateCategoriasDespesas="updateCategoriasDespesas"
-                    @updateCategoriasReceitas="updateCategoriasReceitas" />
-            </nav>
+      <nav class="nav">
+        <ul class="ul__local">
+          <li class="">
+            <router-link
+              class="link"
+              :to="{ name: 'dashboard' }"
+            >
+              Dashboard
+            </router-link>
+          </li>
+          <li class="li__separador">
+            /
+          </li>
+          <li class="opaco  ">
+            categorias
+          </li>
+        </ul>
+        <div>
+          <button
+            class="btn__dropdown dropdown-toggle"
+            :class="selectedOption === 'categoria por despesas' ? 'despesa' : 'receita'"
+            type="button"
+            @click="toggleDropdown"
+          >
+            {{ selectedOption }}
+          </button>
+          <ul
+            v-if="isDropdownOpen"
+            class="ul__dropdown"
+          >
+            <li
+              v-for="(item, index) in options"
+              :key="index"
+              @click=" selectOption(item.name)"
+            >
+              {{ item.name }}
+            </li>
+          </ul>
         </div>
+        <Modal
+          :color="selectedOption === 'categoria por despesas' ? 'color__despesa' : 'color__receita'"
+          @updateCategoriasDespesas="updateCategoriasDespesas"
+          @updateCategoriasReceitas="updateCategoriasReceitas"
+        />
+      </nav>
+    </div>
 
-        <table v-if="selectedOption === 'categoria por despesas'" class="tabl">
-            <thead>
-                <tr>
-                    <th style="padding: 10px;" class="text-white text-center first__th">Nome</th>
-                    <th class="text-white text-center">Cor</th>
-                    <th class="text-white text-center">Icone</th>
-                    <th class="text-white text-center last__th">Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="(categoria) in categoriasDespesas">
-                    <td class="text-white ps-3">{{ categoria.name }}</td>
-                    <td class="d-flex justify-content-center">
-                        <div class="cor__forma" :class="categoria.color"></div>
-                    </td>
-                    <td class="text-white text-center">
-                        <mdicon v-if="categoria.icon" :name="categoria.icon" />
-                    </td>
-                    <td class="d-flex py-0 justify-content-center">
-                        <button class="btn btn-outline-table p-0 text-white fs-4 bi bi-pencil mx-2" title="editar">
-                            <mdicon name="pencil-outline" />
-                        </button>
-                        <button v-if="categoria.edit === true" @click="deleteCategory(categoria)" style="color: #fefefe;"
-                            class="btn btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 " title="apagar">
-                            <mdicon name="trash-can-outline" />
-                        </button>
-                        <!-- <button @click="" style="color: #fefefe;"
+    <table
+      v-if="selectedOption === 'categoria por despesas'"
+      class="tabl"
+    >
+      <thead>
+        <tr>
+          <th
+            style="padding: 10px;"
+            class="text-white text-center first__th"
+          >
+            Nome
+          </th>
+          <th class="text-white text-center">
+            Cor
+          </th>
+          <th class="text-white text-center">
+            Icone
+          </th>
+          <th class="text-white text-center last__th">
+            Ações
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(categoria) in categoriasDespesas">
+          <td class="text-white ps-3">
+            {{ categoria.name }}
+          </td>
+          <td class="d-flex justify-content-center">
+            <div
+              class="cor__forma"
+              :class="categoria.color"
+            />
+          </td>
+          <td class="text-white text-center">
+            <mdicon
+              v-if="categoria.icon"
+              :name="categoria.icon"
+            />
+          </td>
+          <td class="d-flex py-0 justify-content-center">
+            <button
+              class="btn btn-outline-table p-0 text-white fs-4 bi bi-pencil mx-2"
+              title="editar"
+            >
+              <mdicon name="pencil-outline" />
+            </button>
+            <button
+              v-if="categoria.edit === true"
+              style="color: #fefefe;"
+              class="btn btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 "
+              title="apagar"
+              @click="deleteCategory(categoria)"
+            >
+              <mdicon name="trash-can-outline" />
+            </button>
+            <!-- <button @click="" style="color: #fefefe;"
                             class="btn btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 " title="relatório">
                             <mdicon name="clipboard-text-outline" />
                         </button> -->
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        <table v-else class="tabl">
-            <thead>
-                <tr>
-                    <th style="padding: 10px;" class="text-white text-center first__th">Nome</th>
-                    <th class="text-white text-center">Cor</th>
-                    <th class="text-white text-center">Icone</th>
-                    <th class="text-white text-center last__th">Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="(categoria) in categoriasReceitas">
-                    <td class="text-white text-center">{{ categoria.name }}</td>
-                    <td class="text-white d-flex align-items-center">
-                        <div class="cor__forma" :class="categoria.cor"></div>
-                    </td>
-                    <td class="text-white text-center">
-                        <mdicon v-if="categoria.icon" :name="categoria.icon" />
-                    </td>
-                    <td class="d-flex py-0 justify-content-center">
-                        <!-- <button @click="" style="color: #fefefe;"
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <table
+      v-else
+      class="tabl"
+    >
+      <thead>
+        <tr>
+          <th
+            style="padding: 10px;"
+            class="text-white text-center first__th"
+          >
+            Nome
+          </th>
+          <th class="text-white text-center">
+            Cor
+          </th>
+          <th class="text-white text-center">
+            Icone
+          </th>
+          <th class="text-white text-center last__th">
+            Ações
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(categoria) in categoriasReceitas">
+          <td class="text-white text-center">
+            {{ categoria.name }}
+          </td>
+          <td class="text-white d-flex align-items-center">
+            <div
+              class="cor__forma"
+              :class="categoria.cor"
+            />
+          </td>
+          <td class="text-white text-center">
+            <mdicon
+              v-if="categoria.icon"
+              :name="categoria.icon"
+            />
+          </td>
+          <td class="d-flex py-0 justify-content-center">
+            <!-- <button @click="" style="color: #fefefe;"
                                             class="btn btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 "
                                             title="relatório">
                                             <mdicon name="clipboard-text-outline" />
                                         </button> -->
-                        <button class="btn btn-outline-table p-0 text-white fs-4 bi bi-pencil mx-2" title="editar">
-                            <mdicon name="pencil-outline" />
-                        </button>
-                        <button v-if="categoria.edit === true" @click="deleteCategory(categoria)" style="color: #fefefe;"
-                            class="btn btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 " title="apagar">
-                            <mdicon name="trash-can-outline" />
-                        </button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+            <button
+              class="btn btn-outline-table p-0 text-white fs-4 bi bi-pencil mx-2"
+              title="editar"
+            >
+              <mdicon name="pencil-outline" />
+            </button>
+            <button
+              v-if="categoria.edit === true"
+              style="color: #fefefe;"
+              class="btn btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 "
+              title="apagar"
+              @click="deleteCategory(categoria)"
+            >
+              <mdicon name="trash-can-outline" />
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </template>
 <script setup lang="ts">
 import Modal from "@/components/ModalCategoria.vue";
 
 import type { Category } from "@/types/category";
-import { useUserStore } from "@/stores/user";
+import { useUserStore } from "@/store/user";
 import { ref, reactive } from "vue";
 import http from "@/services/http";
 
@@ -115,11 +194,11 @@ const categoriasReceitas = ref(useUser.user.categoriasReceitas);
 
 
 const isDropdownOpen = ref(false);
-const selectedOption = ref('categoria por despesas');
+const selectedOption = ref("categoria por despesas");
 
 const options = reactive([
-    { name: 'categoria por despesas' },
-    { name: 'categoria por receitas' }
+    { name: "categoria por despesas" },
+    { name: "categoria por receitas" }
 ]);
 const updateCategoriasDespesas = (novoValor: Array<Category>) => {
     categoriasDespesas.value = novoValor;
@@ -139,7 +218,7 @@ const selectOption = (option: string) => {
 
 const deleteCategory = async (category: Category) => {
     try {
-        const res = await http.post('delete-category', category)
+        const res = await http.post("delete-category", category);
         if (res.data.categoriasDespesas) {
             useUser.setCategoriasDespesas(res.data.categoriasDespesas);
             categoriasDespesas.value = res.data.categoriasDespesas;
@@ -149,9 +228,9 @@ const deleteCategory = async (category: Category) => {
             categoriasReceitas.value = res.data.categoriasReceitas;
         }
     } catch (error) {
-
+        console.log(error);
     }
-}
+};
 
 
 </script>

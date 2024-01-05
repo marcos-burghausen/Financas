@@ -1,130 +1,173 @@
 <template>
-    <mdicon @click="openModal = true" type="button" title="adcionar nova categoria" name="plus" class="mdicon"
-        :class="color" />
+  <mdicon
+    type="button"
+    title="adcionar nova categoria"
+    name="plus"
+    class="mdicon"
+    :class="props.color"
+    @click="openModal = true"
+  />
 
-    <div v-if="openModal" class="container__modal">
-        <div class="modal">
-            <header class="header__modal">
-                <span class="title">Cadastrar nova categoria</span>
-                <mdicon class="mdicon__close" type="buttom" name="close"
-                    @click="openModal = false; selectedIcon = ''; selectedColor = ''; nameCategory = ''" />
-            </header>
-            <div class="inputSimples">
-                <input v-model="nameCategory" type="text" name="categori" class="input" id="descricao" required />
-                <label for="descricao" class="label">Nome</label>
-            </div>
-            <!-- <div class="error">
+  <div
+    v-if="openModal"
+    class="container__modal"
+  >
+    <div class="modal">
+      <header class="header__modal">
+        <span class="title">Cadastrar nova categoria</span>
+        <mdicon
+          class="mdicon__close"
+          type="buttom"
+          name="close"
+          @click="openModal = false; selectedIcon = ''; selectedColor = ''; nameCategory = ''"
+        />
+      </header>
+      <div class="inputSimples">
+        <input
+          id="descricao"
+          v-model="nameCategory"
+          type="text"
+          name="categori"
+          class="input"
+          required
+        >
+        <label
+          for="descricao"
+          class="label"
+        >Nome</label>
+      </div>
+      <!-- <div class="error">
             <span v-if="errorsForm['errors'].descricao" class="span-error">{{
                 errorsForm["errors"].descricao[0]
             }}</span>
         </div> -->
-            <div class="cor__icon">
-                <div class="container__cor__categoria">
-                    <div class="cor__categoria">
-                        <span>
-                            cor da categoria
-                        </span>
-                        <div v-if="selectedColor" class="cor__forma" :class="selectedColor"></div>
-                    </div>
-                    <ModalColors :items="colors" @atualizarVariavel="updateSelectedColor" />
-                </div>
-                <div class="container__cor__categoria">
-                    <div class="icon__categoria">
-                        <span>
-                            icone da categoria
-                        </span>
-                        <mdicon v-if="selectedIcon" :name="selectedIcon" />
-                    </div>
-                    <ModalIcons :items="icons" @atualizarVariavel="updateSelectedIcon" />
-                </div>
-            </div>
-            <footer class="footer__modal">
-                <button class="btn__modal" @click="saveCategory">Salvar</button>
-            </footer>
+      <div class="cor__icon">
+        <div class="container__cor__categoria">
+          <div class="cor__categoria">
+            <span>
+              cor da categoria
+            </span>
+            <div
+              v-if="selectedColor"
+              class="cor__forma"
+              :class="selectedColor"
+            />
+          </div>
+          <ModalColors
+            :items="colors"
+            @atualizarVariavel="updateSelectedColor"
+          />
         </div>
+        <div class="container__cor__categoria">
+          <div class="icon__categoria">
+            <span>
+              icone da categoria
+            </span>
+            <mdicon
+              v-if="selectedIcon"
+              :name="selectedIcon"
+            />
+          </div>
+          <ModalIcons
+            :items="icons"
+            @atualizarVariavel="updateSelectedIcon"
+          />
+        </div>
+      </div>
+      <footer class="footer__modal">
+        <button
+          class="btn__modal"
+          @click="saveCategory"
+        >
+          Salvar
+        </button>
+      </footer>
     </div>
+  </div>
 </template>
 <script setup lang="ts">
 import ModalColors from "@/components/ModalColors.vue";
 import ModalIcons from "@/components/ModalIcons.vue";
 
-import { useUserStore } from "@/stores/user";
-import { reactive, ref } from 'vue';
+import { useUserStore } from "@/store/user";
+import { reactive, ref } from "vue";
 import http from "@/services/http";
 
 const useUser = useUserStore();
 
-const selectedColor = ref('');
-const selectedIcon = ref('');
+const selectedColor = ref("");
+const selectedIcon = ref("");
 const openModal = ref(false);
-const nameCategory = ref('');
+const nameCategory = ref("");
 const props = defineProps({
-    color: String,
+    color: {
+        type: String,
+    }
 });
 
 const emit = defineEmits([
-    'updateCategoriasDespesas',
-    'updateCategoriasReceitas'
+    "updateCategoriasDespesas",
+    "updateCategoriasReceitas"
 ]);
 const colors = reactive([
-    { color: 'cor__1' },
-    { color: 'cor__2' },
-    { color: 'cor__3' },
-    { color: 'cor__4' },
-    { color: 'cor__5' },
-    { color: 'cor__6' },
-    { color: 'cor__7' },
-    { color: 'cor__8' },
-    { color: 'cor__9' },
-    { color: 'cor__10' },
-    { color: 'cor__11' },
-    { color: 'cor__12' },
-    { color: 'cor__13' },
-    { color: 'cor__14' },
-    { color: 'cor__15' },
-    { color: 'cor__16' },
-    { color: 'cor__17' },
-    { color: 'cor__18' },
-    { color: 'cor__19' },
-    { color: 'cor__20' },
-    { color: 'cor__21' },
-    { color: 'cor__22' },
-    { color: 'cor__23' },
-    { color: 'cor__24' },
-    { color: 'cor__25' }
+    { color: "cor__1" },
+    { color: "cor__2" },
+    { color: "cor__3" },
+    { color: "cor__4" },
+    { color: "cor__5" },
+    { color: "cor__6" },
+    { color: "cor__7" },
+    { color: "cor__8" },
+    { color: "cor__9" },
+    { color: "cor__10" },
+    { color: "cor__11" },
+    { color: "cor__12" },
+    { color: "cor__13" },
+    { color: "cor__14" },
+    { color: "cor__15" },
+    { color: "cor__16" },
+    { color: "cor__17" },
+    { color: "cor__18" },
+    { color: "cor__19" },
+    { color: "cor__20" },
+    { color: "cor__21" },
+    { color: "cor__22" },
+    { color: "cor__23" },
+    { color: "cor__24" },
+    { color: "cor__25" }
 ]);
 const icons = reactive([
-    { icon: 'car-estate' },
-    { icon: 'umbrella-beach-outline' },
-    { icon: 'silverware-fork-knife' },
-    { icon: 'account-school-outline' },
-    { icon: 'airplane' },
-    { icon: 'medical-bag' },
-    { icon: 'dots-horizontal' },
-    { icon: 'currency-usd' },
-    { icon: 'finance' },
-    { icon: 'tshirt-crew-outline' },
-    { icon: 'heart-pulse' },
-    { icon: 'home-outline' },
-    { icon: 'star-outline' },
-    { icon: 'book-open-variant' },
-    { icon: 'cash' },
-    { icon: 'school' },
-    { icon: 'chart-line-variant' },
-    { icon: 'gift-outline' },
-    { icon: 'bag-suitcase-outline' },
-    { icon: 'bike' },
-    { icon: 'bus' },
-    { icon: 'cake-variant-outline' },
-    { icon: 'calculator' },
-    { icon: 'video-minus' },
-    { icon: 'calculator-variant' },
-    { icon: 'baby-carriage' },
-    { icon: 'broom' },
-    { icon: 'bone' },
-    { icon: 'wallet-bifold-outline' },
-    { icon: 'cart-outline' },
-    { icon: 'bank-outline' }
+    { icon: "car-estate" },
+    { icon: "umbrella-beach-outline" },
+    { icon: "silverware-fork-knife" },
+    { icon: "account-school-outline" },
+    { icon: "airplane" },
+    { icon: "medical-bag" },
+    { icon: "dots-horizontal" },
+    { icon: "currency-usd" },
+    { icon: "finance" },
+    { icon: "tshirt-crew-outline" },
+    { icon: "heart-pulse" },
+    { icon: "home-outline" },
+    { icon: "star-outline" },
+    { icon: "book-open-variant" },
+    { icon: "cash" },
+    { icon: "school" },
+    { icon: "chart-line-variant" },
+    { icon: "gift-outline" },
+    { icon: "bag-suitcase-outline" },
+    { icon: "bike" },
+    { icon: "bus" },
+    { icon: "cake-variant-outline" },
+    { icon: "calculator" },
+    { icon: "video-minus" },
+    { icon: "calculator-variant" },
+    { icon: "baby-carriage" },
+    { icon: "broom" },
+    { icon: "bone" },
+    { icon: "wallet-bifold-outline" },
+    { icon: "cart-outline" },
+    { icon: "bank-outline" }
 ]);
 
 
@@ -139,28 +182,28 @@ const saveCategory = async () => {
         name: nameCategory.value,
         color: selectedColor.value,
         icon: selectedIcon.value,
-        typeCategory: '',
+        typeCategory: "",
         edit: true
-    })
+    });
     try {
-        data.value.typeCategory = props.color === 'color__despesa' ? 'despesa' : 'receita';
+        data.value.typeCategory = props.color === "color__despesa" ? "despesa" : "receita";
 
-        const res = await http.post('/save-category', data.value)
-        useUser.setUserData(res.data.user)
+        const res = await http.post("/save-category", data.value);
+        useUser.setUserData(res.data.user);
         if (res.data.categoriasDespesas) {
-            emit('updateCategoriasDespesas', res.data.categoriasDespesas);
+            emit("updateCategoriasDespesas", res.data.categoriasDespesas);
         }
         if (res.data.categoriasReceitas) {
-            emit('updateCategoriasReceitas', res.data.categoriasReceitas);
+            emit("updateCategoriasReceitas", res.data.categoriasReceitas);
         }
-        nameCategory.value = '';
-        selectedColor.value = '';
-        selectedIcon.value = '';
+        nameCategory.value = "";
+        selectedColor.value = "";
+        selectedIcon.value = "";
         openModal.value = false;
     } catch (error) {
-
+        console.log(error);
     }
-}
+};
 
 
 

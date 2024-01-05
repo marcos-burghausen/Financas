@@ -1,22 +1,37 @@
 <template>
-    <div>
-        <router-link class="link" :to="{ name: rota }">
-            <h5 class="title">{{ titulo }}</h5>
-            <div class="progres">
-
-                <div class="progress__bar"></div>
-            </div>
-            <p class="value">R$ {{ valor }}</p>
-        </router-link>
-    </div>
+  <div>
+    <router-link
+      class="link"
+      :to="{ name: rota }"
+    >
+      <h5 class="title">
+        {{ titulo }}
+      </h5>
+      <div class="progres">
+        <div class="progress__bar" />
+      </div>
+      <p class="value">
+        R$ {{ valor }}
+      </p>
+    </router-link>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
 const props = defineProps({
-    titulo: String,
-    valor: Number,
-    rota: String,
+    titulo: {
+        type: String,
+        required: true,
+    },
+    valor: {
+        type: Number,
+        required: true,
+    },
+    rota: {
+        type: String,
+        required: true,
+    }
 });
 
 const titulo = computed(() => props.titulo);

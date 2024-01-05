@@ -1,55 +1,72 @@
 <template>
-    <div>
-        <nav class="menu-lateral" :class="{ expandido: menuExpandido }">
-            <div class="container__logo">
-                <router-link :to="{ name: 'dashboard' }">
-                    <img src="@/assets/img/2.png" alt="logo" />
-                </router-link>
-                <h1 :class="{ displayNone: !menuExpandido }" class="title">Gerenciador Financeiro</h1>
-            </div>
-            <ul>
-                <li v-for="(item, index) in itensSideBar" :class="{ efeitoClick: elementoAtivoSideBar === index }"
-                    :key="index">
-                    <!-- @click="elementoAtivoSideBar = index"> -->
-                    <router-link :to="{ name: item.route }">
-                        <span class="icon">
-                            <mdicon :name="item.icon" />
-                        </span>
-                        <span class="txt__link" :class="{ displayNone: !menuExpandido }">{{
-                            item.name
-                        }}</span>
-                    </router-link>
-                </li>
-            </ul>
-        </nav>
-    </div>
+  <div>
+    <nav
+      class="menu-lateral"
+      :class="{ expandido: props.menuExpandido }"
+    >
+      <div class="container__logo">
+        <router-link :to="{ name: 'dashboard' }">
+          <img
+            src="@/assets/img/2.png"
+            alt="logo"
+          >
+        </router-link>
+        <h1
+          :class="{ displayNone: !props.menuExpandido }"
+          class="title"
+        >
+          Gerenciador Financeiro
+        </h1>
+      </div>
+      <ul>
+        <li
+          v-for="(item, index) in itensSideBar"
+          :key="index"
+          :class="{ efeitoClick: elementoAtivoSideBar === index }"
+        >
+          <!-- @click="elementoAtivoSideBar = index"> -->
+          <router-link :to="{ name: item.route }">
+            <span class="icon">
+              <mdicon :name="item.icon" />
+            </span>
+            <span
+              class="txt__link"
+              :class="{ displayNone: !props.menuExpandido }"
+            >{{
+              item.name
+            }}</span>
+          </router-link>
+        </li>
+      </ul>
+    </nav>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
-const route = useRoute()
+const route = useRoute();
 
 let elementoAtivoSideBar = ref();
 
 watch(route, (value) => {
     switch (value.name) {
-        case 'dashboard':
-            elementoAtivoSideBar.value = 0;
-            break;
-        case 'receitas':
-            elementoAtivoSideBar.value = 1;
-            break;
-        case 'despesas':
-            elementoAtivoSideBar.value = 2;
-            break;
-        case 'categorias':
-            elementoAtivoSideBar.value = 3;
-            break;
+    case "dashboard":
+        elementoAtivoSideBar.value = 0;
+        break;
+    case "receitas":
+        elementoAtivoSideBar.value = 1;
+        break;
+    case "despesas":
+        elementoAtivoSideBar.value = 2;
+        break;
+    case "categorias":
+        elementoAtivoSideBar.value = 3;
+        break;
     }
 
-})
+});
 
 const props = defineProps({
     menuExpandido: Boolean
@@ -60,7 +77,7 @@ const itensSideBar = ref([
     { name: "Receitas", icon: "arrow-top-right-bold-outline", route: "receitas" },
     { name: "Despesas", icon: "arrow-bottom-right-bold-outline", route: "despesas" },
     { name: "Categorias", icon: "bookmark-minus-outline", route: "categorias" },
-    { name: "Mais Opçõs", icon: "dots-horizontal", route: 'dashboard' },
+    { name: "Mais Opçõs", icon: "dots-horizontal", route: "dashboard" },
 ]);
 </script>
 

@@ -1,27 +1,34 @@
 <template>
-    <header class="header">
-        <mdicon v-if="auth.isAuthenticated" name="menu-open" @click="$emit('expandirMenu')" class="mdicon" />
-        <template v-if="auth.isAuthenticated">
-            <h3 class="text-white me-3">{{ name }}</h3>
-            <button @click="logout">sair</button>
-        </template>
-    </header>
+  <header class="header">
+    <mdicon
+      v-if="auth.isAuthenticated"
+      name="menu-open"
+      class="mdicon"
+      @click="$emit('expandirMenu')"
+    />
+    <template v-if="auth.isAuthenticated">
+      <h3 class="text-white me-3">
+        {{ name }}
+      </h3>
+      <button @click="logout">
+        sair
+      </button>
+    </template>
+  </header>
 </template>
 
 <script setup lang="ts">
-import { userData } from "@/store/data";
 import { useAuth } from "@/store/auth";
 import { useRouter } from "vue-router";
 import http from "@/services/http";
-import { ref, computed } from "vue";
+import { ref } from "vue";
 import { useUserStore } from "@/store/user";
 
-const props = defineProps({
-    menuExpandido: Boolean
-});
+// const props = defineProps({
+//     menuExpandido: Boolean
+// });
 // const titulo = computed(() => props.name);
 const router = useRouter();
-const data = userData();
 const auth = useAuth();
 const useUser = useUserStore();
 
@@ -29,7 +36,7 @@ let name = ref(useUser.user.name);
 
 async function logout() {
     try {
-        const res = await http.post("/logout");
+        await http.post("/logout");
         auth.clear();
         router.push({ name: "home" });
     } catch (error) {

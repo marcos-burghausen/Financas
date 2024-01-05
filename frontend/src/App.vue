@@ -1,11 +1,14 @@
 <template>
   <div class="d-flex h-100">
     <template v-if="auth.isAuthenticated">
-      <MenuLateral :menuExpandido="menuExpandido" />
+      <MenuLateral :menu-expandido="menuExpandido" />
     </template>
     <div class="containerApp">
       <template v-if="auth.isAuthenticated">
-        <Cabecalho v-on:expandirMenu="menuExpandido = !menuExpandido" :menuExpandido="menuExpandido" />
+        <Cabecalho
+          :menu-expandido="menuExpandido"
+          @expandirMenu="menuExpandido = !menuExpandido"
+        />
       </template>
       <router-view />
     </div>
@@ -13,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import MenuLateral from "@/components/MenuLateral.vue"
+import MenuLateral from "@/components/MenuLateral.vue";
 import Cabecalho from "@/components/Cabecalho.vue";
 
 import { ref } from "vue";

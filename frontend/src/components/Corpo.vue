@@ -2,7 +2,10 @@
   <div class="content-wrapper">
     <div class="container-fluid">
       <!--Start Dashboard Content-->
-      <div class="row row-group mt-3" style="background-color: transparent">
+      <div
+        class="row row-group mt-3"
+        style="background-color: transparent"
+      >
         <Card
           class="card col-12 col-md-6 col-lg-6 col-xl-3"
           titulo="Receitas"
@@ -324,12 +327,12 @@
     <!--End Dashboard Content-->
 
     <!--start overlay-->
-    <div class="overlay toggle-menu"></div>
+    <div class="overlay toggle-menu" />
     <!--end overlay-->
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Card from "./Card.vue";
 </script>
 

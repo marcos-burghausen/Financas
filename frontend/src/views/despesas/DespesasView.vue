@@ -1,308 +1,587 @@
 <template>
-    <div class="content-wrapper">
-        <div class="pagetitle">
-            <nav class="d-flex justify-content-between mb-3">
-                <ol class="breadcrumb bg-transparent">
-                    <li class="breadcrumb-item text-white">
-                        <router-link class="link" :to="{ name: 'dashboard' }">
-                            Dashboard
-                        </router-link>
-                    </li>
-                    <li :class="{ opaco: !formStoreExpense && !formEditExpense }" @click="returnExpense"
-                        class="breadcrumb-item text-white">
-                        despesas
-                    </li>
-                    <li :class="{ opaco: formStoreExpense }" class="breadcrumb-item" v-if="formStoreExpense">
-                        cadastrar de despesa
-                    </li>
-                    <li :class="{ opaco: formEditExpense }" class="breadcrumb-item" v-if="formEditExpense">
-                        editar de despesa
-                    </li>
-                </ol>
-                <button v-if="!formStoreExpense && !formEditExpense" class="btn btn-danger text-whit"
-                    @click="formStoreExpense = !formStoreExpense">
-                    nova despesa
-                </button>
-            </nav>
-        </div>
+  <div class="content-wrapper">
+    <div class="pagetitle">
+      <nav class="d-flex justify-content-between mb-3">
+        <ol class="breadcrumb bg-transparent">
+          <li class="breadcrumb-item text-white">
+            <router-link
+              class="link"
+              :to="{ name: 'dashboard' }"
+            >
+              Dashboard
+            </router-link>
+          </li>
+          <li
+            :class="{ opaco: !formStoreExpense && !formEditExpense }"
+            class="breadcrumb-item text-white"
+            @click="returnExpense"
+          >
+            despesas
+          </li>
+          <li
+            v-if="formStoreExpense"
+            :class="{ opaco: formStoreExpense }"
+            class="breadcrumb-item"
+          >
+            cadastrar de despesa
+          </li>
+          <li
+            v-if="formEditExpense"
+            :class="{ opaco: formEditExpense }"
+            class="breadcrumb-item"
+          >
+            editar de despesa
+          </li>
+        </ol>
+        <button
+          v-if="!formStoreExpense && !formEditExpense"
+          class="btn btn-danger text-whit"
+          @click="formStoreExpense = !formStoreExpense"
+        >
+          nova despesa
+        </button>
+      </nav>
+    </div>
 
-        <!-- ========================================================================= -->
-        <!-- ================ inicio formulario lançamentos despesas ================= -->
-        <!-- ========================================================================= -->
-        <div class="container-fluid" v-if="formStoreExpense">
-            <div class="container d-flex justify-content-center">
-                <div class="cadastro">
-                    <!-- <form class="form" @submit.prevent="salvarLancamentos"> -->
-                    <form class="form">
-                        <div class="inputSimples">
-                            <!-- <mdicon class="mdicon" name="account" /> -->
-                            <input v-model="releases.valor" class="input" id="valor" name="valor" type="tel" required />
-                            <label class="label" for="valor">Valor</label>
-                        </div>
-                        <div class="error">
-                            <span v-if="errorsForm['errors'].valor" class="span-error">{{
-                                errorsForm["errors"].valor[0]
-                            }}</span>
-                        </div>
-                        <div class="form-check form-switch text-white">
-                            <input v-model="status" class="form-check-input" type="checkbox" id="flexSwitchCheckChecked"
-                                checked>
-                            <label class="form-check-label" for="flexSwitchCheckChecked">Foi paga</label>
-                        </div>
-                        <div class="inputSimples">
-                            <!-- <mdicon class="mdicon" name="account" /> -->
-                            <input v-model="releases.date" type="text" onfocus="this.type='date'" onblur="this.type='text'"
-                                name="date" class="input" id="date" required />
-                            <label for="date" class="label">Data</label>
-                        </div>
-                        <div class="error">
-                            <span v-if="errorsForm['errors'].date" class="span-error">{{
-                                errorsForm["errors"].date[0]
-                            }}</span>
-                        </div>
-                        <div class="inputSimples">
-                            <!-- <mdicon class="mdicon" name="account" /> -->
-                            <input v-model="releases.descricao" type="text" name="descricao" class="input" id="descricao"
-                                required />
-                            <label for="descricao" class="label">Descricao</label>
-                        </div>
-                        <div class="error">
-                            <span v-if="errorsForm['errors'].descricao" class="span-error">{{
-                                errorsForm["errors"].descricao[0]
-                            }}</span>
-                        </div>
-                        <div class="inputSimples">
-                            <select v-model="releases.categoria" class="input" name="categoria"
-                                aria-label="Default select example" required>
-                                <!-- <option class="options" selected></option> -->
-                                <option v-for="categoria in categorias" class="options" :value="categoria.name">{{
-                                    categoria.name
-                                }}
-                                </option>
-                            </select>
-                            <label for="categoria" class="label">Categoria</label>
-                        </div>
-                        <div class="error">
-                            <span v-if="errorsForm['errors'].categoria" class="span-error">{{
-                                errorsForm["errors"].categoria[0]
-                            }}</span>
-                        </div>
-                        <div class="inputSimples">
-                            <select v-model="releases.carteira" class="input" name="carteira"
-                                aria-label="Default select example" required>
-                                <!-- <option class="options" selected></option> -->
-                                <option v-for="carteira in carteiras" class="options" :value="carteira">{{ carteira
-                                }}
-                                </option>
-
-                            </select>
-                            <label for="carteira" class="label">Carteira</label>
-                        </div>
-                        <div class="error">
-                            <span v-if="errorsForm['errors'].carteira" class="span-error">{{
-                                errorsForm["errors"].carteira[0]
-                            }}</span>
-                        </div>
-                        <div class="form-group p-0 container d-flex justify-content-between col-12 mt-2 mb-4">
-                            <button @click="{ formStoreExpense = !formStoreExpense }; clearInputs()"
-                                class="btn btn-danger px-5">
-                                Cancelar
-                            </button>
-                            <button @click.prevent="salvarLancamentos" class="btn btn-light px-5">
-                                Salvar
-                            </button>
-                        </div>
-                    </form>
-                </div>
+    <!-- ========================================================================= -->
+    <!-- ================ inicio formulario lançamentos despesas ================= -->
+    <!-- ========================================================================= -->
+    <div
+      v-if="formStoreExpense"
+      class="container-fluid"
+    >
+      <div class="container d-flex justify-content-center">
+        <div class="cadastro">
+          <!-- <form class="form" @submit.prevent="salvarLancamentos"> -->
+          <form class="form">
+            <div class="inputSimples">
+              <!-- <mdicon class="mdicon" name="account" /> -->
+              <input
+                id="valor"
+                v-model="releases.valor"
+                class="input"
+                name="valor"
+                type="tel"
+                required
+              >
+              <label
+                class="label"
+                for="valor"
+              >Valor</label>
             </div>
-        </div>
-        <!-- ========================================================================= -->
-        <!-- ================= fim formulario lançamentos despesas==================== -->
-        <!-- ========================================================================= -->
-
-
-        <!-- ========================================================================= -->
-        <!-- ================== inicio formulario editar despesa =================== -->
-        <!-- ========================================================================= -->
-        <div class="container-fluid" v-if="formEditExpense">
-            <div class="container d-flex justify-content-center">
-                <div class="cadastro">
-                    <form class="form" @submit.prevent="saveEditedExpense">
-                        <div class="inputSimples">
-                            <input v-model="expenseEdit.valor" class="input" id="valor" name="valor" type="number"
-                                required />
-                            <label class="label" for="valor">Valor</label>
-                        </div>
-                        <div class="error">
-                            <span v-if="errorsForm['errors'].valor" class="span-error">{{
-                                errorsForm["errors"].valor[0]
-                            }}</span>
-                        </div>
-                        <div class="inputSimples">
-                            <input v-model="expenseEdit.date" type="date" name="date" class="input" id="date" required />
-                            <label for="date" class="label">Data</label>
-                        </div>
-                        <div class="error">
-                            <span v-if="errorsForm['errors'].date" class="span-error">{{
-                                errorsForm["errors"].date[0]
-                            }}</span>
-                        </div>
-                        <div class="inputSimples">
-                            <input v-model="expenseEdit.descricao" type="text" name="descricao" class="input" id="descricao"
-                                required />
-                            <label for="descricao" class="label">Descricao</label>
-                        </div>
-                        <div class="error">
-                            <span v-if="errorsForm['errors'].descricao" class="span-error">{{
-                                errorsForm["errors"].descricao[0]
-                            }}</span>
-                        </div>
-                        <div class="inputSimples">
-                            <select v-model="expenseEdit.status" class="input" name="categoria"
-                                aria-label="Default select example" required>
-                                <option class="options" selected></option>
-                                <option class="options" value="PAGA"> PAGA </option>
-                                <option class="options" value="AGUARDANDO"> AGUARDANDO </option>
-                            </select>
-                            <label for="categoria" class="label">Status</label>
-                        </div>
-                        <div class="error">
-                            <span v-if="errorsForm['errors'].descricao" class="span-error">{{
-                                errorsForm["errors"].descricao[0]
-                            }}</span>
-                        </div>
-                        <div class="inputSimples">
-                            <select v-model="expenseEdit.categoria" class="input" name="categoria"
-                                aria-label="Default select example" required>
-                                <option class="options" selected></option>
-                                <option v-for="categoria in categorias" class="options" :value="categoria">{{
-                                    categoria
-                                }}
-                                </option>
-                            </select>
-                            <label for="categoria" class="label">Categoria</label>
-                        </div>
-                        <div class="error">
-                            <span v-if="errorsForm['errors'].categoria" class="span-error">{{
-                                errorsForm["errors"].categoria[0]
-                            }}</span>
-                        </div>
-                        <div class="inputSimples">
-                            <select v-model="expenseEdit.carteira" class="input" name="carteira"
-                                aria-label="Default select example" required>
-                                <option class="options" selected></option>
-                                <option v-for="carteira in carteiras" class="options" :value="carteira">{{ carteira
-                                }}
-                                </option>
-                            </select>
-                            <label for="carteira" class="label">Carteira</label>
-                        </div>
-                        <div class="error">
-                            <span v-if="errorsForm['errors'].carteira" class="span-error">{{
-                                errorsForm["errors"].carteira[0]
-                            }}</span>
-                        </div>
-                        <div class="form-group p-0 container d-flex justify-content-between col-12 mt-2 mb-4">
-                            <button @click="formEditExpense = !formEditExpense" class="btn btn-danger px-5">
-                                Cancelar
-                            </button>
-                            <button type="submit" class="btn btn-light px-5">
-                                Salvar
-                            </button>
-                        </div>
-                    </form>
-                </div>
+            <div class="error">
+              <span
+                v-if="errorsForm['errors'].valor"
+                class="span-error"
+              >{{
+                errorsForm["errors"].valor[0]
+              }}</span>
             </div>
-        </div>
-        <!-- ========================================================================= -->
-        <!-- =================== fim formulario editar despesa ===================== -->
-        <!-- ========================================================================= -->
-
-
-
-
-        <div class="container-fluid" v-if="!formStoreExpense & !formEditExpense">
-            <div class="card__container">
-                <Card class="card" titulo="Despesas" :valor="valueTotalExpensesMonth" />
-                <Card class="card" titulo="Pendentes" :valor="valuePending" />
-                <Card class="card" titulo="Pagas" :valor="valuePay" />
+            <div class="form-check form-switch text-white">
+              <input
+                id="flexSwitchCheckChecked"
+                v-model="status"
+                class="form-check-input"
+                type="checkbox"
+                checked
+              >
+              <label
+                class="form-check-label"
+                for="flexSwitchCheckChecked"
+              >Foi paga</label>
             </div>
-            <div class="container__table">
-                <div v-if="expensesMonth" class="col-12 col-lg-12">
-                    <div class="row justify-content-center card-header mx-0 py-1"
-                        style="background-color: rgba(0, 0, 0, 0.25)">
-                        <div class="d-flex text-center col-2">
-                            <button class="btn btn-outline-table text-white p-0 fs-5 bi bi-caret-left">
-                                <mdicon class="mdicon" name="chevron-left" />
-                            </button>
-                            <p class="m-0 pt-1 border rounded-pill w-75 text-white">mes</p>
-                            <button class="btn btn-outline-table text-white p-0 fs-5 bi bi-caret-right">
-                                <mdicon class="mdicon" name="chevron-right" />
-                            </button>
-                        </div>
-                    </div>
-                    <div class="table-responsive">
+            <div class="inputSimples">
+              <!-- <mdicon class="mdicon" name="account" /> -->
+              <input
+                id="date"
+                v-model="releases.date"
+                type="text"
+                onfocus="this.type='date'"
+                onblur="this.type='text'"
+                name="date"
+                class="input"
+                required
+              >
+              <label
+                for="date"
+                class="label"
+              >Data</label>
+            </div>
+            <div class="error">
+              <span
+                v-if="errorsForm['errors'].date"
+                class="span-error"
+              >{{
+                errorsForm["errors"].date[0]
+              }}</span>
+            </div>
+            <div class="inputSimples">
+              <!-- <mdicon class="mdicon" name="account" /> -->
+              <input
+                id="descricao"
+                v-model="releases.descricao"
+                type="text"
+                name="descricao"
+                class="input"
+                required
+              >
+              <label
+                for="descricao"
+                class="label"
+              >Descricao</label>
+            </div>
+            <div class="error">
+              <span
+                v-if="errorsForm['errors'].descricao"
+                class="span-error"
+              >{{
+                errorsForm["errors"].descricao[0]
+              }}</span>
+            </div>
+            <div class="inputSimples">
+              <select
+                v-model="releases.categoria"
+                class="input"
+                name="categoria"
+                aria-label="Default select example"
+                required
+              >
+                <!-- <option class="options" selected></option> -->
+                <option
+                  v-for="categoria in categorias"
+                  class="options"
+                  :value="categoria.name"
+                >
+                  {{
+                    categoria.name
+                  }}
+                </option>
+              </select>
+              <label
+                for="categoria"
+                class="label"
+              >Categoria</label>
+            </div>
+            <div class="error">
+              <span
+                v-if="errorsForm['errors'].categoria"
+                class="span-error"
+              >{{
+                errorsForm["errors"].categoria[0]
+              }}</span>
+            </div>
+            <div class="inputSimples">
+              <select
+                v-model="releases.carteira"
+                class="input"
+                name="carteira"
+                aria-label="Default select example"
+                required
+              >
+                <!-- <option class="options" selected></option> -->
+                <option
+                  v-for="carteira in carteiras"
+                  class="options"
+                  :value="carteira"
+                >
+                  {{ carteira
+                  }}
+                </option>
+              </select>
+              <label
+                for="carteira"
+                class="label"
+              >Carteira</label>
+            </div>
+            <div class="error">
+              <span
+                v-if="errorsForm['errors'].carteira"
+                class="span-error"
+              >{{
+                errorsForm["errors"].carteira[0]
+              }}</span>
+            </div>
+            <div class="form-group p-0 container d-flex justify-content-between col-12 mt-2 mb-4">
+              <button
+                class="btn btn-danger px-5"
+                @click="{ formStoreExpense = !formStoreExpense }; clearInputs()"
+              >
+                Cancelar
+              </button>
+              <button
+                class="btn btn-light px-5"
+                @click.prevent="salvarLancamentos"
+              >
+                Salvar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <!-- ========================================================================= -->
+    <!-- ================= fim formulario lançamentos despesas==================== -->
+    <!-- ========================================================================= -->
 
-                        <table v-if="expensesMonth" class="table"
-                            style="background-color: rgba(0, 0, 0, 0.25); color: black;">
-                            <thead>
-                                <tr>
-                                    <th class="text-white text-center">Data</th>
-                                    <th class="text-white text-center">Descrição</th>
-                                    <th class="text-white text-center">Categoria</th>
-                                    <th class="text-white text-center">Carteira</th>
-                                    <th class="text-white text-center">Valor</th>
-                                    <th class="text-white text-center">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="(expense, key) in expensesMonth" :key="expense.id">
-                                    <td class="text-white text-center">{{ expense.date }}</td>
-                                    <td class="text-white text-center">{{ expense.descricao }}</td>
-                                    <td class="text-white text-center">{{ expense.categoria }}</td>
-                                    <td class="text-white text-center">{{ expense.carteira }}</td>
-                                    <td class="text-white text-center">R$ {{ expense.valor }}</td>
-                                    <td class="d-flex py-0 justify-content-center">
-                                        <button @click="payExpense(expense)"
-                                            class="btn btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 text-white"
-                                            :class="{ pay: expense.status === 'PAGA' }"
-                                            :disabled="expense.status === 'PAGA'">
-                                            <mdicon name="check-circle-outline" />
-                                        </button>
-                                        <!-- <button class="btn btn-outline-table p-0 text-white fs-4 bi bi-paperclip mx-2"
+
+    <!-- ========================================================================= -->
+    <!-- ================== inicio formulario editar despesa =================== -->
+    <!-- ========================================================================= -->
+    <div
+      v-if="formEditExpense"
+      class="container-fluid"
+    >
+      <div class="container d-flex justify-content-center">
+        <div class="cadastro">
+          <form
+            class="form"
+            @submit.prevent="saveEditedExpense"
+          >
+            <div class="inputSimples">
+              <input
+                id="valor"
+                v-model="expenseEdit.valor"
+                class="input"
+                name="valor"
+                type="number"
+                required
+              >
+              <label
+                class="label"
+                for="valor"
+              >Valor</label>
+            </div>
+            <div class="error">
+              <span
+                v-if="errorsForm['errors'].valor"
+                class="span-error"
+              >{{
+                errorsForm["errors"].valor[0]
+              }}</span>
+            </div>
+            <div class="inputSimples">
+              <input
+                id="date"
+                v-model="expenseEdit.date"
+                type="date"
+                name="date"
+                class="input"
+                required
+              >
+              <label
+                for="date"
+                class="label"
+              >Data</label>
+            </div>
+            <div class="error">
+              <span
+                v-if="errorsForm['errors'].date"
+                class="span-error"
+              >{{
+                errorsForm["errors"].date[0]
+              }}</span>
+            </div>
+            <div class="inputSimples">
+              <input
+                id="descricao"
+                v-model="expenseEdit.descricao"
+                type="text"
+                name="descricao"
+                class="input"
+                required
+              >
+              <label
+                for="descricao"
+                class="label"
+              >Descricao</label>
+            </div>
+            <div class="error">
+              <span
+                v-if="errorsForm['errors'].descricao"
+                class="span-error"
+              >{{
+                errorsForm["errors"].descricao[0]
+              }}</span>
+            </div>
+            <div class="inputSimples">
+              <select
+                v-model="expenseEdit.status"
+                class="input"
+                name="categoria"
+                aria-label="Default select example"
+                required
+              >
+                <option
+                  class="options"
+                  selected
+                />
+                <option
+                  class="options"
+                  value="PAGA"
+                >
+                  PAGA
+                </option>
+                <option
+                  class="options"
+                  value="AGUARDANDO"
+                >
+                  AGUARDANDO
+                </option>
+              </select>
+              <label
+                for="categoria"
+                class="label"
+              >Status</label>
+            </div>
+            <div class="error">
+              <span
+                v-if="errorsForm['errors'].descricao"
+                class="span-error"
+              >{{
+                errorsForm["errors"].descricao[0]
+              }}</span>
+            </div>
+            <div class="inputSimples">
+              <select
+                v-model="expenseEdit.categoria"
+                class="input"
+                name="categoria"
+                aria-label="Default select example"
+                required
+              >
+                <option
+                  class="options"
+                  selected
+                />
+                <option
+                  v-for="categoria in categorias"
+                  class="options"
+                  :value="categoria"
+                >
+                  {{
+                    categoria
+                  }}
+                </option>
+              </select>
+              <label
+                for="categoria"
+                class="label"
+              >Categoria</label>
+            </div>
+            <div class="error">
+              <span
+                v-if="errorsForm['errors'].categoria"
+                class="span-error"
+              >{{
+                errorsForm["errors"].categoria[0]
+              }}</span>
+            </div>
+            <div class="inputSimples">
+              <select
+                v-model="expenseEdit.carteira"
+                class="input"
+                name="carteira"
+                aria-label="Default select example"
+                required
+              >
+                <option
+                  class="options"
+                  selected
+                />
+                <option
+                  v-for="carteira in carteiras"
+                  class="options"
+                  :value="carteira"
+                >
+                  {{ carteira
+                  }}
+                </option>
+              </select>
+              <label
+                for="carteira"
+                class="label"
+              >Carteira</label>
+            </div>
+            <div class="error">
+              <span
+                v-if="errorsForm['errors'].carteira"
+                class="span-error"
+              >{{
+                errorsForm["errors"].carteira[0]
+              }}</span>
+            </div>
+            <div class="form-group p-0 container d-flex justify-content-between col-12 mt-2 mb-4">
+              <button
+                class="btn btn-danger px-5"
+                @click="formEditExpense = !formEditExpense"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                class="btn btn-light px-5"
+              >
+                Salvar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <!-- ========================================================================= -->
+    <!-- =================== fim formulario editar despesa ===================== -->
+    <!-- ========================================================================= -->
+
+
+
+
+    <div
+      v-if="!formStoreExpense & !formEditExpense"
+      class="container-fluid"
+    >
+      <div class="card__container">
+        <Card
+          class="card"
+          titulo="Despesas"
+          :valor="valueTotalExpensesMonth"
+        />
+        <Card
+          class="card"
+          titulo="Pendentes"
+          :valor="valuePending"
+        />
+        <Card
+          class="card"
+          titulo="Pagas"
+          :valor="valuePay"
+        />
+      </div>
+      <div class="container__table">
+        <div
+          v-if="expensesMonth"
+          class="col-12 col-lg-12"
+        >
+          <div
+            class="row justify-content-center card-header mx-0 py-1"
+            style="background-color: rgba(0, 0, 0, 0.25)"
+          >
+            <div class="d-flex text-center col-2">
+              <button class="btn btn-outline-table text-white p-0 fs-5 bi bi-caret-left">
+                <mdicon
+                  class="mdicon"
+                  name="chevron-left"
+                />
+              </button>
+              <p class="m-0 pt-1 border rounded-pill w-75 text-white">
+                mes
+              </p>
+              <button class="btn btn-outline-table text-white p-0 fs-5 bi bi-caret-right">
+                <mdicon
+                  class="mdicon"
+                  name="chevron-right"
+                />
+              </button>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table
+              v-if="expensesMonth"
+              class="table"
+              style="background-color: rgba(0, 0, 0, 0.25); color: black;"
+            >
+              <thead>
+                <tr>
+                  <th class="text-white text-center">
+                    Data
+                  </th>
+                  <th class="text-white text-center">
+                    Descrição
+                  </th>
+                  <th class="text-white text-center">
+                    Categoria
+                  </th>
+                  <th class="text-white text-center">
+                    Carteira
+                  </th>
+                  <th class="text-white text-center">
+                    Valor
+                  </th>
+                  <th class="text-white text-center">
+                    Ações
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(expense, key) in expensesMonth"
+                  :key="expense.id"
+                >
+                  <td class="text-white text-center">
+                    {{ expense.date }}
+                  </td>
+                  <td class="text-white text-center">
+                    {{ expense.descricao }}
+                  </td>
+                  <td class="text-white text-center">
+                    {{ expense.categoria }}
+                  </td>
+                  <td class="text-white text-center">
+                    {{ expense.carteira }}
+                  </td>
+                  <td class="text-white text-center">
+                    R$ {{ expense.valor }}
+                  </td>
+                  <td class="d-flex py-0 justify-content-center">
+                    <button
+                      class="btn btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 text-white"
+                      :class="{ pay: expense.status === 'PAGA' }"
+                      :disabled="expense.status === 'PAGA'"
+                      @click="payExpense(expense)"
+                    >
+                      <mdicon name="check-circle-outline" />
+                    </button>
+                    <!-- <button class="btn btn-outline-table p-0 text-white fs-4 bi bi-paperclip mx-2"
                                             title="anexar arquivo">
                                             <mdicon name="paperclip" />
                                         </button> -->
-                                        <button @click="displayFormEditExpense(expense)"
-                                            class="btn btn-outline-table p-0 text-white fs-4 bi bi-pencil mx-2"
-                                            title="editar">
-                                            <mdicon name="pencil-outline" />
-                                        </button>
-                                        <button @click="deletar(expense.id)" type="submit"
-                                            class="btn btn-outline-table p-0 text-white fs-4 bi bi-trash3 mx-2"
-                                            title="deletar">
-                                            <mdicon name="trash-can-outline" />
-                                        </button>
-                                        <!-- <button class="btn btn-outline-table p-0 text-white fs-4 bi bi-three-dots-vertical"
+                    <button
+                      class="btn btn-outline-table p-0 text-white fs-4 bi bi-pencil mx-2"
+                      title="editar"
+                      @click="displayFormEditExpense(expense)"
+                    >
+                      <mdicon name="pencil-outline" />
+                    </button>
+                    <button
+                      type="submit"
+                      class="btn btn-outline-table p-0 text-white fs-4 bi bi-trash3 mx-2"
+                      title="deletar"
+                      @click="deletar(expense.id)"
+                    >
+                      <mdicon name="trash-can-outline" />
+                    </button>
+                    <!-- <button class="btn btn-outline-table p-0 text-white fs-4 bi bi-three-dots-vertical"
                                             title="mais opções">
                                             <mdicon name="dots-vertical" />
                                         </button> -->
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <span v-else>
-                            Você não possui lançamentos a serem exibidos
-                        </span>
-                    </div>
-                </div>
-                <h5 v-else class="card-title text-white text-center">
-                    Você não possui despesas a serem exibidas
-                </h5>
-            </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <span v-else>
+              Você não possui lançamentos a serem exibidos
+            </span>
+          </div>
         </div>
-        <div class="overlay toggle-menu"></div>
+        <h5
+          v-else
+          class="card-title text-white text-center"
+        >
+          Você não possui despesas a serem exibidas
+        </h5>
+      </div>
     </div>
+    <div class="overlay toggle-menu" />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -312,9 +591,9 @@ import { ref, reactive } from "vue";
 
 import type { Lancamentos } from "@/types/lancamentos";
 
-import { useExpensesStore } from "@/stores/expenses";
-import { useUserStore } from "@/stores/user";
-import { userData } from "@/stores/data";
+import { useExpensesStore } from "@/store/expenses";
+import { useUserStore } from "@/store/user";
+import { userData } from "@/store/data";
 import { useRouter } from "vue-router";
 import http from "@/services/http";
 
@@ -334,27 +613,27 @@ let formStoreExpense = ref(false);
 let formEditExpense = ref(false);
 let expenseEdit = reactive({});
 let releases = reactive({
-    valor: '',
-    date: '',
-    status: '',
-    descricao: '',
-    categoria: '',
-    carteira: '',
+    valor: "",
+    date: "",
+    status: "",
+    descricao: "",
+    categoria: "",
+    carteira: "",
 });
 let status = ref(true);
 
 const clearInputs = () => {
-    releases.valor = '';
-    releases.date = '';
-    releases.descricao = '';
-    releases.categoria = '';
-    releases.carteira = '';
-}
+    releases.valor = "";
+    releases.date = "";
+    releases.descricao = "";
+    releases.categoria = "";
+    releases.carteira = "";
+};
 
 const returnExpense = () => {
     formStoreExpense.value = formStoreExpense.value === true ? !formStoreExpense.value : formStoreExpense.value;
     formEditExpense.value = formEditExpense.value === true ? !formEditExpense.value : formEditExpense.value;
-}
+};
 
 const salvarLancamentos = async () => {
     try {
@@ -371,11 +650,11 @@ const salvarLancamentos = async () => {
         console.log(error);
         errorsForm["errors"] = error.response.data.errors;
     }
-}
+};
 
 const payExpense = async (expense: Lancamentos) => {
     try {
-        const res = await http.post('/pay-expense', { 'id': expense.id });
+        const res = await http.post("/pay-expense", { "id": expense.id });
         useExpenses.setExpensesData(res.data.expensesData);
         valuePending.value = res.data.expensesData.valuePendingExpenses;
         valuePay.value = res.data.expensesData.valuePayExpenses;
@@ -388,7 +667,7 @@ const payExpense = async (expense: Lancamentos) => {
     } catch (error) {
         console.log(error);
     }
-}
+};
 
 function displayFormEditExpense(expense: Lancamentos) {
     expenseEdit = expense;
@@ -413,7 +692,7 @@ const saveEditedExpense = async () => {
 
 const deletar = async (id: number) => {
     try {
-        const res = await http.post('/delete-expense', { 'id': id });
+        const res = await http.post("/delete-expense", { "id": id });
         useExpenses.setExpensesData(res.data.expensesData);
         valueTotalExpensesMonth.value = res.data.expensesData.valueTotalExpensesMonth;
         valuePending.value = res.data.expensesData.valuePendingExpenses;
@@ -422,7 +701,7 @@ const deletar = async (id: number) => {
     } catch (error) {
         console.log(error);
     }
-}
+};
 
 </script>
 

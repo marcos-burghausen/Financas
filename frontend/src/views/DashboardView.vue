@@ -1,46 +1,70 @@
 <template>
-    <div class="content-wrapper">
+  <div class="content-wrapper">
+    <div class="clearfix" />
 
-        <div class="clearfix"></div>
-
-        <div class="pagetitle">
-            <nav class="d-flex justify-content-between">
-                <ol class="breadcrumb bg-transparent m-0">
-                    <li class="breadcrumb-item opaco">
-                        Dashboard
-                    </li>
-                </ol>
-            </nav>
-        </div>
-        <div class="card__container">
-            <Card class="card" titulo="Receitas" :valor="valueTotalRevenuesMonth" rota="receitas" />
-            <Card class="card" titulo="Despesas" :valor="valueTotalExpensesMonth" rota="despesas" />
-            <!-- <Card class="card col-12 col-md-6 col-lg-6 col-xl-3" titulo="Cartão de crédito" :valor="totalCreditCard"
-                    rota="cartao" /> -->
-            <Card class="card" titulo="Saldo atual" :valor="totalBalance" rota="despesas" />
-        </div>
-        <div class="chart__container">
-            <div v-if="!isAllZeros(totalYearValueExpenses) || !isAllZeros(totalYearValueRevenues)"
-                class="container__charts">
-                <div class="col-8 chart__des__rev">
-                    <apexchart width="100%" height="353" type="bar" :options="options" :series="series">
-                    </apexchart>
-                </div>
-                <div class="col-4 chart1">
-                    <apexchart width="100%" height="353" type="pie" :options="options1" :series="series1">
-                    </apexchart>
-                </div>
-            </div>
-        </div>
+    <div class="pagetitle">
+      <nav class="d-flex justify-content-between">
+        <ol class="breadcrumb bg-transparent m-0">
+          <li class="breadcrumb-item opaco">
+            Dashboard
+          </li>
+        </ol>
+      </nav>
     </div>
+    <div class="card__container">
+      <Card
+        class="card"
+        titulo="Receitas"
+        :valor="valueTotalRevenuesMonth"
+        rota="receitas"
+      />
+      <Card
+        class="card"
+        titulo="Despesas"
+        :valor="valueTotalExpensesMonth"
+        rota="despesas"
+      />
+      <!-- <Card class="card col-12 col-md-6 col-lg-6 col-xl-3" titulo="Cartão de crédito" :valor="totalCreditCard"
+                    rota="cartao" /> -->
+      <Card
+        class="card"
+        titulo="Saldo atual"
+        :valor="totalBalance"
+        rota="despesas"
+      />
+    </div>
+    <div class="chart__container">
+      <div
+        v-if="!isAllZeros(totalYearValueExpenses) || !isAllZeros(totalYearValueRevenues)"
+        class="container__charts"
+      >
+        <div class="col-8 chart__des__rev">
+          <apexchart
+            width="100%"
+            height="353"
+            type="bar"
+            :options="options"
+            :series="series"
+          />
+        </div>
+        <div class="col-4 chart1">
+          <apexchart
+            width="100%"
+            height="353"
+            type="pie"
+            :options="options1"
+            :series="series1"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import Card from "@/components/Card.vue";
 
-import { reactive, ref } from "vue";
-
-import type { Ref } from "vue";
+import { ref } from "vue";
 
 import { useExpensesStore } from "@/store/expenses";
 import { useRevenuesStore } from "@/store/revenues";
@@ -58,7 +82,7 @@ let totalByCategoryExpnses = ref(useExpenses.expensesData.expenses.totalByCatego
 
 const isAllZeros = (arr) => {
     return arr.every(value => value === 0);
-}
+};
 
 
 // =============================== grafico de barras inicio =============================== //
@@ -68,14 +92,14 @@ let totalYearValueRevenues = ref(Object.values(revenuesAddTotalVelueMonth.value)
 
 const options = {
     chart: {
-        id: 'vuechart-example',
-        foreColor: '#fefefe'
+        id: "vuechart-example",
+        foreColor: "#fefefe"
     },
     title: {
-        text: 'receitas & despesas',
-        align: 'left',
+        text: "receitas & despesas",
+        align: "left",
         style: {
-            color: '#fefefe'
+            color: "#fefefe"
         }
     },
     dataLabels: {
@@ -83,31 +107,31 @@ const options = {
     },
     labels: {
         style: {
-            color: '#fefefe'
+            color: "#fefefe"
         }
     },
-    colors: ['#fb0404', '#77d08e'],
+    colors: ["#fb0404", "#77d08e"],
     xaxis: {
-        categories: ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'],
+        categories: ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"],
     },
     tooltip: {
         y: {
             formatter: function (val) {
-                return "$ " + val
+                return "$ " + val;
             }
         }, theme: "dark",
     }
-}
+};
 const series = [
     {
-        name: 'despesas',
+        name: "despesas",
         data: totalYearValueExpenses.value,
     },
     {
-        name: 'receitas',
+        name: "receitas",
         data: totalYearValueRevenues.value,
     }
-]
+];
 // =============================== grafico de barras fim =============================== //
 
 // =============================== grafico de pizza inicio =============================== //
@@ -116,22 +140,22 @@ let valuesCategory = ref(Object.values(totalByCategoryExpnses.value));
 
 const options1 = {
     chart: {
-        id: 'vuechart-example',
-        foreColor: '#fefefe'
+        id: "vuechart-example",
+        foreColor: "#fefefe"
     },
     title: {
-        text: 'despesas por categoria',
-        align: 'center',
+        text: "despesas por categoria",
+        align: "center",
         style: {
-            color: '#fefefe'
+            color: "#fefefe"
         }
     },
     legend: {
-        position: 'bottom'
+        position: "bottom"
     },
     labels: category.value
-}
-const series1 = valuesCategory.value
+};
+const series1 = valuesCategory.value;
 // =============================== grafico de pizza fim =============================== //
 
 

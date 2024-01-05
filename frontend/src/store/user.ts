@@ -13,23 +13,23 @@ export const useUserStore = defineStore("user", () => {
 
     // getters
     const getCarteias = () => {
-        return user.carteiras;
-    }
+        return user.value.carteiras;
+    };
 
     // actions
     function setUserData(data: UserDAta): void {
         user.value = data;
-        localStorage.setItem('user', JSON.stringify(user.value));
+        localStorage.setItem("user", JSON.stringify(user.value));
     }
 
     function setCategoriasDespesas(categoriasDespesas: Category) {
         user.value.categoriasDespesas = categoriasDespesas;
-        localStorage.setItem('user', JSON.stringify(user.value));
+        localStorage.setItem("user", JSON.stringify(user.value));
     }
 
     function setCategoriasReceitas(categoriasReceitas: Category) {
         user.value.categoriasReceitas = categoriasReceitas;
-        localStorage.setItem('user', JSON.stringify(user.value));
+        localStorage.setItem("user", JSON.stringify(user.value));
     }
 
 

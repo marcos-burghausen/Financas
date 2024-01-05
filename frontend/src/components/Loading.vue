@@ -1,8 +1,8 @@
 <template>
-    <div class="loading">
-        <div class="loader"></div>
-        <p>Carregando...</p>
-    </div>
+  <div class="loading">
+    <div class="loader" />
+    <p>Carregando...</p>
+  </div>
 </template>
 
 <style scoped>
