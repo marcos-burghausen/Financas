@@ -24,7 +24,7 @@ onMounted(() => {
 
 <style scoped>
 .error {
-    color: rgb(194, 4, 4);
+  color: rgb(247, 20, 20);
     text-align: center;
 }
 </style>

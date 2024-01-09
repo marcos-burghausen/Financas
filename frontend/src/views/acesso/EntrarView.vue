@@ -45,11 +45,22 @@
       <p class="sub__title">
         ou use sua conta de e-mail:
       </p>
-      <form
+      <v-form
+        v-model="validForm"
         class="form"
         @submit.prevent="login"
       >
         <ErrorMessage />
+        <v-text-field
+          v-model="user.email"
+          variant="outlined"
+          type="email"
+          hide-details="auto"
+          label="First name"
+          :rules="[rules.requiredEmail]"
+          class="mb-3"
+        />
+
         <div class="container__input">
           <label
             class="label"
@@ -66,14 +77,15 @@
             type="email"
             autocomplete="off"
             name="email"
+            autofocus
           >
         </div>
         <div class="error">
           <span
-            v-if="errorsForm.email"
+            v-if="errorsForm"
             class="span__error"
           >{{
-            errorsForm.email[0]
+            errorsForm.email
           }}</span>
         </div>
         <div class="container__input">
@@ -96,10 +108,10 @@
         </div>
         <div class="error">
           <span
-            v-if="errorsForm.password"
+            v-if="rules[requiredEmail]"
             class="span__error"
           >{{
-            errorsForm.password[0]
+            rules[requiredEmail]
           }}</span>
         </div>
         <div class="container__button">
@@ -116,12 +128,13 @@
           </a>
         </div>
         <button
+          :disabled="loading || !validForm"
           class="btn btn__submit"
           type="submit"
         >
           entrar
         </button>
-      </form>
+      </v-form>
     </div>
     <div class="container__decription">
       <figure class="figure">
@@ -169,16 +182,19 @@ import { ref, type Ref } from "vue";
 const emits = defineEmits(["nextStep"]);
 const useExpenses = useExpensesStore();
 const useRevenues = useRevenuesStore();
-const errorsForm: Ref<FormLogin> = ref({});
-const errorStore = useErrorStore();
-const user: FormLogin = ref({});
 const useUser = useUserStore();
+const errorStore = useErrorStore();
+const errorsForm = errorStore.errorMessageForm;
+const user: Ref<FormLogin> = ref({});
 const isLoading = ref(false);
 const router = useRouter();
 const data = userData();
 const auth = useAuth();
 
+let validForm = ref(false);
+
 async function login() {
+    // errorsForm.value = {};
     isLoading.value = true;
     try {
         const res = await http.post("/auth", user.value);
@@ -195,7 +211,8 @@ async function login() {
         router.push({ name: "dashboard" });
     } catch (error) {
         if (error.response?.data?.errors) {
-            errorsForm.value = error.response?.data?.errors;
+            // errorsForm.value = error.response?.data?.errors;
+            errorStore.setErrorFromForm(error);
         } else {
             errorStore.setErrorFromResponse(error);
         }
@@ -204,6 +221,13 @@ async function login() {
     }
 
 }
+
+const rules = {
+    requiredEmail: (value: string) =>
+        !!value || "O campo email é obrigatório",
+    requiredSenha: (value: string) =>
+        !!value || "O campo senha é obrigatório"
+};
 </script>
 <style scoped>
 .box {
@@ -333,7 +357,7 @@ async function login() {
 }
 
 .span__error {
-    color: rgb(194, 4, 4);
+    color: rgb(247, 20, 20);
     position: relative;
     top: 0;
     left: 0;

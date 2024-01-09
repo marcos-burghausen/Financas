@@ -356,10 +356,10 @@
                 <option
                   v-for="categoria in categorias"
                   class="options"
-                  :value="categoria"
+                  :value="categoria.name"
                 >
                   {{
-                    categoria
+                    categoria.name
                   }}
                 </option>
               </select>

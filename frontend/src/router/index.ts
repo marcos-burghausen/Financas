@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
-import HomeView from "@/views/HomeView.vue";
-import routes from "@/router/routes.ts";
+import HomeView from "../views/HomeView.vue";
+import routes from "../router/routes.ts";
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -13,7 +13,7 @@ const router = createRouter({
         {
             path: "/dashboard",
             name: "dashboard",
-            component: () => import("@/views/DashboardView.vue"),
+            component: () => import("../views/DashboardView.vue"),
             meta: {
                 auth: true
             }
@@ -29,7 +29,7 @@ const router = createRouter({
         {
             path: "/receitas",
             name: "receitas",
-            component: () => import("@/views/receitas/ReceitasView.vue"),
+            component: () => import("../views/receitas/ReceitasView.vue"),
             meta: {
                 auth: true
             }
@@ -45,7 +45,7 @@ const router = createRouter({
         {
             path: "/cartao",
             name: "cartao",
-            component: () => import("@/views/cartaoCredito/CartaoCreditoView.vue"),
+            component: () => import("../views/cartaoCredito/CartaoCreditoView.vue"),
             meta: {
                 auth: true
             }
