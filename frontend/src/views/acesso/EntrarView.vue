@@ -99,8 +99,8 @@
             cadastre-se.
           </a>
         </div>
+        <!-- :disabled="loading || !validForm" -->
         <v-btn
-          :disabled="loading || !validForm"
           :loading="loading"
           class="btn btn__submit"
           type="submit"
@@ -134,10 +134,12 @@
       </button>
     </div>
   </div>
+  <ErrorsForm />
 </template>
 
 <script setup lang="ts">
 import ErrorMessage from "@/components/ErrorMessage.vue";
+import ErrorsForm from "@/components/ModalErrorsForm.vue";
 
 import { useExpensesStore } from "@/store/expenses";
 import { useRevenuesStore } from "@/store/revenues";
@@ -183,6 +185,9 @@ async function login() {
 
         router.push({ name: "dashboard" });
     } catch (error) {
+        if (error.response.data.errors) {
+            errorStore.setErrorFromForm(error.response.data.errors);
+        }
         errorStore.setErrorFromResponse(error);
     } finally {
         loading.value = false;
@@ -286,56 +291,13 @@ const rules = {
     flex-direction: column;
     width: 100% !important;
 }
-
-.container__input {
-    background-color: #1e1e1e;
-    margin: 20px 0 0 0;
-    display: flex;
-    align-items: center;
-    padding-left: 5px;
-    position: relative;
-    border-radius: 5px;
-}
-
-.container__input input {
-    height: 55px;
-    color: #ccc;
-    width: 100%;
-    border: none;
-    background-color: transparent;
-}
 .input {
+  background-color: #1e1e1e !important;
     height: 55px;
     color: #ccc;
     width: 100%;
     border: none;
     background-color: transparent;
-}
-
-.container__input input:focus {
-    box-shadow: 0 0 0 0.15rem #0096a72f !important;
-}
-
-.label {
-    color: #fefefe;
-    background-color: transparent;
-    position: absolute;
-    left: 10px;
-    top: -25px;
-    opacity: 0.4;
-    cursor: text;
-    transition: 0.5s ease-in-out;
-}
-
-.error {
-    height: 20px;
-}
-
-.span__error {
-    color: rgb(247, 20, 20);
-    position: relative;
-    top: 0;
-    left: 0;
 }
 
 .container__button {

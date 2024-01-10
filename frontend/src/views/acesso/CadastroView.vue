@@ -124,6 +124,7 @@
           label="Senha"
           :rules="[rules.requiredSenha]"
           class="mb-7 input"
+          hint="A senha deve ter pelo menos 8 caracteres sendo uma letra maiúcula, uma minúscula, um número e um caracter especial exeto aspas simples e aspas duplas"
         >
           <template #prepend-inner>
             <mdicon
@@ -143,8 +144,8 @@
               conta </span>conecte-se.
           </a>
         </div>
+        <!-- :disabled="loading || !validForm" -->
         <v-btn
-          :disabled="loading || !validForm"
           :loading="loading"
           class="btn btn__submit"
           type="submit"
@@ -179,7 +180,6 @@ async function create() {
         await http.post("/create", user.value);
         emits("nextStep");
     } catch (error: unknown) {
-        console.log(error);
         errorStore.setErrorFromResponse(error);
     } finally {
         loading.value = false;

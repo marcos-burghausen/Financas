@@ -12,9 +12,15 @@ export const useErrorStore = defineStore("error", () => {
     // state
     const errorCode: Ref<ErrorCodes | null> = ref(null);
 
+    const errorsForm = ref();
+
     // getters
     const errorMessage = computed(() =>
         errorCode.value ? errorCodes[errorCode.value] : ""
+    );
+
+    const errorsFormMessage = computed(() =>
+        errorsForm.value
     );
 
     // actions
@@ -28,6 +34,11 @@ export const useErrorStore = defineStore("error", () => {
         }
     }
 
+    function setErrorFromForm(error): void {
+        errorsForm.value = error;
+        console.log(errorsForm.value);
+    }
+
     function setCustomError(code: ErrorCodes): void {
         errorCode.value = code;
     }
@@ -36,5 +47,5 @@ export const useErrorStore = defineStore("error", () => {
         errorCode.value = null;
     }
 
-    return { errorMessage, setErrorFromResponse, unsetError, setCustomError };
+    return { errorMessage, errorsFormMessage, setErrorFromResponse, setErrorFromForm, unsetError, setCustomError };
 });

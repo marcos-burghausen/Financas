@@ -15,14 +15,25 @@ class RegisterController extends Controller
     {
         $data = $request->validate(
             [
-                'name'            => 'required|min:3|string',
-                'email'           => 'required|email',
-                'password'        => 'required|string',
-//                'confirmPassword' => 'required|string',
+                'name' =>[
+                    'required',
+                    'min:3',
+                    'regex:/^[a-zà-ýÀ-Ý.\-_\/ ]/'
+                ],
+                'email' => [
+                    'required',
+                    'email',
+                ],
+                'password' => [
+                    'required',
+                    'regex:/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\\¨~?´`!@#$%^&*()_+={}:;.<>,|\[\]\-\/])[0-9a-zA-Z\\¨~?´`!@#$%^&*()_+={}:;.<>,|\[\]\-\/]{8,}$/',
+                ]
+                // 'confirmPassword' => 'required|string',
             ],
             [
                 'name.required'            => 'O campo nome é obrigatório',
                 'name.min'                 => 'O campo nome deve ter pelo menos 3 caracteres',
+                'name.regex'               => 'O campo nome deve conter apenas letras',
                 'email.required'           => 'O campo email é obrigatório',
                 'email.unique'             => 'Já existe um usuário cadastrado com esse email',
                 'password.required'        => 'O campo senha é obrigatório',

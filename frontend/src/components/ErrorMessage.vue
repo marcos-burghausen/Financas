@@ -6,7 +6,7 @@
   >
     <!-- <p class="error__message">{{ errorCode }}</p> -->
     <p class="error__message">
-      {{ errorStore.errorMessage }}
+      <!-- {{ errorStore.errorMessage }} -->
     </p>
   </div>
 </template>

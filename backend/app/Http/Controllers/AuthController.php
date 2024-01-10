@@ -12,6 +12,8 @@ use App\Http\Traits\TotalByCategoryTrait;
 use App\Utils\FinancasCache;
 use DateTime;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Password;
+
 
 class AuthController extends Controller
 {
@@ -21,13 +23,22 @@ class AuthController extends Controller
     {
         $request->validate(
             [
-                'email'           => 'required|email',
-                'password'        => 'required|string',
+                'email' => [
+                    'required',
+                    'email'
+                ],
+                'password' => [
+                    'required',
+                    // 'regex:/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\\¨~?´`!@#$%^&*()_+={}:;.<>,|\[\]\-\/])[0-9a-zA-Z\\¨~?´`!@#$%^&*()_+={}:;.<>,|\[\]\-\/]{8,}$/'
+                ],
             ],
             [
-                'email.required'           => 'O campo email é obrigatório',
-                'email.email'             => 'O email precisa ter um formato de email válido',
-                'password.required'        => 'O campo senha é obrigatório',
+                'required'      => 'O campo :attribute é obrigatório',
+                'email.email'         => 'O email precisa ter um formato de email válido',
+                // 'password.required'   => 'O campo senha é obrigatório',
+            ],
+            [
+                'password' => 'senha'
             ]
         );
         $credentials = $request->all(['email', 'password']);
