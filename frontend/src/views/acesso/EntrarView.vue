@@ -1,5 +1,4 @@
 <template>
-  <Loading v-if="isLoading" />
   <div class="box">
     <div class="container__dados">
       <h2 class="title">
@@ -51,69 +50,42 @@
         @submit.prevent="login"
       >
         <ErrorMessage />
+
         <v-text-field
           v-model="user.email"
           variant="outlined"
           type="email"
           hide-details="auto"
-          label="First name"
+          label="Email"
           :rules="[rules.requiredEmail]"
-          class="mb-3"
-        />
+          class="mb-7 input"
+          autofocus
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="email-outline"
+            />
+          </template>
+        </v-text-field>
 
-        <div class="container__input">
-          <label
-            class="label"
-            for="email"
-          >Email</label>
-          <mdicon
-            class="icon__modify"
-            name="email-outline"
-          />
-          <input
-            id="email"
-            v-model="user.email"
-            class="form-control"
-            type="email"
-            autocomplete="off"
-            name="email"
-            autofocus
-          >
-        </div>
-        <div class="error">
-          <span
-            v-if="errorsForm"
-            class="span__error"
-          >{{
-            errorsForm.email
-          }}</span>
-        </div>
-        <div class="container__input">
-          <label
-            class="label"
-            for="password"
-          >Password</label>
-          <mdicon
-            class="icon__modify"
-            name="lock"
-          />
-          <input
-            id="password"
-            v-model="user.password"
-            class="form-control"
-            type="password"
-            autocomplete="off"
-            name="password"
-          >
-        </div>
-        <div class="error">
-          <span
-            v-if="rules[requiredEmail]"
-            class="span__error"
-          >{{
-            rules[requiredEmail]
-          }}</span>
-        </div>
+        <v-text-field
+          v-model="user.password"
+          variant="outlined"
+          type="password"
+          hide-details="auto"
+          label="Senha"
+          :rules="[rules.requiredSenha]"
+          class="mb-5 input"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="lock"
+            />
+          </template>
+        </v-text-field>
+
         <div class="container__button">
           <a
             class="link"
@@ -127,13 +99,14 @@
             cadastre-se.
           </a>
         </div>
-        <button
+        <v-btn
           :disabled="loading || !validForm"
+          :loading="loading"
           class="btn btn__submit"
           type="submit"
         >
           entrar
-        </button>
+        </v-btn>
       </v-form>
     </div>
     <div class="container__decription">
@@ -165,7 +138,6 @@
 
 <script setup lang="ts">
 import ErrorMessage from "@/components/ErrorMessage.vue";
-import Loading from "@/components/Loading.vue";
 
 import { useExpensesStore } from "@/store/expenses";
 import { useRevenuesStore } from "@/store/revenues";
@@ -184,7 +156,6 @@ const useExpenses = useExpensesStore();
 const useRevenues = useRevenuesStore();
 const useUser = useUserStore();
 const errorStore = useErrorStore();
-const errorsForm = errorStore.errorMessageForm;
 const user: Ref<FormLogin> = ref({});
 const isLoading = ref(false);
 const router = useRouter();
@@ -192,11 +163,13 @@ const data = userData();
 const auth = useAuth();
 
 let validForm = ref(false);
+let mostrarSenha = ref(false);
+let loading = ref(false);
 
 async function login() {
-    // errorsForm.value = {};
-    isLoading.value = true;
+    errorStore.unsetError();
     try {
+        loading.value = true;
         const res = await http.post("/auth", user.value);
         auth.setToken(res.data.token);
 
@@ -210,14 +183,9 @@ async function login() {
 
         router.push({ name: "dashboard" });
     } catch (error) {
-        if (error.response?.data?.errors) {
-            // errorsForm.value = error.response?.data?.errors;
-            errorStore.setErrorFromForm(error);
-        } else {
-            errorStore.setErrorFromResponse(error);
-        }
+        errorStore.setErrorFromResponse(error);
     } finally {
-        isLoading.value = false;
+        loading.value = false;
     }
 
 }
@@ -330,6 +298,13 @@ const rules = {
 }
 
 .container__input input {
+    height: 55px;
+    color: #ccc;
+    width: 100%;
+    border: none;
+    background-color: transparent;
+}
+.input {
     height: 55px;
     color: #ccc;
     width: 100%;

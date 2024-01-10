@@ -26,5 +26,6 @@ onMounted(() => {
 .error {
   color: rgb(247, 20, 20);
     text-align: center;
+    margin-bottom: 15px;
 }
 </style>

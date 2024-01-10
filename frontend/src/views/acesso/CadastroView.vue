@@ -1,7 +1,5 @@
 <template>
-  <Loading v-if="isLoading" />
   <div
-    v-else
     class="box"
   >
     <div class="container__decription">
@@ -75,112 +73,91 @@
       <p class="sub__title">
         ou use seu e-mail para inscrição:
       </p>
+
       <ErrorMessage />
-      <form
+
+      <v-form
+        v-model="validForm"
         class="form"
         @submit.prevent="create"
       >
-        <div class="container__input">
-          <label
-            class="label"
-            for="name"
-          >Nome</label>
-          <mdicon
-            class="icon__modify"
-            name="account-outline"
-          />
-          <input
-            id="name"
-            v-model="user.name"
-            class="form-control"
-            type="text"
-            autocomplete="off"
-            name="name"
-          >
-        </div>
-        <div class="error">
-          <span
-            v-if="errorsForm.name"
-            class="span__error"
-          >{{
-            errorsForm.name[0]
-          }}</span>
-        </div>
-        <div class="container__input">
-          <label
-            class="label"
-            for="email"
-          >Email</label>
-          <mdicon
-            class="icon__modify"
-            name="email-outline"
-          />
-          <input
-            id="email"
-            v-model="user.email"
-            class="form-control"
-            type="email"
-            autocomplete="off"
-            name="email"
-          >
-        </div>
-        <div class="error">
-          <span
-            v-if="errorsForm.email"
-            class="span__error"
-          >{{
-            errorsForm.email[0]
-          }}</span>
-        </div>
-        <div class="container__input">
-          <label
-            class="label"
-            for="password"
-          >Password</label>
-          <mdicon
-            class="icon__modify"
-            name="lock"
-          />
-          <input
-            id="password"
-            v-model="user.password"
-            class="form-control"
-            type="password"
-            autocomplete="off"
-            name="password"
-          >
-        </div>
-        <div class="error">
-          <span
-            v-if="errorsForm.password"
-            class="span__error"
-          >{{
-            errorsForm.password[0]
-          }}</span>
-        </div>
+        <v-text-field
+          v-model="user.name"
+          variant="outlined"
+          type="text"
+          hide-details="auto"
+          label="Nome"
+          :rules="[rules.requiredName]"
+          class="mb-7 input"
+          autofocus
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="account-outline"
+            />
+          </template>
+        </v-text-field>
+
+        <v-text-field
+          v-model="user.email"
+          variant="outlined"
+          type="email"
+          hide-details="auto"
+          label="Email"
+          :rules="[rules.requiredEmail]"
+          class="mb-7 input"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="email-outline"
+            />
+          </template>
+        </v-text-field>
+
+        <v-text-field
+          v-model="user.password"
+          variant="outlined"
+          type="password"
+          hide-details="auto"
+          label="Senha"
+          :rules="[rules.requiredSenha]"
+          class="mb-7 input"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="lock"
+            />
+          </template>
+        </v-text-field>
+
         <div class="container__button">
-          <button
+          <a
             class="btn__register"
+            href="#"
             @click.prevent="emits('nextStep')"
           >
             <span>já tem uma
               conta </span>conecte-se.
-          </button>
+          </a>
         </div>
-        <button
+        <v-btn
+          :disabled="loading || !validForm"
+          :loading="loading"
           class="btn btn__submit"
           type="submit"
         >
-          cadastro
-        </button>
-      </form>
+          cadastrar
+        </v-btn>
+      </v-form>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import ErrorMessage from "@/components/ErrorMessage.vue";
-import Loading from "@/components/Loading.vue";
 
 import { useErrorStore } from "@/store/error";
 import http from "@/services/http";
@@ -188,28 +165,35 @@ import http from "@/services/http";
 import { ref } from "vue";
 import type { FormCadastro } from "@/types/formCadastro";
 
-const errorsForm: FormCadastro = ref({});
 const emits = defineEmits(["nextStep"]);
 const errorStore = useErrorStore();
 const user: FormCadastro = ref({});
-const isLoading = ref(false);
+
+let validForm = ref(false);
+let mostrarSenha = ref(false);
+let loading = ref(false);
 
 async function create() {
-    isLoading.value = true;
+    loading.value = true;
     try {
         await http.post("/create", user.value);
         emits("nextStep");
     } catch (error: unknown) {
-        if (error.response?.data?.errors) {
-            errorsForm.value = error.response?.data?.errors;
-        } else {
-            console.log(error);
-            errorStore.setErrorFromResponse(error);
-        }
+        console.log(error);
+        errorStore.setErrorFromResponse(error);
     } finally {
-        isLoading.value = false;
+        loading.value = false;
     }
 }
+
+const rules = {
+    requiredName: (value: string) =>
+        !!value || "O campo nome é obrigatório",
+    requiredEmail: (value: string) =>
+        !!value || "O campo email é obrigatório",
+    requiredSenha: (value: string) =>
+        !!value || "O campo senha é obrigatório"
+};
 </script>
 <style scoped>
 .box {
@@ -313,6 +297,13 @@ async function create() {
 }
 
 .container__input input {
+    height: 55px;
+    color: #ccc;
+    width: 100%;
+    border: none;
+    background-color: transparent;
+}
+.input {
     height: 55px;
     color: #ccc;
     width: 100%;
