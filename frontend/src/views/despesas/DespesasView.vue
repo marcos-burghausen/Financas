@@ -33,13 +33,14 @@
             editar de despesa
           </li>
         </ol>
-        <button
+        <FormLancamentos />
+        <!-- <button
           v-if="!formStoreExpense && !formEditExpense"
           class="btn btn-danger text-whit"
           @click="formStoreExpense = !formStoreExpense"
         >
           nova despesa
-        </button>
+        </button> -->
       </nav>
     </div>
 
@@ -148,7 +149,8 @@
               >
                 <!-- <option class="options" selected></option> -->
                 <option
-                  v-for="categoria in categorias"
+                  v-for="(categoria, index) in categorias"
+                  :key="index"
                   class="options"
                   :value="categoria.name"
                 >
@@ -441,17 +443,17 @@
     >
       <div class="card__container">
         <Card
-          class="card"
+          class="cards"
           titulo="Despesas"
           :valor="valueTotalExpensesMonth"
         />
         <Card
-          class="card"
+          class="cards"
           titulo="Pendentes"
           :valor="valuePending"
         />
         <Card
-          class="card"
+          class="cards"
           titulo="Pagas"
           :valor="valuePay"
         />
@@ -533,7 +535,7 @@
                   </td>
                   <td class="d-flex py-0 justify-content-center">
                     <button
-                      class="btn btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 text-white"
+                      class=" btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 text-white"
                       :class="{ pay: expense.status === 'PAGA' }"
                       :disabled="expense.status === 'PAGA'"
                       @click="payExpense(expense)"
@@ -545,7 +547,7 @@
                                             <mdicon name="paperclip" />
                                         </button> -->
                     <button
-                      class="btn btn-outline-table p-0 text-white fs-4 bi bi-pencil mx-2"
+                      class=" btn-outline-table p-0 text-white fs-4 bi bi-pencil mx-2"
                       title="editar"
                       @click="displayFormEditExpense(expense)"
                     >
@@ -586,6 +588,7 @@
 
 <script setup lang="ts">
 import Card from "@/components/Card.vue";
+import FormLancamentos from "@/components/FormLancamentos.vue";
 
 import { ref, reactive } from "vue";
 
@@ -810,7 +813,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     display: flex;
 }
 
-.card {
+.cards {
     width: 33.33%;
     color: #ccc;
     font-size: 30px;

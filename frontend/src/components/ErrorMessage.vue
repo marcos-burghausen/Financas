@@ -1,12 +1,11 @@
 <template>
   <div
     v-show="errorStore.errorMessage"
-    class="error"
+    class="erro"
     role="alert"
   >
-    <!-- <p class="error__message">{{ errorCode }}</p> -->
     <p class="error__message">
-      <!-- {{ errorStore.errorMessage }} -->
+      {{ errorStore.errorMessage }}
     </p>
   </div>
 </template>
@@ -23,7 +22,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.error {
+.erro {
   color: rgb(247, 20, 20);
     text-align: center;
     margin-bottom: 15px;

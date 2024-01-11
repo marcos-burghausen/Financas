@@ -76,6 +76,8 @@
 
       <ErrorMessage />
 
+      <ErrorsForm />
+
       <v-form
         v-model="validForm"
         class="form"
@@ -144,8 +146,8 @@
               conta </span>conecte-se.
           </a>
         </div>
-        <!-- :disabled="loading || !validForm" -->
         <v-btn
+          :disabled="loading || !validForm"
           :loading="loading"
           class="btn btn__submit"
           type="submit"
@@ -159,6 +161,7 @@
 
 <script setup lang="ts">
 import ErrorMessage from "@/components/ErrorMessage.vue";
+import ErrorsForm from "@/components/ModalErrorsForm.vue";
 
 import { useErrorStore } from "@/store/error";
 import http from "@/services/http";

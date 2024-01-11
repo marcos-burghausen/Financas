@@ -99,8 +99,8 @@
             cadastre-se.
           </a>
         </div>
-        <!-- :disabled="loading || !validForm" -->
         <v-btn
+          :disabled="loading || !validForm"
           :loading="loading"
           class="btn btn__submit"
           type="submit"
@@ -159,7 +159,6 @@ const useRevenues = useRevenuesStore();
 const useUser = useUserStore();
 const errorStore = useErrorStore();
 const user: Ref<FormLogin> = ref({});
-const isLoading = ref(false);
 const router = useRouter();
 const data = userData();
 const auth = useAuth();
@@ -185,9 +184,6 @@ async function login() {
 
         router.push({ name: "dashboard" });
     } catch (error) {
-        if (error.response.data.errors) {
-            errorStore.setErrorFromForm(error.response.data.errors);
-        }
         errorStore.setErrorFromResponse(error);
     } finally {
         loading.value = false;
