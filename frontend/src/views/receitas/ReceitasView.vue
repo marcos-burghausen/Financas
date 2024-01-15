@@ -12,7 +12,7 @@
             </router-link>
           </li>
           <li
-            :class="{ opaco: !formStoreRevenue & !formEditRevenue }"
+            :class="{ opaco: !formStoreRevenue && !formEditRevenue }"
             class="breadcrumb-item text-white"
             @click="returnRevenue"
           >
@@ -52,35 +52,27 @@
     >
       <div class="container d-flex justify-content-center">
         <div class="cadastro">
-          <form class="form">
-            <div class="inputSimples">
-              <input
-                id="valor"
-                v-model="releases.valor"
-                class="input"
-                autocomplete="off"
-                name="valor"
-                type="tel"
-                required
-              >
-              <label
-                class="label"
-                for="valor"
-              >Valor</label>
-            </div>
-            <div class="error">
-              <span
-                v-if="errorsForm['errors'].valor"
-                class="span-error"
-              >{{
-                errorsForm["errors"].valor[0]
-              }}</span>
-            </div>
+          <v-form
+            class="form"
+            @submit.prevent="salvarLancamentos"
+          >
+            <v-text-field
+              v-model="releases.valor"
+              density="compact"
+              prefix="R$"
+              variant="outlined"
+              type="tel"
+              hide-details="auto"
+              label="Valor"
+              :rules="[rules.requiredValor]"
+              class="mb-5 input"
+            />
+
             <div class="form-check form-switch text-white">
               <input
                 id="flexSwitchCheckChecked"
                 v-model="status"
-                class="form-check-input"
+                class="form-check-input mb-5"
                 type="checkbox"
                 checked
               >
@@ -89,135 +81,70 @@
                 for="flexSwitchCheckChecked"
               >Recebida</label>
             </div>
-            <div class="inputSimples">
-              <input
-                id="date"
-                v-model="releases.date"
-                type="text"
-                onfocus="this.type='date'"
-                onblur="this.type='text'"
-                name="date"
-                class="input"
-                required
-              >
-              <label
-                for="date"
-                class="label"
-              >Data</label>
-            </div>
-            <div class="error">
-              <span
-                v-if="errorsForm['errors'].date"
-                class="span-error"
-              >{{
-                errorsForm["errors"].date[0]
-              }}</span>
-            </div>
-            <div class="inputSimples">
-              <input
-                id="descricao"
-                v-model="releases.descricao"
-                type="text"
-                name="descricao"
-                autocomplete="off"
-                class="input"
-                required
-              >
-              <label
-                for="descricao"
-                class="label"
-              >Descricao</label>
-            </div>
-            <div class="error">
-              <span
-                v-if="errorsForm['errors'].descricao"
-                class="span-error"
-              >{{
-                errorsForm["errors"].descricao[0]
-              }}</span>
-            </div>
-            <div class="inputSimples">
-              <select
-                v-model="releases.categoria"
-                class="input"
-                name="categoria"
-                aria-label="Default select example"
-                required
-              >
-                <option
-                  class="options"
-                  selected
-                />
-                <option
-                  v-for="categoria in categorias"
-                  class="options"
-                  :value="categoria.name"
-                >
-                  {{
-                    categoria.name }}
-                </option>
-              </select>
-              <label
-                for="categoria"
-                class="label"
-              >Categoria</label>
-            </div>
-            <div class="error">
-              <span
-                v-if="errorsForm['errors'].categoria"
-                class="span-error"
-              >{{
-                errorsForm["errors"].categoria[0]
-              }}</span>
-            </div>
-            <div class="inputSimples">
-              <select
-                v-model="releases.carteira"
-                class="input"
-                name="carteira"
-                aria-label="Default select example"
-                required
-              >
-                <option
-                  class="options"
-                  selected
-                />
-                <option
-                  v-for="carteira in carteiras"
-                  class="options"
-                  :value="carteira"
-                >
-                  {{ carteira }}
-                </option>
-              </select>
-              <label
-                for="carteira"
-                class="label"
-              >Carteira</label>
-            </div>
-            <div class="error">
-              <span
-                v-if="errorsForm['errors'].carteira"
-                class="span-error"
-              >{{
-                errorsForm["errors"].carteira[0]
-              }}</span>
-            </div>
+
+            <v-text-field
+              v-model="releases.date"
+              density="compact"
+              variant="outlined"
+              type="date"
+              hide-details="auto"
+              label="Data"
+              :rules="[rules.requiredData]"
+              class="mb-7 input"
+            />
+
+            <v-text-field
+              v-model="releases.descricao"
+              density="compact"
+              variant="outlined"
+              type="text"
+              hide-details="auto"
+              label="Descriçao"
+              :rules="[rules.requiredDescricao]"
+              class="mb-7 input"
+            />
+            <v-autocomplete
+              v-model="releases.categoria"
+              density="compact"
+              variant="outlined"
+              :rules="[rules.requiredCatagoria]"
+              :items="categoriasNames"
+              label="Categoria"
+              placeholder="Select..."
+              class="mb-7 input"
+            />
+
+            <v-autocomplete
+              v-model="releases.carteira"
+              density="compact"
+              variant="outlined"
+              :rules="[rules.requiredCarteira]"
+              :items="carteiras"
+              label="Carteira"
+              placeholder="Select..."
+              class="mb-7 input"
+            />
+
             <div class="form-group p-0 container d-flex justify-content-between col-12 mt-2 mb-4">
-              <button
-                class="btn btn-danger px-5"
-                @click="{ formStoreRevenue = !formStoreRevenue }; clearInputs()"
+              <v-btn
+                :disabled="loading"
+                :loading="loading"
+                style="background-color: red;"
+                class=" px-5"
+                @click="{ formStoreExpense = !formStoreExpense }; clearInputs()"
               >
                 Cancelar
-              </button>
-              <button
-                class="btn btn-light px-5"
-                @click.prevent="salvarLancamentos"
+              </v-btn>
+              <v-btn
+                :disabled="loading || !validForm"
+                :loading="loading"
+                style="background-color: #77d08e;"
+                class=" btn-light px-5"
               >
                 Salvar
-              </button>
+              </v-btn>
             </div>
-          </form>
+          </v-form>
         </div>
       </div>
     </div>
@@ -598,6 +525,9 @@ const useRevenues = useRevenuesStore();
 const data = userData();
 const userStore = useUserStore();
 
+let validForm = ref(false);
+let loading = ref(false);
+
 let valueTotalRevenuesMonth = ref(useRevenues.revenuesData.revenues.valueTotalRevenuesMonth);
 let valuePending = ref(useRevenues.revenuesData.revenues.valuePendingRevenues);
 let revenuesMonth = ref(useRevenues.revenuesData.revenues.revenuesMonth);
@@ -701,6 +631,18 @@ const deletar = async (id: number) => {
     }
 };
 
+const rules = {
+    requiredValor: (value: string) =>
+        !!value || "O campo valor é obrigatório",
+    requiredData: (value: string) =>
+        !!value || "O campo data é obrigatório",
+    requiredDescricao: (value: string) =>
+        !!value || "O campo escriçãp é obrigatório",
+    requiredCatagoria: (value: string) =>
+        !!value || "O campo categoria é obrigatório",
+    requiredCarteira: (value: string) =>
+        !!value || "O campo categoria é obrigatório",
+};
 </script>
 
 <style>
@@ -711,6 +653,12 @@ const deletar = async (id: number) => {
 .link {
     text-decoration: none;
     color: #fefefe;
+}
+.form {
+    display: flex;
+    flex-direction: column;
+    width: 100% !important;
+    padding: 10px;
 }
 
 .cadastro {
@@ -771,12 +719,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .input {
+  background-color: #1e1e1e !important;
+  height: 40px;
     color: #ccc;
-    width: 300px;
-    height: 40px;
-    background-color: transparent;
-    border: 0;
-    outline: 0;
+    width: 100%;
+    border: none;
 }
 
 .input:internal-autofill-selected {

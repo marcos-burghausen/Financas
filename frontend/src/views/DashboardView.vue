@@ -74,7 +74,9 @@ const useRevenues = useRevenuesStore();
 
 let valueTotalExpensesMonth = ref(useExpenses.expensesData.expenses.valueTotalExpensesMonth);
 let valueTotalRevenuesMonth = ref(useRevenues.revenuesData.revenues.valueTotalRevenuesMonth);
-let totalBalance = ref(valueTotalRevenuesMonth.value - valueTotalExpensesMonth.value);
+let valuePay = ref(useExpenses.expensesData.expenses.valuePayExpenses);
+let valueReceived = ref(useRevenues.revenuesData.revenues.valueReceivedRevenues);
+let totalBalance = ref(valueReceived.value - valuePay.value);
 let totalCreditCard = ref(0);
 let expensesAddTotalVelueMonth = ref(useExpenses.expensesData.expenses.expensesAddTotalVelueMonth);
 let revenuesAddTotalVelueMonth = ref(useRevenues.revenuesData.revenues.revenuesAddTotalVelueMonth);

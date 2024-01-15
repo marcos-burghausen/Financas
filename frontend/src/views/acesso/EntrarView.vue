@@ -72,7 +72,7 @@
         <v-text-field
           v-model="user.password"
           variant="outlined"
-          type="password"
+          :type="mostrarSenha ? 'password' : 'text'"
           hide-details="auto"
           label="Senha"
           :rules="[rules.requiredSenha]"
@@ -82,6 +82,13 @@
             <mdicon
               class="icon__modify"
               name="lock"
+            />
+          </template>
+          <template #append-inner>
+            <mdicon
+              class="icon__modify"
+              :name="mostrarSenha ? 'eye' : 'eye-off'"
+              @click="mostrarSenha = !mostrarSenha"
             />
           </template>
         </v-text-field>
@@ -164,7 +171,7 @@ const data = userData();
 const auth = useAuth();
 
 let validForm = ref(false);
-let mostrarSenha = ref(false);
+let mostrarSenha = ref(true);
 let loading = ref(false);
 
 async function login() {
@@ -269,6 +276,7 @@ const rules = {
 .icon__modify {
     color: #7f8c8d;
     padding: 0 5px;
+    cursor: pointer;
 }
 
 .sub__title {

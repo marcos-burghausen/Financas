@@ -4,7 +4,6 @@
     title="adcionar nova categoria"
     name="plus"
     class="mdicon"
-    :class="props.color"
     @click="openModal = true"
   />
 
@@ -12,163 +11,194 @@
     v-if="openModal"
     class="container__modal"
   >
-    <div class="modal">
-      <header class="header__modal">
-        <span class="title">Cadastrar nova categoria</span>
-        <mdicon
-          class="mdicon__close"
-          type="buttom"
-          name="close"
-          @click="openModal = false; selectedIcon = ''; selectedColor = ''; nameCategory = ''"
-        />
-      </header>
-      <div class="inputSimples">
-        <input
-          id="descricao"
-          v-model="nameCategory"
-          type="text"
-          name="categori"
-          class="input"
-          required
-        >
-        <label
-          for="descricao"
-          class="label"
-        >Nome</label>
-      </div>
-      <!-- <div class="error">
-            <span v-if="errorsForm['errors'].descricao" class="span-error">{{
-                errorsForm["errors"].descricao[0]
-            }}</span>
+    <div
+      class="container-fluid"
+    >
+      <div class="container d-flex justify-content-center">
+        <div class="cadastro">
+          <!-- <form class="form" @submit.prevent="salvarLancamentos"> -->
+          <v-form class="modal">
+            <v-text-field
+              v-model="releases.valor"
+              variant="outlined"
+              type="password"
+              hide-details="auto"
+              label="Valor"
+              class="mb-5 input"
+            />
+
+            <v-checkbox
+              label="paga"
+              color="success"
+              hide-details
+            />
+            
+            <!-- <div class="form-check form-switch text-white">
+              <input
+                id="flexSwitchCheckChecked"
+                v-model="status"
+                class="form-check-input"
+                type="checkbox"
+                checked
+              >
+              <label
+                class="form-check-label"
+                for="flexSwitchCheckChecked"
+              >Foi paga</label>
+            </div> -->
+            <v-text-field
+              v-model="releases.valor"
+              variant="outlined"
+              type="date"
+              hide-details="auto"
+              label="Data"
+              class="mb-5 input"
+            />
+            <!-- <div class="inputSimples">
+              <input
+                id="date"
+                v-model="releases.date"
+                type="text"
+                onfocus="this.type='date'"
+                onblur="this.type='text'"
+                name="date"
+                class="input"
+                required
+              >
+              <label
+                for="date"
+                class="label"
+              >Data</label>
+            </div> -->
+            <v-text-field
+              v-model="releases.valor"
+              variant="outlined"
+              type="text"
+              hide-details="auto"
+              label="Descricao"
+              class="mb-5 input"
+            />
+            <!-- <div class="inputSimples">
+            <input
+              id="descricao"
+              v-model="releases.descricao"
+              type="text"
+              name="descricao"
+              class="input"
+              required
+            >
+            <label
+              for="descricao"
+              class="label"
+            >Descricao</label>
+          </v-form>
         </div> -->
-      <div class="cor__icon">
-        <div class="container__cor__categoria">
-          <div class="cor__categoria">
-            <span>
-              cor da categoria
-            </span>
-            <div
-              v-if="selectedColor"
-              class="cor__forma"
-              :class="selectedColor"
-            />
-          </div>
-          <ModalColors
-            :items="colors"
-            @atualizarVariavel="updateSelectedColor"
-          />
-        </div>
-        <div class="container__cor__categoria">
-          <div class="icon__categoria">
-            <span>
-              icone da categoria
-            </span>
-            <mdicon
-              v-if="selectedIcon"
-              :name="selectedIcon"
-            />
-          </div>
-          <ModalIcons
-            :items="icons"
-            @atualizarVariavel="updateSelectedIcon"
-          />
+            <!-- <v-select
+              v-model="releases.descricao"
+              :items="categorias"
+              label="Categoria"
+              required
+            /> -->
+            <div class="inputSimples">
+              <select
+                v-model="releases.categoria"
+                class="input"
+                name="categoria"
+                aria-label="Default select example"
+                required
+              >
+                <!-- <option class="options" selected></option> -->
+                <option
+                  v-for="(categoria, index) in categorias"
+                  :key="index"
+                  class="options"
+                  :value="categoria.name"
+                >
+                  {{
+                    categoria.name
+                  }}
+                </option>
+              </select>
+              <label
+                for="categoria"
+                class="label"
+              >Categoria</label>
+            </div>
+            <div class="inputSimples">
+              <select
+                v-model="releases.carteira"
+                class="input"
+                name="carteira"
+                aria-label="Default select example"
+                required
+              >
+                <!-- <option class="options" selected></option> -->
+                <option
+                  v-for="carteira in carteiras"
+                  class="options"
+                  :value="carteira"
+                >
+                  {{ carteira
+                  }}
+                </option>
+              </select>
+              <label
+                for="carteira"
+                class="label"
+              >Carteira</label>
+            </div>
+            <div class="form-group p-0 container d-flex justify-content-between col-12 mt-2 mb-4">
+              <button
+                class="btn btn-danger px-5"
+                @click="{ formStoreExpense = !formStoreExpense }; clearInputs()"
+              >
+                Cancelar
+              </button>
+              <button
+                class="btn btn-light px-5"
+                @click.prevent="salvarLancamentos"
+              >
+                Salvar
+              </button>
+            </div>
+          </v-form>
         </div>
       </div>
-      <footer class="footer__modal">
-        <button
-          class="btn__modal"
-          @click="saveCategory"
-        >
-          Salvar
-        </button>
-      </footer>
     </div>
   </div>
 </template>
 <script setup lang="ts">
-import ModalColors from "@/components/ModalColors.vue";
-import ModalIcons from "@/components/ModalIcons.vue";
-
 import { useUserStore } from "@/store/user";
 import { reactive, ref } from "vue";
 import http from "@/services/http";
 
-const useUser = useUserStore();
+const userStore = useUserStore();
 
+let releases = reactive({
+    valor: "",
+    date: "",
+    status: "",
+    descricao: "",
+    categoria: "",
+    carteira: "",
+});
+
+let categorias = reactive(userStore.user.categoriasDespesas);
 const selectedColor = ref("");
 const selectedIcon = ref("");
 const openModal = ref(false);
 const nameCategory = ref("");
-const props = defineProps({
-    color: {
-        type: String,
-    }
-});
+// const props = defineProps({
+//     categoria: {
+//         type: Array,
+//     }
+// });
 
 const emit = defineEmits([
     "updateCategoriasDespesas",
     "updateCategoriasReceitas"
 ]);
-const colors = reactive([
-    { color: "cor__1" },
-    { color: "cor__2" },
-    { color: "cor__3" },
-    { color: "cor__4" },
-    { color: "cor__5" },
-    { color: "cor__6" },
-    { color: "cor__7" },
-    { color: "cor__8" },
-    { color: "cor__9" },
-    { color: "cor__10" },
-    { color: "cor__11" },
-    { color: "cor__12" },
-    { color: "cor__13" },
-    { color: "cor__14" },
-    { color: "cor__15" },
-    { color: "cor__16" },
-    { color: "cor__17" },
-    { color: "cor__18" },
-    { color: "cor__19" },
-    { color: "cor__20" },
-    { color: "cor__21" },
-    { color: "cor__22" },
-    { color: "cor__23" },
-    { color: "cor__24" },
-    { color: "cor__25" }
-]);
-const icons = reactive([
-    { icon: "car-estate" },
-    { icon: "umbrella-beach-outline" },
-    { icon: "silverware-fork-knife" },
-    { icon: "account-school-outline" },
-    { icon: "airplane" },
-    { icon: "medical-bag" },
-    { icon: "dots-horizontal" },
-    { icon: "currency-usd" },
-    { icon: "finance" },
-    { icon: "tshirt-crew-outline" },
-    { icon: "heart-pulse" },
-    { icon: "home-outline" },
-    { icon: "star-outline" },
-    { icon: "book-open-variant" },
-    { icon: "cash" },
-    { icon: "school" },
-    { icon: "chart-line-variant" },
-    { icon: "gift-outline" },
-    { icon: "bag-suitcase-outline" },
-    { icon: "bike" },
-    { icon: "bus" },
-    { icon: "cake-variant-outline" },
-    { icon: "calculator" },
-    { icon: "video-minus" },
-    { icon: "calculator-variant" },
-    { icon: "baby-carriage" },
-    { icon: "broom" },
-    { icon: "bone" },
-    { icon: "wallet-bifold-outline" },
-    { icon: "cart-outline" },
-    { icon: "bank-outline" }
-]);
+
 
 
 const updateSelectedIcon = (novoValor: string) => {
@@ -275,13 +305,15 @@ const saveCategory = async () => {
 }
 
 .inputSimples {
-    background-color: #1e1e1e;
+    background-color: transparent;
+    border: solid 1px rgba(255, 255, 255, 0.4);
+    height: 55px;
     margin: 20px 0 0 0;
     display: flex;
     align-items: center;
     padding-left: 5px;
     position: relative;
-    border-radius: 5px;
+    border-radius: 3px;
 }
 
 input {
@@ -370,103 +402,4 @@ input {
     background-color: rgba(255, 255, 255, 0.12);
 }
 
-.cor__1 {
-    background: #ff8a00;
-}
-
-.cor__2 {
-    background: #cc0000;
-}
-
-.cor__3 {
-    background: #2cb1e1;
-}
-
-.cor__4 {
-    background: #c58be2;
-}
-
-.cor__5 {
-    background: #99cc00;
-}
-
-.cor__6 {
-    background: #c5e26d;
-}
-
-.cor__7 {
-    background: #9933cc;
-}
-
-.cor__8 {
-    background: #3b3b3b;
-}
-
-.cor__9 {
-    background: #686868;
-}
-
-.cor__10 {
-    background: #ff4444;
-}
-
-.cor__11 {
-    background: #2a14ff;
-}
-
-.cor__12 {
-    background: #d6adeb;
-}
-
-.cor__13 {
-    background: #bcbcbc;
-}
-
-.cor__14 {
-    background: #669900;
-}
-
-.cor__15 {
-    background: #439996;
-}
-
-.cor__16 {
-    background: #ffbd21;
-}
-
-.cor__17 {
-    background: #ff9494;
-}
-
-.cor__18 {
-    background: #8f8f8f;
-}
-
-.cor__19 {
-    background: #8ad5f0;
-}
-
-.cor__20 {
-    background: #000000;
-}
-
-.cor__21 {
-    background: #24847a;
-}
-
-.cor__22 {
-    background: #a2b6c2;
-}
-
-.cor__23 {
-    background: #930101;
-}
-
-.cor__24 {
-    background: #bb6e00;
-}
-
-.cor__25 {
-    background: #0099cc;
-}
 </style>

@@ -33,14 +33,14 @@
             editar de despesa
           </li>
         </ol>
-        <FormLancamentos />
-        <!-- <button
+        <!-- <FormLancamentos /> -->
+        <button
           v-if="!formStoreExpense && !formEditExpense"
           class="btn btn-danger text-whit"
           @click="formStoreExpense = !formStoreExpense"
         >
           nova despesa
-        </button> -->
+        </button>
       </nav>
     </div>
 
@@ -54,35 +54,28 @@
       <div class="container d-flex justify-content-center">
         <div class="cadastro">
           <!-- <form class="form" @submit.prevent="salvarLancamentos"> -->
-          <form class="form">
-            <div class="inputSimples">
-              <!-- <mdicon class="mdicon" name="account" /> -->
-              <input
-                id="valor"
-                v-model="releases.valor"
-                class="input"
-                name="valor"
-                type="tel"
-                required
-              >
-              <label
-                class="label"
-                for="valor"
-              >Valor</label>
-            </div>
-            <div class="error">
-              <span
-                v-if="errorsForm['errors'].valor"
-                class="span-error"
-              >{{
-                errorsForm["errors"].valor[0]
-              }}</span>
-            </div>
+          <v-form
+            v-model="validForm"
+            class="form"
+            @submit.prevent="salvarLancamentos"
+          >
+            <v-text-field
+              v-model="releases.valor"
+              density="compact"
+              prefix="R$"
+              variant="outlined"
+              type="tel"
+              hide-details="auto"
+              label="Valor"
+              :rules="[rules.requiredValor]"
+              class="mb-5 input"
+            />
+
             <div class="form-check form-switch text-white">
               <input
                 id="flexSwitchCheckChecked"
                 v-model="status"
-                class="form-check-input"
+                class="form-check-input mb-5"
                 type="checkbox"
                 checked
               >
@@ -91,133 +84,71 @@
                 for="flexSwitchCheckChecked"
               >Foi paga</label>
             </div>
-            <div class="inputSimples">
-              <!-- <mdicon class="mdicon" name="account" /> -->
-              <input
-                id="date"
-                v-model="releases.date"
-                type="text"
-                onfocus="this.type='date'"
-                onblur="this.type='text'"
-                name="date"
-                class="input"
-                required
-              >
-              <label
-                for="date"
-                class="label"
-              >Data</label>
-            </div>
-            <div class="error">
-              <span
-                v-if="errorsForm['errors'].date"
-                class="span-error"
-              >{{
-                errorsForm["errors"].date[0]
-              }}</span>
-            </div>
-            <div class="inputSimples">
-              <!-- <mdicon class="mdicon" name="account" /> -->
-              <input
-                id="descricao"
-                v-model="releases.descricao"
-                type="text"
-                name="descricao"
-                class="input"
-                required
-              >
-              <label
-                for="descricao"
-                class="label"
-              >Descricao</label>
-            </div>
-            <div class="error">
-              <span
-                v-if="errorsForm['errors'].descricao"
-                class="span-error"
-              >{{
-                errorsForm["errors"].descricao[0]
-              }}</span>
-            </div>
-            <div class="inputSimples">
-              <select
-                v-model="releases.categoria"
-                class="input"
-                name="categoria"
-                aria-label="Default select example"
-                required
-              >
-                <!-- <option class="options" selected></option> -->
-                <option
-                  v-for="(categoria, index) in categorias"
-                  :key="index"
-                  class="options"
-                  :value="categoria.name"
-                >
-                  {{
-                    categoria.name
-                  }}
-                </option>
-              </select>
-              <label
-                for="categoria"
-                class="label"
-              >Categoria</label>
-            </div>
-            <div class="error">
-              <span
-                v-if="errorsForm['errors'].categoria"
-                class="span-error"
-              >{{
-                errorsForm["errors"].categoria[0]
-              }}</span>
-            </div>
-            <div class="inputSimples">
-              <select
-                v-model="releases.carteira"
-                class="input"
-                name="carteira"
-                aria-label="Default select example"
-                required
-              >
-                <!-- <option class="options" selected></option> -->
-                <option
-                  v-for="carteira in carteiras"
-                  class="options"
-                  :value="carteira"
-                >
-                  {{ carteira
-                  }}
-                </option>
-              </select>
-              <label
-                for="carteira"
-                class="label"
-              >Carteira</label>
-            </div>
-            <div class="error">
-              <span
-                v-if="errorsForm['errors'].carteira"
-                class="span-error"
-              >{{
-                errorsForm["errors"].carteira[0]
-              }}</span>
-            </div>
+
+            <v-text-field
+              v-model="releases.date"
+              density="compact"
+              variant="outlined"
+              type="date"
+              hide-details="auto"
+              label="Data"
+              :rules="[rules.requiredData]"
+              class="mb-7 input"
+            />
+            
+            <v-text-field
+              v-model="releases.descricao"
+              density="compact"
+              variant="outlined"
+              type="text"
+              hide-details="auto"
+              label="Descriçao"
+              :rules="[rules.requiredDescricao]"
+              class="mb-7 input"
+            />
+
+            <v-autocomplete
+              v-model="releases.categoria"
+              density="compact"
+              variant="outlined"
+              :rules="[rules.requiredCatagoria]"
+              :items="categoriasNames"
+              label="Categoria"
+              placeholder="Select..."
+              class="mb-7 input"
+            />
+            
+            <v-autocomplete
+              v-model="releases.carteira"
+              density="compact"
+              variant="outlined"
+              :rules="[rules.requiredCarteira]"
+              :items="carteiras"
+              label="Carteira"
+              placeholder="Select..."
+              class="mb-7 input"
+            />
+            
             <div class="form-group p-0 container d-flex justify-content-between col-12 mt-2 mb-4">
-              <button
-                class="btn btn-danger px-5"
+              <v-btn
+                :disabled="loading"
+                :loading="loading"
+                style="background-color: red;"
+                class=" px-5"
                 @click="{ formStoreExpense = !formStoreExpense }; clearInputs()"
               >
                 Cancelar
-              </button>
-              <button
-                class="btn btn-light px-5"
-                @click.prevent="salvarLancamentos"
+              </v-btn>
+              <v-btn
+                :disabled="loading || !validForm"
+                :loading="loading"
+                style="background-color: #77d08e;"
+                class=" btn-light px-5"
               >
                 Salvar
-              </button>
+              </v-btn>
             </div>
-          </form>
+          </v-form>
         </div>
       </div>
     </div>
@@ -438,7 +369,7 @@
 
 
     <div
-      v-if="!formStoreExpense & !formEditExpense"
+      v-if="!formStoreExpense && !formEditExpense"
       class="container-fluid"
     >
       <div class="card__container">
@@ -588,7 +519,7 @@
 
 <script setup lang="ts">
 import Card from "@/components/Card.vue";
-import FormLancamentos from "@/components/FormLancamentos.vue";
+// import FormLancamentos from "@/components/FormLancamentos.vue";
 
 import { ref, reactive } from "vue";
 
@@ -596,21 +527,24 @@ import type { Lancamentos } from "@/types/lancamentos";
 
 import { useExpensesStore } from "@/store/expenses";
 import { useUserStore } from "@/store/user";
-import { userData } from "@/store/data";
-import { useRouter } from "vue-router";
 import http from "@/services/http";
 
 const useExpenses = useExpensesStore();
 const userStore = useUserStore();
-const router = useRouter();
-const data = userData();
+
+let validForm = ref(false);
+let loading = ref(false);
 
 let valueTotalExpensesMonth = ref(useExpenses.expensesData.expenses.valueTotalExpensesMonth);
 let valuePending = ref(useExpenses.expensesData.expenses.valuePendingExpenses);
 let expensesMonth = reactive(useExpenses.expensesData.expenses.expensesMonth);
 let valuePay = ref(useExpenses.expensesData.expenses.valuePayExpenses);
-let categorias = reactive(userStore.user.categoriasDespesas);
-let carteiras = reactive(userStore.user.carteiras);
+let categorias = ref(userStore.user.categoriasDespesas);
+const categoriasNames = ref([]);
+userStore.user.categoriasDespesas.forEach((categoria) => {
+    categoriasNames.value.push(categoria.name);
+});
+let carteiras = ref(userStore.user.carteiras);
 let errorsForm = reactive({ errors: {} });
 let formStoreExpense = ref(false);
 let formEditExpense = ref(false);
@@ -706,6 +640,19 @@ const deletar = async (id: number) => {
     }
 };
 
+const rules = {
+    requiredValor: (value: string) =>
+        !!value || "O campo valor é obrigatório",
+    requiredData: (value: string) =>
+        !!value || "O campo data é obrigatório",
+    requiredDescricao: (value: string) =>
+        !!value || "O campo escriçãp é obrigatório",
+    requiredCatagoria: (value: string) =>
+        !!value || "O campo categoria é obrigatório",
+    requiredCarteira: (value: string) =>
+        !!value || "O campo categoria é obrigatório",
+};
+
 </script>
 
 <style scoped>
@@ -778,14 +725,19 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .options {
     background-color: #292d32;
 }
+.form {
+    display: flex;
+    flex-direction: column;
+    width: 100% !important;
+    padding: 10px;
+}
 
 .input {
+  background-color: #1e1e1e !important;
+  height: 40px;
     color: #ccc;
-    width: 300px;
-    height: 40px;
-    background-color: transparent;
-    border: 0;
-    outline: 0;
+    width: 100%;
+    border: none;
 }
 
 .input:focus~label,

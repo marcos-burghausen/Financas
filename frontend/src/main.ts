@@ -19,8 +19,8 @@ const vuetify = createVuetify({
 });
   
 createApp(App).use(vuetify).use(createPinia()).use(mdiVue, {
-         icons: mdijs
-     }).use(router).use(VueApexCharts).mount("#app");
+    icons: mdijs
+}).use(router).use(VueApexCharts).mount("#app");
 
 // const app = createApp(App);
 // app.use(createPinia());

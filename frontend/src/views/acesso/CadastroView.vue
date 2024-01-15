@@ -121,7 +121,7 @@
         <v-text-field
           v-model="user.password"
           variant="outlined"
-          type="password"
+          :type="mostrarSenha ? 'password' : 'text'"
           hide-details="auto"
           label="Senha"
           :rules="[rules.requiredSenha]"
@@ -132,6 +132,13 @@
             <mdicon
               class="icon__modify"
               name="lock"
+            />
+          </template>
+          <template #append-inner>
+            <mdicon
+              class="icon__modify"
+              :name="mostrarSenha ? 'eye' : 'eye-off'"
+              @click="mostrarSenha = !mostrarSenha"
             />
           </template>
         </v-text-field>
@@ -174,7 +181,7 @@ const errorStore = useErrorStore();
 const user: FormCadastro = ref({});
 
 let validForm = ref(false);
-let mostrarSenha = ref(false);
+let mostrarSenha = ref(true);
 let loading = ref(false);
 
 async function create() {
@@ -270,6 +277,7 @@ const rules = {
 .icon__modify {
     color: #7f8c8d;
     padding: 0 5px;
+    cursor: pointer;
 }
 
 .sub__title {
@@ -311,7 +319,7 @@ const rules = {
     color: #ccc;
     width: 100%;
     border: none;
-    background-color: transparent;
+    background-color: #1e1e1e !important;
 }
 
 .container__input input:focus {
