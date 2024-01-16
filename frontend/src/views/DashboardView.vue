@@ -30,7 +30,7 @@
         class="card"
         titulo="Saldo atual"
         :valor="totalBalance"
-        rota="despesas"
+        rota=""
       />
     </div>
     <div class="chart__container">
@@ -75,7 +75,7 @@ const useRevenues = useRevenuesStore();
 let valueTotalExpensesMonth = ref(useExpenses.expensesData.expenses.valueTotalExpensesMonth);
 let valueTotalRevenuesMonth = ref(useRevenues.revenuesData.revenues.valueTotalRevenuesMonth);
 let valuePay = ref(useExpenses.expensesData.expenses.valuePayExpenses);
-let valueReceived = ref(useRevenues.revenuesData.revenues.valueReceivedRevenues);
+let valueReceived = ref(useRevenues.revenuesData.revenues.valueReceived);
 let totalBalance = ref(valueReceived.value - valuePay.value);
 let totalCreditCard = ref(0);
 let expensesAddTotalVelueMonth = ref(useExpenses.expensesData.expenses.expensesAddTotalVelueMonth);

@@ -55,7 +55,7 @@
         <div class="cadastro">
           <!-- <form class="form" @submit.prevent="salvarLancamentos"> -->
           <v-form
-            v-model="validForm"
+            v-model="validFormLancamentos"
             class="form"
             @submit.prevent="salvarLancamentos"
           >
@@ -133,14 +133,14 @@
               <v-btn
                 :disabled="loading"
                 :loading="loading"
-                style="background-color: red;"
-                class=" px-5"
+                style="background-color: #dc3545; color: #fefefe;"
+                class="px-5"
                 @click="{ formStoreExpense = !formStoreExpense }; clearInputs()"
               >
                 Cancelar
               </v-btn>
               <v-btn
-                :disabled="loading || !validForm"
+                :disabled="loading || !validFormLancamentos"
                 :loading="loading"
                 style="background-color: #77d08e;"
                 class=" btn-light px-5"
@@ -166,198 +166,99 @@
     >
       <div class="container d-flex justify-content-center">
         <div class="cadastro">
-          <form
+          <v-form
+            v-model="validFormEdit"
             class="form"
             @submit.prevent="saveEditedExpense"
           >
-            <div class="inputSimples">
-              <input
-                id="valor"
-                v-model="expenseEdit.valor"
-                class="input"
-                name="valor"
-                type="number"
-                required
-              >
-              <label
-                class="label"
-                for="valor"
-              >Valor</label>
-            </div>
-            <div class="error">
-              <span
-                v-if="errorsForm['errors'].valor"
-                class="span-error"
-              >{{
-                errorsForm["errors"].valor[0]
-              }}</span>
-            </div>
-            <div class="inputSimples">
-              <input
-                id="date"
-                v-model="expenseEdit.date"
-                type="date"
-                name="date"
-                class="input"
-                required
-              >
-              <label
-                for="date"
-                class="label"
-              >Data</label>
-            </div>
-            <div class="error">
-              <span
-                v-if="errorsForm['errors'].date"
-                class="span-error"
-              >{{
-                errorsForm["errors"].date[0]
-              }}</span>
-            </div>
-            <div class="inputSimples">
-              <input
-                id="descricao"
-                v-model="expenseEdit.descricao"
-                type="text"
-                name="descricao"
-                class="input"
-                required
-              >
-              <label
-                for="descricao"
-                class="label"
-              >Descricao</label>
-            </div>
-            <div class="error">
-              <span
-                v-if="errorsForm['errors'].descricao"
-                class="span-error"
-              >{{
-                errorsForm["errors"].descricao[0]
-              }}</span>
-            </div>
-            <div class="inputSimples">
-              <select
-                v-model="expenseEdit.status"
-                class="input"
-                name="categoria"
-                aria-label="Default select example"
-                required
-              >
-                <option
-                  class="options"
-                  selected
-                />
-                <option
-                  class="options"
-                  value="PAGA"
-                >
-                  PAGA
-                </option>
-                <option
-                  class="options"
-                  value="AGUARDANDO"
-                >
-                  AGUARDANDO
-                </option>
-              </select>
-              <label
-                for="categoria"
-                class="label"
-              >Status</label>
-            </div>
-            <div class="error">
-              <span
-                v-if="errorsForm['errors'].descricao"
-                class="span-error"
-              >{{
-                errorsForm["errors"].descricao[0]
-              }}</span>
-            </div>
-            <div class="inputSimples">
-              <select
-                v-model="expenseEdit.categoria"
-                class="input"
-                name="categoria"
-                aria-label="Default select example"
-                required
-              >
-                <option
-                  class="options"
-                  selected
-                />
-                <option
-                  v-for="categoria in categorias"
-                  class="options"
-                  :value="categoria.name"
-                >
-                  {{
-                    categoria.name
-                  }}
-                </option>
-              </select>
-              <label
-                for="categoria"
-                class="label"
-              >Categoria</label>
-            </div>
-            <div class="error">
-              <span
-                v-if="errorsForm['errors'].categoria"
-                class="span-error"
-              >{{
-                errorsForm["errors"].categoria[0]
-              }}</span>
-            </div>
-            <div class="inputSimples">
-              <select
-                v-model="expenseEdit.carteira"
-                class="input"
-                name="carteira"
-                aria-label="Default select example"
-                required
-              >
-                <option
-                  class="options"
-                  selected
-                />
-                <option
-                  v-for="carteira in carteiras"
-                  class="options"
-                  :value="carteira"
-                >
-                  {{ carteira
-                  }}
-                </option>
-              </select>
-              <label
-                for="carteira"
-                class="label"
-              >Carteira</label>
-            </div>
-            <div class="error">
-              <span
-                v-if="errorsForm['errors'].carteira"
-                class="span-error"
-              >{{
-                errorsForm["errors"].carteira[0]
-              }}</span>
-            </div>
+            
+          <v-text-field
+              v-model="expenseEdit.valor"
+              density="compact"
+              prefix="R$"
+              variant="outlined"
+              type="tel"
+              hide-details="auto"
+              label="Valor"
+              :rules="[rules.requiredValor]"
+              class="mb-5 input"
+            />
+
+            <v-text-field
+              v-model="expenseEdit.date"
+              density="compact"
+              variant="outlined"
+              type="date"
+              hide-details="auto"
+              label="Data"
+              :rules="[rules.requiredData]"
+              class="mb-7 input"
+            />
+
+            <v-text-field
+              v-model="expenseEdit.descricao"
+              density="compact"
+              variant="outlined"
+              type="text"
+              hide-details="auto"
+              label="Descriçao"
+              :rules="[rules.requiredDescricao]"
+              class="mb-7 input"
+            />
+
+            <v-autocomplete
+              v-model="expenseEdit.status"
+              density="compact"
+              variant="outlined"
+              :rules="[rules.requiredCatagoria]"
+              :items="['PAGA', 'AGUARDANDO']"
+              label="Status"
+              placeholder="Select..."
+              class="mb-7 input"
+            />
+
+            <v-autocomplete
+              v-model="expenseEdit.categoria"
+              density="compact"
+              variant="outlined"
+              :rules="[rules.requiredCatagoria]"
+              :items="categoriasNames"
+              label="Categoria"
+              placeholder="Select..."
+              class="mb-7 input"
+            />
+
+            <v-autocomplete
+              v-model="expenseEdit.carteira"
+              density="compact"
+              variant="outlined"
+              :rules="[rules.requiredCarteira]"
+              :items="carteiras"
+              label="Carteira"
+              placeholder="Select..."
+              class="mb-7 input"
+            />
+            
             <div class="form-group p-0 container d-flex justify-content-between col-12 mt-2 mb-4">
-              <button
-                class="btn btn-danger px-5"
+              <v-btn
+                :disabled="loading"
+                :loading="loading"
+                style="background-color: #dc3545; color: #fefefe;;"
+                class=" px-5"
                 @click="formEditExpense = !formEditExpense"
               >
                 Cancelar
-              </button>
-              <button
-                type="submit"
-                class="btn btn-light px-5"
+              </v-btn>
+              <v-btn
+                :disabled="loading || !validFormEdit"
+                :loading="loading"
+                style="background-color: #77d08e;"
+                class=" btn-light px-5"
               >
                 Salvar
-              </button>
+              </v-btn>
             </div>
-          </form>
+          </v-form>
         </div>
       </div>
     </div>
@@ -532,7 +433,8 @@ import http from "@/services/http";
 const useExpenses = useExpensesStore();
 const userStore = useUserStore();
 
-let validForm = ref(false);
+let validFormLancamentos = ref(false);
+let validFormEdit = ref(false);
 let loading = ref(false);
 
 let valueTotalExpensesMonth = ref(useExpenses.expensesData.expenses.valueTotalExpensesMonth);
