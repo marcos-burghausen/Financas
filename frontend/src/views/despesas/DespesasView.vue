@@ -144,6 +144,7 @@
                 :loading="loading"
                 style="background-color: #77d08e;"
                 class=" btn-light px-5"
+                type="submit"
               >
                 Salvar
               </v-btn>
@@ -171,8 +172,7 @@
             class="form"
             @submit.prevent="saveEditedExpense"
           >
-            
-          <v-text-field
+            <v-text-field
               v-model="expenseEdit.valor"
               density="compact"
               prefix="R$"
@@ -254,6 +254,7 @@
                 :loading="loading"
                 style="background-color: #77d08e;"
                 class=" btn-light px-5"
+                type="submit"
               >
                 Salvar
               </v-btn>
@@ -292,7 +293,7 @@
       </div>
       <div class="container__table">
         <div
-          v-if="expensesMonth"
+          v-if="expensesMonth.length > 0"
           class="col-12 col-lg-12"
         >
           <div

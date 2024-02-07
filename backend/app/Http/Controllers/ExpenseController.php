@@ -32,6 +32,7 @@ class ExpenseController extends Controller
                 'carteira.required'  => 'O campo carteira senha é obrigatório',
             ]
         );
+        //$data['date'] = date('d-m-Y', strtotime($data['date']));
         $expense = new Expense;
         $expense->user_id   = auth()->user()->id;
         $expense->valor     = $data['valor'];

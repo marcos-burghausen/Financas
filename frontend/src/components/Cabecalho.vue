@@ -6,14 +6,24 @@
       class="mdicon"
       @click="$emit('expandirMenu')"
     />
-    <template v-if="auth.isAuthenticated">
-      <h3 class="text-white me-3">
-        {{ name }}
-      </h3>
-      <button @click="logout">
-        sair
-      </button>
-    </template>
+    <div style="display: flex; align-items: center;">
+      <template v-if="auth.isAuthenticated">
+        <span class="text-white me-3 fs-3">
+          {{ name }}
+        </span>
+        <v-btn
+          @click="logout"
+        >
+          sair
+        </v-btn>
+      </template>
+      <mdicon
+        v-if="auth.isAuthenticated"
+        name="account"
+        class="mdicon ms-3"
+        @click="$emit('expandirMenu')"
+      />
+    </div>
   </header>
 </template>
 
@@ -47,11 +57,11 @@ async function logout() {
 
 <style scoped>
 .header {
-    padding-left: 10px;
+    padding-inline: 10px;
     margin: 0 0 15px 0;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: space-between;
     box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
     background-color: rgba(0, 0, 0, 0.1);
     height: 60px;

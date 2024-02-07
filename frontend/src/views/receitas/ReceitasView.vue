@@ -142,6 +142,7 @@
                 :loading="loading"
                 style="background-color: #77d08e;"
                 class=" btn-light px-5"
+                type="submit"
               >
                 Salvar
               </v-btn>
@@ -209,7 +210,7 @@
               density="compact"
               variant="outlined"
               :rules="[rules.requiredCatagoria]"
-              :items="['PAGA', 'AGUARDANDO']"
+              :items="['RECEBIDA', 'AGUARDANDO']"
               label="Status"
               placeholder="Select..."
               class="mb-7 input"
@@ -252,6 +253,7 @@
                 :loading="loading"
                 style="background-color: #77d08e;"
                 class="btn btn-light px-5"
+                type="submit"
               >
                 Salvar
               </v-btn>
@@ -291,7 +293,7 @@
 
       <div class="container__table">
         <div
-          v-if="revenuesMonth"
+          v-if="revenuesMonth.length > 0"
           class="col-12 col-lg-12"
         >
           <div
@@ -437,8 +439,13 @@ let loading = ref(false);
 let valueTotalRevenuesMonth = ref(useRevenues.revenuesData.revenues.valueTotalRevenuesMonth);
 let valuePending = ref(useRevenues.revenuesData.revenues.valuePendingRevenues);
 let revenuesMonth = ref(useRevenues.revenuesData.revenues.revenuesMonth);
-let valueReceived = ref(useRevenues.revenuesData.revenues.valueReceived);
-let categorias = ref(userStore.user.categoriasReceitas);
+console.log(revenuesMonth.value);
+let valueReceived = ref(useRevenues.revenuesData.revenues.valueReceivedRevenues);
+// let categorias = ref(userStore.user.categoriasReceitas);
+const categoriasNames = ref([]);
+userStore.user.categoriasReceitas.forEach((categoria) => {
+    categoriasNames.value.push(categoria.name);
+});
 let carteiras = ref(userStore.user.carteiras);
 let errorsForm = ref({ errors: {} });
 let formStoreRevenue = ref(false);

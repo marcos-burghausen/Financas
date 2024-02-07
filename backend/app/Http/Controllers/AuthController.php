@@ -106,7 +106,7 @@ class AuthController extends Controller
             $revenuesData = [
                 'revenues' => $revenues,
                 'revenuesMonth' => $revenuesMonth,
-                'valueReceived' => $valueReceived,
+                'valueReceivedRevenues' => $valueReceived,
                 'valuePendingRevenues' => $valuePendingRevenues,
                 'valueTotalRevenuesMonth' => $valueTotalRevenuesMonth,
                 'revenuesGroupByMonth' => $revenuesGroupByMonth,
