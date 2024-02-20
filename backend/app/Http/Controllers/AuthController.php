@@ -84,7 +84,7 @@ class AuthController extends Controller
             $valueTotalExpensesMonth = $this->valueReleasesMonth($expenses, date('m'));
             $expensesGroupByMonth = $this->groupByMonth($expenses);
             $expensesAddTotalVelueMonth = $this->addTotalValueMonth($expensesGroupByMonth);
-            $totalByCategoryExpnses = $this->totalByCategory($expenses);
+            $totalByCategoryExpnses = $this->totalByCategory($expensesMonth);
             $expensesData = [
                 'expenses' => $expenses,
                 'expensesMonth' => $expensesMonth,
@@ -124,8 +124,8 @@ class AuthController extends Controller
                 'user' => $user,
                 'expensesData' => $expensesData,
                 'revenuesData' => $revenuesData,
-                'totalBalance'  => $totalBalance,
-                'totalCreditCard'  => $totalCreditCard,
+                // 'totalBalance'  => $totalBalance,
+                // 'totalCreditCard'  => $totalCreditCard,
 
             ]);
         }

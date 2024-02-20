@@ -159,6 +159,7 @@ import http from "@/services/http";
 
 import type { FormLogin } from "@/types/formLogin";
 import { ref, type Ref } from "vue";
+import { AxiosError } from "axios";
 
 const emits = defineEmits(["nextStep"]);
 const useExpenses = useExpensesStore();
@@ -212,7 +213,7 @@ const rules = {
     border-radius: 10px;
     padding: 0;
     width: 80%;
-    max-width: 1250px;
+    max-width: 1000px;
 }
 
 .container__dados {

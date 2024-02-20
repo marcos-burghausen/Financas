@@ -47,7 +47,9 @@
             :series="series"
           />
         </div>
-        <div class="col-4 chart1">
+        <div
+          class="col-4 chart1"
+        >
           <apexchart
             width="100%"
             height="353"
@@ -77,8 +79,7 @@ let valueTotalRevenuesMonth = ref(useRevenues.revenuesData.revenues.valueTotalRe
 let valuePay = ref(useExpenses.expensesData.expenses.valuePayExpenses);
 let valueReceived = ref(useRevenues.revenuesData.revenues.valueReceivedRevenues);
 let totalBalance = ref(valueReceived.value - valuePay.value);
-console.log(totalBalance.value);
-let totalCreditCard = ref(0);
+// let totalCreditCard = ref(0);
 let expensesAddTotalVelueMonth = ref(useExpenses.expensesData.expenses.expensesAddTotalVelueMonth);
 let revenuesAddTotalVelueMonth = ref(useRevenues.revenuesData.revenues.revenuesAddTotalVelueMonth);
 let totalByCategoryExpnses = ref(useExpenses.expensesData.expenses.totalByCategoryExpnses);

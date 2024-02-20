@@ -133,7 +133,7 @@
                 :loading="loading"
                 style="background-color: #dc3545; color: #fefefe;;"
                 class=" px-5"
-                @click="{ formStoreExpense = !formStoreExpense }; clearInputs()"
+                @click="{ formStoreRevenue = !formStoreRevenue }; clearInputs()"
               >
                 Cancelar
               </v-btn>

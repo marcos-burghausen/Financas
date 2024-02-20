@@ -212,7 +212,7 @@ const rules = {
     border-radius: 10px;
     padding: 0;
     width: 80%;
-    max-width: 1250px;
+    max-width: 1000px;
 }
 
 .container__dados {
