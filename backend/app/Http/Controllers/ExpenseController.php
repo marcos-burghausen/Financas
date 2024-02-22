@@ -89,7 +89,7 @@ class ExpenseController extends Controller
         $valueTotalExpensesMonth = $this->valueReleasesMonth($expenses, date('m'));
         $expensesGroupByMonth = $this->groupByMonth($expenses);
         $expensesAddTotalVelueMonth = $this->addTotalValueMonth($expensesGroupByMonth);
-        $totalByCategoryExpnses = $this->totalByCategory($expenses);
+        $totalByCategoryExpnses = $this->totalByCategory($expensesMonth);
         $expensesData = [
             'expenses' => $expenses,
             'expensesMonth' => $expensesMonth,
