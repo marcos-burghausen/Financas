@@ -6,7 +6,7 @@ use DateTime;
 
 trait TotalByCategoryTrait
 {
-    public function totalByCategory(array $releases): array
+    public function totalByCategory(object $releases): array
     {
         $groupByCategory = [];
 

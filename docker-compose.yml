@@ -4,8 +4,7 @@ services:
 
   #php+apache
   php:
-    biuld:
-      dockerfile: ./docker/php.Dockerfile
+    image: marcosrafaelburghausen/php8.1-apache2.4
     container_name: Mr_backend
     working_dir: /var/www/html/
     depends_on:
@@ -29,8 +28,7 @@ services:
 
   #node
   node:
-    biuld:
-      dockerfile: ./docker/node.Dockerfile
+    image: marcosrafaelburghausen/node-19
     container_name: Mr_frontend
     working_dir: /home/node/app
     stdin_open: true
