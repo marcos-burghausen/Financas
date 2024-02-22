@@ -1,0 +1,108 @@
+version: '3.9'
+
+services:
+
+  #php+apache
+  php:
+    build:
+      dockerfile: ../docker/php.Dockerfile
+      context: ./backend
+    container_name: Mr_backend
+    working_dir: /var/www/html/
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - network
+    ports:
+      - "4080:80"
+    volumes:
+      - "./backend:/var/www/html"
+      - "./apache/sites-enabled/:/etc/apache2/sites-enabled/"
+    environment:
+      FRONTEND_HOST: node:4080
+      MYSQL_HOST: mysql
+      MYSQL_PASSWORD: user
+      MYSQL_USER: user
+      MYSQL_DATABASE: Mr_database
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: senha
+
+  #node
+  node:
+    build:
+      dockerfile: ../docker/node.build.Dockerfile
+      context: ./frontend
+    container_name: Mr_frontend
+    networks:
+      - network
+    ports:
+      - "4081:5173"
+
+  #mysql
+  mysql:
+    image: mysql:8.0
+    container_name: Mr_database
+    networks:
+      - network
+    ports:
+      - "3306:3306"
+    volumes:
+      - "./db:/home/bkp"
+      - "mysql_db:/var/lib/mysql"
+    environment:
+      MYSQL_ROOT_HOST: '0.0.0.0'
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: user
+      MYSQL_USER: user
+      MYSQL_DATABASE: Mr_database
+
+  #phpmyadmin
+  dbadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: "no"
+    container_name: phpmyadmin
+    networks:
+      - network
+    ports:
+      - "4033:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+
+  #redis
+  redis:
+    image: redis:7.0
+    container_name: Mr_session_database
+    command: bash -c "redis-server --requirepass senha"
+    networks:
+      - network
+    ports:
+      - "6379:6379"
+    volumes:
+      - "redis_db:/data"
+
+  #redis-commander
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-commander
+    restart: always
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=senha
+    ports:
+      - "8082:8081"
+    networks:
+      - network
+
+volumes:
+  mysql_db:
+    driver: "local"
+  redis_db:
+    driver: "local"
+
+networks:
+  network:
+    driver: bridge
