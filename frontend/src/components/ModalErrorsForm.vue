@@ -32,7 +32,7 @@ const errorStore = useErrorStore();
 
 const closeModal = () => {
     errorStore.unsetErrorsForm;
-    console.log("1");
+    // console.log("1");
 };
 
 

@@ -487,7 +487,7 @@ const salvarLancamentos = async () => {
         clearInputs();
         formStoreExpense.value = false;
     } catch (error) {
-        console.log(error);
+        // console.log(error);
         errorsForm["errors"] = error.response.data.errors;
     }
 };
@@ -505,7 +505,7 @@ const payExpense = async (expense: Lancamentos) => {
             }
         });
     } catch (error) {
-        console.log(error);
+        // console.log(error);
     }
 };
 
@@ -523,7 +523,7 @@ const saveEditedExpense = async () => {
         expensesMonth = res.data.expensesData.expensesMonth;
         valuePay.value = res.data.expensesData.valuePayExpenses;
     } catch (error) {
-        console.log(error);
+        // console.log(error);
     }
 
     formEditExpense.value = false;
@@ -539,7 +539,7 @@ const deletar = async (id: number) => {
         valuePay.value = res.data.expensesData.valuePayExpenses;
         expensesMonth = res.data.expensesData.expensesMonth;
     } catch (error) {
-        console.log(error);
+        // console.log(error);
     }
 };
 

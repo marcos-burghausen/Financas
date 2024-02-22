@@ -47,7 +47,7 @@ export const useErrorStore = defineStore("error", () => {
     }
     
     function unsetErrorsForm() {
-        console.log("2");
+        // console.log("2");
         errorsForm.value = null;
     }
 

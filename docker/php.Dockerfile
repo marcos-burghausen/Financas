@@ -1,6 +1,7 @@
 FROM composer:2.6 as build
 WORKDIR /app
 COPY . .
+RUN composer update
 RUN composer install --no-interaction --prefer-dist --no-scripts --no-progress
 
 FROM php:8.2-apache-bullseye

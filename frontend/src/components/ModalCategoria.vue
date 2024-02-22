@@ -201,7 +201,7 @@ const saveCategory = async () => {
         selectedIcon.value = "";
         openModal.value = false;
     } catch (error) {
-        console.log(error);
+        // console.log(error);
     }
 };
 

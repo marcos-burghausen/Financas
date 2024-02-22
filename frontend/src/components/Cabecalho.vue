@@ -89,7 +89,7 @@ async function logout() {
         auth.clear();
         router.push({ name: "home" });
     } catch (error) {
-        console.log(error);
+        // console.log(error);
     }
 }
 </script>

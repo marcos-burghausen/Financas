@@ -228,7 +228,7 @@ const deleteCategory = async (category: Category) => {
             categoriasReceitas.value = res.data.categoriasReceitas;
         }
     } catch (error) {
-        console.log(error);
+        // console.log(error);
     }
 };
 

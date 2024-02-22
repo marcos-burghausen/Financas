@@ -439,7 +439,7 @@ let loading = ref(false);
 let valueTotalRevenuesMonth = ref(useRevenues.revenuesData.revenues.valueTotalRevenuesMonth);
 let valuePending = ref(useRevenues.revenuesData.revenues.valuePendingRevenues);
 let revenuesMonth = ref(useRevenues.revenuesData.revenues.revenuesMonth);
-console.log(revenuesMonth.value);
+// console.log(revenuesMonth.value);
 let valueReceived = ref(useRevenues.revenuesData.revenues.valueReceivedRevenues);
 // let categorias = ref(userStore.user.categoriasReceitas);
 const categoriasNames = ref([]);
@@ -487,7 +487,7 @@ const salvarLancamentos = async () => {
         clearInputs();
         formStoreRevenue.value = false;
     } catch (error) {
-        console.log(error.response.data.errors);
+        // console.log(error.response.data.errors);
         errorsForm.value["errors"] = error.response.data["errors"];
     }
 };
@@ -506,7 +506,7 @@ const receivedRevenue = async (revenue: Lancamentos) => {
         });
 
     } catch (error) {
-        console.log(error);
+        // console.log(error);
     }
 };
 
@@ -524,7 +524,7 @@ const saveEditedRevenue = async () => {
         valuePending.value = res.data.revenuesData.valuePendingRevenues;
         revenuesMonth.value = res.data.revenuesData.revenuesMonth;
     } catch (error) {
-        console.log(error);
+        // console.log(error);
     }
 
     formEditRevenue.value = false;
@@ -540,7 +540,7 @@ const deletar = async (id: number) => {
         valueReceived.value = res.data.revenuesData.valueReceivedRevenues;
         revenuesMonth.value = res.data.revenuesData.revenuesMonth;
     } catch (error) {
-        console.log(error);
+        // console.log(error);
     }
 };
 
