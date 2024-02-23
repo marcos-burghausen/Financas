@@ -126,7 +126,7 @@
           label="Senha"
           :rules="[rules.requiredSenha]"
           class="mb-7 input"
-          hint="A senha deve ter pelo menos 8 caracteres sendo uma letra maiúcula, uma minúscula, um número e um caracter especial exeto aspas simples e aspas duplas"
+          hint="A senha deve ter pelo menos 8 caracteres sendo uma letra maiúcula, uma minúscula, um número e um caracter especial exeto aspas simples e duplas"
         >
           <template #prepend-inner>
             <mdicon

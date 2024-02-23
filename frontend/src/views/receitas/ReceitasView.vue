@@ -59,8 +59,10 @@
           >
             <v-text-field
               v-model="releases.valor"
+              v-mask="'###.###.###,##'"
               density="compact"
               prefix="R$"
+              placeholder="0,00"
               variant="outlined"
               type="tel"
               hide-details="auto"
@@ -418,6 +420,7 @@
 
 <script setup lang="ts">
 import Card from "@/components/Card.vue";
+import { vMaska } from "maska";
 
 import { ref, reactive } from "vue";
 
@@ -426,6 +429,7 @@ import type { Lancamentos } from "@/types/lancamentos";
 import { useRevenuesStore } from "@/store/revenues";
 import { useUserStore } from "@/store/user";
 import { userData } from "@/store/data";
+
 import http from "@/services/http";
 
 const useRevenues = useRevenuesStore();
@@ -460,7 +464,6 @@ let releases = reactive({
     status: ""
 });
 let status = ref(true);
-
 
 const clearInputs = () => {
     releases.valor = "";
