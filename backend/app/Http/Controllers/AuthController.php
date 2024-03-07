@@ -17,7 +17,7 @@ use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
-    use ReleasesMonthTrait, GroupReleasesTrait, TotalByCategoryTrait;
+    use ReleasesMonthTrait;
 
     public function auth(Request $request)
     {
@@ -76,49 +76,17 @@ class AuthController extends Controller
     public function me()
     {
         if ($user = auth()->user()) {
+            
+            // $revenues = auth()->user()->revenues()->get();
+            $revenuesData = $this->classifiesReleases(auth()->user()->revenues()->get(), 'Revenues');
+            $expensesData = $this->classifiesReleases(auth()->user()->expenses()->get(), 'Expenses');
+            // return response(['revenuesData' => $revenuesData, 'expensesData' => $expensesData]);
 
-            $expenses = auth()->user()->expenses()->get();
-            $expensesMonth = $this->releasesMonth($expenses, date('m'));
-            $valuePayExpenses = $this->valuePending($expenses, date('m'), "PAGA");
-            $valuePendingExpenses = $this->valuePending($expenses, date('m'), "AGUARDANDO");
-            $valueTotalExpensesMonth = $this->valueReleasesMonth($expenses, date('m'));
-            $expensesGroupByMonth = $this->groupByMonth($expenses);
-            $expensesAddTotalVelueMonth = $this->addTotalValueMonth($expensesGroupByMonth);
-            $totalByCategoryExpnses = $this->totalByCategory($expensesMonth);
-            $expensesData = [
-                'expenses' => $expenses,
-                'expensesMonth' => $expensesMonth,
-                'valuePayExpenses' => $valuePayExpenses,
-                'valuePendingExpenses' => $valuePendingExpenses,
-                'valueTotalExpensesMonth' => $valueTotalExpensesMonth,
-                'expensesGroupByMonth' => $expensesGroupByMonth,
-                'expensesAddTotalVelueMonth' => $expensesAddTotalVelueMonth,
-                'totalByCategoryExpnses' => $totalByCategoryExpnses,
-            ];
-
-            $revenues = auth()->user()->revenues()->get();
-            $revenuesMonth = $this->releasesMonth($revenues, date('m'));
-            $valueReceived = $this->valuePending($revenues, date('m'), "RECEBIDA");
-            $valuePendingRevenues = $this->valuePending($revenues, date('m'), "AGUARDANDO");
-            $valueTotalRevenuesMonth = $this->valueReleasesMonth($revenues, date('m'));
-            $revenuesGroupByMonth = $this->groupByMonth($revenues);
-            $revenuesAddTotalVelueMonth = $this->addTotalValueMonth($revenuesGroupByMonth);
-            $revenuesData = [
-                'revenues' => $revenues,
-                'revenuesMonth' => $revenuesMonth,
-                'valueReceivedRevenues' => $valueReceived,
-                'valuePendingRevenues' => $valuePendingRevenues,
-                'valueTotalRevenuesMonth' => $valueTotalRevenuesMonth,
-                'revenuesGroupByMonth' => $revenuesGroupByMonth,
-                'revenuesAddTotalVelueMonth' => $revenuesAddTotalVelueMonth,
-            ];
 
             $totalCreditCard = 5000;
             $totalBalance = 5000;
 
             LogController::addsLog($user->email, Actions::ME);
-
-
 
             return response()->json([
                 'user' => $user,
@@ -157,7 +125,7 @@ class AuthController extends Controller
         return response()->json([
             'token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 30
+            'expires_in' => auth()->factory()->getTTL() * 90
         ], 200);
     }
 }

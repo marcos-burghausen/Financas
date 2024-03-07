@@ -70,29 +70,35 @@ import { ref } from "vue";
 
 import { useExpensesStore } from "@/store/expenses";
 import { useRevenuesStore } from "@/store/revenues";
+import { formatValue } from "@/utils/formatValue";
 
 const useExpenses = useExpensesStore();
 const useRevenues = useRevenuesStore();
 
-let valueTotalExpensesMonth = ref(useExpenses.expensesData.expenses.valueTotalExpensesMonth);
-let valueTotalRevenuesMonth = ref(useRevenues.revenuesData.revenues.valueTotalRevenuesMonth);
-let valuePay = ref(useExpenses.expensesData.expenses.valuePayExpenses);
-let valueReceived = ref(useRevenues.revenuesData.revenues.valueReceivedRevenues);
-let totalBalance = ref(valueReceived.value - valuePay.value);
+// const formatValue = (value: number): string =>{
+//     let valueFormatted = (value / 100).toLocaleString("pt-BR", { style: "decimal", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+//     return valueFormatted;
+// };
+
+let valueTotalExpensesMonth = ref(formatValue(useExpenses.expensesData.expenses?.ValueTotalExpensesMonth));
+let valueTotalRevenuesMonth = ref(formatValue(useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth));
+let valuePay = ref(useExpenses.expensesData.expenses?.ValuePayExpenses);
+let valueReceived = ref(useRevenues.revenuesData.revenues?.ValueReceivedRevenues);
+// let totalBalance = ref(parseFloat(valueReceived.value.replace(",", ".")) - parseFloat(valuePay.value.replace(",", ".")));
+let totalBalance = ref(formatValue(valueReceived.value - valuePay.value));
 // let totalCreditCard = ref(0);
-let expensesAddTotalVelueMonth = ref(useExpenses.expensesData.expenses.expensesAddTotalVelueMonth);
-let revenuesAddTotalVelueMonth = ref(useRevenues.revenuesData.revenues.revenuesAddTotalVelueMonth);
-let totalByCategoryExpnses = ref(useExpenses.expensesData.expenses.totalByCategoryExpnses);
+let expensesAddTotalValueMonth = ref(useExpenses.expensesData.expenses?.ExpensesAddTotalValueMonth);
+let revenuesAddTotalValueMonth = ref(useRevenues.revenuesData.revenues?.RevenuesAddTotalValueMonth);
+let totalByCategoryExpenses = ref(useExpenses.expensesData.expenses?.TotalByCategoryExpenses);
 
 const isAllZeros = (arr) => {
     return arr.every(value => value === 0);
 };
 
-
 // =============================== grafico de barras inicio =============================== //
 
-let totalYearValueExpenses = ref(Object.values(expensesAddTotalVelueMonth.value));
-let totalYearValueRevenues = ref(Object.values(revenuesAddTotalVelueMonth.value));
+let totalYearValueExpenses = ref(Object.values(expensesAddTotalValueMonth.value));
+let totalYearValueRevenues = ref(Object.values(revenuesAddTotalValueMonth.value));
 
 const options = {
     chart: {
@@ -121,7 +127,7 @@ const options = {
     tooltip: {
         y: {
             formatter: function (val) {
-                return "$ " + val;
+                return "R$ " + val;
             }
         }, theme: "dark",
     }
@@ -139,8 +145,8 @@ const series = [
 // =============================== grafico de barras fim =============================== //
 
 // =============================== grafico de pizza inicio =============================== //
-let category = ref(Object.keys(totalByCategoryExpnses.value));
-let valuesCategory = ref(Object.values(totalByCategoryExpnses.value));
+let category = ref(Object.keys(totalByCategoryExpenses.value));
+let valuesCategory = ref(Object.values(totalByCategoryExpenses.value));
 
 const options1 = {
     chart: {

@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 
 class RevenueController extends Controller
 {
-    use ReleasesMonthTrait, GroupReleasesTrait;
+    use ReleasesMonthTrait;
 
     public function saveRevenue(Request $request)
     {
@@ -29,38 +29,23 @@ class RevenueController extends Controller
                 'descricao.unique'   => 'O campo descricao é obrigatório',
                 'categoria.required' => 'O campo categoria é obrigatório',
                 'carteira.required'  => 'O campo carteira é obrigatório',
-            ]
-        );
+                ]
+            );
         $revenue = new Revenue;
         $revenue->user_id   = auth()->user()->id;
-        $revenue->valor     = $data['valor'];
+        $revenue->valor     = str_replace([',','.'], '', $data['valor']);
         $revenue->date      = $data['date'];
         $revenue->descricao = $data['descricao'];
         $revenue->categoria = $data['categoria'];
         $revenue->carteira  = $data['carteira'];
         $revenue->status    = $data['status'];
         $saved = $revenue->save();
-
+        
         if (!$saved) {
             return response()->json(Errors::ERROR_REGISTERING_REVENUE->response());
         }
 
-        $revenues = auth()->user()->revenues()->get();
-        $revenuesMonth = $this->releasesMonth($revenues, date('m'));
-        $valueReceivedRevenues = $this->valuePending($revenues, date('m'), "RECEBIDA");
-        $valuePendingRevenues = $this->valuePending($revenues, date('m'), "AGUARDANDO");
-        $valueTotalRevenuesMonth = $this->valueReleasesMonth($revenues, date('m'));
-        $revenuesGroupByMonth = $this->groupByMonth($revenues);
-        $revenuesAddTotalVelueMonth = $this->addTotalValueMonth($revenuesGroupByMonth);
-        $revenuesData = [
-            'revenues' => $revenues,
-            'revenuesMonth' => $revenuesMonth,
-            'valueReceivedRevenues' => $valueReceivedRevenues,
-            'valuePendingRevenues' => $valuePendingRevenues,
-            'valueTotalRevenuesMonth' => $valueTotalRevenuesMonth,
-            'revenuesGroupByMonth' => $revenuesGroupByMonth,
-            'revenuesAddTotalVelueMonth' => $revenuesAddTotalVelueMonth,
-        ];
+        $revenuesData = $this->classifiesReleases(auth()->user()->revenues()->get(), 'Revenues');
 
         // Mail::to($user->email)->send(new DespesaRegistradaMail($despesa));
         return response()->json([
@@ -73,27 +58,14 @@ class RevenueController extends Controller
     {
         $revenue = Revenue::find($request->id);
         $revenue->status = 'RECEBIDA';
+        $revenue->valor = str_replace([',','.'], '', $revenue->valor);
         $saved = $revenue->save();
+
         if (!$saved) {
             return Errors::ERROR_PAY_REVENUE->response();
         }
 
-        $revenues = auth()->user()->revenues()->get();
-        $revenuesMonth = $this->releasesMonth($revenues, date('m'));
-        $valueReceivedRevenues = $this->valuePending($revenues, date('m'), "RECEBIDA");
-        $valuePendingRevenues = $this->valuePending($revenues, date('m'), "AGUARDANDO");
-        $valueTotalRevenuesMonth = $this->valueReleasesMonth($revenues, date('m'));
-        $revenuesGroupByMonth = $this->groupByMonth($revenues);
-        $revenuesAddTotalVelueMonth = $this->addTotalValueMonth($revenuesGroupByMonth);
-        $revenuesData = [
-            'revenues' => $revenues,
-            'revenuesMonth' => $revenuesMonth,
-            'valueReceivedRevenues' => $valueReceivedRevenues,
-            'valuePendingRevenues' => $valuePendingRevenues,
-            'valueTotalRevenuesMonth' => $valueTotalRevenuesMonth,
-            'revenuesGroupByMonth' => $revenuesGroupByMonth,
-            'revenuesAddTotalVelueMonth' => $revenuesAddTotalVelueMonth,
-        ];
+        $revenuesData = $this->classifiesReleases(auth()->user()->revenues()->get(), 'Revenues');
 
         return response()->json([
             'msg' => 'Receita recebida com sucesso',
@@ -104,7 +76,7 @@ class RevenueController extends Controller
     public function editRevenue(Request $request)
     {
         $revenue = Revenue::find($request->id);
-        $revenue->valor = $request->valor;
+        $revenue->valor = str_replace([',','.'], '', $request->valor);
         $revenue->date = $request->date;
         $revenue->descricao = $request->descricao;
         $revenue->categoria = $request->categoria;
@@ -114,22 +86,7 @@ class RevenueController extends Controller
 
         if (!$saved) return response()->json(Errors::ERROR_UPDATING_REVENUE->response());
 
-        $revenues = auth()->user()->revenues()->get();
-        $revenuesMonth = $this->releasesMonth($revenues, date('m'));
-        $valueReceivedRevenues = $this->valuePending($revenues, date('m'), "RECEBIDA");
-        $valuePendingRevenues = $this->valuePending($revenues, date('m'), "AGUARDANDO");
-        $valueTotalRevenuesMonth = $this->valueReleasesMonth($revenues, date('m'));
-        $revenuesGroupByMonth = $this->groupByMonth($revenues);
-        $revenuesAddTotalVelueMonth = $this->addTotalValueMonth($revenuesGroupByMonth);
-        $revenuesData = [
-            'revenues' => $revenues,
-            'revenuesMonth' => $revenuesMonth,
-            'valueReceivedRevenues' => $valueReceivedRevenues,
-            'valuePendingRevenues' => $valuePendingRevenues,
-            'valueTotalRevenuesMonth' => $valueTotalRevenuesMonth,
-            'revenuesGroupByMonth' => $revenuesGroupByMonth,
-            'revenuesAddTotalVelueMonth' => $revenuesAddTotalVelueMonth,
-        ];
+        $revenuesData = $this->classifiesReleases(auth()->user()->revenues()->get(), 'Revenues');
 
         return response()->json([
             'msg' => 'Receita editada com sucesso',
@@ -144,22 +101,7 @@ class RevenueController extends Controller
             return response()->json(Errors::ERROR_DELETING_REVENUE->response());
         }
 
-        $revenues = auth()->user()->revenues()->get();
-        $revenuesMonth = $this->releasesMonth($revenues, date('m'));
-        $valueReceivedRevenues = $this->valuePending($revenues, date('m'), "RECEBIDA");
-        $valuePendingRevenues = $this->valuePending($revenues, date('m'), "AGUARDANDO");
-        $valueTotalRevenuesMonth = $this->valueReleasesMonth($revenues, date('m'));
-        $revenuesGroupByMonth = $this->groupByMonth($revenues);
-        $revenuesAddTotalVelueMonth = $this->addTotalValueMonth($revenuesGroupByMonth);
-        $revenuesData = [
-            'revenues' => $revenues,
-            'revenuesMonth' => $revenuesMonth,
-            'valueReceivedRevenues' => $valueReceivedRevenues,
-            'valuePendingRevenues' => $valuePendingRevenues,
-            'valueTotalRevenuesMonth' => $valueTotalRevenuesMonth,
-            'revenuesGroupByMonth' => $revenuesGroupByMonth,
-            'revenuesAddTotalVelueMonth' => $revenuesAddTotalVelueMonth,
-        ];
+        $revenuesData = $this->classifiesReleases(auth()->user()->revenues()->get(), 'Revenues');
 
         return response()->json([
             'msg' => 'Receita alterada com sucesso',

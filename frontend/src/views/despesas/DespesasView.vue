@@ -60,15 +60,18 @@
             @submit.prevent="salvarLancamentos"
           >
             <v-text-field
-              v-model="releases.valor"
+              v-model="release.valor"
+              autofocus
               density="compact"
               prefix="R$"
+              placeholder="0,00"
               variant="outlined"
               type="tel"
               hide-details="auto"
               label="Valor"
-              :rules="[rules.requiredValor]"
+              :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
               class="mb-5 input"
+              @input="formatValueSave()"
             />
 
             <div class="form-check form-switch text-white">
@@ -82,11 +85,11 @@
               <label
                 class="form-check-label"
                 for="flexSwitchCheckChecked"
-              >Foi paga</label>
+              >Paga</label>
             </div>
 
             <v-text-field
-              v-model="releases.date"
+              v-model="release.date"
               density="compact"
               variant="outlined"
               type="date"
@@ -97,7 +100,7 @@
             />
             
             <v-text-field
-              v-model="releases.descricao"
+              v-model="release.descricao"
               density="compact"
               variant="outlined"
               type="text"
@@ -108,7 +111,7 @@
             />
 
             <v-autocomplete
-              v-model="releases.categoria"
+              v-model="release.categoria"
               density="compact"
               variant="outlined"
               :rules="[rules.requiredCatagoria]"
@@ -119,7 +122,7 @@
             />
             
             <v-autocomplete
-              v-model="releases.carteira"
+              v-model="release.carteira"
               density="compact"
               variant="outlined"
               :rules="[rules.requiredCarteira]"
@@ -140,7 +143,7 @@
                 Cancelar
               </v-btn>
               <v-btn
-                :disabled="loading || !validFormLancamentos"
+                :disabled="loading || !validFormLancamentos || release.valor === '0,00'"
                 :loading="loading"
                 style="background-color: #77d08e;"
                 class=" btn-light px-5"
@@ -180,8 +183,9 @@
               type="tel"
               hide-details="auto"
               label="Valor"
-              :rules="[rules.requiredValor]"
+              :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
               class="mb-5 input"
+              @input="formatValueEdit()"
             />
 
             <v-text-field
@@ -245,12 +249,12 @@
                 :loading="loading"
                 style="background-color: #dc3545; color: #fefefe;;"
                 class=" px-5"
-                @click="formEditExpense = !formEditExpense"
+                @click="revertEdit(); { formEditExpense = !formEditExpense }"
               >
                 Cancelar
               </v-btn>
               <v-btn
-                :disabled="loading || !validFormEdit"
+                :disabled="loading || !validFormEdit || release.valor === '0,00'"
                 :loading="loading"
                 style="background-color: #77d08e;"
                 class=" btn-light px-5"
@@ -266,9 +270,6 @@
     <!-- ========================================================================= -->
     <!-- =================== fim formulario editar despesa ===================== -->
     <!-- ========================================================================= -->
-
-
-
 
     <div
       v-if="!formStoreExpense && !formEditExpense"
@@ -293,7 +294,7 @@
       </div>
       <div class="container__table">
         <div
-          v-if="expensesMonth.length > 0"
+          v-if="expensesMonth && expensesMonth.length > 0"
           class="col-12 col-lg-12"
         >
           <div
@@ -364,7 +365,7 @@
                     {{ expense.carteira }}
                   </td>
                   <td class="text-white text-center">
-                    R$ {{ expense.valor }}
+                    R$ {{ formatValue(expense.valor) }}
                   </td>
                   <td class="d-flex py-0 justify-content-center">
                     <button
@@ -421,15 +422,18 @@
 
 <script setup lang="ts">
 import Card from "@/components/Card.vue";
-// import FormLancamentos from "@/components/FormLancamentos.vue";
 
-import { ref, reactive } from "vue";
+import { ref, reactive, type Ref } from "vue";
 
 import type { Lancamentos } from "@/types/lancamentos";
 
 import { useExpensesStore } from "@/store/expenses";
 import { useUserStore } from "@/store/user";
 import http from "@/services/http";
+import { formatValue } from "@/utils/formatValue";
+import { computed } from "vue";
+
+import type { RevenueEdit } from "@/types/revenueEdit";
 
 const useExpenses = useExpensesStore();
 const userStore = useUserStore();
@@ -438,21 +442,40 @@ let validFormLancamentos = ref(false);
 let validFormEdit = ref(false);
 let loading = ref(false);
 
-let valueTotalExpensesMonth = ref(useExpenses.expensesData.expenses.valueTotalExpensesMonth);
-let valuePending = ref(useExpenses.expensesData.expenses.valuePendingExpenses);
-let expensesMonth = reactive(useExpenses.expensesData.expenses.expensesMonth);
-let valuePay = ref(useExpenses.expensesData.expenses.valuePayExpenses);
+let valueTotalExpensesMonth = ref(formatValue(useExpenses.expensesData.expenses?.ValueTotalExpensesMonth));
+let valuePending = ref(formatValue(useExpenses.expensesData.expenses?.ValuePendingExpenses));
+let expensesMonth = ref(useExpenses.expensesData.expenses?.ExpensesMonth);
+let valuePay = ref(formatValue(useExpenses.expensesData.expenses?.ValuePayExpenses));
 let categorias = ref(userStore.user.categoriasDespesas);
 const categoriasNames = ref([]);
 userStore.user.categoriasDespesas.forEach((categoria) => {
     categoriasNames.value.push(categoria.name);
 });
 let carteiras = ref(userStore.user.carteiras);
-let errorsForm = reactive({ errors: {} });
+let errorsForm = ref({ errors: {} });
 let formStoreExpense = ref(false);
 let formEditExpense = ref(false);
-let expenseEdit = reactive({});
-let releases = reactive({
+let expenseEdit: Ref<RevenueEdit> = ref({
+    id: 0,
+    user_id: 0,
+    valor: "",
+    date: "",
+    descricao: "",
+    categoria: "",
+    carteira: "",
+    status: "",
+    created_at: "",
+    updated_at: ""
+});
+const expenseUnedited: Ref<RevenueEdit> = ref({
+    valor: "",
+    date: "",
+    descricao: "",
+    categoria: "",
+    carteira: "",
+    status: ""
+});
+let release = ref({
     valor: "",
     date: "",
     status: "",
@@ -460,14 +483,55 @@ let releases = reactive({
     categoria: "",
     carteira: "",
 });
+
+const formatValueSave = () => {
+    let novoValor = release.value.valor.replace(/[^\d]/g, "");
+
+    if (novoValor.length > 1) {
+        const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
+        const parteDecimal = novoValor.slice(-2);
+        const parteInteiraFormatada = parteInteira.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        release.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
+    } else if (novoValor.length === 1) {
+        release.value.valor = `0,0${novoValor}`;
+    } else {
+        release.value.valor = "0,00";
+    }
+};
+
+const formatValueEdit = () => {
+    let novoValor = expenseEdit.value.valor.replace(/[^\d]/g, "");
+
+    if (novoValor.length > 1) {
+        const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
+        const parteDecimal = novoValor.slice(-2);
+        const parteInteiraFormatada = parteInteira.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        expenseEdit.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
+    } else if (novoValor.length === 1) {
+        expenseEdit.value.valor = `0,0${novoValor}`;
+    } else {
+        expenseEdit.value.valor = "0,00";
+    }
+};
+
 let status = ref(true);
 
 const clearInputs = () => {
-    releases.valor = "";
-    releases.date = "";
-    releases.descricao = "";
-    releases.categoria = "";
-    releases.carteira = "";
+    release.value.valor = "";
+    release.value.date = "";
+    release.value.descricao = "";
+    release.value.categoria = "";
+    release.value.carteira = "";
+};
+
+const revertEdit = () => {
+    expensesMonth.value.forEach((revenue: RevenueEdit, index: number) => {
+        if (revenue.id === expenseEdit.value.id) {
+            console.log(expensesMonth.value);
+            expensesMonth.value[index] = JSON.parse(JSON.stringify(expenseUnedited.value));
+            console.log(expensesMonth.value);
+        }
+    });
 };
 
 const returnExpense = () => {
@@ -477,18 +541,18 @@ const returnExpense = () => {
 
 const salvarLancamentos = async () => {
     try {
-        releases.status = status.value ? "PAGA" : "AGUARDANDO";
-        const res = await http.post("/save-expense", releases);
+        release.value.status = status.value ? "PAGA" : "AGUARDANDO";
+        const res = await http.post("/save-expense", release.value);
         useExpenses.setExpensesData(res.data.expensesData);
-        valueTotalExpensesMonth.value = res.data.expensesData.valueTotalExpensesMonth;
-        valuePay.value = res.data.expensesData.valuePayExpenses;
-        valuePending.value = res.data.expensesData.valuePendingExpenses;
-        expensesMonth = res.data.expensesData.expensesMonth;
+        valueTotalExpensesMonth.value = formatValue(res.data.expensesData.ValueTotalExpensesMonth);
+        valuePay.value = formatValue(res.data.expensesData.ValuePayExpenses);
+        valuePending.value = formatValue(res.data.expensesData.ValuePendingExpenses);
+        expensesMonth.value = res.data.expensesData.ExpensesMonth;
         clearInputs();
         formStoreExpense.value = false;
     } catch (error) {
         // console.log(error);
-        errorsForm["errors"] = error.response.data.errors;
+        errorsForm.value["errors"] = error.response.data.errors;
     }
 };
 
@@ -496,10 +560,10 @@ const payExpense = async (expense: Lancamentos) => {
     try {
         const res = await http.post("/pay-expense", { "id": expense.id });
         useExpenses.setExpensesData(res.data.expensesData);
-        valuePending.value = res.data.expensesData.valuePendingExpenses;
-        valuePay.value = res.data.expensesData.valuePayExpenses;
+        valuePending.value = formatValue(res.data.expensesData.ValuePendingExpenses);
+        valuePay.value = formatValue(res.data.expensesData.ValuePayExpenses);
         // expense.status = 'PAGA';
-        expensesMonth.forEach(expenses => {
+        expensesMonth.value.forEach(expenses => {
             if (expenses.id === expense.id) {
                 expense.status = "PAGA";
             }
@@ -509,19 +573,22 @@ const payExpense = async (expense: Lancamentos) => {
     }
 };
 
-function displayFormEditExpense(expense: Lancamentos) {
-    expenseEdit = expense;
+function displayFormEditExpense(expense: RevenueEdit) {
+    expenseUnedited.value = JSON.parse(JSON.stringify(expense));
+    expenseEdit.value = expense;
+    expenseEdit.value.valor = formatValue(expenseEdit.value.valor); 
     formEditExpense.value = true;
 }
 
 const saveEditedExpense = async () => {
     try {
-        const res = await http.post("/edit-expense", expenseEdit);
+        const res = await http.post("/edit-expense", expenseEdit.value);
+        console.log(res);
         useExpenses.setExpensesData(res.data.expensesData);
-        valueTotalExpensesMonth.value = res.data.expensesData.valueTotalExpensesMonth;
-        valuePending.value = res.data.expensesData.valuePendingExpenses;
-        expensesMonth = res.data.expensesData.expensesMonth;
-        valuePay.value = res.data.expensesData.valuePayExpenses;
+        valueTotalExpensesMonth.value = formatValue(res.data.expensesData.ValueTotalExpensesMonth);
+        valuePending.value = formatValue(res.data.expensesData.ValuePendingExpenses);
+        valuePay.value = formatValue(res.data.expensesData.ValuePayExpenses);
+        expensesMonth.value = res.data.expensesData.ExpensesMonth;
     } catch (error) {
         // console.log(error);
     }
@@ -534,10 +601,10 @@ const deletar = async (id: number) => {
     try {
         const res = await http.post("/delete-expense", { "id": id });
         useExpenses.setExpensesData(res.data.expensesData);
-        valueTotalExpensesMonth.value = res.data.expensesData.valueTotalExpensesMonth;
-        valuePending.value = res.data.expensesData.valuePendingExpenses;
-        valuePay.value = res.data.expensesData.valuePayExpenses;
-        expensesMonth = res.data.expensesData.expensesMonth;
+        valueTotalExpensesMonth.value = formatValue(res.data.expensesData.ValueTotalExpensesMonth);
+        valuePending.value = formatValue(res.data.expensesData.ValuePendingExpenses);
+        valuePay.value = formatValue(res.data.expensesData.ValuePayExpenses);
+        expensesMonth.value = res.data.expensesData.expensesMonth;
     } catch (error) {
         // console.log(error);
     }
@@ -546,6 +613,8 @@ const deletar = async (id: number) => {
 const rules = {
     requiredValor: (value: string) =>
         !!value || "O campo valor é obrigatório",
+    requiredValorMaiorQue0: (value: string) =>
+        parseFloat(value.replace(",", ".")) > 0 || "O campo valor deve ser maior que zero",
     requiredData: (value: string) =>
         !!value || "O campo data é obrigatório",
     requiredDescricao: (value: string) =>

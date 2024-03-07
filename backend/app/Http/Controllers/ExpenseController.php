@@ -11,7 +11,7 @@ use App\Models\Expense;
 
 class ExpenseController extends Controller
 {
-    use ReleasesMonthTrait, GroupReleasesTrait, TotalByCategoryTrait;
+    use ReleasesMonthTrait;
 
     public function saveExpense(Request $request)
     {
@@ -32,10 +32,9 @@ class ExpenseController extends Controller
                 'carteira.required'  => 'O campo carteira senha é obrigatório',
             ]
         );
-        //$data['date'] = date('d-m-Y', strtotime($data['date']));
         $expense = new Expense;
         $expense->user_id   = auth()->user()->id;
-        $expense->valor     = $data['valor'];
+        $expense->valor     = str_replace([',', '.'], '', $data['valor']);
         $expense->date      = $data['date'];
         $expense->descricao = $data['descricao'];
         $expense->categoria = $data['categoria'];
@@ -47,24 +46,7 @@ class ExpenseController extends Controller
             return response()->json(Errors::ERROR_REGISTERING_EXPENSE->response());
         }
 
-        $expenses = auth()->user()->expenses()->get();
-        $expensesMonth = $this->releasesMonth($expenses, date('m'));
-        $valuePayExpenses = $this->valuePending($expenses, date('m'), "PAGA");
-        $valuePendingExpenses = $this->valuePending($expenses, date('m'), "AGUARDANDO");
-        $valueTotalExpensesMonth = $this->valueReleasesMonth($expenses, date('m'));
-        $expensesGroupByMonth = $this->groupByMonth($expenses);
-        $expensesAddTotalVelueMonth = $this->addTotalValueMonth($expensesGroupByMonth);
-        $totalByCategoryExpnses = $this->totalByCategory($expensesMonth);
-        $expensesData = [
-            'expenses' => $expenses,
-            'expensesMonth' => $expensesMonth,
-            'valuePayExpenses' => $valuePayExpenses,
-            'valuePendingExpenses' => $valuePendingExpenses,
-            'valueTotalExpensesMonth' => $valueTotalExpensesMonth,
-            'expensesGroupByMonth' => $expensesGroupByMonth,
-            'expensesAddTotalVelueMonth' => $expensesAddTotalVelueMonth,
-            'totalByCategoryExpnses' => $totalByCategoryExpnses,
-        ];
+        $expensesData = $this->classifiesReleases(auth()->user()->expenses()->get(), 'Expenses');
 
         // Mail::to($user->email)->send(new DespesaRegistradaMail($despesa));
         return response()->json([
@@ -77,29 +59,14 @@ class ExpenseController extends Controller
     {
         $expense = Expense::find($request->id);
         $expense->status = 'PAGA';
+        $expense->valor = str_replace([',','.'], '', $expense->valor);
         $saved = $expense->save();
+
         if (!$saved) {
             return Errors::ERROR_PAY_EXPENSE->response();
         }
 
-        $expenses = auth()->user()->expenses()->get();
-        $expensesMonth = $this->releasesMonth($expenses, date('m'));
-        $valuePayExpenses = $this->valuePending($expenses, date('m'), "PAGA");
-        $valuePendingExpenses = $this->valuePending($expenses, date('m'), "AGUARDANDO");
-        $valueTotalExpensesMonth = $this->valueReleasesMonth($expenses, date('m'));
-        $expensesGroupByMonth = $this->groupByMonth($expenses);
-        $expensesAddTotalVelueMonth = $this->addTotalValueMonth($expensesGroupByMonth);
-        $totalByCategoryExpnses = $this->totalByCategory($expensesMonth);
-        $expensesData = [
-            'expenses' => $expenses,
-            'expensesMonth' => $expensesMonth,
-            'valuePayExpenses' => $valuePayExpenses,
-            'valuePendingExpenses' => $valuePendingExpenses,
-            'valueTotalExpensesMonth' => $valueTotalExpensesMonth,
-            'expensesGroupByMonth' => $expensesGroupByMonth,
-            'expensesAddTotalVelueMonth' => $expensesAddTotalVelueMonth,
-            'totalByCategoryExpnses' => $totalByCategoryExpnses,
-        ];
+        $expensesData = $this->classifiesReleases(auth()->user()->expenses()->get(), 'Expenses');
 
         return response()->json([
             'success' => 'despesa cadastrada com sucesso',
@@ -110,7 +77,7 @@ class ExpenseController extends Controller
     public function editExpense(Request $request)
     {
         $expense = Expense::find($request->id);
-        $expense->valor = $request->valor;
+        $expense->valor = str_replace([',','.'], '', $request->valor);
         $expense->date = $request->date;
         $expense->descricao = $request->descricao;
         $expense->categoria = $request->categoria;
@@ -120,24 +87,7 @@ class ExpenseController extends Controller
 
         if (!$saved) return response()->json(Errors::ERROR_UPDATING_EXPENSE->response());
 
-        $expenses = auth()->user()->expenses()->get();
-        $expensesMonth = $this->releasesMonth($expenses, date('m'));
-        $valuePayExpenses = $this->valuePending($expenses, date('m'), "PAGA");
-        $valuePendingExpenses = $this->valuePending($expenses, date('m'), "AGUARDANDO");
-        $valueTotalExpensesMonth = $this->valueReleasesMonth($expenses, date('m'));
-        $expensesGroupByMonth = $this->groupByMonth($expenses);
-        $expensesAddTotalVelueMonth = $this->addTotalValueMonth($expensesGroupByMonth);
-        $totalByCategoryExpnses = $this->totalByCategory($expensesMonth);
-        $expensesData = [
-            'expenses' => $expenses,
-            'expensesMonth' => $expensesMonth,
-            'valuePayExpenses' => $valuePayExpenses,
-            'valuePendingExpenses' => $valuePendingExpenses,
-            'valueTotalExpensesMonth' => $valueTotalExpensesMonth,
-            'expensesGroupByMonth' => $expensesGroupByMonth,
-            'expensesAddTotalVelueMonth' => $expensesAddTotalVelueMonth,
-            'totalByCategoryExpnses' => $totalByCategoryExpnses,
-        ];
+        $expensesData = $this->classifiesReleases(auth()->user()->expenses()->get(), 'Expenses');
 
         return response()->json([
             'success' => 'despesa cadastrada com sucesso',
@@ -152,24 +102,7 @@ class ExpenseController extends Controller
             return response()->json(Errors::ERROR_DELETING_EXPENSE->response());
         }
 
-        $expenses = auth()->user()->expenses()->get();
-        $expensesMonth = $this->releasesMonth($expenses, date('m'));
-        $valuePayExpenses = $this->valuePending($expenses, date('m'), "PAGA");
-        $valuePendingExpenses = $this->valuePending($expenses, date('m'), "AGUARDANDO");
-        $valueTotalExpensesMonth = $this->valueReleasesMonth($expenses, date('m'));
-        $expensesGroupByMonth = $this->groupByMonth($expenses);
-        $expensesAddTotalVelueMonth = $this->addTotalValueMonth($expensesGroupByMonth);
-        $totalByCategoryExpnses = $this->totalByCategory($expensesMonth);
-        $expensesData = [
-            'expenses' => $expenses,
-            'expensesMonth' => $expensesMonth,
-            'valuePayExpenses' => $valuePayExpenses,
-            'valuePendingExpenses' => $valuePendingExpenses,
-            'valueTotalExpensesMonth' => $valueTotalExpensesMonth,
-            'expensesGroupByMonth' => $expensesGroupByMonth,
-            'expensesAddTotalVelueMonth' => $expensesAddTotalVelueMonth,
-            'totalByCategoryExpnses' => $totalByCategoryExpnses,
-        ];
+        $expensesData = $this->classifiesReleases(auth()->user()->expenses()->get(), 'Expenses');
 
         return response()->json([
             'success' => 'despesa cadastrada com sucesso',

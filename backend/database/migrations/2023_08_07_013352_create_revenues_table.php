@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users');
-            $table->float('valor', 10, 2);
+            $table->integer('valor');
             $table->date('date');
             $table->string('descricao', 255);
             $table->string('categoria', 255);

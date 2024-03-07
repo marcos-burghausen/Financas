@@ -58,8 +58,8 @@
             @submit.prevent="salvarLancamentos"
           >
             <v-text-field
-              v-model="releases.valor"
-              v-mask="'###.###.###,##'"
+              v-model="release.valor"
+              autofocus
               density="compact"
               prefix="R$"
               placeholder="0,00"
@@ -67,8 +67,9 @@
               type="tel"
               hide-details="auto"
               label="Valor"
-              :rules="[rules.requiredValor]"
+              :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
               class="mb-5 input"
+              @input="formatValueSave()"
             />
 
             <div class="form-check form-switch text-white">
@@ -86,7 +87,7 @@
             </div>
 
             <v-text-field
-              v-model="releases.date"
+              v-model="release.date"
               density="compact"
               variant="outlined"
               type="date"
@@ -97,7 +98,7 @@
             />
 
             <v-text-field
-              v-model="releases.descricao"
+              v-model="release.descricao"
               density="compact"
               variant="outlined"
               type="text"
@@ -108,7 +109,7 @@
             />
 
             <v-autocomplete
-              v-model="releases.categoria"
+              v-model="release.categoria"
               density="compact"
               variant="outlined"
               :rules="[rules.requiredCatagoria]"
@@ -119,7 +120,7 @@
             />
 
             <v-autocomplete
-              v-model="releases.carteira"
+              v-model="release.carteira"
               density="compact"
               variant="outlined"
               :rules="[rules.requiredCarteira]"
@@ -140,7 +141,7 @@
                 Cancelar
               </v-btn>
               <v-btn
-                :disabled="loading || !validFormLancamentos"
+                :disabled="loading || !validFormLancamentos || release.valor === '0,00'"
                 :loading="loading"
                 style="background-color: #77d08e;"
                 class=" btn-light px-5"
@@ -181,8 +182,9 @@
               type="tel"
               hide-details="auto"
               label="Valor"
-              :rules="[rules.requiredValor]"
+              :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
               class="mb-5 input"
+              @input="formatValueEdit()"
             />
 
             <v-text-field
@@ -246,12 +248,12 @@
                 :loading="loading"
                 style="background-color: #dc3545; color: #fefefe;;"
                 class=" px-5"
-                @click="formEditRevenue = !formEditRevenue"
+                @click="revertEdit(); { formEditRevenue = !formEditRevenue }"
               >
                 Cancelar
               </v-btn>
               <v-btn
-                :disabled="loading || !validFormEdit"
+                :disabled="loading || !validFormEdit || release.valor === '0,00'"
                 :loading="loading"
                 style="background-color: #77d08e;"
                 class="btn btn-light px-5"
@@ -295,7 +297,7 @@
 
       <div class="container__table">
         <div
-          v-if="revenuesMonth.length > 0"
+          v-if="revenuesMonth && revenuesMonth.length > 0"
           class="col-12 col-lg-12"
         >
           <div
@@ -366,7 +368,7 @@
                     {{ revenue.carteira }}
                   </td>
                   <td class="text-white text-center">
-                    R$ {{ revenue.valor }}
+                    R$ {{ formatValue(revenue.valor) }}
                   </td>
                   <td class="d-flex py-0 justify-content-center">
                     <button
@@ -420,31 +422,32 @@
 
 <script setup lang="ts">
 import Card from "@/components/Card.vue";
-import { vMaska } from "maska";
 
-import { ref, reactive } from "vue";
+import { ref, reactive, onMounted, type Ref } from "vue";
 
 import type { Lancamentos } from "@/types/lancamentos";
 
 import { useRevenuesStore } from "@/store/revenues";
 import { useUserStore } from "@/store/user";
 import { userData } from "@/store/data";
+import { formatValue } from "@/utils/formatValue";
 
 import http from "@/services/http";
+import type { RevenueEdit } from "@/types/revenueEdit";
+
 
 const useRevenues = useRevenuesStore();
-const data = userData();
 const userStore = useUserStore();
 
 let validFormLancamentos = ref(false);
 let validFormEdit = ref(false);
 let loading = ref(false);
 
-let valueTotalRevenuesMonth = ref(useRevenues.revenuesData.revenues.valueTotalRevenuesMonth);
-let valuePending = ref(useRevenues.revenuesData.revenues.valuePendingRevenues);
-let revenuesMonth = ref(useRevenues.revenuesData.revenues.revenuesMonth);
+let valueTotalRevenuesMonth = ref(formatValue(useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth));
+let valuePending = ref(formatValue(useRevenues.revenuesData.revenues?.ValuePendingRevenues));
+let revenuesMonth = ref(useRevenues.revenuesData.revenues?.RevenuesMonth);
 // console.log(revenuesMonth.value);
-let valueReceived = ref(useRevenues.revenuesData.revenues.valueReceivedRevenues);
+let valueReceived = ref(formatValue(useRevenues.revenuesData.revenues?.ValueReceivedRevenues));
 // let categorias = ref(userStore.user.categoriasReceitas);
 const categoriasNames = ref([]);
 userStore.user.categoriasReceitas.forEach((categoria) => {
@@ -454,8 +457,27 @@ let carteiras = ref(userStore.user.carteiras);
 let errorsForm = ref({ errors: {} });
 let formStoreRevenue = ref(false);
 let formEditRevenue = ref(false);
-let revenueEdit = reactive({});
-let releases = reactive({
+let revenueEdit: Ref<RevenueEdit> = ref({
+    id: 0,
+    user_id: 0,
+    valor: "",
+    date: "",
+    descricao: "",
+    categoria: "",
+    carteira: "",
+    status: "",
+    created_at: "",
+    updated_at: ""
+});
+const revenueUnedited: Ref<RevenueEdit> = ref({
+    valor: "",
+    date: "",
+    descricao: "",
+    categoria: "",
+    carteira: "",
+    status: ""
+}); 
+let release: Ref<Lancamentos> = ref({
     valor: "",
     date: "",
     descricao: "",
@@ -463,14 +485,57 @@ let releases = reactive({
     carteira: "",
     status: ""
 });
+
+// onMounted( () => {
+// });
+const formatValueSave = () => {
+    let novoValor = release.value.valor.replace(/[^\d]/g, "");
+
+    if (novoValor.length > 1) {
+        const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
+        const parteDecimal = novoValor.slice(-2);
+        const parteInteiraFormatada = parteInteira.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        release.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
+    } else if (novoValor.length === 1) {
+        release.value.valor = `0,0${novoValor}`;
+    } else {
+        release.value.valor = "0,00";
+    }
+};
+const formatValueEdit = () => {
+    let novoValor = revenueEdit.value.valor.replace(/[^\d]/g, "");
+
+    if (novoValor.length > 1) {
+        const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
+        const parteDecimal = novoValor.slice(-2);
+        const parteInteiraFormatada = parteInteira.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        revenueEdit.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
+    } else if (novoValor.length === 1) {
+        revenueEdit.value.valor = `0,0${novoValor}`;
+    } else {
+        revenueEdit.value.valor = "0,00";
+    }
+};
+// formatarValor();
+
 let status = ref(true);
 
 const clearInputs = () => {
-    releases.valor = "";
-    releases.date = "";
-    releases.descricao = "";
-    releases.categoria = "";
-    releases.carteira = "";
+    release.value.valor = "";
+    release.value.date = "";
+    release.value.descricao = "";
+    release.value.categoria = "";
+    release.value.carteira = "";
+};
+
+const revertEdit = () => {
+    revenuesMonth.value.forEach((revenue: RevenueEdit, index: number) => {
+        if (revenue.id === revenueEdit.value.id) {
+            console.log(revenuesMonth.value);
+            revenuesMonth.value[index] = JSON.parse(JSON.stringify(revenueUnedited.value));
+            console.log(revenuesMonth.value);
+        }
+    });
 };
 
 const returnRevenue = () => {
@@ -480,13 +545,13 @@ const returnRevenue = () => {
 
 const salvarLancamentos = async () => {
     try {
-        releases.status = status.value ? "RECEBIDA" : "AGUARDANDO";
-        const res = await http.post("/save-revenue", releases);
+        release.value.status = status.value ? "RECEBIDA" : "AGUARDANDO";
+        const res = await http.post("/save-revenue", release.value);
         useRevenues.setRevenuesData(res.data.revenuesData,);
-        valueTotalRevenuesMonth.value = res.data.revenuesData.valueTotalRevenuesMonth;
-        valuePending.value = res.data.revenuesData.valuePendingRevenues;
-        valueReceived.value = res.data.revenuesData.valueReceivedRevenues;
-        revenuesMonth.value = res.data.revenuesData.revenuesMonth;
+        valueTotalRevenuesMonth.value = formatValue(res.data.revenuesData.ValueTotalRevenuesMonth);
+        valuePending.value = formatValue(res.data.revenuesData.ValuePendingRevenues);
+        valueReceived.value = formatValue(res.data.revenuesData.ValueReceivedRevenues);
+        revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
         clearInputs();
         formStoreRevenue.value = false;
     } catch (error) {
@@ -495,12 +560,12 @@ const salvarLancamentos = async () => {
     }
 };
 
-const receivedRevenue = async (revenue: Lancamentos) => {
+const receivedRevenue = async (revenue: RevenueEdit) => {
     try {
         const res = await http.post("/received-revenue", { "id": revenue.id });
         useRevenues.setRevenuesData(res.data.revenuesData);
-        valueReceived.value = res.data.revenuesData.valueReceivedRevenues;
-        valuePending.value = res.data.revenuesData.valuePendingRevenues;
+        valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
+        valuePending.value = res.data.revenuesData.ValuePendingRevenues;
         // revenue.status = 'PAGA';
         revenuesMonth.value.forEach(revenues => {
             if (revenues.id === revenue.id) {
@@ -513,19 +578,21 @@ const receivedRevenue = async (revenue: Lancamentos) => {
     }
 };
 
-function displayFormEditRevenue(revenue: Lancamentos) {
-    revenueEdit = revenue;
+function displayFormEditRevenue(revenue: RevenueEdit) {
+    revenueUnedited.value = JSON.parse(JSON.stringify(revenue));
+    revenueEdit.value = revenue;
+    revenueEdit.value.valor = formatValue(revenueEdit.value.valor); 
     formEditRevenue.value = true;
 }
 
 const saveEditedRevenue = async () => {
     try {
-        const res = await http.post("/edit-revenue", revenueEdit);
+        const res = await http.post("/edit-revenue", revenueEdit.value);
         useRevenues.setRevenuesData(res.data.revenuesData);
-        valueTotalRevenuesMonth.value = res.data.revenuesData.valueTotalRevenuesMonth;
-        valueReceived.value = res.data.revenuesData.valueReceivedRevenues;
-        valuePending.value = res.data.revenuesData.valuePendingRevenues;
-        revenuesMonth.value = res.data.revenuesData.revenuesMonth;
+        valueTotalRevenuesMonth.value = formatValue(res.data.revenuesData.ValueTotalRevenuesMonth);
+        valueReceived.value = formatValue(res.data.revenuesData.ValueReceivedRevenues);
+        valuePending.value = formatValue(res.data.revenuesData.ValuePendingRevenues);
+        revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
     } catch (error) {
         // console.log(error);
     }
@@ -538,10 +605,10 @@ const deletar = async (id: number) => {
     try {
         const res = await http.post("/delete-revenue", { "id": id });
         useRevenues.setRevenuesData(res.data.revenuesData);
-        valueTotalRevenuesMonth.value = res.data.revenuesData.valueTotalRevenuesMonth;
-        valuePending.value = res.data.revenuesData.valuePendingRevenues;
-        valueReceived.value = res.data.revenuesData.valueReceivedRevenues;
-        revenuesMonth.value = res.data.revenuesData.revenuesMonth;
+        valueTotalRevenuesMonth.value = formatValue(res.data.revenuesData.ValueTotalRevenuesMonth);
+        valuePending.value = formatValue(res.data.revenuesData.ValuePendingRevenues);
+        valueReceived.value = formatValue(res.data.revenuesData.ValueReceivedRevenues);
+        revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
     } catch (error) {
         // console.log(error);
     }
@@ -550,6 +617,8 @@ const deletar = async (id: number) => {
 const rules = {
     requiredValor: (value: string) =>
         !!value || "O campo valor é obrigatório",
+    requiredValorMaiorQue0: (value: string) =>
+        parseFloat(value.replace(",", ".")) > 0 || "O campo valor deve ser maior que zero",
     requiredData: (value: string) =>
         !!value || "O campo data é obrigatório",
     requiredDescricao: (value: string) =>

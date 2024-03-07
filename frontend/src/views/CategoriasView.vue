@@ -143,7 +143,7 @@
           <td class="text-white d-flex align-items-center">
             <div
               class="cor__forma"
-              :class="categoria.cor"
+              :class="categoria.color"
             />
           </td>
           <td class="text-white text-center">
@@ -191,7 +191,6 @@ const useUser = useUserStore();
 
 const categoriasDespesas = ref(useUser.user.categoriasDespesas);
 const categoriasReceitas = ref(useUser.user.categoriasReceitas);
-
 
 const isDropdownOpen = ref(false);
 const selectedOption = ref("categoria por despesas");
