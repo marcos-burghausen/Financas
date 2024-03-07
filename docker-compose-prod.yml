@@ -38,7 +38,7 @@ services:
     networks:
       - network
     ports:
-      - "4081:5173"
+      - "4081:80"
 
   #mysql
   mysql:
@@ -58,19 +58,6 @@ services:
       MYSQL_USER: user
       MYSQL_DATABASE: Mr_database
 
-  #phpmyadmin
-  dbadmin:
-    image: phpmyadmin/phpmyadmin
-    restart: "no"
-    container_name: phpmyadmin
-    networks:
-      - network
-    ports:
-      - "4033:80"
-    environment:
-      PMA_HOST: mysql
-      PMA_PORT: 3306
-
   #redis
   redis:
     image: redis:7.0
@@ -82,20 +69,6 @@ services:
       - "6379:6379"
     volumes:
       - "redis_db:/data"
-
-  #redis-commander
-  redis-commander:
-    image: rediscommander/redis-commander:latest
-    container_name: redis-commander
-    restart: always
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=senha
-    ports:
-      - "8082:8081"
-    networks:
-      - network
 
 volumes:
   mysql_db:
