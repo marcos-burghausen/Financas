@@ -2,8 +2,8 @@ import axios from "axios";
 import { useAuth } from "@/store/auth";
 
 const axiosInstance = axios.create({
-    baseURL: "http://localhost:4080/api",
-    // baseURL: "https://resfinancas.com.br/api",
+    // baseURL: "http://localhost:4080/api",
+    baseURL: "https://resfinancas.com.br/api",
     headers: {
         "Accept": "application/json",
         "Content-type": "application/json"
