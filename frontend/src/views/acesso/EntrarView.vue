@@ -166,7 +166,10 @@ const useExpenses = useExpensesStore();
 const useRevenues = useRevenuesStore();
 const useUser = useUserStore();
 const errorStore = useErrorStore();
-const user: Ref<FormLogin> = ref({});
+const user: Ref<FormLogin> = ref({
+    email: "rafael@gmail.com",
+    password: "Teste123@" 
+});
 const router = useRouter();
 const data = userData();
 const auth = useAuth();
@@ -189,7 +192,7 @@ async function login() {
         data.setTotalCreditCard(response.data.totalCreditCard);
         data.setTotalBalance(response.data.totalBalance);
         auth.setUser(response.data.user.name);
-
+        
         router.push({ name: "dashboard" });
     } catch (error) {
         errorStore.setErrorFromResponse(error);

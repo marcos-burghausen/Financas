@@ -2,8 +2,8 @@ import axios from "axios";
 import { useAuth } from "@/store/auth";
 
 const axiosInstance = axios.create({
-    // baseURL: "http://localhost:4080/api",
-    baseURL: "https://resfinancas.com.br/api",
+    baseURL: "http://localhost:4080/api",
+    // baseURL: "https://resfinancas.com.br/api",
     headers: {
         "Accept": "application/json",
         "Content-type": "application/json"
@@ -33,7 +33,12 @@ axiosInstance.interceptors.response.use(
         return response;
     },
     error => {
+        const auth = useAuth();
         // console.log("Erro na resposta: ", error);
+        if (error.response.data.message === "Token has expired") {
+            alert("sessão expirada, vamos te redirecionar para a tela de login");
+            auth.expiredTokem();
+        }
         return Promise.reject(error);
     }
 );

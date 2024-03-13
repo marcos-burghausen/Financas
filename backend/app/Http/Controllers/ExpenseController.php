@@ -90,7 +90,7 @@ class ExpenseController extends Controller
         $expensesData = $this->classifiesReleases(auth()->user()->expenses()->get(), 'Expenses');
 
         return response()->json([
-            'success' => 'despesa cadastrada com sucesso',
+            'success' => 'despesa auterada com sucesso',
             'expensesData' => $expensesData,
         ], 200);
     }

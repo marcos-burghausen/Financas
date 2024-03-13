@@ -429,15 +429,16 @@ import type { Lancamentos } from "@/types/lancamentos";
 
 import { useRevenuesStore } from "@/store/revenues";
 import { useUserStore } from "@/store/user";
-import { userData } from "@/store/data";
 import { formatValue } from "@/utils/formatValue";
 
 import http from "@/services/http";
 import type { RevenueEdit } from "@/types/revenueEdit";
+import { useAuth } from "@/store/auth";
 
 
 const useRevenues = useRevenuesStore();
 const userStore = useUserStore();
+const auth = useAuth();
 
 let validFormLancamentos = ref(false);
 let validFormEdit = ref(false);
@@ -594,7 +595,10 @@ const saveEditedRevenue = async () => {
         valuePending.value = formatValue(res.data.revenuesData.ValuePendingRevenues);
         revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
     } catch (error) {
-        // console.log(error);
+        // console.log(error.response.data.message);
+        // if (error.response.data.message === "Token has expired") {
+        //     alert("sessão expirada");
+        // }
     }
 
     formEditRevenue.value = false;
