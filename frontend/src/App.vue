@@ -2,6 +2,7 @@
   <div class="d-flex h-100">
     <template v-if="auth.isAuthenticated">
       <MenuLateral :menu-expandido="menuExpandido" />
+      <!-- <TesteView :menu-expandido="menuExpandido" /> -->
     </template>
     <div class="containerApp">
       <template v-if="auth.isAuthenticated">
@@ -17,6 +18,7 @@
 
 <script setup lang="ts">
 import MenuLateral from "@/components/MenuLateral.vue";
+import TesteView from "./components/TesteView.vue";
 import Cabecalho from "@/components/Cabecalho.vue";
 
 import { ref } from "vue";

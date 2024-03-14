@@ -279,17 +279,17 @@
     >
       <div class="card__container">
         <Card
-          class="card"
+          class="cards"
           titulo="Receitas"
           :valor="valueTotalRevenuesMonth"
         />
         <Card
-          class="card"
+          class="cards"
           titulo="Pendentes"
           :valor="valuePending"
         />
         <Card
-          class="card"
+          class="cards"
           titulo="Recebidas"
           :valor="valueReceived"
         />
@@ -734,7 +734,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     display: flex;
 }
 
-.card {
+.cards {
     width: 33.33%;
     color: #ccc;
     font-size: 30px;

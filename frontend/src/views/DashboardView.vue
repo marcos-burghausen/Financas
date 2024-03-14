@@ -13,13 +13,13 @@
     </div>
     <div class="card__container">
       <Card
-        class="card"
+        class="cards"
         titulo="Receitas"
         :valor="valueTotalRevenuesMonth"
         rota="receitas"
       />
       <Card
-        class="card"
+        class="cards"
         titulo="Despesas"
         :valor="valueTotalExpensesMonth"
         rota="despesas"
@@ -27,7 +27,7 @@
       <!-- <Card class="card col-12 col-md-6 col-lg-6 col-xl-3" titulo="Cartão de crédito" :valor="totalCreditCard"
                     rota="cartao" /> -->
       <Card
-        class="card"
+        class="cards"
         titulo="Saldo atual"
         :valor="totalBalance"
         rota=""
@@ -192,7 +192,7 @@ const series1 = valuesCategory.value;
     height: calc(100% - 125px);
 }
 
-.card {
+.cards {
     width: 33.33%;
     color: #ccc;
     font-size: 30px;

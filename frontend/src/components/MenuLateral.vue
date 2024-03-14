@@ -1,9 +1,12 @@
 <template>
-  <div>
+  <div
+    class="fundo__menu"
+    :class="{ displayNone: !props.menuExpandido }"
+  >
     <nav
       class="menu-lateral"
-      :class="{ expandido: props.menuExpandido }"
     >
+      <!-- :class="{ expandido: props.menuExpandido }" -->
       <div class="container__logo">
         <router-link :to="{ name: 'dashboard' }">
           <img
@@ -23,9 +26,12 @@
           v-for="(item, index) in itensSideBar"
           :key="index"
           :class="{ efeitoClick: elementoAtivoSideBar === index }"
+          @click="props.menuExpandido = !props.menuExpandido"
         >
           <!-- @click="elementoAtivoSideBar = index"> -->
-          <router-link :to="{ name: item.route }">
+          <router-link
+            :to="{ name: item.route }"
+          >
             <span class="icon">
               <mdicon :name="item.icon" />
             </span>
@@ -83,13 +89,22 @@ const itensSideBar = ref([
 
 <style scoped>
 .menu-lateral {
-    background-color: rgba(0, 0, 0, 0.1);
-    margin: 0 15px 0 0;
-    width: 70px;
-    padding: 10px 8px 40px 0;
-    box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
-    transition: 0.5s;
-    height: calc(100vh - 30px);
+  background-color: rgb(44, 44, 46);
+  /* margin: 0 15px 0 0; */
+  width: 220px;
+  /* padding: 10px 8px 40px 0; */
+  /* box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23; */
+  /* transition: 0.5s; */
+  height: 100%;
+  
+}
+.fundo__menu {
+  background-color: rgba(0, 0, 0, 0.6);
+  position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
 }
 
 .container__logo {
