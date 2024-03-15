@@ -26,9 +26,8 @@
           v-for="(item, index) in itensSideBar"
           :key="index"
           :class="{ efeitoClick: elementoAtivoSideBar === index }"
-          @click="props.menuExpandido = !props.menuExpandido"
+          @click="$emit('expandirMenu')"
         >
-          <!-- @click="elementoAtivoSideBar = index"> -->
           <router-link
             :to="{ name: item.route }"
           >
@@ -83,7 +82,7 @@ const itensSideBar = ref([
     { name: "Receitas", icon: "arrow-top-right-bold-outline", route: "receitas" },
     { name: "Despesas", icon: "arrow-bottom-right-bold-outline", route: "despesas" },
     { name: "Categorias", icon: "bookmark-minus-outline", route: "categorias" },
-    { name: "Mais Opçõs", icon: "dots-horizontal", route: "dashboard" },
+    // { name: "Mais Opçõs", icon: "dots-horizontal", route: "dashboard" },
 ]);
 </script>
 
@@ -92,7 +91,7 @@ const itensSideBar = ref([
   background-color: rgb(44, 44, 46);
   /* margin: 0 15px 0 0; */
   width: 220px;
-  /* padding: 10px 8px 40px 0; */
+  padding: 10px 8px 40px 0;
   /* box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23; */
   /* transition: 0.5s; */
   height: 100%;
@@ -101,10 +100,13 @@ const itensSideBar = ref([
 .fundo__menu {
   background-color: rgba(0, 0, 0, 0.6);
   position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+  /* transition: transform 10s ease;
+  transform: translateY(0%); */
 }
 
 .container__logo {

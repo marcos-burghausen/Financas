@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="card__uni">
     <router-link
       class="link"
       :to="{ name: rota }"
@@ -40,6 +40,10 @@ const rota = computed(() => props.rota);
 </script>
 
 <style scoped>
+.card__uni {
+  box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+  margin-bottom: 10px;
+}
 .link {
     text-decoration: none;
 }
@@ -63,5 +67,13 @@ const rota = computed(() => props.rota);
     color: #fefefe;
     margin-bottom: 0;
     text-align: center;
+    font-size: 20px;
+}
+
+@media screen and (min-width: 601px) and (max-width: 700px) {
+    .value {
+        font-size: 1,5rem;
+    }
+  /* Estilos para telas entre 501px e 700px de largura */
 }
 </style>

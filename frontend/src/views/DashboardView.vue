@@ -1,11 +1,9 @@
 <template>
-  <div class="content-wrapper">
-    <div class="clearfix" />
-
-    <div class="pagetitle">
-      <nav class="d-flex justify-content-between">
+  <div class="dashboard">
+    <div class="">
+      <nav class="d-flex justify-content-between pb-2">
         <ol class="breadcrumb bg-transparent m-0">
-          <li class="breadcrumb-item opaco">
+          <li class="text-white">
             Dashboard
           </li>
         </ol>
@@ -38,7 +36,7 @@
         v-if="!isAllZeros(totalYearValueExpenses) || !isAllZeros(totalYearValueRevenues)"
         class="container__charts"
       >
-        <div class="col-8 chart__des__rev">
+        <div class="chart1">
           <apexchart
             width="100%"
             height="353"
@@ -48,7 +46,7 @@
           />
         </div>
         <div
-          class="col-4 chart1"
+          class="chart2"
         >
           <apexchart
             width="100%"
@@ -173,8 +171,7 @@ const series1 = valuesCategory.value;
 
 <style scoped>
 .dashboard {
-    width: 100%;
-    background: #fb0404;
+    padding-inline: 10px;
 }
 
 .opaco {
@@ -182,14 +179,7 @@ const series1 = valuesCategory.value;
 }
 
 .card__container {
-    box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
     display: flex;
-}
-
-.chart__container {
-    box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
-    margin-top: 15px;
-    height: calc(100% - 125px);
 }
 
 .cards {
@@ -198,8 +188,15 @@ const series1 = valuesCategory.value;
     font-size: 30px;
     background-color: rgba(0, 0, 0, 0.1);
 }
+.chart__container {
+    box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+    margin-top: 10px;
+    height: calc(100% - 125px);
+    padding: 10px 0 0 0;
+}
 
-.chart__des__rev {
+
+.chart1 {
     background: transparent;
 }
 
@@ -211,9 +208,29 @@ const series1 = valuesCategory.value;
     height: 100%;
 }
 
-@media screen and (max-width: 1280px) {
-    .card {
-        width: 33.33%;
+@media screen and (max-width: 600px) {
+  .card__container {
+    flex-direction: column;
+  }
+  .cards {
+    width: 100%;
     }
+    
+  }
+  
+@media screen and (max-width: 650px) {
+  .container__charts {
+      display: flex;
+      flex-direction: column;
+    }
+}
+@media screen and (min-width: 651px) {
+   .chart1 {
+    width: 65%;
+   }
+   .chart2 {
+    width: 35%;
+    border: #ccc 1px solid;
+   }
 }
 </style>
