@@ -259,7 +259,6 @@ const rules = {
 }
 
 .link__social__media:hover .item__social__media {
-    /* background-color: #0097a7; */
     color: #fff !important;
     border-color: #77d08e;
 }
@@ -420,11 +419,6 @@ const rules = {
 }
 
 @media screen and (max-width: 1201px) {
-
-    .box {
-        width: 90%;
-    }
-
     .container__dados {
         padding: 2rem 4rem;
     }
@@ -469,9 +463,11 @@ const rules = {
     }
 }
 
+
+
 @media screen and (max-width: 440px) {
     .box {
-        width: 95%;
+        width: 90%;
     }
 
     .container__dados {

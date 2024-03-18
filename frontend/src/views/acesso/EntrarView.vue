@@ -167,10 +167,10 @@ const useRevenues = useRevenuesStore();
 const useUser = useUserStore();
 const errorStore = useErrorStore();
 const user: Ref<FormLogin> = ref({
-    // email: "rafael@gmail.com",
-    // password: "Teste123@" 
-    email: "",
-    password: "" 
+    email: "rafael@gmail.com",
+    password: "Teste123@" 
+    // email: "",
+    // password: "" 
 });
 const router = useRouter();
 const data = userData();
@@ -328,7 +328,6 @@ const rules = {
 .container__decription {
     width: 40%;
     background: #77d08e;
-    /* background: #0097a7; */
     border-radius: 0 10px 10px 0;
     display: flex;
     flex-direction: column;
@@ -347,7 +346,6 @@ const rules = {
     text-transform: uppercase;
     color: #fff;
     font-size: 10px;
-    /* padding: 10px 50px; */
     padding: 5px;
     cursor: pointer;
     font-weight: bold;
@@ -380,11 +378,6 @@ const rules = {
 }
 
 @media screen and (max-width: 1201px) {
-
-    .box {
-        width: 90%;
-    }
-
     .container__dados {
         padding: 2rem 4rem;
     }
@@ -410,7 +403,6 @@ const rules = {
         margin: 15px 0;
         background: transparent;
         border: none;
-        /* text-align: center; */
     }
 
     .container__button {
@@ -430,9 +422,18 @@ const rules = {
     }
 }
 
+
+@media screen and (max-width: 500px) {
+    .title {
+      font-size: 1.8rem;
+    }
+}
 @media screen and (max-width: 440px) {
-    .box {
-        width: 95%;
+  .box {
+        width: 90%;
+    }
+    .title {
+      font-size: 1.4rem;
     }
 
     .container__dados {
