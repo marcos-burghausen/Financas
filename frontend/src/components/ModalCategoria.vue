@@ -234,24 +234,32 @@ const saveCategory = async () => {
 }
 
 .container__modal {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.50);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
+
+/* .formulario {
+    border: #0099cc 1px solid;
+} */
 
 .modal {
     background: #2c2c2e;
-    position: fixed;
+    position: relative;
     color: #fefefe;
     z-index: 999;
-    top: 20%;
-    left: 50%;
-    width: 450px;
+    /* top: 20%; */
+    /* left: 50%; */
+    width: 95%;
+    max-width: 450px;
     height: auto;
-    margin-left: -200px;
+    /* margin-left: 2.5%; */
     border-radius: 20px;
     padding: 15px;
 }

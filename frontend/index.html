@@ -23,6 +23,7 @@
 
   #app {
     height: 100vh;
+    max-width: 1366px;
   }
 
   body {
@@ -30,4 +31,9 @@
     margin: 0;
     background-color: rgb(44, 44, 46);
   }
+  @media screen and (min-width: 1366px) {
+    #app {
+    margin-left: calc(50% - 683px);
+  }
+}
 </style>

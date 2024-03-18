@@ -1,6 +1,6 @@
 <template>
-  <div class="">
-    <div class="">
+  <div class="container__table">
+    <div class="nav__category">
       <nav class="nav">
         <ul class="ul__local">
           <li class="">
@@ -234,6 +234,9 @@ const deleteCategory = async (category: Category) => {
 
 </script>
 <style scoped>
+.nav__category {
+  width: 100%;
+}
 .cor__forma {
     width: 25px;
     height: 25px;
@@ -337,10 +340,19 @@ const deleteCategory = async (category: Category) => {
     color: green;
 }
 
+.container__table {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding-inline: 15px;
+}
+
 .tabl {
     border-radius: 20px;
     background-color: rgba(0, 0, 0, 0.25);
     width: 100%;
+    max-width: 700px;
 }
 
 .tabl thead tr {
