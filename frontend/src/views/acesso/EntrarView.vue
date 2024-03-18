@@ -167,8 +167,10 @@ const useRevenues = useRevenuesStore();
 const useUser = useUserStore();
 const errorStore = useErrorStore();
 const user: Ref<FormLogin> = ref({
-    email: "rafael@gmail.com",
-    password: "Teste123@" 
+    // email: "rafael@gmail.com",
+    // password: "Teste123@" 
+    email: "",
+    password: "" 
 });
 const router = useRouter();
 const data = userData();
