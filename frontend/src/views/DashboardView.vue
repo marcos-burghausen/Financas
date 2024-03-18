@@ -214,9 +214,9 @@ const series1 = valuesCategory.value;
   }
   .cards {
     width: 100%;
-    }
-    
   }
+    
+}
   
 @media screen and (max-width: 650px) {
   .container__charts {
@@ -230,7 +230,6 @@ const series1 = valuesCategory.value;
    }
    .chart2 {
     width: 35%;
-    border: #ccc 1px solid;
    }
 }
 </style>

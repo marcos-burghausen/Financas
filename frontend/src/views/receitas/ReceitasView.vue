@@ -730,7 +730,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .card__container {
-    box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
     display: flex;
 }
 
@@ -756,5 +755,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .table {
     background-color: rgba(0, 0, 0, 0.1);
+}
+
+@media screen and (max-width: 600px) {
+  .card__container {
+    flex-direction: column;
+  }
+  .cards {
+    width: 100%;
+  }
 }
 </style>
