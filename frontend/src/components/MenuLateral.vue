@@ -20,6 +20,11 @@
         >
           Gerenciador Financeiro
         </h1>
+        <mdicon
+          name="menu-open"
+          class="mdicon"
+          @click="$emit('expandirMenu')"
+        />
       </div>
       <ul>
         <li
@@ -60,14 +65,17 @@ watch(route, (value) => {
     case "dashboard":
         elementoAtivoSideBar.value = 0;
         break;
-    case "receitas":
+    case "contas":
         elementoAtivoSideBar.value = 1;
         break;
-    case "despesas":
+    case "receitas":
         elementoAtivoSideBar.value = 2;
         break;
-    case "categorias":
+    case "despesas":
         elementoAtivoSideBar.value = 3;
+        break;
+    case "categorias":
+        elementoAtivoSideBar.value = 4;
         break;
     }
 
@@ -79,6 +87,7 @@ const props = defineProps({
 
 const itensSideBar = ref([
     { name: "DashBoard", icon: "view-dashboard", route: "dashboard" },
+    { name: "Contas", icon: "bank-outline", route: "contas" },
     { name: "Receitas", icon: "arrow-top-right-bold-outline", route: "receitas" },
     { name: "Despesas", icon: "arrow-bottom-right-bold-outline", route: "despesas" },
     { name: "Categorias", icon: "bookmark-minus-outline", route: "categorias" },
@@ -90,7 +99,7 @@ const itensSideBar = ref([
 .menu-lateral {
   background-color: rgb(44, 44, 46);
   /* margin: 0 15px 0 0; */
-  width: 220px;
+  width: 280px;
   padding: 10px 8px 40px 0;
   /* box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23; */
   /* transition: 0.5s; */
@@ -131,6 +140,19 @@ const itensSideBar = ref([
     margin: 0;
     text-align: center;
     padding: 10px 0;
+}
+.mdicon {
+    color: #77d08e;
+    cursor: pointer;
+    /* padding: 10px; */
+    box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+    border-radius: 50px;
+    width: 70px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 10px 10px 0 0;
 }
 
 .efeitoClick {
