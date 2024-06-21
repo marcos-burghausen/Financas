@@ -168,8 +168,10 @@ const useWallets = useWalletsStore();
 const useUser = useUserStore();
 const errorStore = useErrorStore();
 const user: Ref<FormLogin> = ref({
-    email: "rafael@gmail.com",
-    password: "Teste123@" 
+    // email: "rafael@gmail.com",
+    email: "",
+    // password: "Teste123@" 
+    password: "" 
 });
 const router = useRouter();
 const data = userData();
