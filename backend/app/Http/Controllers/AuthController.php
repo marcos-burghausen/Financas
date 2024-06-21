@@ -9,6 +9,7 @@ use App\Enums\Errors;
 use App\Http\Traits\GroupReleasesTrait;
 use App\Http\Traits\ReleasesMonthTrait;
 use App\Http\Traits\TotalByCategoryTrait;
+use App\Models\Conta;
 use App\Utils\FinancasCache;
 use DateTime;
 use Illuminate\Http\Request;
@@ -33,7 +34,7 @@ class AuthController extends Controller
             ],
             [
                 'required'      => 'O campo :attribute é obrigatório',
-                'email.email'         => 'O email precisa ter um formato de email válido',
+                'email.email'         => 'O email precisa ter um formato de válido',
                 // 'password.required'   => 'O campo senha é obrigatório',
             ],
             [
@@ -80,6 +81,18 @@ class AuthController extends Controller
             // $revenues = auth()->user()->revenues()->get();
             $revenuesData = $this->classifiesReleases(auth()->user()->revenues()->get(), 'Revenues');
             $expensesData = $this->classifiesReleases(auth()->user()->expenses()->get(), 'Expenses');
+            // $walletsNames = Conta::pluck('name')->toArray();
+            // $walletsData = Conta::select('name', 'saldo')->get();
+            $walletsData = auth()->user()->contas()->get();
+            info($walletsData);
+            $wallets = [];
+            foreach ($walletsData as $wallet) {
+                $wallets[$wallet['name']] = [
+                    'name' => $wallet['name'],
+                    'valor' => $wallet['valor'],
+                    'icon' => $wallet['icon']
+                ];
+            }
             // return response(['revenuesData' => $revenuesData, 'expensesData' => $expensesData]);
 
 
@@ -92,6 +105,7 @@ class AuthController extends Controller
                 'user' => $user,
                 'expensesData' => $expensesData,
                 'revenuesData' => $revenuesData,
+                'wallets' => $wallets,
                 // 'totalBalance'  => $totalBalance,
                 // 'totalCreditCard'  => $totalCreditCard,
 

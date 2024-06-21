@@ -1,22 +1,24 @@
 <template>
   <div class="content-wrapper">
     <div class="pagetitle">
-      <nav class="d-flex justify-content-between mb-3">
+      <nav class="d-flex justify-content-between ms-3 mb-3">
         <ol class="breadcrumb bg-transparent ">
-          <li class="breadcrumb-item text-white">
+          <span class=" me-3 text-white">
             <router-link
               class="link"
               :to="{ name: 'dashboard' }"
             >
-              Dashboard
+              <mdicon
+                name="arrow-left"
+                size="20"
+              />
             </router-link>
-          </li>
+          </span>
           <li
-            :class="{ opaco: !formStoreRevenue && !formEditRevenue }"
             class="breadcrumb-item text-white"
             @click="returnRevenue"
           >
-            receitas
+            Receitas
           </li>
           <li
             v-if="formStoreRevenue"
@@ -270,9 +272,6 @@
     <!-- ==================== fim formulario editar receita ====================== -->
     <!-- ========================================================================= -->
 
-
-
-
     <div
       v-if="!formStoreRevenue && !formEditRevenue"
       class="container-fluid"
@@ -431,6 +430,7 @@ import { useRevenuesStore } from "@/store/revenues";
 import { useUserStore } from "@/store/user";
 import { formatValue } from "@/utils/formatValue";
 
+
 import http from "@/services/http";
 import type { RevenueEdit } from "@/types/revenueEdit";
 import { useAuth } from "@/store/auth";
@@ -438,6 +438,7 @@ import { useAuth } from "@/store/auth";
 
 const useRevenues = useRevenuesStore();
 const userStore = useUserStore();
+
 const auth = useAuth();
 
 let validFormLancamentos = ref(false);
@@ -450,6 +451,7 @@ let revenuesMonth = ref(useRevenues.revenuesData.revenues?.RevenuesMonth);
 // console.log(revenuesMonth.value);
 let valueReceived = ref(formatValue(useRevenues.revenuesData.revenues?.ValueReceivedRevenues));
 // let categorias = ref(userStore.user.categoriasReceitas);
+
 const categoriasNames = ref([]);
 userStore.user.categoriasReceitas.forEach((categoria) => {
     categoriasNames.value.push(categoria.name);
@@ -548,7 +550,7 @@ const salvarLancamentos = async () => {
     try {
         release.value.status = status.value ? "RECEBIDA" : "AGUARDANDO";
         const res = await http.post("/save-revenue", release.value);
-        useRevenues.setRevenuesData(res.data.revenuesData,);
+        useRevenues.setRevenuesData(res.data.revenuesData);
         valueTotalRevenuesMonth.value = formatValue(res.data.revenuesData.ValueTotalRevenuesMonth);
         valuePending.value = formatValue(res.data.revenuesData.ValuePendingRevenues);
         valueReceived.value = formatValue(res.data.revenuesData.ValueReceivedRevenues);

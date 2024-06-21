@@ -3,24 +3,26 @@
     v-show="errorStore.errorsFormMessage"
     class="container__modal"
   >
-    <div class="modal">
+    <div
+      class="erro"
+      role="alert"
+    >
       <header class="header__modal">
-        <span class="title">Existem erros no formulário</span>
         <mdicon
           class="mdicon__close"
           type="buttom"
           name="close"
-          @click="closeModal"
+          @click="errorStore.unsetErrorsForm()"
         />
       </header>
       <v-chip
-        v-for="(error, index) in errorStore.errorsFormMessage"
+        v-for="(message, index) in errorStore.errorsFormMessage"
         :key="index"
         class="error d-flex mb-2"
         width="100%"
         color="red"
       >
-        {{ error[0] }}
+        <span class="error__message">{{ message[0] }}</span>
       </v-chip>
     </div>
   </div>
@@ -28,49 +30,40 @@
 <script setup lang="ts">
 
 import { useErrorStore } from "@/store/error";
+
 const errorStore = useErrorStore();
-
-const closeModal = () => {
-    errorStore.unsetErrorsForm;
-    // console.log("1");
-};
-
-
-
 
 </script>
 
 <style scoped>
 .container__modal {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
+    z-index: 999;
     background: rgba(0, 0, 0, 0.50);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.modal {
-    background: #2c2c2e;
-    position: fixed;
-    color: #fefefe;
-    z-index: 999;
-    top: 35%;
-    left: 50%;
-    width: auto;
-    height: auto;
-    margin-left: -200px;
-    border-radius: 20px;
-    padding: 15px;
+.erro {
+  height: auto;
+  width: 100%;
+  max-width: 350px;
+  border-radius: 15px;
+  background: #2c2c2e;
+  color: #fefefe;
+  padding: 0 15px 15px 15px;
 }
 
 .header__modal {
-    display: flex;
-    justify-content: space-between;
-}
-
-.title {
-    text-align: center;
+  width: 100%;
+  padding: 5px 0 0 0;
+  display: flex;
+  justify-content: right;
 }
 
 .mdicon__close {
@@ -83,7 +76,12 @@ const closeModal = () => {
 }
 
 .error {
-    height: 20px;
+  border-radius: 10px;
+  white-space: normal;
+  height: auto;
+  word-wrap: break-word;
 }
-
+.error__message {
+  padding: 5px;
+}
 </style>

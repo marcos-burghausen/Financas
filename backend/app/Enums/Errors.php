@@ -20,6 +20,7 @@ enum Errors: string
      * 300 ao 399 -> Despesas
      * 400 ao 499 -> Receitas
      * 500 ao 599 -> Categorias
+     * 600 ao 699 -> Contas
      * ...
      * 
      * podemos ir adicionando conforme adicionamos mais features ao código
@@ -49,6 +50,8 @@ enum Errors: string
 
     case ERROR_REGISTER_CATEGORY        = "SP500";          //Erro ao registrar categoria.
     case ERROR_DELETE_CATEGORY          = "SP501";          //Erro ao deletar categoria.
+
+    case ERROR_CREATE_CONTA             = "SP600";          //Erro ao criar uma nova conta.
 
     /**
      * This method returns a Laravel Response, so you don't need to duplicate code

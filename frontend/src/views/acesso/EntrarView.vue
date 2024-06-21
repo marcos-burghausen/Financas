@@ -44,13 +44,12 @@
       <p class="sub__title">
         ou use sua conta de e-mail:
       </p>
+      <ErrorMessage />
       <v-form
         v-model="validForm"
         class="form"
         @submit.prevent="login"
       >
-        <ErrorMessage />
-
         <v-text-field
           v-model="user.email"
           variant="outlined"
@@ -145,11 +144,12 @@
 </template>
 
 <script setup lang="ts">
-import ErrorMessage from "@/components/ErrorMessage.vue";
 import ErrorsForm from "@/components/ModalErrorsForm.vue";
+import ErrorMessage from "@/components/ErrorMessage.vue";
 
 import { useExpensesStore } from "@/store/expenses";
 import { useRevenuesStore } from "@/store/revenues";
+import { useWalletsStore } from "@/store/wallets";
 import { useErrorStore } from "@/store/error";
 import { useUserStore } from "@/store/user";
 import { userData } from "@/store/data";
@@ -164,13 +164,12 @@ import { AxiosError } from "axios";
 const emits = defineEmits(["nextStep"]);
 const useExpenses = useExpensesStore();
 const useRevenues = useRevenuesStore();
+const useWallets = useWalletsStore();
 const useUser = useUserStore();
 const errorStore = useErrorStore();
 const user: Ref<FormLogin> = ref({
     email: "rafael@gmail.com",
     password: "Teste123@" 
-    // email: "",
-    // password: "" 
 });
 const router = useRouter();
 const data = userData();
@@ -194,10 +193,16 @@ async function login() {
         data.setTotalCreditCard(response.data.totalCreditCard);
         data.setTotalBalance(response.data.totalBalance);
         auth.setUser(response.data.user.name);
+        useWallets.setWalletsData(response.data.wallets);
+        console.log(response.data.wallets);
         
         router.push({ name: "dashboard" });
     } catch (error) {
-        errorStore.setErrorFromResponse(error);
+        if (error.response.data.errors) {
+            errorStore.setErrorFromForm(error);
+        } else {
+            errorStore.setErrorFromResponse(error);
+        }
     } finally {
         loading.value = false;
     }
@@ -217,7 +222,7 @@ const rules = {
     box-shadow: 1px 1px 10px 5px #77d08e;
     border-radius: 10px;
     padding: 0;
-    width: 80%;
+    width: 90%;
     max-width: 1000px;
 }
 
@@ -321,9 +326,6 @@ const rules = {
     text-align: center;
 }
 
-.btn__register {
-    display: none;
-}
 
 .container__decription {
     width: 40%;
@@ -357,6 +359,11 @@ const rules = {
     background-color: #77d08e;
     border: 1px solid #77d08e;
     transition: background-color .5s;
+}
+.v-btn--disabled.v-btn--variant-elevated {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: rgba(255, 255, 255, 0.3);
+  border: none
 }
 
 .btn__submit:hover {
@@ -430,7 +437,7 @@ const rules = {
 }
 @media screen and (max-width: 440px) {
   .box {
-        width: 90%;
+        width: 85%;
     }
     .title {
       font-size: 1.4rem;

@@ -3,17 +3,17 @@
     <div class="nav__category">
       <nav class="nav">
         <ul class="ul__local">
-          <li class="">
+          <span class=" me-3 text-white">
             <router-link
               class="link"
               :to="{ name: 'dashboard' }"
             >
-              Dashboard
+              <mdicon
+                name="arrow-left"
+                size="20"
+              />
             </router-link>
-          </li>
-          <li class="li__separador">
-            /
-          </li>
+          </span>
           <li class="opaco  ">
             categorias
           </li>

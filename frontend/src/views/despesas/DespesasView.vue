@@ -1,18 +1,21 @@
 <template>
   <div class="content-wrapper">
     <div class="pagetitle">
-      <nav class="d-flex justify-content-between mb-3">
+      <nav class="d-flex justify-content-between ms-3 mb-3">
         <ol class="breadcrumb bg-transparent">
-          <li class="breadcrumb-item text-white">
+          <span class=" me-3 text-white">
             <router-link
               class="link"
               :to="{ name: 'dashboard' }"
             >
-              Dashboard
+              <mdicon
+                name="arrow-left"
+                size="20"
+              />
             </router-link>
-          </li>
+          </span>
+          <!-- :class="{ opaco: !formStoreExpense && !formEditExpense }" -->
           <li
-            :class="{ opaco: !formStoreExpense && !formEditExpense }"
             class="breadcrumb-item text-white"
             @click="returnExpense"
           >

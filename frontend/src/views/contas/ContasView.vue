@@ -1,32 +1,84 @@
 <template>
   <div class="content-wrapper">
-    <div class="pagetitle">
-      <nav class="d-flex justify-content-between mb-3">
-        <ol class="breadcrumb bg-transparent">
-          <li class="breadcrumb-item text-white">
-            <router-link
-              class="link"
-              :to="{ name: 'dashboard' }"
-            >
-              Dashboard
-            </router-link>
-          </li>
-          <li
-            class="breadcrumb-item opaco text-white"
-          >
-            Contas
-          </li>
-        </ol>
-        <!-- <button
-          v-if="!formStoreExpense && !formEditExpense"
-          class="btn btn-danger text-whit"
-          @click="formStoreExpense = !formStoreExpense"
+    <!-- <div class="pagetitle"> -->
+    <nav class="d-flex ms-3 mb-3">
+      <span class=" me-3 text-white">
+        <router-link
+          class="link"
+          :to="{ name: 'dashboard' }"
         >
-          nova despesa
-        </button> -->
-      </nav>
+          <mdicon
+            name="arrow-left"
+            size="20"
+          />
+        </router-link>
+      </span>
+      <span
+        class="text-white"
+        style="font-size: 20px;"
+      >
+        Contas
+      </span>
+    </nav>
+    <!-- </div> -->
+    <div
+      class="mobile"
+    >
+      <div class="body__carteira">
+        <div class="saldo">
+          <span class="saldo__atual">saldo atual</span>
+          <span class="valor">R$ 130,00</span>
+        </div>
+        <div class="saldo">
+          <span class="saldo__atual">saldo saldo previsto</span>
+          <span class="valor">R$ 130,00</span>
+        </div>
+      </div>
+      <div
+        v-for="(wallet, index) in wallets"
+        :key="index"
+        class="carteira"
+      >
+        <div class="header__carteira">
+          <div class="container__detalhes">
+            <span class="icon">
+              <mdicon
+                :name="wallet.icon"
+                size="50"
+              />
+            </span>
+            {{ wallet.name }}
+          </div>
+          <!-- <button class="btn__opcoes">
+            <mdicon
+              name="dots-vertical"
+              size="25"
+            />
+          </button> -->
+        </div>
+        <div class="body__carteira">
+          <div class="saldo">
+            <span class="saldo__atual">saldo atual</span>
+            <span class="valor">R$ {{ wallet.saldo }}</span>
+          </div>
+          <div class="saldo">
+            <span class="saldo__atual">saldo saldo previsto</span>
+            <span class="valor">R$ 130,00</span>
+          </div>
+        </div>
+      </div>
+      <ModalNovaConta @updateContas="updateContas" />
+      <!-- <div class="btn__new__conta">
+        <div class="plus">
+          <mdicon
+            name="plus"
+            size="35"
+          />
+        </div>
+      </div> -->
     </div>
-    <div style="display: flex;">
+
+    <div class="pc">
       <div
         class="container__cards"
       >
@@ -93,6 +145,19 @@
 
 <script setup lang="ts">
 import ModalNovaConta from "@/components/ModalNovaConta.vue";
+
+import { useWalletsStore } from "@/store/wallets";
+import { ref } from "vue";
+
+const useWallets = useWalletsStore();
+let wallets = ref(useWallets.walletsData.wallets);
+const updateContas = (novoValor) => {
+    wallets.value = novoValor;
+};
+
+let saldo = wallets.value.Pessoal.valor;
+console.log(saldo);
+
 </script>
 
 <style scoped>
@@ -244,4 +309,35 @@ import ModalNovaConta from "@/components/ModalNovaConta.vue";
     color: #06bb64;
     font-size: 25px;
   }
+  .pc {
+    display: flex;
+  }
+
+  @media screen and (max-width: 600px) {
+  .pc {
+    display: none;
+  }
+  .carteira {
+    height: 150px;
+    width: 95%;
+    margin: 20px 10px 0 10px;
+    padding: 20px 10px;
+  }
+  .btn__new__conta {
+    height: 80px;
+    width: 100%;
+    margin-block: 10px;
+    padding: 0 10px;
+    display: flex;
+    justify-content: center;
+    align-items: end;      
+  }
+  .container__detalhes {
+    font-size: 25px;
+  }
+  .body__carteira {
+    margin: 20px 0 30px 0;
+  }
+      
+}
   </style>

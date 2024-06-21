@@ -1,12 +1,13 @@
 <template>
-  <mdicon
-    type="button"
-    title="adcionar nova categoria"
-    name="plus"
-    class="mdicon"
-    :class="props.color"
-    @click="openModal = true"
-  />
+  <div style="display: flex; justify-content: flex-end; padding-inline: 10px; margin-top: 10px;">
+    <mdicon
+      type="button"
+      title="adcionar nova categoria"
+      name="plus"
+      class="mdicon"
+      @click="openModal = true"
+    />
+  </div>
 
   <div
     v-if="openModal"
@@ -14,12 +15,12 @@
   >
     <div class="modal">
       <header class="header__modal">
-        <span class="title">Cadastrar nova Conta</span>
+        <span class="title">Nova Conta</span>
         <mdicon
           class="mdicon__close"
           type="buttom"
           name="close"
-          @click="openModal = false; selectedIcon = ''; selectedColor = ''; nameCategory = ''"
+          @click="openModal = false; clearInputs()"
         />
       </header>
       <v-form
@@ -27,6 +28,7 @@
         class="form"
         @submit.prevent="salvarConta"
       >
+        <ErrorMessage />
         <v-text-field
           v-model="conta.valor"
           autofocus
@@ -37,19 +39,18 @@
           type="tel"
           hide-details="auto"
           label="Valor"
-          :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
-          class="mb-5 input"
+          class="mb-7 input"
           @input="formatValueSave()"
         />
-        <v-autocomplete
+        <v-combobox
           v-model="conta.instituicaoFinanceira"
           density="compact"
           variant="outlined"
-          :rules="[rules.requiredCatagoria]"
+          :rules="[rules.requiredInstituicaoFinanceira]"
           :items="['BB', 'Sicredi', 'Itaú', 'Nubank']"
           label="Instituição financeira"
           placeholder="Select..."
-          class="mb-7 input"
+          class="mb-2 input"
         />
         <v-text-field
           v-model="conta.descricao"
@@ -58,22 +59,23 @@
           type="text"
           hide-details="auto"
           label="Descriçao"
-          :rules="[rules.requiredDescricao]"
           class="mb-7 input"
         />
         <v-autocomplete
           v-model="conta.tipoConta"
           density="compact"
           variant="outlined"
-          :rules="[rules.requiredCatagoria]"
+          :rules="[rules.requiredTipoConta]"
           :items="['Conta Corrente', 'Poupança', 'Investimentos']"
           placeholder="Select..."
           label="Tipo de Conta"
-          class="mb-7 input"
+          class="mb-2 input"
         />
         <button
-          class="btn__modal"
-          @click="saveCategory"
+          :disabled="loading || !validForm"
+          :loading="loading"
+          class="btn btn__modal"
+          type="submit"
         >
           Salvar
         </button>
@@ -84,22 +86,63 @@
       </footer> -->
     </div>
   </div>
+  <ErrorsForm />
 </template>
 <script setup lang="ts">
+import ErrorsForm from "@/components/ModalErrorsForm.vue";
+import ErrorMessage from "@/components/ErrorMessage.vue";
+
+import { useWalletsStore } from "@/store/wallets";
+import { useErrorStore } from "@/store/error";
+import { useUserStore } from "@/store/user";
+
+const useWallets = useWalletsStore();
+const errorStore = useErrorStore();
+const useUser = useUserStore();
+const emit = defineEmits([
+    "updateContas",
+]);
+
 let validForm = ref(false);
 let loading = ref(false);
 
 let conta = ref({
+    user_id: "",
     valor: "",
     instituicaoFinanceira: "",
     descricao: "",
     tipoConta: "",
-    // categoria: "",
-    // carteira: "",
 });
 
 const salvarConta = async() => {
+    conta.value.user_id = useUser.user.id;
+    try {
+        const res = await http.post("/save-wallet", conta.value);
+        useWallets.setWalletsData(res.data.wallets);
+        if (res.data.wallets) {
+            emit("updateContas", res.data.wallets);
+        }
 
+        console.log(res.data);
+        clearInputs();
+        openModal.value = false;
+    } catch (error) {
+        if (error.response.data.errors) {
+            errorStore.setErrorFromForm(error);
+        } else {
+            errorStore.setErrorFromResponse(error);
+        }
+    } finally {
+        loading.value = false;
+    }
+};
+
+const clearInputs = () => {
+    conta.value.user_id = "";
+    conta.value.valor = "";
+    conta.value.instituicaoFinanceira = "";
+    conta.value.descricao = "";
+    conta.value.tipoConta = "";
 };
 
 const formatValueSave = () => {
@@ -118,18 +161,10 @@ const formatValueSave = () => {
 };
 
 const rules = {
-    requiredValor: (value: string) =>
-        !!value || "O campo valor é obrigatório",
-    requiredValorMaiorQue0: (value: string) =>
-        parseFloat(value.replace(",", ".")) > 0 || "O campo valor deve ser maior que zero",
-    requiredData: (value: string) =>
-        !!value || "O campo data é obrigatório",
-    requiredDescricao: (value: string) =>
-        !!value || "O campo escriçãp é obrigatório",
-    requiredCatagoria: (value: string) =>
-        !!value || "O campo categoria é obrigatório",
-    requiredCarteira: (value: string) =>
-        !!value || "O campo categoria é obrigatório",
+    requiredInstituicaoFinanceira: (value: string) =>
+        !!value || "O campo instituição financeira é obrigatório",
+    requiredTipoConta: (value: string) =>
+        !!value || "O campo tipo de conta é obrigatório",
 };
 
 
@@ -139,11 +174,9 @@ const rules = {
 import ModalColors from "@/components/ModalColors.vue";
 import ModalIcons from "@/components/ModalIcons.vue";
 
-import { useUserStore } from "@/store/user";
 import { reactive, ref } from "vue";
 import http from "@/services/http";
 
-const useUser = useUserStore();
 
 const selectedColor = ref("");
 const selectedIcon = ref("");
@@ -155,10 +188,7 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits([
-    "updateCategoriasDespesas",
-    "updateCategoriasReceitas"
-]);
+
 
 
 const updateSelectedIcon = (novoValor: string) => {
@@ -319,6 +349,11 @@ input {
 .cor__icon {
     display: flex;
 }
+.form {
+    display: flex;
+    flex-direction: column;
+    justify-content: center
+}
 
 .container__cor__categoria {
     width: 50%;
@@ -352,16 +387,30 @@ input {
     display: flex;
     justify-content: end;
 }
-
-.btn__modal {
+.btn {
+    border-radius: 15px;
+    text-transform: uppercase;
+    color: #fff;
+    font-size: 10px;
+    padding: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    width: 200px;
+    align-self: center;
     border: none;
-    border-radius: 20px;
-    padding-block: 5px;
-    padding-inline: 20px;
-    color: rgba(255, 255, 255, 0.3);
-    background-color: rgba(255, 255, 255, 0.12);
+    margin-top: 1rem;
+    font-size: 20px;
+    background-color: #77d08e;
+    border: 1px solid #77d08e;
+    transition: background-color .5s;
 }
 
+
+.v-btn--disabled.v-btn--variant-elevated {
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: rgba(255, 255, 255, 0.3);
+    border: none
+  }
 .cor__1 {
     background: #ff8a00;
 }

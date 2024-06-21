@@ -178,7 +178,11 @@ import type { FormCadastro } from "@/types/formCadastro";
 
 const emits = defineEmits(["nextStep"]);
 const errorStore = useErrorStore();
-const user: FormCadastro = ref({});
+const user: FormCadastro = ref({
+    name: "Marcos Rafael Burghausen",
+    email: "rafael@gmail.com",
+    password: "Teste123@" 
+});
 
 let validForm = ref(false);
 let mostrarSenha = ref(true);
@@ -190,7 +194,11 @@ async function create() {
         await http.post("/create", user.value);
         emits("nextStep");
     } catch (error: unknown) {
-        errorStore.setErrorFromResponse(error);
+        if (error.response.data.errors) {
+            errorStore.setErrorFromForm(error);
+        } else {
+            errorStore.setErrorFromResponse(error);
+        }
     } finally {
         loading.value = false;
     }
@@ -360,6 +368,11 @@ const rules = {
 
 .btn__register {
     display: none;
+}
+.v-btn--disabled.v-btn--variant-elevated {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: rgba(255, 255, 255, 0.3);
+  border: none
 }
 
 .btn__register span {

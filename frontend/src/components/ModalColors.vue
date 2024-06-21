@@ -31,7 +31,7 @@ interface IColor {
 const openModal = ref(false);
 const props = defineProps({
     items: {
-        type: Array<IColor>
+        type: Array<IColor> 
     }
 });
 const emit = defineEmits(["atualizarVariavel"]);

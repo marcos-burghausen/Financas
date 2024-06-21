@@ -77,7 +77,7 @@ const router = useRouter();
 const auth = useAuth();
 const useUser = useUserStore();
 
-let name = ref(useUser.user.name);
+let name = ref(useUser.user.name.split(" ")[0]);
 
 const items = ref([
     { title: "Sair", icon:"power",  action: logout },

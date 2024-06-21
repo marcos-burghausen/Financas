@@ -2,7 +2,7 @@
     "SP000": "Um erro inesperado aconteceu.",
     "SP001": "Usuario já cadastrado.",
     "SP002": "Falha na criação do usuario.",
-    "SP100": "Usuario ou senha invalidos.",
+    "SP100": "Usuario e/ou senha invalidos.",
     "SP200": "Erro ao obter dados do usuário.",
     "SP300": "Erro ao cadastrar despesa.",
     "SP301": "Erro ao excluir despesa.",
@@ -16,5 +16,6 @@
     "SP404": "Erro ao pagar receita.",
     "SP500": "Erro ao registrar categoria.",
     "SP501": "Erro ao deletar categoria.",
-    "SP502": ""
+    "SP502": "",
+    "SP600": "Erro ao criar conta"
 }

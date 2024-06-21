@@ -46,6 +46,7 @@
           />
         </div>
         <div
+          v-if="series1"
           class="chart2"
         >
           <apexchart
@@ -57,6 +58,12 @@
           />
         </div>
       </div>
+      <h5
+        v-else
+        class="card-title text-white text-center"
+      >
+        Você não possui laçamentos a serem exibidos
+      </h5>
     </div>
   </div>
 </template>
@@ -90,7 +97,7 @@ let revenuesAddTotalValueMonth = ref(useRevenues.revenuesData.revenues?.Revenues
 let totalByCategoryExpenses = ref(useExpenses.expensesData.expenses?.TotalByCategoryExpenses);
 
 const isAllZeros = (arr) => {
-    return arr.every(value => value === 0);
+    return arr.every(value => value === "0,00");
 };
 
 // =============================== grafico de barras inicio =============================== //

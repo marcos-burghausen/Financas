@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Errors;
+use App\Models\Conta;
 use App\Models\User;
 use App\Models\Wallets;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use PhpParser\Node\Stmt\TryCatch;
 use Pioneira\Security\Laravel\Facades\SecurityValidation;
 
 class RegisterController extends Controller
@@ -35,8 +37,10 @@ class RegisterController extends Controller
                 'name.min'                 => 'O campo nome deve ter pelo menos 3 caracteres',
                 'name.regex'               => 'O campo nome deve conter apenas letras',
                 'email.required'           => 'O campo email é obrigatório',
-                'email.unique'             => 'Já existe um usuário cadastrado com esse email',
+                'email.unique'             => 'Já existe um usuário cadastrado com esse email ',
+                'email.regex'              => 'O campo email deve ter um formato válido',
                 'password.required'        => 'O campo senha é obrigatório',
+                'password.regex'           => 'A senha deve ter pelo menos 8 caracteres sendo uma letra maiúcula, uma minúscula, um número e um caracter especial exeto aspas simples e dupla',
   //              'confirmPassword.required' => 'O campo confirmação de senha é obrigatório',
             ]
         );
@@ -69,15 +73,34 @@ class RegisterController extends Controller
             ['name' => 'Outros',        'color' => 'cor__7',  'icon' => 'dots-horizontal', 'edit' => false, 'typeCategory' => 'receita'],
         ];
 
-        $user = new User;
-        $user->name = $data['name'];
-        $user->email = $data['email'];
-        $user->password = $data['password'];
-        $user->categoriasDespesas = $categoriasDespesasDefault;
-        $user->categoriasReceitas = $categoriasReceitasDefault;
-        $user->carteiras          = ['Pessoal'];
-        $user->save();
+        try {
+            DB::beginTransaction();
 
-        return response()->json('usuario cadastrado com sucesso', 200);
+            $user                     = new User;
+            $user->name               = $data['name'];
+            $user->email              = $data['email'];
+            $user->password           = $data['password'];
+            $user->categoriasDespesas = $categoriasDespesasDefault;
+            $user->categoriasReceitas = $categoriasReceitasDefault;
+            $user->carteiras          = ["Pessoal"];
+            $user->save();
+
+            $lastUser = User::latest('id')->first();
+            
+            $carteira            = new Conta;
+            $carteira->user_id   = $lastUser->id;
+            $carteira->name      = "Pessoal";
+            $carteira->icon      = "cash";
+            $carteira->descricao = "Carteira de uso pessoal";
+            $carteira->tipo      = "Pessoal";
+            $saved               = $carteira->save();
+            DB::commit();
+        } catch (\Throwable $e) {
+            info($e);
+            DB::rollBack();
+            return response()->json(['error' => 'Ocorreu um erro ao criar o usuário e a carteira.'], 500);
+        }
+
+        return response()->json(['success' => 'Usuario cadastrado com sucesso.'], 200);
     }
 }

@@ -1,5 +1,5 @@
 <template>
-  <div class="row justify-content-center align-items-center h-100">
+  <div class="home">
     <Entrar
       v-if="step === 0"
       @next-step="step = 1"
@@ -18,4 +18,11 @@ import { ref } from "vue";
 
 const step = ref(0);
 </script>
-<style scoped></style>
+<style scoped>
+.home {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>

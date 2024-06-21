@@ -35,7 +35,8 @@ export const useErrorStore = defineStore("error", () => {
     }
 
     function setErrorFromForm(error): void {
-        errorsForm.value = error;
+        console.log(error.response.data.errors);
+        errorsForm.value = error.response.data.errors;
     }
 
     function setCustomError(code: ErrorCodes): void {

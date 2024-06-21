@@ -47,6 +47,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('/delete-revenue', [RevenueController::class, 'deleteRevenue']);
 
 
+    Route::post('/save-wallet', [WalletsController::class, 'saveWallet']);
     Route::post('/edit-wallets', [WalletsController::class, 'editWallets']);
     Route::post('/add-wallets', [WalletsController::class, 'addWallets']);
     Route::post('/delete-wallets', [WalletsController::class, 'deletWallets']);
