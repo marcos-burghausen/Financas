@@ -29,9 +29,10 @@ enum Errors: string
     case EXAMPLE_ERROR                  = "SP000";          //Um erro inesperado aconteceu.
 
     case USER_ALREADY_REGISTERED        = "SP001";          //Usuario já cadastrado.
-    case USER_CREATE_FAILED             = "SP002";          //Falha na criação do usuario.
+    case USER_CREATE_FAILED             = "SP002";          //Ocorreu um erro ao criar o usuário e a carteira.
 
     case INVALID_USERNAME_OR_PASSWORD   = "SP100";          //Usuario ou senha invalidos.
+    case SOCIAL_AUTHENTICATION_FAILED   = "SP101";          //Autenticação com rede social falhou.
 
     case ERROR_WHILE_GETTING_USER_DATA  = "SP200";          //Erro ao obter dados do usuario.
 

@@ -13,6 +13,7 @@ export const useErrorStore = defineStore("error", () => {
     const errorCode: Ref<ErrorCodes | null> = ref(null);
 
     const errorsForm = ref(null);
+    const success = ref("");
 
     // getters
     const errorMessage = computed(() =>
@@ -22,9 +23,13 @@ export const useErrorStore = defineStore("error", () => {
     const errorsFormMessage = computed(() =>
         errorsForm.value
     );
+    const successMessage = computed(() =>
+        success.value
+    );
 
     // actions
     function setErrorFromResponse(error: AxiosError): void {
+        console.log(error);
         // @ts-expect-error
         if (!error.response?.data?.error_code) {
             errorCode.value = "SP000";
@@ -32,6 +37,12 @@ export const useErrorStore = defineStore("error", () => {
             // @ts-expect-error
             errorCode.value = error.response.data.error_code;
         }
+        console.log(errorCode.value);
+    }
+
+    function setSuccessFromResponse(message: string): void {
+        success.value = message;
+        console.log(success.value);
     }
 
     function setErrorFromForm(error): void {
@@ -47,10 +58,14 @@ export const useErrorStore = defineStore("error", () => {
         errorCode.value = null;
     }
     
+    function unsetSuccess(): void {
+        success.value = "";
+    }
+    
     function unsetErrorsForm() {
         // console.log("2");
         errorsForm.value = null;
     }
 
-    return { errorMessage, errorsFormMessage, setErrorFromResponse, setErrorFromForm, unsetError, setCustomError, unsetErrorsForm };
+    return { success, errorMessage, errorsFormMessage, successMessage, setErrorFromResponse, setSuccessFromResponse, setErrorFromForm, unsetError, unsetSuccess, setCustomError, unsetErrorsForm };
 });

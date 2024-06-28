@@ -10,11 +10,13 @@ class Conta extends Model
     use HasFactory;
 
     protected $primaryKey = 'id';
-    protected $filable = [
+    protected $fillable = [
         'name',
         'valor',
         'descricao',
         'tipo',
+        'user_id',
+        'icon'
     ];
 
     public function users()

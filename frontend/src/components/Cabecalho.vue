@@ -1,13 +1,13 @@
 <template>
   <header class="header">
     <mdicon
-      v-if="auth.isAuthenticated"
+      v-if="useAuth.isAuthenticated"
       name="menu-open"
       class="mdicon"
       @click="$emit('expandirMenu')"
     />
     <!-- <div style="display: flex; align-items: center;"> -->
-    <template v-if="auth.isAuthenticated">
+    <template v-if="useAuth.isAuthenticated">
       <span class="text-white me-3 fs-3">
         Olá {{ name }}
       </span>
@@ -27,7 +27,7 @@
               Activator slot
             </v-btn> -->
           <mdicon
-            v-if="auth.isAuthenticated"
+            v-if="useAuth.isAuthenticated"
             name="account"
             class="mdicon ms-3"
             v-bind="props"
@@ -63,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { useAuth } from "@/store/auth";
+import { useAuthStore } from "@/store/auth";
 import { useRouter } from "vue-router";
 import http from "@/services/http";
 import { ref } from "vue";
@@ -74,7 +74,7 @@ import { useUserStore } from "@/store/user";
 // });
 // const titulo = computed(() => props.name);
 const router = useRouter();
-const auth = useAuth();
+const useAuth = useAuthStore();
 const useUser = useUserStore();
 
 let name = ref(useUser.user.name.split(" ")[0]);
@@ -86,7 +86,7 @@ const items = ref([
 async function logout() {
     try {
         await http.post("/logout");
-        auth.clear();
+        useAuth.clear();
         router.push({ name: "home" });
     } catch (error) {
         // console.log(error);

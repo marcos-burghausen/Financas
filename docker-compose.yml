@@ -4,7 +4,7 @@ services:
 
   #php+apache
   php:
-    image: marcosrafaelburghausen/php8.1-apache2.4
+    image: marcosrafaelburghausen/php8.3-apache2.4
     container_name: Mr_backend
     working_dir: /var/www/html/
     depends_on:

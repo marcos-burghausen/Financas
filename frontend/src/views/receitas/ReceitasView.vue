@@ -433,13 +433,15 @@ import { formatValue } from "@/utils/formatValue";
 
 import http from "@/services/http";
 import type { RevenueEdit } from "@/types/revenueEdit";
-import { useAuth } from "@/store/auth";
+import { useAuthStore } from "@/store/auth";
+import { useWalletsStore } from "@/store/wallets";
 
 
 const useRevenues = useRevenuesStore();
 const userStore = useUserStore();
+const useWallets = useWalletsStore();
 
-const auth = useAuth();
+const useAuth = useAuthStore();
 
 let validFormLancamentos = ref(false);
 let validFormEdit = ref(false);
@@ -456,7 +458,7 @@ const categoriasNames = ref([]);
 userStore.user.categoriasReceitas.forEach((categoria) => {
     categoriasNames.value.push(categoria.name);
 });
-let carteiras = ref(userStore.user.carteiras);
+let carteiras = ref(useWallets.walletsData.wallets.walletsNames);
 let errorsForm = ref({ errors: {} });
 let formStoreRevenue = ref(false);
 let formEditRevenue = ref(false);

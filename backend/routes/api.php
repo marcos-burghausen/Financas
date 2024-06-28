@@ -24,6 +24,8 @@ use Illuminate\Support\Facades\Route;
 // });
 
 Route::post('/auth', [AuthController::class, 'auth']);
+Route::get('/auth/redirect', [AuthController::class, 'facebookRedirect']);
+Route::get('/auth/callback', [AuthController::class, 'callback']);
 
 Route::post('/create', [RegisterController::class, 'create']);
 

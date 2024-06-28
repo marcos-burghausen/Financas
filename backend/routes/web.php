@@ -18,6 +18,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Route::get('/auth/redirect', [AuthController::class, 'redirect'])->name('auth.redirect');
+ 
+// Route::get('/auth/callback', [AuthController::class, 'callback'])->name('auth.callback');
+
 // Route::middleware('jwt.auth')->group(function () {
 //     Route::get('/me', [AuthController::class, 'me']);
 // });

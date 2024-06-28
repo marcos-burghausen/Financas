@@ -29,6 +29,7 @@
         @submit.prevent="salvarConta"
       >
         <ErrorMessage />
+        <SuccessMessage />
         <v-text-field
           v-model="conta.valor"
           autofocus
@@ -91,6 +92,7 @@
 <script setup lang="ts">
 import ErrorsForm from "@/components/ModalErrorsForm.vue";
 import ErrorMessage from "@/components/ErrorMessage.vue";
+import SuccessMessage from "@/components/SuccessMessage.vue";
 
 import { useWalletsStore } from "@/store/wallets";
 import { useErrorStore } from "@/store/error";
@@ -122,8 +124,7 @@ const salvarConta = async() => {
         if (res.data.wallets) {
             emit("updateContas", res.data.wallets);
         }
-
-        console.log(res.data);
+        errorStore.setSuccessFromResponse(res.data.success);
         clearInputs();
         openModal.value = false;
     } catch (error) {

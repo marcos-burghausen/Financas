@@ -437,9 +437,11 @@ import { formatValue } from "@/utils/formatValue";
 import { computed } from "vue";
 
 import type { RevenueEdit } from "@/types/revenueEdit";
+import { useWalletsStore } from "@/store/wallets";
 
 const useExpenses = useExpensesStore();
 const userStore = useUserStore();
+const useWallets = useWalletsStore();
 
 let validFormLancamentos = ref(false);
 let validFormEdit = ref(false);
@@ -454,7 +456,7 @@ const categoriasNames = ref([]);
 userStore.user.categoriasDespesas.forEach((categoria) => {
     categoriasNames.value.push(categoria.name);
 });
-let carteiras = ref(userStore.user.carteiras);
+let carteiras = ref(useWallets.walletsData.wallets.walletsNames);
 let errorsForm = ref({ errors: {} });
 let formStoreExpense = ref(false);
 let formEditExpense = ref(false);

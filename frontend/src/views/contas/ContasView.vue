@@ -30,7 +30,7 @@
           <span class="valor">R$ 130,00</span>
         </div>
         <div class="saldo">
-          <span class="saldo__atual">saldo saldo previsto</span>
+          <span class="saldo__atual">saldo previsto</span>
           <span class="valor">R$ 130,00</span>
         </div>
       </div>
@@ -49,20 +49,31 @@
             </span>
             {{ wallet.name }}
           </div>
-          <!-- <button class="btn__opcoes">
+          <button class="btn__opcoes">
             <mdicon
               name="dots-vertical"
               size="25"
             />
-          </button> -->
+          </button>
         </div>
         <div class="body__carteira">
           <div class="saldo">
             <span class="saldo__atual">saldo atual</span>
-            <span class="valor">R$ {{ wallet.saldo }}</span>
+            <span
+              v-if="wallet.saldo == null"
+              class="valor"
+            >
+              R$ 0,00
+            </span>
+            <span
+              v-else
+              class="valor"
+            >
+              R$ {{ wallet.saldo }}
+            </span>
           </div>
           <div class="saldo">
-            <span class="saldo__atual">saldo saldo previsto</span>
+            <span class="saldo__atual">saldo previsto</span>
             <span class="valor">R$ 130,00</span>
           </div>
         </div>
@@ -154,9 +165,6 @@ let wallets = ref(useWallets.walletsData.wallets);
 const updateContas = (novoValor) => {
     wallets.value = novoValor;
 };
-
-let saldo = wallets.value.Pessoal.valor;
-console.log(saldo);
 
 </script>
 

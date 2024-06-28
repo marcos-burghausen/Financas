@@ -11,6 +11,11 @@ const router = createRouter({
             component: HomeView
         },
         {
+            path: "/auth/callback",
+            name: "facebookCallback",
+            component: () => import("../components/FacebookCallback.vue"),
+        },
+        {
             path: "/dashboard",
             name: "dashboard",
             component: () => import("../views/DashboardView.vue"),
@@ -22,6 +27,9 @@ const router = createRouter({
             path: "/contas",
             name: "contas",
             component: () => import("../views/contas/ContasView.vue"),
+            meta: {
+                auth: true
+            }
         },
         {
             path: "/despesas",

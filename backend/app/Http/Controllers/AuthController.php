@@ -10,11 +10,13 @@ use App\Http\Traits\GroupReleasesTrait;
 use App\Http\Traits\ReleasesMonthTrait;
 use App\Http\Traits\TotalByCategoryTrait;
 use App\Models\Conta;
+use App\Models\User;
 use App\Utils\FinancasCache;
 use DateTime;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Password;
-
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
@@ -42,7 +44,7 @@ class AuthController extends Controller
             ]
         );
         $credentials = $request->all(['email', 'password']);
-
+        
         //autenticação (email e senha)
         $token = auth('api')->attempt($credentials);
         if (!$token) {
@@ -61,10 +63,56 @@ class AuthController extends Controller
         ], 30);
 
         $token = $this->respondWithToken($token);
-
+        $user = auth()->user();
+        $userData = $this->getUserData($user);
+        
         LogController::addsLog($request->email, Actions::LOGIN);
 
-        return response()->json($token->original);
+        return response()->json([
+            'token' => $token->original,
+            'user'  => $user,
+            'userData' => $userData
+        ]);
+    }
+
+    public function authSocial(Request $request)
+    {
+        try {
+            $user = Socialite::driver('facebook')->stateless()->user();
+            
+            // Procura o usuário pelo email ou cria um novo
+            $authUser = User::firstOrCreate(
+                ['email' => $user->email],
+                [
+                    'name' => $user->name,
+                    'facebook_id' => $user->id,
+                    // Outros campos que você queira preencher
+                ]
+            );
+
+            // Gera o token JWT
+            $token = auth('api')->login($authUser);
+
+            if (!$token) {
+                LogController::addsLog($user->email, Actions::SOCIAL_AUTH_FAILED);
+                return Errors::AUTHENTICATION_FAILED->response();
+            }
+
+            // Cache e log (similar ao seu método original)
+            FinancasCache::put(CacheKeys::FLOW_TITLE->append($user->email), [
+                CacheNaming::EMAIL->value => $user->email,
+            ], 30);
+
+            $tokenResponse = $this->respondWithToken($token);
+
+            LogController::addsLog($user->email, Actions::SOCIAL_LOGIN);
+
+            return response()->json($tokenResponse->original);
+        } catch (\Exception $e) {
+            // Log do erro e retorno de uma resposta de erro
+            LogController::addsLog('unknown', Actions::SOCIAL_AUTH_ERROR);
+            return Errors::AUTHENTICATION_FAILED->response();
+        }
     }
 
     /**
@@ -78,19 +126,20 @@ class AuthController extends Controller
     {
         if ($user = auth()->user()) {
             
-            // $revenues = auth()->user()->revenues()->get();
             $revenuesData = $this->classifiesReleases(auth()->user()->revenues()->get(), 'Revenues');
             $expensesData = $this->classifiesReleases(auth()->user()->expenses()->get(), 'Expenses');
             // $walletsNames = Conta::pluck('name')->toArray();
             // $walletsData = Conta::select('name', 'saldo')->get();
             $walletsData = auth()->user()->contas()->get();
-            info($walletsData);
+            $walletsName = $walletsData->pluck('name');
+            $user['walletsName'] = $walletsName;
             $wallets = [];
             foreach ($walletsData as $wallet) {
                 $wallets[$wallet['name']] = [
                     'name' => $wallet['name'],
                     'valor' => $wallet['valor'],
-                    'icon' => $wallet['icon']
+                    'icon' => $wallet['icon'],
+                    'tipo' => $wallet['tipo'],
                 ];
             }
             // return response(['revenuesData' => $revenuesData, 'expensesData' => $expensesData]);
@@ -144,4 +193,84 @@ class AuthController extends Controller
             'expires' => time() + 10,
         ], 200);
     }
+
+    public function facebookRedirect()
+    {
+        $redirectUrl = Socialite::driver('facebook')->stateless()->redirect()->getTargetUrl();
+        return response()->json(['redirect_url' => $redirectUrl]);
+    }
+
+    public function callback()
+    {
+        try {
+            $facebookUser = Socialite::driver('facebook')->stateless()->user();
+        
+            DB::beginTransaction();
+            $user = User::firstOrCreate(
+                ['email' => $facebookUser->email],
+                [
+                    'name' => $facebookUser->name,
+                    'facebook_id' => $facebookUser->id,
+                    'categoriasDespesas' => null,  // Isso acionará o mutator
+                    'categoriasReceitas' => null,  // Isso acionará o mutator
+                ]
+            );
+            if ($user->wasRecentlyCreated) {
+                $carteira            = new Conta;
+                $carteira->user_id   = $user->id;
+                $carteira->name      = "Pessoal";
+                $carteira->icon      = "cash";
+                $carteira->descricao = "Carteira de uso pessoal";
+                $carteira->tipo      = "Pessoal";
+                $carteira->save();
+            }
+            DB::commit();
+
+            // Se o usuário já existia, atualize apenas o facebook_id se necessário
+            if ($user->wasRecentlyCreated == false && !$user->facebook_id) {
+                $user->facebook_id = $facebookUser->id;
+                $user->save();
+            }
+
+            // Gera o token JWT sem necessidade de senha
+            $token = auth('api')->login($user);
+            $userData = $this->getUserData($user);
+
+            // Cache e log (similar ao seu método original)
+            FinancasCache::put(CacheKeys::FLOW_TITLE->append($user->email), [
+                CacheNaming::EMAIL->value => $user->email,
+            ], 30);
+
+            $token = $this->respondWithToken($token);
+
+            LogController::addsLog($user->email, Actions::SOCIAL_LOGIN);
+            return response()->json([
+                'token' => $token->original,
+                'user'  => $user,
+                'userData' => $userData
+            ]);
+
+        } catch (\Throwable $th) {
+            // Log do erro e retorno de uma resposta de erro
+            \Log::error('Erro na autenticação social: ' . $th->getMessage());
+            LogController::addsLog('unknown', Actions::SOCIAL_AUTH_ERROR);
+            return Errors::SOCIAL_AUTHENTICATION_FAILED->response();
+        }
+    }
+
+    private function getUserData($user)
+    {
+        return [
+            'expensesData' => $this->classifiesReleases($user->expenses()->get(), 'Expenses'),
+            'revenuesData' => $this->classifiesReleases($user->revenues()->get(), 'Revenues'),
+            'walletsData' => [
+                'wallets' => $user->contas()->get(),
+                'walletsNames' => $user->contas()->pluck("name"),
+            ],
+            // 'totalBalance' => $user->calculateTotalBalance(),
+            // 'totalCreditCard' => $user->calculateTotalCreditCard(),
+            // Adicione quaisquer outros dados relacionados que você precisa
+        ];
+    }
+
 }

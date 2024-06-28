@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex h-100">
-    <template v-if="auth.isAuthenticated">
+    <template v-if="useAuth.isAuthenticated">
       <MenuLateral
         :menu-expandido="menuExpandido"
         @expandirMenu="menuExpandido = !menuExpandido"
@@ -8,7 +8,7 @@
     </template>
 
     <div class="containerApp">
-      <template v-if="auth.isAuthenticated">
+      <template v-if="useAuth.isAuthenticated">
         <Cabecalho
           :menu-expandido="menuExpandido"
           @expandirMenu="menuExpandido = !menuExpandido"
@@ -25,9 +25,9 @@ import TesteView from "./components/TesteView.vue";
 import Cabecalho from "@/components/Cabecalho.vue";
 
 import { ref } from "vue";
-import { useAuth } from "@/store/auth.js";
+import { useAuthStore } from "@/store/auth.js";
 
-const auth = useAuth();
+const useAuth = useAuthStore();
 
 const menuExpandido = ref(false);
 </script>

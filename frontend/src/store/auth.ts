@@ -3,16 +3,20 @@ import { defineStore } from "pinia";
 import { useRouter } from "vue-router";
 
 
-export const useAuth = defineStore("auth", () => {
+export const useAuthStore = defineStore("auth", () => {
     const router = useRouter();
-    const token = ref(localStorage.getItem("token"));
+    const token = ref(
+        localStorage.getItem("token")
+            ? JSON.parse(localStorage.getItem("token") as string)
+            : "");
+            
     const userName = ref(
         localStorage.getItem("userName")
             ? JSON.parse(localStorage.getItem("user") as string)
             : "");
 
     function setToken(tokenValue: string) {
-        localStorage.setItem("token", tokenValue);
+        localStorage.setItem("token", JSON.stringify(tokenValue));
         token.value = tokenValue;
     }
 
@@ -23,7 +27,7 @@ export const useAuth = defineStore("auth", () => {
     }
 
     const isAuthenticated = computed(() => {
-        return token.value && userName.value;
+        return token.value.token;
     });
 
     function clear() {
@@ -39,7 +43,6 @@ export const useAuth = defineStore("auth", () => {
     function expiredTokem() {
         router.push({ name: "home" });
         clear();
-        console.log("object");
     }
 
     return {

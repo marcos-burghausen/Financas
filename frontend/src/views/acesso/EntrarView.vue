@@ -9,6 +9,7 @@
           <a
             class="link__social__media"
             href="#"
+            @click="initiateFacebookLogin()"
           >
             <li class="item__social__media">
               <mdicon
@@ -153,7 +154,7 @@ import { useWalletsStore } from "@/store/wallets";
 import { useErrorStore } from "@/store/error";
 import { useUserStore } from "@/store/user";
 import { userData } from "@/store/data";
-import { useAuth } from "@/store/auth";
+import { useAuthStore } from "@/store/auth";
 import { useRouter } from "vue-router";
 import http from "@/services/http";
 
@@ -175,28 +176,36 @@ const user: Ref<FormLogin> = ref({
 });
 const router = useRouter();
 const data = userData();
-const auth = useAuth();
+const useAuth = useAuthStore();
 
 let validForm = ref(false);
 let mostrarSenha = ref(true);
 let loading = ref(false);
 
+async function initiateFacebookLogin() {
+    // errorStore.unsetError();
+    try {
+        loading.value = true;
+        const response = await http.get("/auth/redirect");
+        window.location.href = response.data.redirect_url;
+    } catch (error) {
+        console.error("Erro ao iniciar login do Facebook", error);
+        
+    }
+}
+
 async function login() {
     errorStore.unsetError();
     try {
         loading.value = true;
-        const res = await http.post("/auth", user.value);
-        auth.setToken(res.data.token);
-
-        const response = await http.post("/me");
+        const response = await http.post("/auth", user.value);
+        useAuth.setToken(response.data.token);
         useUser.setUserData(response.data.user);
-        useExpenses.setExpensesData(response.data.expensesData);
-        useRevenues.setRevenuesData(response.data.revenuesData);
-        data.setTotalCreditCard(response.data.totalCreditCard);
-        data.setTotalBalance(response.data.totalBalance);
-        auth.setUser(response.data.user.name);
-        useWallets.setWalletsData(response.data.wallets);
-        console.log(response.data.wallets);
+        useExpenses.setExpensesData(response.data.userData.expensesData);
+        useRevenues.setRevenuesData(response.data.userData.revenuesData);
+        useWallets.setWalletsData(response.data.userData.walletsData);
+        // data.setTotalCreditCard(response.data.userData.totalCreditCard);
+        // data.setTotalBalance(response.data.userData.totalBalance);
         
         router.push({ name: "dashboard" });
     } catch (error) {

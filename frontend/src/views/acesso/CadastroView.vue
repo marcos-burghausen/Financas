@@ -33,7 +33,7 @@
       <h2 class="title">
         Criar Uma Conta
       </h2>
-      <div class="social__media">
+      <!-- <div class="social__media">
         <ul class="list__social__media">
           <a
             class="link__social__media"
@@ -69,10 +69,10 @@
             </li>
           </a>
         </ul>
-      </div>
-      <p class="sub__title">
+      </div> -->
+      <!-- <p class="sub__title">
         ou use seu e-mail para inscrição:
-      </p>
+      </p> -->
 
       <ErrorMessage />
 
@@ -179,12 +179,12 @@ import type { FormCadastro } from "@/types/formCadastro";
 const emits = defineEmits(["nextStep"]);
 const errorStore = useErrorStore();
 const user: FormCadastro = ref({
-    // name: "Marcos Rafael Burghausen",
-    name: "",
-    // email: "rafael@gmail.com",
-    email: "",
-    // password: "Teste123@" 
-    password: "" 
+    name: "Marcos Rafael Burghausen",
+    // name: "",
+    email: "rafael@gmail.com",
+    // email: "",
+    password: "Teste123@" 
+    // password: "" 
 });
 
 let validForm = ref(false);
@@ -240,6 +240,7 @@ const rules = {
     font-weight: bold;
     color: #fefefe;
     text-align: center;
+    margin: 0 0 25px 0
 }
 
 .title__2 {

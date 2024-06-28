@@ -23,7 +23,11 @@ class User extends Authenticatable implements JWTSubject
         'email',
         'password',
         'categorias',
-        'carteiras'
+        'categoriasDespesas',
+        'categoriasReceitas',
+        'facebook_id',
+        'google_id',
+        'linkedin_id',
     ];
 
     /**
@@ -46,8 +50,53 @@ class User extends Authenticatable implements JWTSubject
         'password'           => 'hashed',
         'categoriasDespesas' => 'array',
         'categoriasReceitas' => 'array',
-        'carteiras'          => 'array'
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($user) {
+            // Preenche categorias padrão se estiverem vazias
+            if (is_null($user->categoriasDespesas)) {
+                $user->categoriasDespesas = null;
+            }
+            if (is_null($user->categoriasReceitas)) {
+                $user->categoriasReceitas = null;
+            }
+        });
+    }
+
+    protected function setCategoriasDespesasAttribute($value)
+    {
+        if (empty($value)) {
+            $this->attributes['categoriasDespesas'] = json_encode([
+                ['name' => 'Casa',       'color' => 'cor__1', 'icon' => 'home-outline',           'edit' => false, 'typeCategory' => 'despesa'],
+                ['name' => 'Transporte', 'color' => 'cor__2', 'icon' => 'car-estate',             'edit' => false, 'typeCategory' => 'despesa'],
+                ['name' => 'Educação',   'color' => 'cor__3', 'icon' => 'account-school-outline', 'edit' => false, 'typeCategory' => 'despesa'],
+                ['name' => 'Lazer',      'color' => 'cor__4', 'icon' => 'umbrella-beach-outline', 'edit' => false, 'typeCategory' => 'despesa'],
+                ['name' => 'Vestuario',  'color' => 'cor__5', 'icon' => 'tshirt-crew-outline',    'edit' => false, 'typeCategory' => 'despesa'],
+                ['name' => 'Viagem',     'color' => 'cor__6', 'icon' => 'airplane',               'edit' => false, 'typeCategory' => 'despesa'],
+                ['name' => 'Saúde',      'color' => 'cor__7', 'icon' => 'medical-bag',            'edit' => false, 'typeCategory' => 'despesa'],
+                ['name' => 'Outros',     'color' => 'cor__8', 'icon' => 'dots-horizontal',        'edit' => false, 'typeCategory' => 'despesa'],
+            ]);
+        } else {
+            $this->attributes['categoriasDespesas'] = is_array($value) ? json_encode($value) : $value;
+        }
+    }
+
+    protected function setCategoriasReceitasAttribute($value)
+    {
+        if (empty($value)) {
+            $this->attributes['categoriasReceitas'] = json_encode([
+                ['name' => 'Salario',       'color' => 'cor__12', 'icon' => 'currency-usd',    'edit' => false, 'typeCategory' => 'receita'],
+                ['name' => 'Investimentos', 'color' => 'cor__11', 'icon' => 'finance',         'edit' => false, 'typeCategory' => 'receita'],
+                ['name' => 'Outros',        'color' => 'cor__7',  'icon' => 'dots-horizontal', 'edit' => false, 'typeCategory' => 'receita'],
+            ]);
+        } else {
+            $this->attributes['categoriasReceitas'] = is_array($value) ? json_encode($value) : $value;
+        }
+    }
 
     public function expenses()
     {
@@ -64,6 +113,20 @@ class User extends Authenticatable implements JWTSubject
     public function contas()
     {
         return $this->hasMany(Conta::class);
+    }
+
+    public function calculateTotalBalance()
+    {
+        $totalRevenues = $this->revenues()->sum('amount');
+        $totalExpenses = $this->expenses()->sum('amount');
+        return $totalRevenues - $totalExpenses;
+    }
+
+    public function calculateTotalCreditCard()
+    {
+        return $this->expenses()
+            ->where('payment_method', 'credit_card')
+            ->sum('amount');
     }
 
     // Rest omitted for brevity

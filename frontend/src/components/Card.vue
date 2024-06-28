@@ -25,12 +25,13 @@ const props = defineProps({
         required: true,
     },
     valor: {
-        type: Number,
+        type: String,
         required: true,
     },
     rota: {
-        type: String,
-        required: true,
+        type: [String || null],
+        required: false,
+        default:null
     }
 });
 
