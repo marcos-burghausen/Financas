@@ -7,7 +7,9 @@ use App\Http\Traits\GroupReleasesTrait;
 use Illuminate\Http\Request;
 use App\Http\Traits\ReleasesMonthTrait;
 use App\Http\Traits\TotalByCategoryTrait;
+use App\Mail\NotificationMail;
 use App\Models\Expense;
+use Illuminate\Support\Facades\Mail;
 
 class ExpenseController extends Controller
 {
@@ -32,8 +34,11 @@ class ExpenseController extends Controller
                 'carteira.required'  => 'O campo carteira senha é obrigatório',
             ]
         );
+
+        $user = auth()->user();
+
         $expense = new Expense;
-        $expense->user_id   = auth()->user()->id;
+        $expense->user_id   = $user->id;
         $expense->valor     = str_replace([',', '.'], '', $data['valor']);
         $expense->date      = $data['date'];
         $expense->descricao = $data['descricao'];
@@ -48,7 +53,7 @@ class ExpenseController extends Controller
 
         $expensesData = $this->classifiesReleases(auth()->user()->expenses()->get(), 'Expenses');
 
-        // Mail::to($user->email)->send(new DespesaRegistradaMail($despesa));
+        Mail::to($user->email)->send(new NotificationMail($expense));
         return response()->json([
             'success' => 'despesa cadastrada com sucesso',
             'expensesData' => $expensesData,
@@ -59,7 +64,7 @@ class ExpenseController extends Controller
     {
         $expense = Expense::find($request->id);
         $expense->status = 'PAGA';
-        $expense->valor = str_replace([',','.'], '', $expense->valor);
+        $expense->valor = str_replace([',', '.'], '', $expense->valor);
         $saved = $expense->save();
 
         if (!$saved) {
@@ -77,7 +82,7 @@ class ExpenseController extends Controller
     public function editExpense(Request $request)
     {
         $expense = Expense::find($request->id);
-        $expense->valor = str_replace([',','.'], '', $request->valor);
+        $expense->valor = str_replace([',', '.'], '', $request->valor);
         $expense->date = $request->date;
         $expense->descricao = $request->descricao;
         $expense->categoria = $request->categoria;

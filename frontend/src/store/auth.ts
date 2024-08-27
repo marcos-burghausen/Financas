@@ -27,7 +27,15 @@ export const useAuthStore = defineStore("auth", () => {
     }
 
     const isAuthenticated = computed(() => {
-        return token.value.token;
+        if (!token.value.token || !token.value.expires) {
+            return false;
+        }
+        // Convertendo o timestamp de expiração para milissegundos
+        // pois o Date.now() retorna o tempo em milessegundos
+        const expirationTime = token.value.expires * 1000;
+        const currentTime = Date.now();
+
+        return currentTime < expirationTime;
     });
 
     function clear() {

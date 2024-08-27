@@ -181,7 +181,7 @@ const errorStore = useErrorStore();
 const user: FormCadastro = ref({
     name: "Marcos Rafael Burghausen",
     // name: "",
-    email: "rafael@gmail.com",
+    email: "rafaelburghausen@gmail.com",
     // email: "",
     password: "Teste123@" 
     // password: "" 

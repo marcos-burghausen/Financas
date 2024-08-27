@@ -13,7 +13,6 @@ class WalletsController extends Controller
 {
     public function saveWallet(Request $request)
     {
-        info($request);
         $data = $request->validate(
             [
                 'valor' =>[

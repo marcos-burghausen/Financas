@@ -536,9 +536,7 @@ const clearInputs = () => {
 const revertEdit = () => {
     revenuesMonth.value.forEach((revenue: RevenueEdit, index: number) => {
         if (revenue.id === revenueEdit.value.id) {
-            console.log(revenuesMonth.value);
             revenuesMonth.value[index] = JSON.parse(JSON.stringify(revenueUnedited.value));
-            console.log(revenuesMonth.value);
         }
     });
 };
@@ -557,6 +555,7 @@ const salvarLancamentos = async () => {
         valuePending.value = formatValue(res.data.revenuesData.ValuePendingRevenues);
         valueReceived.value = formatValue(res.data.revenuesData.ValueReceivedRevenues);
         revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
+        useWallets.setWalletsData(res.data.walletsData);
         clearInputs();
         formStoreRevenue.value = false;
     } catch (error) {
@@ -567,7 +566,7 @@ const salvarLancamentos = async () => {
 
 const receivedRevenue = async (revenue: RevenueEdit) => {
     try {
-        const res = await http.post("/received-revenue", { "id": revenue.id });
+        const res = await http.post("/received-revenue", { "id": revenue.id, "carteira": revenue.carteira });
         useRevenues.setRevenuesData(res.data.revenuesData);
         valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
         valuePending.value = res.data.revenuesData.ValuePendingRevenues;
@@ -577,6 +576,7 @@ const receivedRevenue = async (revenue: RevenueEdit) => {
                 revenues.status = "RECEBIDA";
             }
         });
+        useWallets.setWallets(res.data.walletsData.wallets);
 
     } catch (error) {
         // console.log(error);

@@ -69,7 +69,7 @@
               v-else
               class="valor"
             >
-              R$ {{ wallet.saldo }}
+              R$ {{ formatValue(wallet.saldo) }}
             </span>
           </div>
           <div class="saldo">
@@ -156,12 +156,13 @@
 
 <script setup lang="ts">
 import ModalNovaConta from "@/components/ModalNovaConta.vue";
+import { formatValue } from "@/utils/formatValue";
 
 import { useWalletsStore } from "@/store/wallets";
 import { ref } from "vue";
 
 const useWallets = useWalletsStore();
-let wallets = ref(useWallets.walletsData.wallets);
+let wallets = ref(useWallets.walletsData.wallets.wallets);
 const updateContas = (novoValor) => {
     wallets.value = novoValor;
 };

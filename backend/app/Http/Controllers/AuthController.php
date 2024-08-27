@@ -48,7 +48,7 @@ class AuthController extends Controller
         //autenticação (email e senha)
         $token = auth('api')->attempt($credentials);
         if (!$token) {
-            LogController::addsLog($request->email, Actions::USER_OR_PASSWORD_INVALID);
+            // LogController::addsLog($request->email, Actions::USER_OR_PASSWORD_INVALID);
             return Errors::INVALID_USERNAME_OR_PASSWORD->response();
         }
 
@@ -66,7 +66,7 @@ class AuthController extends Controller
         $user = auth()->user();
         $userData = $this->getUserData($user);
         
-        LogController::addsLog($request->email, Actions::LOGIN);
+        // LogController::addsLog($request->email, Actions::LOGIN);
 
         return response()->json([
             'token' => $token->original,
