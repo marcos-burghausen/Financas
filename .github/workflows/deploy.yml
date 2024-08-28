@@ -18,12 +18,6 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Add Hetzner to known hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H 128.140.67.177 >> ~/.ssh/known_hosts
-          cat ~/.ssh/known_hosts
-
       - name: Copy files via SCP
         run: scp -r ./* root@128.140.67.177:/root/Financas
 
