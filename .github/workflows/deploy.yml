@@ -22,7 +22,7 @@ jobs:
         run: ssh-keyscan -H 128.140.67.177 >> ~/.ssh/known_hosts
 
       - name: Copy files via SCP
-        run: scp -r ./ root@128.140.67.177:/root/Financas
+        run: scp -r * root@128.140.67.177:/root/Financas
 
       - name: Run SSH commands
         run: ssh root@128.140.67.177 'cd /root/Financas && git pull origin main'
