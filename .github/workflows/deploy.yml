@@ -27,8 +27,11 @@ jobs:
       - name: Test SSH connection
         run: ssh -o StrictHostKeyChecking=no root@128.140.67.177 'echo "SSH connection successful"'
 
-      - name: Copy files via SCP
-        run: scp -o StrictHostKeyChecking=no -r ./* root@128.140.67.177:/root/Financas
-
-      - name: Run SSH commands
-        run: ssh -o StrictHostKeyChecking=no root@128.140.67.177 'cd /root/Financas && git pull origin main'
+      - name: Clean and Update Server
+        run: |
+          ssh -o StrictHostKeyChecking=no root@128.140.67.177 << 'EOF'
+            cd /root/Financas
+            git reset --hard HEAD
+            git clean -fd
+            git pull origin main
+          EOF
