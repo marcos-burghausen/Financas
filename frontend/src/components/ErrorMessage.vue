@@ -1,12 +1,6 @@
 <template>
-  <div
-    v-show="errorStore.errorMessage"
-    class="container__error"
-  >
-    <div
-      class="erro"
-      role="alert"
-    >
+  <div v-show="errorStore.errorMessage" class="container__error">
+    <div class="erro" role="alert">
       <header class="header__erro">
         <mdicon
           class="mdicon__close"
@@ -15,13 +9,10 @@
           @click="errorStore.unsetError()"
         />
       </header>
-      <v-chip
-        class="error d-flex mb-2"
-        width="100%"
-        color="red"
-      >
+      <div class="error mb-2">
+        <h2 class="titulo__error">Ops, algo deu errado</h2>
         <span class="error__message">{{ errorStore.errorMessage }}</span>
-      </v-chip>
+      </div>
     </div>
   </div>
 </template>
@@ -32,9 +23,8 @@ import { onMounted } from "vue";
 const errorStore = useErrorStore();
 
 onMounted(() => {
-    errorStore.unsetError();
+  errorStore.unsetError();
 });
-
 </script>
 
 <style scoped>
@@ -45,7 +35,7 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   z-index: 999;
-  background: rgba(0, 0, 0, 0.50);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -78,7 +68,12 @@ onMounted(() => {
   height: auto;
   word-wrap: break-word;
 }
+.titulo__error {
+  color: #f44336;
+  text-align: center;
+}
 .error__message {
-  padding: 5px;
+  text-align: center;
+  /* padding: 5px; */
 }
 </style>

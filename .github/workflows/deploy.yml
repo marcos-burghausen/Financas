@@ -22,4 +22,4 @@ jobs:
         run: scp -r ./ root@128.140.67.177:/root/Financas
 
       - name: Run SSH commands
-        run: ssh root@128.140.67.177 'cd /root/Financas && git pull origin main'
+        run: ssh root@128.140.67.177 'cd /root/Financas && git pull origin main && docker compose down && docker compose -f docker-compose-prod.yml up -d --build'
