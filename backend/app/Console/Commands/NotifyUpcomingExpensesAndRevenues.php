@@ -38,25 +38,28 @@ class NotifyUpcomingExpensesAndRevenues extends Command
     {
         $tomorrow = Carbon::tomorrow();
 
+        info('O comando foi iniciado em ' . Carbon::now());
+
+
         // Enviar notificações de despesas
-        $expenses = Expense::whereDate('due_date', $tomorrow)->get();
+        $expenses = Expense::whereDate('date', $tomorrow)->get();
         foreach ($expenses as $expense) {
             Mail::to($expense->user->email)->queue(new NotificationMail(
                 $expense->user,
                 'Vencimento de Despesa',
                 'Despesa',
-                $expense->name
+                $expense->descricao
             ));
         }
 
         // Enviar notificações de receitas
-        $revenues = Revenue::whereDate('due_date', $tomorrow)->get();
+        $revenues = Revenue::whereDate('date', $tomorrow)->get();
         foreach ($revenues as $revenue) {
             Mail::to($revenue->user->email)->queue(new NotificationMail(
                 $revenue->user,
                 'Vencimento de Receita',
                 'Receita',
-                $revenue->name
+                $revenue->descricao
             ));
         }
 

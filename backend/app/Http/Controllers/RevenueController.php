@@ -73,7 +73,7 @@ class RevenueController extends Controller
             'walletsNames' => auth()->user()->contas()->pluck("name"),
         ];
 
-        Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Despesa', $revenue->descricao));
+        Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Receita', $revenue->descricao));
 
         return response()->json([
             'success' => 'Receita cadastrada com sucesso',
@@ -115,7 +115,7 @@ class RevenueController extends Controller
 
         $user = auth()->user();
 
-        Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Despesa', $revenue->descricao));
+        Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Receita', $revenue->descricao));
 
         return response()->json([
             'success' => 'Receita recebida com sucesso',
@@ -165,7 +165,7 @@ class RevenueController extends Controller
 
         $user = auth()->user();
 
-        Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Despesa', $revenue->descricao));
+        Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Receita', $revenue->descricao));
 
         return response()->json([
             'msg' => 'Receita editada com sucesso',
@@ -190,7 +190,7 @@ class RevenueController extends Controller
 
         $user = auth()->user();
 
-        Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Despesa', $revenue->descricao));
+        Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Receita', $revenue->descricao));
 
         return response()->json([
             'msg' => 'Receita alterada com sucesso',
