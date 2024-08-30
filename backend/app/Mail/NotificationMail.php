@@ -2,7 +2,6 @@
 
 namespace App\Mail;
 
-use App\Models\Expense;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -10,18 +9,24 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class NotificationMail extends Mailable
+class NotificationMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
-    public Expense $expense;
+    public $user;
+    public $action;
+    public $itemType;
+    public $itemName;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(Expense $expense)
+    public function __construct($user, $action, $itemType, $itemName)
     {
-        $this->expense = $expense;
+        $this->user = $user;
+        $this->action = $action;
+        $this->itemType = $itemType;
+        $this->itemName = $itemName;
     }
 
     /**
@@ -30,7 +35,7 @@ class NotificationMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Notification Mail',
+            subject: 'Notificação',
         );
     }
 
@@ -40,7 +45,7 @@ class NotificationMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            markdown: 'mails.despesaRegistrada',
+            markdown: 'mails.notification',
         );
     }
 

@@ -53,7 +53,7 @@ class ExpenseController extends Controller
 
         $expensesData = $this->classifiesReleases(auth()->user()->expenses()->get(), 'Expenses');
 
-        Mail::to($user->email)->send(new NotificationMail($expense));
+        Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Despesa', $expense->descricao));
         return response()->json([
             'success' => 'despesa cadastrada com sucesso',
             'expensesData' => $expensesData,
@@ -73,6 +73,10 @@ class ExpenseController extends Controller
 
         $expensesData = $this->classifiesReleases(auth()->user()->expenses()->get(), 'Expenses');
 
+        $user = auth()->user();
+
+        Mail::to($user->email)->queue(new NotificationMail($user, 'Pagamento', 'Despesa', $expense->descricao));
+
         return response()->json([
             'success' => 'despesa cadastrada com sucesso',
             'expensesData' => $expensesData,
@@ -81,6 +85,7 @@ class ExpenseController extends Controller
 
     public function editExpense(Request $request)
     {
+        info($request);
         $expense = Expense::find($request->id);
         $expense->valor = str_replace([',', '.'], '', $request->valor);
         $expense->date = $request->date;
@@ -94,6 +99,10 @@ class ExpenseController extends Controller
 
         $expensesData = $this->classifiesReleases(auth()->user()->expenses()->get(), 'Expenses');
 
+        $user = auth()->user();
+
+        Mail::to($user->email)->queue(new NotificationMail($user, 'Edição', 'Despesa', $expense->descricao));
+
         return response()->json([
             'success' => 'despesa auterada com sucesso',
             'expensesData' => $expensesData,
@@ -102,12 +111,18 @@ class ExpenseController extends Controller
 
     public function deleteExpense(Request $request)
     {
+        $expense = Expense::find($request->id);
+
         $deleted = Expense::destroy($request->id);
         if (!$deleted) {
             return response()->json(Errors::ERROR_DELETING_EXPENSE->response());
         }
 
         $expensesData = $this->classifiesReleases(auth()->user()->expenses()->get(), 'Expenses');
+
+        $user = auth()->user();
+
+        Mail::to($user->email)->queue(new NotificationMail($user, 'Exclusão', 'Despesa', $expense->descricao));
 
         return response()->json([
             'success' => 'despesa cadastrada com sucesso',

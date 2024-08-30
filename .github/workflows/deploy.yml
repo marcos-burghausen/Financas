@@ -33,3 +33,10 @@ jobs:
             cd /root/Financas
             git pull origin main && docker compose down && docker compose -f docker-compose-prod.yml up -d --build
           EOF
+
+      - name: Run Laravel Queue Worker
+        run: |
+          ssh -o StrictHostKeyChecking=no root@128.140.67.177 << 'EOF'
+            cd /root/Financas
+            docker exec -it Mr_backend php artisan queue:work
+          EOF

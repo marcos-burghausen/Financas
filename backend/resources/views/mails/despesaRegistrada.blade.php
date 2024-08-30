@@ -1,7 +1,7 @@
 <x-mail::message>
 # Introdução
 
-Voçẽ acabou de adicionar uma nova despesa no valor de {{$expense->valor}}
+Uma novoçẽ acabou de adicionar uma nova despesa no valor de {{ 'R$ ' . number_format($expense->valor / 100, 2, ',', '.') }}
 
 <x-mail::button :url="''">
 ok

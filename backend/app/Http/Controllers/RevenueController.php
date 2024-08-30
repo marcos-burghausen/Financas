@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Enums\Errors;
 use App\Http\Traits\GroupReleasesTrait;
 use App\Http\Traits\ReleasesMonthTrait;
+use App\Mail\NotificationMail;
 use App\Models\Conta;
 use App\Models\Revenue;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class RevenueController extends Controller
 {
@@ -31,13 +33,15 @@ class RevenueController extends Controller
                 'descricao.unique'   => 'O campo descricao é obrigatório',
                 'categoria.required' => 'O campo categoria é obrigatório',
                 'carteira.required'  => 'O campo carteira é obrigatório',
-                ]
-            );
+            ]
+        );
+
+        $user = auth()->user();
 
         DB::beginTransaction();
         $revenue = new Revenue;
-        $revenue->user_id   = auth()->user()->id;
-        $revenue->valor     = str_replace([',','.'], '', $data['valor']);
+        $revenue->user_id   = $user->id;
+        $revenue->valor     = str_replace([',', '.'], '', $data['valor']);
         $revenue->date      = $data['date'];
         $revenue->descricao = $data['descricao'];
         $revenue->categoria = $data['categoria'];
@@ -47,27 +51,30 @@ class RevenueController extends Controller
 
         if ($data['status'] === 'RECEBIDA') {
             $conta = Conta::where('user_id', auth()->user()->id)
-                            ->where('name', $data['carteira'])
-                            ->first();
-                            
-        if ($conta) {
-                $conta->saldo += str_replace([',','.'], '', $data['valor']);
+                ->where('name', $data['carteira'])
+                ->first();
+
+            if ($conta) {
+                $conta->saldo += str_replace([',', '.'], '', $data['valor']);
                 $conta->save();
             }
         }
-        
+
         if (!$saved) {
             return response()->json(Errors::ERROR_REGISTERING_REVENUE->response());
         }
         DB::commit();
 
         $revenuesData = $this->classifiesReleases(auth()->user()->revenues()->get(), 'Revenues');
+
+
         $wallets = [
-                'wallets' => auth()->user()->contas()->get(),
-                'walletsNames' => auth()->user()->contas()->pluck("name"),
+            'wallets' => auth()->user()->contas()->get(),
+            'walletsNames' => auth()->user()->contas()->pluck("name"),
         ];
 
-        // Mail::to($user->email)->send(new DespesaRegistradaMail($despesa));
+        Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Despesa', $revenue->descricao));
+
         return response()->json([
             'success' => 'Receita cadastrada com sucesso',
             'revenuesData' => $revenuesData,
@@ -88,13 +95,13 @@ class RevenueController extends Controller
             return Errors::ERROR_PAY_REVENUE->response();
         }
 
-        $carteira = Conta::where("user_id",auth()->user()->id)
-                            ->where("name", $request->carteira)
-                            ->first();
-                            info($carteira);
-                            
+        $carteira = Conta::where("user_id", auth()->user()->id)
+            ->where("name", $request->carteira)
+            ->first();
+        info($carteira);
+
         if ($carteira) {
-            $carteira->saldo += str_replace([',','.'], '', $revenue->valor);
+            $carteira->saldo += str_replace([',', '.'], '', $revenue->valor);
             $carteira->save();
         }
         info($carteira);
@@ -105,6 +112,10 @@ class RevenueController extends Controller
             'wallets' => auth()->user()->contas()->get(),
             'walletsNames' => auth()->user()->contas()->pluck("name"),
         ];
+
+        $user = auth()->user();
+
+        Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Despesa', $revenue->descricao));
 
         return response()->json([
             'success' => 'Receita recebida com sucesso',
@@ -125,7 +136,7 @@ class RevenueController extends Controller
         if ($request->status === 'AGUARDANDO' && $revenue->status === 'RECEBIDA' || $request->valor < $revenue->valor) {
             $sub = true;
         }
-        $revenue->valor = str_replace([',','.'], '', $request->valor);
+        $revenue->valor = str_replace([',', '.'], '', $request->valor);
         $revenue->date = $request->date;
         $revenue->descricao = $request->descricao;
         $revenue->categoria = $request->categoria;
@@ -135,11 +146,11 @@ class RevenueController extends Controller
 
         if (!$saved) return response()->json(Errors::ERROR_UPDATING_REVENUE->response());
 
-        $carteira = Conta::where("user_id",auth()->user()->id)
-                            ->where("name", $request->carteira)
-                            ->first();
+        $carteira = Conta::where("user_id", auth()->user()->id)
+            ->where("name", $request->carteira)
+            ->first();
         info($carteira);
-        
+
         if ($carteira && $add) {
             $carteira->saldo += $revenue->valor;
         }
@@ -151,6 +162,10 @@ class RevenueController extends Controller
         info($carteira);
 
         $revenuesData = $this->classifiesReleases(auth()->user()->revenues()->get(), 'Revenues');
+
+        $user = auth()->user();
+
+        Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Despesa', $revenue->descricao));
 
         return response()->json([
             'msg' => 'Receita editada com sucesso',
@@ -164,12 +179,18 @@ class RevenueController extends Controller
 
     public function deleteRevenue(Request $request)
     {
+        $revenue = Revenue::find($request->id);
+
         $deleted = Revenue::destroy($request->id);
         if (!$deleted) {
             return response()->json(Errors::ERROR_DELETING_REVENUE->response());
         }
 
         $revenuesData = $this->classifiesReleases(auth()->user()->revenues()->get(), 'Revenues');
+
+        $user = auth()->user();
+
+        Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Despesa', $revenue->descricao));
 
         return response()->json([
             'msg' => 'Receita alterada com sucesso',
