@@ -125,7 +125,7 @@ class ExpenseController extends Controller
         Mail::to($user->email)->queue(new NotificationMail($user, 'Exclusão', 'Despesa', $expense->descricao));
 
         return response()->json([
-            'success' => 'despesa cadastrada com sucesso',
+            'success' => 'despesa excluida com sucesso',
             'expensesData' => $expensesData,
         ], 200);
     }
