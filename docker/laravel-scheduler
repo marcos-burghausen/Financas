@@ -1,1 +1,0 @@
-* * * * * cd /var/www/html && /usr/local/bin/php artisan schedule:run >> /var/www/html/storage/logs/crontab.log 2>&1

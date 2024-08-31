@@ -24,7 +24,7 @@ RUN a2enmod rewrite
 # Adiciona o cron e configura o cron job
 RUN apt-get update && \
     apt-get install -y cron && \
-    echo "* * * * * cd /var/www/html && php artisan schedule:run >> /var/www/html/storage/logs/crontab.log 2>&1" > /etc/cron.d/laravel-scheduler
+    echo "* * * * * cd /var/www/html && /usr/local/bin/php artisan schedule:run >> /var/www/html/storage/logs/crontab.log 2>&1" > /etc/cron.d/laravel-scheduler
 
 
 # Dá permissão de execução ao arquivo crontab
