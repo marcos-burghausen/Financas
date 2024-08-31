@@ -22,10 +22,7 @@ COPY --from=build /app /var/www/html
 RUN a2enmod rewrite
 
 # Adiciona o cron e configura o cron job
-RUN apt-get update && \
-    apt-get install -y cron && \
-    echo "* * * * * cd /var/www/html && /usr/local/bin/php artisan schedule:run >> /var/www/html/storage/logs/crontab.log 2>&1" > /etc/cron.d/laravel-scheduler
-
+RUN echo "* * * * * cd /var/www/html && /usr/local/bin/php artisan schedule:run >> /var/www/html/storage/logs/crontab.log 2>&1" > /etc/cron.d/laravel-scheduler
 
 # Dá permissão de execução ao arquivo crontab
 RUN chmod 0644 /etc/cron.d/laravel-scheduler
@@ -33,5 +30,11 @@ RUN chmod 0644 /etc/cron.d/laravel-scheduler
 # Aplica o crontab
 RUN crontab /etc/cron.d/laravel-scheduler
 
-# Comando de inicialização para rodar o Apache e o Cron
-CMD ["cron", "-f"]
+# Copie o script de inicialização para o contêiner
+COPY docker-entrypoint.sh /usr/local/bin/
+
+# Torne o script executável
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Defina o script como o comando de inicialização
+CMD ["docker-entrypoint.sh"]
