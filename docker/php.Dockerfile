@@ -21,8 +21,11 @@ COPY --from=build /app /var/www/html
 # Habilita o mod_rewrite do Apache
 RUN a2enmod rewrite
 
-# Configurações de Cron
-COPY ./laravel-scheduler /etc/cron.d/laravel-scheduler
+# Adiciona o cron e configura o cron job
+RUN apt-get update && \
+    apt-get install -y cron && \
+    echo "* * * * * cd /var/www/html && php artisan schedule:run >> /var/www/html/storage/logs/crontab.log 2>&1" > /etc/cron.d/laravel-scheduler
+
 
 # Dá permissão de execução ao arquivo crontab
 RUN chmod 0644 /etc/cron.d/laravel-scheduler
@@ -31,4 +34,4 @@ RUN chmod 0644 /etc/cron.d/laravel-scheduler
 RUN crontab /etc/cron.d/laravel-scheduler
 
 # Comando de inicialização para rodar o Apache e o Cron
-CMD ["sh", "-c", "cron"]
+CMD ["cron", "-f"]
