@@ -12,8 +12,11 @@ FROM php:8.2-apache-bullseye
 RUN docker-php-ext-configure opcache --enable-opcache && \
     docker-php-ext-install pdo pdo_mysql
 
-# Instalação do Cron
-RUN apt-get update && apt-get install -y cron
+# Instalação do Cron e do Composer
+RUN apt-get update && \
+    apt-get install -y cron curl git unzip && \
+    curl -sS https://getcomposer.org/installer | php && \
+    mv composer.phar /usr/local/bin/composer
 
 # Copia o código da aplicação
 COPY --from=build /app /var/www/html
