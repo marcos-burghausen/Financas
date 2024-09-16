@@ -2,7 +2,7 @@
   <div class="box">
     <div class="container__decription">
       <figure class="figure">
-        <img src="@/assets/img/Mr.png" style="width: 200px" alt="logo" />
+        <img src="@/assets/img/MrFinancasDarck.png" style="width: 200px" alt="logo" />
         <h2 class="title__2 mt-5 me-2">Bem vindo</h2>
       </figure>
       <h4 class="sub__title__2">Ao seu gerenciador de finaças!</h4>

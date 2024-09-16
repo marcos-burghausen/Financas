@@ -82,7 +82,11 @@
     </div>
     <div class="container__decription">
       <figure class="figure">
-        <img src="@/assets/img/Mr.png" style="width: 200px" alt="logo" />
+        <img
+          src="@/assets/img/MrFinancasDarck.png"
+          style="width: 200px"
+          alt="logo"
+        />
         <p class="title__2 mt-5 me-2">Faça seu cadastro</p>
       </figure>
       <p class="sub__title__2 mt-5">Insira seus dados pessoais</p>
