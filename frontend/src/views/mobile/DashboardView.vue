@@ -243,6 +243,7 @@ const series1 = valuesCategory.value;
 .teste {
   color: #fefefe;
   font-size: 20px;
+  background-color: rgba(0, 0, 0, 0.1);
   /* font-weight: bold; */
   padding: 10px;
   margin-top: 10px;
@@ -258,6 +259,7 @@ const series1 = valuesCategory.value;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background-color: rgba(0, 0, 0, 0.1);
   /* font-weight: bold; */
   /* text-align: center; */
   padding-inline: 10px;
@@ -274,6 +276,7 @@ const series1 = valuesCategory.value;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  background-color: rgba(0, 0, 0, 0.1);
   /* align-items: center; */
   /* font-weight: bold; */
   /* text-align: center; */

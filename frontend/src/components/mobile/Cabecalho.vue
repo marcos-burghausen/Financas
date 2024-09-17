@@ -94,11 +94,11 @@ async function logout() {
 
 <style scoped>
 .header {
-  padding-inline: 10px;
+  padding-inline: 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+  /* box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23; */
   background-color: rgba(0, 0, 0, 0.1);
   height: 90px;
   
@@ -108,7 +108,7 @@ async function logout() {
   color: #77d08e;
   cursor: pointer;
   padding: 10px;
-  box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+  /* box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23; */
   border-radius: 20px;
 }
 </style>
