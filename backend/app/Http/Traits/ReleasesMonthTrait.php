@@ -44,7 +44,7 @@ trait ReleasesMonthTrait
     {
         $totalExpensesDay = 0;
         foreach ($releasesMonth as $release) {
-            if ($release->status === 'PAGA') {
+            if ($release->status === 'PAGA' && strtotime($release->date) === strtotime(date('Y-m-d'))) {
                 $totalExpensesDay += $release->valor;
             }
         }
