@@ -2,7 +2,7 @@
   <div class="box">
     <div class="container__dados">
       <figure class="figure">
-        <img src="@/assets/img/2.png" style="width: 200px" alt="logo" />
+        <img src="@/assets/img/2.png" class="img" alt="logo" />
       </figure>
       <h2 class="title">Bem vido ao Mr Finanças</h2>
       <div class="social__media">
@@ -16,7 +16,7 @@
               <mdicon class="icon__modify" name="facebook" />
             </li>
           </a>
-          <a class="link__social__media" href="#">
+          <!-- <a class="link__social__media" href="#">
             <li class="item__social__media">
               <mdicon class="icon__modify" name="google" />
             </li>
@@ -25,7 +25,7 @@
             <li class="item__social__media">
               <mdicon class="icon__modify" name="linkedin" />
             </li>
-          </a>
+          </a> -->
         </ul>
       </div>
       <!-- <p class="sub__title">ou use sua conta de e-mail:</p> -->
@@ -83,17 +83,6 @@
         </v-btn>
       </v-form>
     </div>
-    <!-- <div class="container__decription">
-      <figure class="figure">
-        <img src="@/assets/img/Mr.png" style="width: 200px" alt="logo" />
-        <p class="title__2 mt-5 me-2">Faça seu cadastro</p>
-      </figure>
-      <p class="sub__title__2 mt-5">Insira seus dados pessoais</p>
-      <p class="sub__title__2">e comece a jornada conosco</p>
-      <button class="btn btn__link" @click="emits('nextStep')">
-        cadastre-se
-      </button>
-    </div> -->
   </div>
   <ErrorsForm />
 </template>
@@ -180,62 +169,52 @@ const rules = {
 <style scoped>
 .box {
   display: flex;
-  /* box-shadow: 1px 1px 10px 5px #77d08e; */
-  /* border-radius: 10px; */
   padding: 0;
-  width: 90%;
-  max-width: 1000px;
+  width: 100%;
+  max-width: 500px;
 }
-
 .container__dados {
   border-radius: 10px 0 0 10px;
   width: 100%;
   display: flex;
   flex-direction: column;
   justify-items: center;
-  padding: 2rem 2rem;
-  /* padding: 2rem 6rem; */
+  padding-inline: 10px;
 }
-
+.figure {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+}
+.img {
+   width: 200px;
+}
 .title {
-  font-size: 30px;
+  font-size: 28px;
   font-weight: bold;
   color: #fefefe;
   text-align: center;
 }
-
-.title__2 {
-  font-size: 40px;
-  font-weight: bold;
-  color: #515050;
-  text-align: center;
-}
-
 .social__media {
-  margin: 1rem 0;
-  display: flex;
-  justify-content: center;
-  text-align: center;
-}
-
-.list__social__media {
+    margin: 1rem 0;
+    display: flex;
+    justify-content: center;
+    text-align: center;
+ }
+ .list__social__media {
   display: flex;
   list-style-type: none;
 }
-
 .link__social__media:not(:first-child) {
   margin-left: 10px;
 }
-
 .link__social__media .item__social__media {
   transition: background-color 0.5s;
 }
-
 .link__social__media:hover .item__social__media {
   color: #fff !important;
   border-color: #77d08e;
 }
-
 .item__social__media {
   border: 1px solid #bdc3c7;
   border-radius: 50%;
@@ -245,23 +224,6 @@ const rules = {
   text-align: center;
   color: #95a5a6;
 }
-
-.icon__modify {
-  color: #7f8c8d;
-  padding: 0 5px;
-  cursor: pointer;
-}
-
-.sub__title {
-  color: #fefefe;
-  text-align: center;
-}
-
-.sub__title__2 {
-  color: #515050;
-  text-align: center;
-}
-
 .form {
   display: flex;
   flex-direction: column;
@@ -275,13 +237,16 @@ const rules = {
   border: none;
   background-color: transparent;
 }
-
+.icon__modify {
+  color: #7f8c8d;
+  padding: 0 5px;
+  cursor: pointer;
+}
 .container__button {
   text-align: center;
   display: flex;
   justify-content: space-between;
 }
-
 .link {
   color: #0097a7;
   font-size: 16px;
@@ -289,23 +254,10 @@ const rules = {
   text-align: center;
   text-decoration: none;
 }
-
-.container__decription {
-  width: 40%;
-  background: #77d08e;
-  border-radius: 0 10px 10px 0;
-  display: flex;
-  flex-direction: column;
-  justify-items: center;
+.btn__register {
+  color: #0097a7;
+  text-decoration: none;
 }
-
-.figure {
-  display: flex;
-  justify-content: space-evenly;
-  align-items: center;
-  /* margin-bottom: 50px; */
-}
-
 .btn {
   border-radius: 15px;
   text-transform: uppercase;
@@ -323,91 +275,13 @@ const rules = {
   border: 1px solid #77d08e;
   transition: background-color 0.5s;
 }
-.v-btn--disabled.v-btn--variant-elevated {
-  background: rgba(255, 255, 255, 0.12) !important;
-  color: rgba(255, 255, 255, 0.3);
-  border: none;
+.btn__submit {
+  /* margin-bottom: 80px; */
 }
-
-.btn__register {
-  color: #0097a7;
-  text-decoration: none;
-}
-
 .btn__submit:hover {
   background-color: #e1e1e1;
   border: 1px solid #77d08e;
   color: #77d08e;
 }
 
-.btn__link {
-  margin-top: 60px;
-  background-color: transparent;
-  border: 1px solid #fff;
-  transition: background-color 0.5s;
-}
-
-.btn__link:hover {
-  background-color: #fff;
-  color: #58af9b;
-}
-
-/* @media screen and (max-width: 1201px) {
-  .container__dados {
-    padding: 2rem 4rem;
-  }
-} */
-
-/* @media screen and (max-width: 920px) {
-  .container__dados {
-    width: 100%;
-    padding: 2rem 4rem;
-  }
-
-  .container__decription {
-    display: none;
-  }
-
-  .btn__register {
-    display: inline;
-    color: #0097a7;
-    font-size: 16px;
-    margin: 15px 0;
-    background: transparent;
-    border: none;
-  }
-
-  .container__button {
-    display: flex;
-    justify-content: space-between;
-  }
-} */
-
-/* @media screen and (max-width: 740px) {
-  .container__dados {
-    padding: 2rem 2rem;
-  }
-
-  .title {
-    font-size: 30px;
-  }
-} */
-
-/* @media screen and (max-width: 500px) {
-  .title {
-    font-size: 1.8rem;
-  }
-} */
-/* @media screen and (max-width: 440px) {
-  .box {
-    width: 85%;
-  }
-  .title {
-    font-size: 1.4rem;
-  }
-
-  .container__dados {
-    padding: 2rem 1rem;
-  }
-} */
 </style>

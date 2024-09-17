@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import EntrarMobile from "@/views/mobile/EntrarView.vue";
+import EntrarMobile from "@/views/mobile/EntrarMobileView.vue";
 import EntrarWeb from "@/views/web/EntrarView.vue";
 import CadastroMobile from "@/views/mobile/CadastroView.vue";
 import CadastroWeb from "@/views/web/CadastroView.vue";
@@ -22,7 +22,8 @@ const step = ref(0);
 .home__mobile {
   height: 100%;
   display: flex;
-  align-items: center;
+  padding-top: 50px;
+  align-items: flex-start;
   justify-content: center;
 }
 .home__web {
