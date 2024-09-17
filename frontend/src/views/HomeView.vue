@@ -10,10 +10,10 @@
 </template>
 
 <script setup lang="ts">
-import EntrarMobile from "@/views/acesso/mobile/EntrarView.vue";
-import EntrarWeb from "@/views/acesso/web/EntrarView.vue";
-import CadastroMobile from "@/views/acesso/mobile/CadastroView.vue";
-import CadastroWeb from "@/views/acesso/web/CadastroView.vue";
+import EntrarMobile from "@/views/mobile/EntrarView.vue";
+import EntrarWeb from "@/views/web/EntrarView.vue";
+import CadastroMobile from "@/views/mobile/CadastroView.vue";
+import CadastroWeb from "@/views/web/CadastroView.vue";
 import { ref } from "vue";
 
 const step = ref(0);

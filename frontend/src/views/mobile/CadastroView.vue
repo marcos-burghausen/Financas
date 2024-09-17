@@ -103,12 +103,12 @@ import type { FormCadastro } from "@/types/formCadastro";
 const emits = defineEmits(["nextStep"]);
 const errorStore = useErrorStore();
 const user: FormCadastro = ref({
-  // name: "Marcos Rafael Burghausen",
-  name: "",
-  // email: "rafaelburghausen@gmail.com",
-  email: "",
-  // password: "Teste123@",
-  password: "",
+  name: "Marcos Rafael Burghausen",
+  // name: "",
+  email: "rafaelburghausen@gmail.com",
+  // email: "",
+  password: "Teste123@",
+  // password: "",
 });
 
 let validForm = ref(false);
