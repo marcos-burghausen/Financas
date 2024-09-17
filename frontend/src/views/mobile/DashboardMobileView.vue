@@ -7,19 +7,20 @@
             <div style="display:flex; align-items: center;">
                 <dir style="background: green; width:5px; height: 45px; margin-inline-end: 10px; margin-top: 5px;"></dir>
                 <span>
-                    R$ 1.000,00
+                    R$ {{ totalBalance }}
                 </span>
             </div>
         </div>
 
-    <div class="teste2">
-        <span>
-          Gastos de hoje
-        </span>
-        <span>
-            R$ 1.000,00
-        </span>
-    </div>
+        <div class="teste2">
+            <span>
+            Gastos de hoje
+            </span>
+            <span>
+                R$ {{ totalExpensesDay }}
+            </span>
+        </div>
+
     <div class="teste3">
         <span style="text-align: start;">
           Visão geral do mês
@@ -30,7 +31,7 @@
                     Receitas
                 </span>
                 <span>
-                    R$ 1.000,00
+                    R$ {{receitas}}
                 </span>
             </dir>
         </div>
@@ -40,7 +41,7 @@
                     Despesas
                 </span>
                 <span>
-                    R$ 1.000,00
+                    R$ {{ despesas}}
                 </span>
             </dir>
         </div>
@@ -142,6 +143,27 @@ import { formatValue } from "@/utils/formatValue";
 
 const useExpenses = useExpensesStore();
 const useRevenues = useRevenuesStore();
+
+const props = defineProps({
+    totalBalance: {
+        type: String || Number,
+        required: true,
+    },
+    receitas: {
+        type: String || Number,
+        required: true,
+    },
+    despesas: {
+        type: [String || null],
+        required: false,
+        // default:null
+    },
+    totalExpensesDay: {
+        type: [String || null],
+        required: true,
+        // default:null
+    }
+});
 
 // const formatValue = (value: number): string =>{
 //     let valueFormatted = (value / 100).toLocaleString("pt-BR", { style: "decimal", minimumFractionDigits: 2, maximumFractionDigits: 2 });

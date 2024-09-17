@@ -14,14 +14,14 @@ trait ReleasesMonthTrait
             $status = 'RECEBIDA';
             $type = 'Received';
         }
-        
-          $valueReceivedOrPay = $this->valuePending($releases, date('m'), $status);
-          $valuePending = $this->valuePending($releases, date('m'), "AGUARDANDO");
-          $valueTotalMonth = $this->valueReleasesMonth($releases, date('m'));
-          $releasesgroupByMonth = $this->groupByMonth($releases);
-          $addTotalValueMonth = $this->addTotalValueMonth($releasesgroupByMonth);
-          $releasesMonth = $this->releasesMonth($releases, date('m'));
-          $Data = [
+
+        $valueReceivedOrPay = $this->valuePending($releases, date('m'), $status);
+        $valuePending = $this->valuePending($releases, date('m'), "AGUARDANDO");
+        $valueTotalMonth = $this->valueReleasesMonth($releases, date('m'));
+        $releasesgroupByMonth = $this->groupByMonth($releases);
+        $addTotalValueMonth = $this->addTotalValueMonth($releasesgroupByMonth);
+        $releasesMonth = $this->releasesMonth($releases, date('m'));
+        $Data = [
             "Value{$type}{$typeReleases}" => $valueReceivedOrPay,
             "ValuePending{$typeReleases}" => $valuePending,
             "ValueTotal{$typeReleases}Month" => $valueTotalMonth,
@@ -29,13 +29,26 @@ trait ReleasesMonthTrait
             "{$typeReleases}AddTotalValueMonth" => $addTotalValueMonth,
             "{$typeReleases}Month" => $releasesMonth,
         ];
-    
+
         if ($typeReleases === 'Expenses') {
+            $totalExpensesDay = $this->totalExpensesDay($releasesMonth);
             $totalByCategoryExpenses = $this->totalByCategory($releasesMonth);
+            $Data["totalExpensesDay"] = $totalExpensesDay;
             $Data["TotalByCategoryExpenses"] = $totalByCategoryExpenses;
         }
-    
+
         return $Data;
+    }
+
+    public function totalExpensesDay($releasesMonth)
+    {
+        $totalExpensesDay = 0;
+        foreach ($releasesMonth as $release) {
+            if ($release->status === 'PAGA') {
+                $totalExpensesDay += $release->valor;
+            }
+        }
+        return $totalExpensesDay;
     }
 
     public function totalByCategory(array $releases): array
@@ -63,25 +76,25 @@ trait ReleasesMonthTrait
     {
         $releasesMonth = [];
         foreach ($data as $data) {
-            
+
             if ($data && strtotime($data->date) >= strtotime(date("Y/{$month}/01")) && strtotime($data->date) <= strtotime(date("Y/{$month}/t"))) {
                 $releasesMonth[] = $data;
             }
         }
         return $releasesMonth;
     }
-    
+
     public function valueReleasesMonth(object $data, string $month): int
     {
         $releasesMonth = $this->releasesMonth($data, $month);
-        
+
         $valueReleasesMonth = [];
         foreach ($releasesMonth as $releases) {
             $valueReleasesMonth[] = $releases->valor;
         }
         return $valueReleasesMonth = array_sum($valueReleasesMonth);
     }
-    
+
     public function valuePending(object $data, string $month, string $status): int
     {
         $releasesMonth = $this->releasesMonth($data, $month);
@@ -114,7 +127,7 @@ trait ReleasesMonthTrait
         ];
 
         foreach ($releases as $release) {
-            
+
             $date = new DateTime($release['date']);
             $month = $date->format('M');
             $releasesByMonth[$month][] = $release;
@@ -153,7 +166,7 @@ trait ReleasesMonthTrait
             $formattedValue = $release->valor / 100;
             $formattedValue     = number_format($formattedValue, 2, ',', '.');
             $releases[] = $release;
-        } 
+        }
         return $formattedValue;
     }
 }

@@ -123,10 +123,10 @@ const useWallets = useWalletsStore();
 const useUser = useUserStore();
 const errorStore = useErrorStore();
 const user: Ref<FormLogin> = ref({
-  email: "rafaelburghausen@gmail.com",
-  // email: "",
-  password: "Teste123@",
-  // password: "",
+  // email: "rafaelburghausen@gmail.com",
+  // password: "Teste123@",
+  email: "",
+  password: "",
 });
 const router = useRouter();
 const data = userData();

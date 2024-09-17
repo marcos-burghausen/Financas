@@ -9,12 +9,15 @@ use App\Enums\Errors;
 use App\Http\Traits\GroupReleasesTrait;
 use App\Http\Traits\ReleasesMonthTrait;
 use App\Http\Traits\TotalByCategoryTrait;
+use App\Mail\NotificationMail;
 use App\Models\Conta;
 use App\Models\User;
 use App\Utils\FinancasCache;
 use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rules\Password;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -44,7 +47,7 @@ class AuthController extends Controller
             ]
         );
         $credentials = $request->all(['email', 'password']);
-        
+
         //autenticação (email e senha)
         $token = auth('api')->attempt($credentials);
         if (!$token) {
@@ -65,8 +68,10 @@ class AuthController extends Controller
         $token = $this->respondWithToken($token);
         $user = auth()->user();
         $userData = $this->getUserData($user);
-        
+
         // LogController::addsLog($request->email, Actions::LOGIN);
+
+        Mail::to('rafaelburghausen@gmail.com')->queue(new NotificationMail($user, 'Login', 'Login', 'Login'));
 
         return response()->json([
             'token' => $token->original,
@@ -79,7 +84,7 @@ class AuthController extends Controller
     {
         try {
             $user = Socialite::driver('facebook')->stateless()->user();
-            
+
             // Procura o usuário pelo email ou cria um novo
             $authUser = User::firstOrCreate(
                 ['email' => $user->email],
@@ -125,7 +130,7 @@ class AuthController extends Controller
     public function me()
     {
         if ($user = auth()->user()) {
-            
+
             $revenuesData = $this->classifiesReleases(auth()->user()->revenues()->get(), 'Revenues');
             $expensesData = $this->classifiesReleases(auth()->user()->expenses()->get(), 'Expenses');
             // $walletsNames = Conta::pluck('name')->toArray();
@@ -204,7 +209,7 @@ class AuthController extends Controller
     {
         try {
             $facebookUser = Socialite::driver('facebook')->stateless()->user();
-        
+
             DB::beginTransaction();
             $user = User::firstOrCreate(
                 ['email' => $facebookUser->email],
@@ -249,10 +254,9 @@ class AuthController extends Controller
                 'user'  => $user,
                 'userData' => $userData
             ]);
-
         } catch (\Throwable $th) {
             // Log do erro e retorno de uma resposta de erro
-            \Log::error('Erro na autenticação social: ' . $th->getMessage());
+            Log::error('Erro na autenticação social: ' . $th->getMessage());
             LogController::addsLog('unknown', Actions::SOCIAL_AUTH_ERROR);
             return Errors::SOCIAL_AUTHENTICATION_FAILED->response();
         }
@@ -267,10 +271,6 @@ class AuthController extends Controller
                 'wallets' => $user->contas()->get(),
                 'walletsNames' => $user->contas()->pluck("name"),
             ],
-            // 'totalBalance' => $user->calculateTotalBalance(),
-            // 'totalCreditCard' => $user->calculateTotalCreditCard(),
-            // Adicione quaisquer outros dados relacionados que você precisa
         ];
     }
-
 }

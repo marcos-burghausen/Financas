@@ -1,7 +1,14 @@
 <template>
-    <DashboardMobile />
+    <div>
+        <!-- class="mobile" -->
+    <DashboardMobile
+        :totalBalance="totalBalance"
+        :totalExpensesDay="totalExpensesDay"
+        :receitas="valueTotalRevenuesMonth"
+        :despesas="valueTotalExpensesMonth"
+    />
 
-  <!-- <div class="dashboard">
+  <!-- <div class="dashboard web">
     <div class="">
       <nav class="d-flex justify-content-between pb-2">
         <ol class="breadcrumb bg-transparent m-0">
@@ -58,11 +65,12 @@
       </h5>
     </div>
   </div> -->
+    </div>
 </template>
 
 <script setup lang="ts">
-import DashboardMobile from "@/views/mobile/DashboardView.vue";
-// import Card from "@/components/Card.vue";
+import DashboardMobile from "./mobile/DashboardMobileView.vue";
+import Card from "../components/Card.vue";
 
 import { ref } from "vue";
 
@@ -80,6 +88,9 @@ const useRevenues = useRevenuesStore();
 
 let valueTotalExpensesMonth = ref(
   formatValue(useExpenses.expensesData.expenses?.ValueTotalExpensesMonth)
+);
+let totalExpensesDay = ref(
+  formatValue(useExpenses.expensesData.expenses?.totalExpensesDay)
 );
 let valueTotalRevenuesMonth = ref(
   formatValue(useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth)
@@ -257,6 +268,21 @@ const series1 = valuesCategory.value;
   }
   .chart2 {
     width: 35%;
+  }
+}
+
+
+
+
+@media screen and (min-width: 501px) {
+  .mobile {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 500px) {
+  .web {
+    display: none;
   }
 }
 </style>
