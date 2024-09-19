@@ -30,6 +30,7 @@
           :rules="[rules.requiredName]"
           class="mb-7 input"
           autofocus
+          autocomplete="on"
         >
           <template #prepend-inner>
             <mdicon class="icon__modify" name="account-outline" />
@@ -44,6 +45,7 @@
           label="Email"
           :rules="[rules.requiredEmail]"
           class="mb-7 input"
+          autocomplete="on"
         >
           <template #prepend-inner>
             <mdicon class="icon__modify" name="email-outline" />
@@ -153,7 +155,8 @@ const rules = {
   display: flex;
   flex-direction: column;
   justify-items: center;
-  padding: 2rem 2rem;
+  /* padding: 2rem 2rem;
+  padding-inline: 10px; */
 }
 
 .title {

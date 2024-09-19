@@ -40,6 +40,7 @@
           :rules="[rules.requiredEmail]"
           class="mb-7 input"
           autofocus
+          autocomplete="on"
         >
           <template #prepend-inner>
             <mdicon class="icon__modify" name="email-outline" />
@@ -187,7 +188,7 @@ const rules = {
   align-items: center;
 }
 .img {
-   width: 200px;
+  width: 200px;
 }
 .title {
   font-size: 28px;
@@ -196,12 +197,12 @@ const rules = {
   text-align: center;
 }
 .social__media {
-    margin: 1rem 0;
-    display: flex;
-    justify-content: center;
-    text-align: center;
- }
- .list__social__media {
+  margin: 1rem 0;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+.list__social__media {
   display: flex;
   list-style-type: none;
 }
@@ -283,5 +284,4 @@ const rules = {
   border: 1px solid #77d08e;
   color: #77d08e;
 }
-
 </style>

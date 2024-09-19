@@ -3,10 +3,10 @@
     <EntrarMobile v-if="step === 0" @next-step="step = 1" />
     <CadastroMobile v-if="step === 1" @next-step="step = 0" />
   </div>
-  <div class="home__web">
+  <!-- <div class="home__web">
     <EntrarWeb v-if="step === 0" @next-step="step = 1" />
     <CadastroWeb v-if="step === 1" @next-step="step = 0" />
-  </div>
+  </div> -->
 </template>
 
 <script setup lang="ts">
@@ -33,11 +33,11 @@ const step = ref(0);
   justify-content: center;
 }
 
-@media screen and (min-width: 501px) {
+/* @media screen and (min-width: 501px) {
   .home__mobile {
     display: none;
   }
-}
+} */
 
 @media screen and (max-width: 500px) {
   .home__web {
