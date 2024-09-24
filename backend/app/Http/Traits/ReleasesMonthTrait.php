@@ -15,8 +15,9 @@ trait ReleasesMonthTrait
             $type = 'Received';
         }
 
-        $valueReceivedOrPay = $this->valuePending($releases, date('m'), $status);
-        $valuePending = $this->valuePending($releases, date('m'), "AGUARDANDO");
+        $valueReceivedOrPay = $this->valuePending($releases, $status);
+        $valuePending = $this->valuePending($releases, "AGUARDANDO");
+        // $valuePending = $this->valuePending($releases, date('m'), "AGUARDANDO");
         $valueTotalMonth = $this->valueReleasesMonth($releases, date('m'));
         $releasesgroupByMonth = $this->groupByMonth($releases);
         $addTotalValueMonth = $this->addTotalValueMonth($releasesgroupByMonth);
@@ -95,7 +96,7 @@ trait ReleasesMonthTrait
         return $valueReleasesMonth = array_sum($valueReleasesMonth);
     }
 
-    public function valuePending(object $data, string $month, string $status): int
+    public function valuePendingMonth(object $data, string $month, string $status): int
     {
         $releasesMonth = $this->releasesMonth($data, $month);
 
@@ -106,6 +107,17 @@ trait ReleasesMonthTrait
             }
         }
         return $valuePendingMonth = array_sum($valuePendingMonth);
+    }
+    public function valuePending(object $data, string $status): int
+    {
+        $valuePending = [];
+        foreach ($data as $release) {
+            info($release);
+            if ($release->status === $status) {
+                $valuePending[] = $release->valor;
+            }
+        }
+        return $valuePending = array_sum($valuePending);
     }
 
     public function groupByMonth(object $releases): array

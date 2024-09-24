@@ -6,14 +6,8 @@
       class="mdicon"
       @click="$emit('expandirMenu')"
     />
-    <!-- <div style="display: flex; align-items: center;"> -->
     <template v-if="useAuth.isAuthenticated">
-      <span class="text-white me-3 fs-3"> Olá {{ name }} </span>
-      <!-- <v-btn
-          @click="logout"
-        >
-          sair
-        </v-btn> -->
+      <span class="text-white me-3 fs-3"> Mr Finanças </span>
     </template>
     <div class="d-flex justify-space-around">
       <v-menu>

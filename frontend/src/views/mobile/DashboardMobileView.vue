@@ -6,8 +6,8 @@
             </span>
             <div style="display:flex; align-items: center;">
                 <dir style="background: green; width:5px; height: 45px; margin-inline-end: 10px; margin-top: 5px;"></dir>
-                <span>
-                    R$ {{ totalBalance }}
+                <span :style="{ color: totalBalance < 0 ? 'red' : 'green' }">
+                    R$ {{ totalBalanceFormatado }}
                 </span>
             </div>
         </div>
@@ -16,7 +16,7 @@
             <span>
             Gastos de hoje
             </span>
-            <span>
+            <span style="color: red">
                 R$ {{ totalExpensesDay }}
             </span>
         </div>
@@ -30,7 +30,7 @@
                 <span>
                     Receitas
                 </span>
-                <span>
+                <span style="color: green">
                     R$ {{receitas}}
                 </span>
             </dir>
@@ -40,7 +40,7 @@
                 <span>
                     Despesas
                 </span>
-                <span>
+                <span style="color: red">
                     R$ {{ despesas}}
                 </span>
             </dir>
@@ -50,7 +50,7 @@
                 <span>
                     Despesas no cartão
                 </span>
-                <span>
+                <span style="color: orange">
                     R$ 1.000,00
                 </span>
             </dir>
@@ -73,7 +73,7 @@
                         </span>
                     </div>
                     <span class="valor">
-                        R$ 1.000,00
+                        R$ {{ valuePendingRevenues }}
                     </span>
                 </div>
             </dir>
@@ -90,7 +90,7 @@
                         </span>
                     </div>
                     <span>
-                        R$ 1.000,00
+                        R$ {{ valuePendingExpenses }}
                     </span>
                 </div>
             </dir>
@@ -124,7 +124,7 @@
                         </span>
                     </div>
                     <span>
-                        R$ 1.000,00
+                        R$ {{ totalBalance }}
                     </span>
                 </div>
             </dir>
@@ -175,11 +175,14 @@ let valueTotalRevenuesMonth = ref(formatValue(useRevenues.revenuesData.revenues?
 let valuePay = ref(useExpenses.expensesData.expenses?.ValuePayExpenses);
 let valueReceived = ref(useRevenues.revenuesData.revenues?.ValueReceivedRevenues);
 // let totalBalance = ref(parseFloat(valueReceived.value.replace(",", ".")) - parseFloat(valuePay.value.replace(",", ".")));
-let totalBalance = ref(formatValue(valueReceived.value - valuePay.value));
+let totalBalance = ref(valueReceived.value - valuePay.value);
+let totalBalanceFormatado = ref(formatValue(totalBalance.value));
 // let totalCreditCard = ref(0);
 let expensesAddTotalValueMonth = ref(useExpenses.expensesData.expenses?.ExpensesAddTotalValueMonth);
 let revenuesAddTotalValueMonth = ref(useRevenues.revenuesData.revenues?.RevenuesAddTotalValueMonth);
 let totalByCategoryExpenses = ref(useExpenses.expensesData.expenses?.TotalByCategoryExpenses);
+let valuePendingRevenues = ref(formatValue(useRevenues.revenuesData.revenues?.ValuePendingRevenues));
+let valuePendingExpenses = ref(formatValue(useExpenses.expensesData.expenses?.ValuePendingExpenses));
 
 const isAllZeros = (arr) => {
     return arr.every(value => value === "0,00");
