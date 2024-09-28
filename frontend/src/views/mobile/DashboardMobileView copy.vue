@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="containe__mobile">
         <MenuLateralMobile
             :menu-expandido="menuExpandido"
             @expandirMenu="menuExpandido = !menuExpandido"
@@ -10,64 +10,130 @@
             @expandirMenu="menuExpandido = !menuExpandido"
         />
         
-        <div class="teste">
-            <span>
-                Saldo de contas
-            </span>
-            <div style="display:flex; align-items: center;">
-                <dir style="background: green; width:5px; height: 45px; margin-inline-end: 10px; margin-top: 5px;"></dir>
-                <span :style="{ color: totalBalance < 0 ? 'red' : 'green' }">
-                    R$ {{ totalBalanceFormatado }}
+        <div class="container__saldo__conta d-flex justify-content-center">
+            <div class="me-4 d-flex flex-column align-center justify-content-end">
+                    <span class="icon__text">
+                    <mdicon name="check-circle-outline" size="18"/>
+                    Inicial
+                    </span>
+                <div style="display:flex; align-items: center;">
+                    <span :style="{ color: totalBalance < 0 ? 'red' : '#757575' }" style="font-size: 13px;">
+                        R$ {{ totalBalanceFormatado }}
+                    </span>
+                </div>
+            </div>
+            <div class=" d-flex flex-column align-center justify-content-end">
+                <span class="fs-5" style=" color: #757575;">
+                    <mdicon :name="totalBalance < 0 ? 'minus-circle-outline' : 'plus-circle-outline'" size="22"/>
+                    Saldo
                 </span>
+                <div style="display:flex; align-items: center;">
+                    <!-- <dir style="background: green; width:5px; height: 45px; margin-inline-end: 10px; margin-top: 5px;"></dir> -->
+                    <span :style="{ color: totalBalance < 0 ? 'red' : 'green' }"  style="font-size: 18px;">
+                        R$ {{ totalBalanceFormatado }}
+                    </span>
+                </div>
+            </div>
+            <div class="ms-4 d-flex flex-column align-center justify-content-end">
+                <span class="icon__text">
+                    <mdicon name="clock-outline" size="20"/>
+                    <!-- <mdicon name="plus-circle-outline" />
+                    <mdicon name="minus-circle-outline" />
+                    <mdicon name="clock-outline" /> -->
+                    Previsto
+                </span>
+                <div style="display:flex; align-items: center;">
+                    <span :style="{ color: totalBalance < 0 ? 'red' : '#757575' }" style="font-size: 13px;">
+                        R$ {{ totalBalanceFormatado }}
+                    </span>
+                </div>
             </div>
         </div>
 
-        <div class="teste2">
+        <!-- <div class="teste2">
             <span>
             Gastos de hoje
             </span>
             <span style="color: red">
                 R$ {{ totalExpensesDay }}
             </span>
-        </div>
+        </div> -->
 
-        <div class="teste3">
-            <span style="text-align: start;">
-            Visão geral do mês
-            </span>
-            <div style="display:flex; align-items: center;">
-                <dir style="border-inline-start: solid 5px green; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
-                    <span>
-                        Receitas
-                    </span>
-                    <span style="color: green">
-                        R$ {{receitas}}
-                    </span>
-                </dir>
+        <div class="container__visao__geral">
+            <div class="header__visao_geral">
+                <span style="text-align: start;">
+                    Visão geral
+                </span>
+                <mdicon
+                    name="dots-vertical"
+                    class="mdicon"
+                    size="25"
+                />
             </div>
-            <div style="display:flex; align-items: center;">
+             <!-- <router-link :to="{ name: item.route }" > -->
+            <router-link :to="{name: 'receitas'}" style="display:flex; align-items: center; text-decoration: none;">
+                <div style="border-inline-start: solid 5px green; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
+                    <div class="tipo__lancamento">
+                        <span class="lancamento">
+                            Receitas
+                        </span>
+                        <span class="previsto">
+                            previsto
+                        </span>
+                    </div>
+                    <div class="tipo__lancamento">
+                        <span class="lancamento">
+                            R$ {{formatValue(valueReceived)}}
+                        </span>
+                        <span class="valor__previsto">
+                            R$ {{valueTotalRevenuesMonth}}
+                        </span>
+                    </div>
+                </div>
+            </router-link>
+            <router-link :to="{name: 'despesas'}" style="display:flex; align-items: center; text-decoration: none;">
                 <dir style="border-inline-start: solid 5px red; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
-                    <span>
-                        Despesas
-                    </span>
-                    <span style="color: red">
-                        R$ {{ despesas}}
-                    </span>
+                    <div class="tipo__lancamento">
+                        <span class="lancamento">
+                            Despesas
+                        </span>
+                        <span class="previsto">
+                            previsto
+                        </span>
+                    </div>
+                    <div class="tipo__lancamento">
+                        <span class="lancamento">
+                            R$ {{valuePay}}
+                        </span>
+                        <span class="valor__previsto">
+                            R$ {{valueTotalExpensesMonth}}
+                        </span>
+                    </div>
                 </dir>
-            </div>
+            </router-link>
             <div style="display:flex; align-items: center;">
-                <dir style="border-inline-start: solid 5px orange; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
-                    <span>
-                        Despesas no cartão
-                    </span>
-                    <span style="color: orange">
-                        R$ 1.000,00
-                    </span>
-                </dir>
+                <div style="border-inline-start: solid 5px orange; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
+                    <div class="tipo__lancamento">
+                        <span class="lancamento">
+                            Despesas no cartão
+                        </span>
+                        <span class="previsto">
+                            previsto
+                        </span>
+                    </div>
+                    <div class="tipo__lancamento">
+                        <span class="lancamento">
+                            R$ {{receitas}}
+                        </span>
+                        <span class="previsto">
+                            R$ {{receitas}}
+                        </span>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="teste3">
+        <!-- <div class="teste3">
             <span style="text-align: start;">
             Pendências e alertas
             </span>
@@ -139,7 +205,7 @@
                     </div>
                 </dir>
             </div>
-        </div>
+        </div> -->
     </div>
 </template>
 
@@ -193,6 +259,7 @@ let valuePay = ref(useExpenses.expensesData.expenses?.ValuePayExpenses);
 let valueReceived = ref(useRevenues.revenuesData.revenues?.ValueReceivedRevenues);
 // let totalBalance = ref(parseFloat(valueReceived.value.replace(",", ".")) - parseFloat(valuePay.value.replace(",", ".")));
 let totalBalance = ref(valueReceived.value - valuePay.value);
+console.log(totalBalance.value);
 let totalBalanceFormatado = ref(formatValue(totalBalance.value));
 // let totalCreditCard = ref(0);
 let expensesAddTotalValueMonth = ref(useExpenses.expensesData.expenses?.ExpensesAddTotalValueMonth);
@@ -282,20 +349,25 @@ const series1 = valuesCategory.value;
 </script>
 
 <style scoped>
+.containe__mobile {
+    position: relative;
+    height: 100%;
+}
 
-.teste {
+.container__saldo__conta {
   color: #fefefe;
   font-size: 20px;
-  background-color: rgba(0, 0, 0, 0.1);
+  background: rgba(150, 150, 150, 0.02);
   /* font-weight: bold; */
   padding: 10px;
   margin-top: 10px;
-  /* border: 1px solid #fefefe; */
-  /* height: 100px; */
   margin-inline: 10px;
-  /* margin-top: -40px; */
   border-radius: 10px;
 }
+.icon__text {
+      font-size: 15px;
+      color: #757575;
+    }
 .teste2 {
   color: #fefefe;
   font-size: 20px;
@@ -313,13 +385,13 @@ const series1 = valuesCategory.value;
   /* margin-top: -40px; */
   border-radius: 10px;
 }
-.teste3 {
+.container__visao__geral {
   color: #fefefe;
   font-size: 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  background-color: rgba(0, 0, 0, 0.1);
+  background: rgba(150, 150, 150, 0.03);
   /* align-items: center; */
   /* font-weight: bold; */
   /* text-align: center; */
@@ -331,10 +403,36 @@ const series1 = valuesCategory.value;
   /* margin-top: -40px; */
   border-radius: 10px;
 }
+.header__visao_geral {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  color: #BDBDBD;
+}
 .cards__lancamentos {
   display: flex;
   justify-content: space-between;
   width: 100%;
+}
+
+.tipo__lancamento {
+  display: flex;
+  flex-direction: column;
+}
+.lancamento {
+    font-size: 15px;
+    color: #BDBDBD;
+}
+.previsto {
+    font-size: 12px;
+    color: #757575;
+}
+.valor__previsto {
+    font-size: 12px;
+    color: #757575;
+    display: flex;
+    justify-content: end;
 }
 .valor {
     text-align: center;

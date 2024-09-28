@@ -1,20 +1,14 @@
 <template>
   <div class="d-flex h-100">
-    <template v-if="useAuth.isAuthenticated">
-      <MenuLateral
+    <!-- <template v-if="useAuth.isAuthenticated">
+      <MenuLateralMobile
         :menu-expandido="menuExpandido"
         @expandirMenu="menuExpandido = !menuExpandido"
       />
-    </template>
+    </template> -->
 
     <div class="containerApp">
-      <template class="mobile" v-if="useAuth.isAuthenticated">
-        <CabecalhoMobile
-          :menu-expandido="menuExpandido"
-          @expandirMenu="menuExpandido = !menuExpandido"
-        />
-      </template>
-      <!-- <template class="web" v-if="useAuth.isAuthenticated">
+       <!-- <template class="web" v-if="useAuth.isAuthenticated">
         <Cabecalho
           :menu-expandido="menuExpandido"
           @expandirMenu="menuExpandido = !menuExpandido"
@@ -26,10 +20,10 @@
 </template>
 
 <script setup lang="ts">
-import MenuLateral from "@/components/MenuLateral.vue";
+import MenuLateralMobile from "@/components/mobile/MenuLateralMobile.vue";
 import TesteView from "./components/TesteView.vue";
 import Cabecalho from "@/components/Cabecalho.vue";
-import CabecalhoMobile from "@/components/mobile/Cabecalho.vue";
+import CabecalhoMobile from "@/components/mobile/CabecalhoMobile.vue";
 
 import { ref } from "vue";
 import { useAuthStore } from "@/store/auth.js";

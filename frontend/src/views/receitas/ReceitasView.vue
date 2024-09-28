@@ -1,422 +1,352 @@
 <template>
-  <div class="content-wrapper">
-    <div class="pagetitle">
-      <nav class="d-flex justify-content-between ms-3 mb-3">
-        <ol class="breadcrumb bg-transparent ">
-          <span class=" me-3 text-white">
+    <div class="content-wrapper">
+        <div class="header">
             <router-link
-              class="link"
-              :to="{ name: 'dashboard' }"
+                class="link me-7 d-flex align-items-center opaco"
+                :to="{ name: 'dashboard' }"
             >
-              <mdicon
-                name="arrow-left"
-                size="20"
-              />
+                <mdicon
+                    name="arrow-left"
+                    size="25"
+                />
             </router-link>
-          </span>
-          <li
-            class="breadcrumb-item text-white"
-            @click="returnRevenue"
-          >
-            Receitas
-          </li>
-          <li
-            v-if="formStoreRevenue"
-            :class="{ opaco: formStoreRevenue }"
-            class="breadcrumb-item"
-          >
-            cadastrar de receita
-          </li>
-          <li
-            v-if="formEditRevenue"
-            :class="{ opaco: formEditRevenue }"
-            class="breadcrumb-item"
-          >
-            editar de receita
-          </li>
-        </ol>
+            <div class="header__items">
+                <div class="d-flex flex-column">
+                    <span
+                        class="fs-5"
+                    >
+                        Receitas
+                    </span>
+                    <span
+                        class="valor"
+                    >
+                        R$ {{ valueTotalRevenuesMonth }}
+                    </span>
+                </div>
+                <div>
+                    <mdicon
+                        name="magnify"
+                        class="mdicon me-3"
+                        size="25"
+                    />
+                    <mdicon
+                        name="clipboard-text"
+                        class="mdicon me-2"
+                        size="25"
+                    />
+                    <mdicon
+                        name="dots-vertical"
+                        class="mdicon"
+                        size="25"
+                    />
+                </div>
+            </div>
+        </div>
+        <div class="container__mes">
+            <mdicon
+                name="chevron-left"
+                class="mdicon"
+                size="30"
+            />
+            <span class="mes"> setembro </span>
+            <mdicon
+                name="chevron-right"
+                class="mdicon"
+                size="30"
+            />
+        </div>
         <button
           v-if="!formStoreRevenue && !formEditRevenue"
-          class="btn btn-danger text-whit"
+          class="btn__nova__receita"
           @click="formStoreRevenue = !formStoreRevenue"
         >
-          nova receita
+          <mdicon
+                name="plus"
+                class="mdicon"
+                size="30"
+            />
         </button>
-      </nav>
-    </div>
 
-    <!-- ========================================================================= -->
-    <!-- ================ inicio formulario lançamentos receitas ================= -->
-    <!-- ========================================================================= -->
-    <div
-      v-if="formStoreRevenue"
-      class="container-fluid"
-    >
-      <div class="container d-flex justify-content-center">
-        <div class="cadastro">
-          <v-form
-            v-model="validFormLancamentos"
-            class="form"
-            @submit.prevent="salvarLancamentos"
-          >
-            <v-text-field
-              v-model="release.valor"
-              autofocus
-              density="compact"
-              prefix="R$"
-              placeholder="0,00"
-              variant="outlined"
-              type="tel"
-              hide-details="auto"
-              label="Valor"
-              :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
-              class="mb-5 input"
-              @input="formatValueSave()"
-            />
-
-            <div class="form-check form-switch text-white">
-              <input
-                id="flexSwitchCheckChecked"
-                v-model="status"
-                class="form-check-input mb-5"
-                type="checkbox"
-                checked
-              >
-              <label
-                class="form-check-label"
-                for="flexSwitchCheckChecked"
-              >Recebida</label>
-            </div>
-
-            <v-text-field
-              v-model="release.date"
-              density="compact"
-              variant="outlined"
-              type="date"
-              hide-details="auto"
-              label="Data"
-              :rules="[rules.requiredData]"
-              class="mb-7 input"
-            />
-
-            <v-text-field
-              v-model="release.descricao"
-              density="compact"
-              variant="outlined"
-              type="text"
-              hide-details="auto"
-              label="Descriçao"
-              :rules="[rules.requiredDescricao]"
-              class="mb-7 input"
-            />
-
-            <v-autocomplete
-              v-model="release.categoria"
-              density="compact"
-              variant="outlined"
-              :rules="[rules.requiredCatagoria]"
-              :items="categoriasNames"
-              label="Categoria"
-              placeholder="Select..."
-              class="mb-7 input"
-            />
-
-            <v-autocomplete
-              v-model="release.carteira"
-              density="compact"
-              variant="outlined"
-              :rules="[rules.requiredCarteira]"
-              :items="carteiras"
-              label="Carteira"
-              placeholder="Select..."
-              class="mb-7 input"
-            />
-
-            <div class="form-group p-0 container d-flex justify-content-between col-12 mt-2 mb-4">
-              <v-btn
-                :disabled="loading"
-                :loading="loading"
-                style="background-color: #dc3545; color: #fefefe;;"
-                class=" px-5"
-                @click="{ formStoreRevenue = !formStoreRevenue }; clearInputs()"
-              >
-                Cancelar
-              </v-btn>
-              <v-btn
-                :disabled="loading || !validFormLancamentos || release.valor === '0,00'"
-                :loading="loading"
-                style="background-color: #77d08e;"
-                class=" btn-light px-5"
-                type="submit"
-              >
-                Salvar
-              </v-btn>
-            </div>
-          </v-form>
-        </div>
-      </div>
-    </div>
-    <!-- ========================================================================= -->
-    <!-- ================= fim formulario lançamentos receitas =================== -->
-    <!-- ========================================================================= -->
-
-
-    <!-- ========================================================================= -->
-    <!-- =================== inicio formulario editar receita= =================== -->
-    <!-- ========================================================================= -->
-    <div
-      v-if="formEditRevenue"
-      class="container-fluid"
-      style="padding: 0 !important;"
-    >
-      <div class="container d-flex justify-content-center">
-        <div class="cadastro">
-          <v-form
-            v-model="validFormEdit"
-            class="form"
-            @submit.prevent="saveEditedRevenue"
-          >
-            <v-text-field
-              v-model="revenueEdit.valor"
-              density="compact"
-              prefix="R$"
-              variant="outlined"
-              type="tel"
-              hide-details="auto"
-              label="Valor"
-              :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
-              class="mb-5 input"
-              @input="formatValueEdit()"
-            />
-
-            <v-text-field
-              v-model="revenueEdit.date"
-              density="compact"
-              variant="outlined"
-              type="date"
-              hide-details="auto"
-              label="Data"
-              :rules="[rules.requiredData]"
-              class="mb-7 input"
-            />
-
-            <v-text-field
-              v-model="revenueEdit.descricao"
-              density="compact"
-              variant="outlined"
-              type="text"
-              hide-details="auto"
-              label="Descriçao"
-              :rules="[rules.requiredDescricao]"
-              class="mb-7 input"
-            />
-
-            <v-autocomplete
-              v-model="revenueEdit.status"
-              density="compact"
-              variant="outlined"
-              :rules="[rules.requiredCatagoria]"
-              :items="['RECEBIDA', 'AGUARDANDO']"
-              label="Status"
-              placeholder="Select..."
-              class="mb-7 input"
-            />
-
-            <v-autocomplete
-              v-model="revenueEdit.categoria"
-              density="compact"
-              variant="outlined"
-              :rules="[rules.requiredCatagoria]"
-              :items="categoriasNames"
-              label="Categoria"
-              placeholder="Select..."
-              class="mb-7 input"
-            />
-
-            <v-autocomplete
-              v-model="revenueEdit.carteira"
-              density="compact"
-              variant="outlined"
-              :rules="[rules.requiredCarteira]"
-              :items="carteiras"
-              label="Carteira"
-              placeholder="Select..."
-              class="mb-7 input"
-            />
-
-            <div class="form-group p-0 container d-flex justify-content-between col-12 mt-2 mb-4">
-              <v-btn
-                :disabled="loading"
-                :loading="loading"
-                style="background-color: #dc3545; color: #fefefe;;"
-                class=" px-5"
-                @click="revertEdit(); { formEditRevenue = !formEditRevenue }"
-              >
-                Cancelar
-              </v-btn>
-              <v-btn
-                :disabled="loading || !validFormEdit || release.valor === '0,00'"
-                :loading="loading"
-                style="background-color: #77d08e;"
-                class="btn btn-light px-5"
-                type="submit"
-              >
-                Salvar
-              </v-btn>
-            </div>
-          </v-form>
-        </div>
-      </div>
-    </div>
-    <!-- ========================================================================= -->
-    <!-- ==================== fim formulario editar receita ====================== -->
-    <!-- ========================================================================= -->
-
-    <div
-      v-if="!formStoreRevenue && !formEditRevenue"
-      class="container-fluid"
-    >
-      <div class="card__container">
-        <Card
-          class="cards"
-          titulo="Receitas"
-          :valor="valueTotalRevenuesMonth"
-        />
-        <Card
-          class="cards"
-          titulo="Pendentes"
-          :valor="valuePending"
-        />
-        <Card
-          class="cards"
-          titulo="Recebidas"
-          :valor="valueReceived"
-        />
-      </div>
-
-      <div class="container__table">
+        <!-- ========================================================================= -->
+        <!-- ================ inicio formulario lançamentos receitas ================= -->
+        <!-- ========================================================================= -->
         <div
-          v-if="revenuesMonth && revenuesMonth.length > 0"
-          class="col-12 col-lg-12"
+        v-if="formStoreRevenue"
+        class="container-fluid"
         >
-          <div
-            class="row justify-content-center card-header mx-0 py-1"
-            style="background-color: rgba(0, 0, 0, 0.25)"
-          >
-            <div class="d-flex text-center col-2">
-              <button class="btn btn-outline-table text-white p-0 fs-5 bi bi-caret-left">
-                <mdicon
-                  class="mdicon"
-                  name="chevron-left"
-                />
-              </button>
-              <p class="m-0 pt-1 border rounded-pill w-75 text-white">
-                mes
-              </p>
-              <button class="btn btn-outline-table text-white p-0 fs-5 bi bi-caret-right">
-                <mdicon
-                  class="mdicon"
-                  name="chevron-right"
-                />
-              </button>
-            </div>
-          </div>
-          <div class="table-responsive">
-            <!-- <table class="table align-items-center table-flush table-borderless" -->
-            <table
-              class="table"
-              style="background-color: rgba(0, 0, 0, 0.25); color: black;"
+        <div class="container d-flex justify-content-center">
+            <div class="cadastro">
+            <v-form
+                v-model="validFormLancamentos"
+                class="form"
+                @submit.prevent="salvarLancamentos"
             >
-              <thead>
-                <tr>
-                  <th class="text-white text-center">
-                    Data
-                  </th>
-                  <th class="text-white text-center">
-                    Descrição
-                  </th>
-                  <th class="text-white text-center">
-                    Categoria
-                  </th>
-                  <th class="text-white text-center">
-                    Conta
-                  </th>
-                  <th class="text-white text-center">
-                    Valor
-                  </th>
-                  <th class="text-white text-center">
-                    Ações
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="(revenue, key) in revenuesMonth"
-                  :key="revenue.id"
+                <v-text-field
+                v-model="release.valor"
+                autofocus
+                density="compact"
+                prefix="R$"
+                placeholder="0,00"
+                variant="outlined"
+                type="tel"
+                hide-details="auto"
+                label="Valor"
+                :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
+                class="mb-5 input"
+                @input="formatValueSave()"
+                />
+
+                <div class="form-check form-switch text-white">
+                <input
+                    id="flexSwitchCheckChecked"
+                    v-model="status"
+                    class="form-check-input mb-5"
+                    type="checkbox"
+                    checked
                 >
-                  <td class="text-white text-center">
-                    {{ revenue.date }}
-                  </td>
-                  <td class="text-white text-center">
-                    {{ revenue.descricao }}
-                  </td>
-                  <td class="text-white text-center">
-                    {{ revenue.categoria }}
-                  </td>
-                  <td class="text-white text-center">
-                    {{ revenue.carteira }}
-                  </td>
-                  <td class="text-white text-center">
-                    R$ {{ formatValue(revenue.valor) }}
-                  </td>
-                  <td class="d-flex py-0 justify-content-center">
-                    <button
-                      style="color: #fefefe;"
-                      class="btn btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 "
-                      :class="{ received: revenue.status === 'RECEBIDA' }"
-                      :disabled="revenue.status === 'RECEBIDA'"
-                      @click="receivedRevenue(revenue)"
-                    >
-                      <mdicon name="check-circle-outline" />
-                    </button>
-                    <!-- <button class="btn btn-outline-table p-0 text-white fs-4 bi bi-paperclip mx-2"
-                                            title="anexar arquivo">
-                                            <mdicon name="paperclip" />
-                                        </button> -->
-                    <button
-                      class="btn btn-outline-table p-0 text-white fs-4 bi bi-pencil mx-2"
-                      title="editar"
-                      @click="displayFormEditRevenue(revenue)"
-                    >
-                      <mdicon name="pencil-outline" />
-                    </button>
-                    <button
-                      type="submit"
-                      class="btn btn-outline-table p-0 text-white fs-4 bi bi-trash3 mx-2"
-                      title="deletar"
-                      @click="deletar(revenue.id)"
-                    >
-                      <mdicon name="trash-can-outline" />
-                    </button>
-                    <!-- <button class="btn btn-outline-table p-0 text-white fs-4 bi bi-three-dots-vertical"
-                                            title="mais opções">
-                                            <mdicon name="dots-vertical" />
-                                        </button> -->
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+                <label
+                    class="form-check-label"
+                    for="flexSwitchCheckChecked"
+                >Recebida</label>
+                </div>
+
+                <v-text-field
+                v-model="release.date"
+                density="compact"
+                variant="outlined"
+                type="date"
+                hide-details="auto"
+                label="Data"
+                :rules="[rules.requiredData]"
+                class="mb-7 input"
+                />
+
+                <v-text-field
+                v-model="release.descricao"
+                density="compact"
+                variant="outlined"
+                type="text"
+                hide-details="auto"
+                label="Descriçao"
+                :rules="[rules.requiredDescricao]"
+                class="mb-7 input"
+                />
+
+                <v-autocomplete
+                v-model="release.categoria"
+                density="compact"
+                variant="outlined"
+                :rules="[rules.requiredCatagoria]"
+                :items="categoriasNames"
+                label="Categoria"
+                placeholder="Select..."
+                class="mb-7 input"
+                />
+
+                <v-autocomplete
+                v-model="release.carteira"
+                density="compact"
+                variant="outlined"
+                :rules="[rules.requiredCarteira]"
+                :items="carteiras"
+                label="Carteira"
+                placeholder="Select..."
+                class="mb-7 input"
+                />
+
+                <div class="form-group p-0 container d-flex justify-content-between col-12 mt-2 mb-4">
+                <v-btn
+                    :disabled="loading"
+                    :loading="loading"
+                    style="background-color: #dc3545; color: #fefefe;;"
+                    class=" px-5"
+                    @click="{ formStoreRevenue = !formStoreRevenue }; clearInputs()"
+                >
+                    Cancelar
+                </v-btn>
+                <v-btn
+                    :disabled="loading || !validFormLancamentos || release.valor === '0,00'"
+                    :loading="loading"
+                    style="background-color: #77d08e;"
+                    class=" btn-light px-5"
+                    type="submit"
+                >
+                    Salvar
+                </v-btn>
+                </div>
+            </v-form>
+            </div>
         </div>
-        <h5
-          v-else
-          class="card-title text-white text-center"
+        </div>
+        <!-- ========================================================================= -->
+        <!-- ================= fim formulario lançamentos receitas =================== -->
+        <!-- ========================================================================= -->
+
+
+        <!-- ========================================================================= -->
+        <!-- =================== inicio formulario editar receita= =================== -->
+        <!-- ========================================================================= -->
+        <div
+        v-if="formEditRevenue"
+        class="container-fluid"
+        style="padding: 0 !important;"
         >
-          Você não possui receitas a serem exibidas
-        </h5>
-      </div>
+        <div class="container d-flex justify-content-center">
+            <div class="cadastro">
+            <v-form
+                v-model="validFormEdit"
+                class="form"
+                @submit.prevent="saveEditedRevenue"
+            >
+                <v-text-field
+                v-model="revenueEdit.valor"
+                density="compact"
+                prefix="R$"
+                variant="outlined"
+                type="tel"
+                hide-details="auto"
+                label="Valor"
+                :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
+                class="mb-5 input"
+                @input="formatValueEdit()"
+                />
+
+                <v-text-field
+                v-model="revenueEdit.date"
+                density="compact"
+                variant="outlined"
+                type="date"
+                hide-details="auto"
+                label="Data"
+                :rules="[rules.requiredData]"
+                class="mb-7 input"
+                />
+
+                <v-text-field
+                v-model="revenueEdit.descricao"
+                density="compact"
+                variant="outlined"
+                type="text"
+                hide-details="auto"
+                label="Descriçao"
+                :rules="[rules.requiredDescricao]"
+                class="mb-7 input"
+                />
+
+                <v-autocomplete
+                v-model="revenueEdit.status"
+                density="compact"
+                variant="outlined"
+                :rules="[rules.requiredCatagoria]"
+                :items="['RECEBIDA', 'AGUARDANDO']"
+                label="Status"
+                placeholder="Select..."
+                class="mb-7 input"
+                />
+
+                <v-autocomplete
+                v-model="revenueEdit.categoria"
+                density="compact"
+                variant="outlined"
+                :rules="[rules.requiredCatagoria]"
+                :items="categoriasNames"
+                label="Categoria"
+                placeholder="Select..."
+                class="mb-7 input"
+                />
+
+                <v-autocomplete
+                v-model="revenueEdit.carteira"
+                density="compact"
+                variant="outlined"
+                :rules="[rules.requiredCarteira]"
+                :items="carteiras"
+                label="Carteira"
+                placeholder="Select..."
+                class="mb-7 input"
+                />
+
+                <div class="form-group p-0 container d-flex justify-content-between col-12 mt-2 mb-4">
+                <v-btn
+                    :disabled="loading"
+                    :loading="loading"
+                    style="background-color: #dc3545; color: #fefefe;;"
+                    class=" px-5"
+                    @click="revertEdit(); { formEditRevenue = !formEditRevenue }"
+                >
+                    Cancelar
+                </v-btn>
+                <v-btn
+                    :disabled="loading || !validFormEdit || release.valor === '0,00'"
+                    :loading="loading"
+                    style="background-color: #77d08e;"
+                    class="btn btn-light px-5"
+                    type="submit"
+                >
+                    Salvar
+                </v-btn>
+                </div>
+            </v-form>
+            </div>
+        </div>
+        </div>
+        <!-- ========================================================================= -->
+        <!-- ==================== fim formulario editar receita ====================== -->
+        <!-- ========================================================================= -->
+
+        <div
+            v-if="!formStoreRevenue && !formEditRevenue"
+            class="container-fluid"
+        >
+
+            <div
+                class="container__table"
+                v-for="(revenue, key) in revenuesMonth"
+                :key="revenue.id"
+                >
+                <div class="card__lancamento">
+                    <div class="mdicon__card">
+                        <mdicon
+                                name="check"
+                                class="mdicon__lacamento"
+                                size="30"
+                            />
+                    </div>
+                    <div style="width: 100%;">
+                        <div class="header__visao_geral">
+                            <span style="text-align: start;">
+                                {{ revenue.carteira}}
+                            </span>
+                            <span>
+                                {{ revenue.date }}
+                                <mdicon
+                                    name="dots-vertical"
+                                    class="mdicon"
+                                    size="25"
+                                />
+                            </span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between">
+                            <span class="categoria">
+                                {{ revenue.descricao}}
+                            </span>
+                            <span class="categoria">
+                                R$ {{ formatValue(revenue.valor) }}
+                            </span>
+                        </div>
+                        <div>
+                            <span class="sub__categoria">
+                                {{ revenue.categoria }}
+                            </span>
+                            <span class="sub__categoria">
+                                {{ revenue.categoria }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -639,8 +569,75 @@ const rules = {
 </script>
 
 <style>
+.content-wrapper {
+    position: relative;
+    height: 100%;
+}
+.header {
+    display: flex;
+    /* justify-content: space-between; */
+    padding: 10px;
+    /* background-color: #292d32; */
+    color: #bdbdbd;
+}
+.header__items {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
 .opaco {
-    color: #6c757d !important;
+    color: #757575 !important;
+}
+.header__visao_geral {
+    display: flex;
+    justify-content: space-between;
+    color: #757575;
+}
+.valor {
+    font-size: 13px;
+}
+
+.mes {
+    font-size: 25px;
+    color: #bdbdbd;
+}
+.btn__nova__receita {
+    position: absolute;
+    right: 15px;
+    bottom: 15px;
+    background-color: #1dbb01;
+    border: none;
+    border-radius: 50%;
+    padding: 10px;
+    color: #fefefe;
+}
+.container__mes {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+}
+
+.conta__lancamento {
+    display: flex;
+    flex-direction: column;
+}
+.card__lancamento {
+    border-bottom: solid 1px #757575;
+    display: flex;
+}
+
+.categoria {
+    font-size: 20px;
+    color: #bdbdbd;
+    padding-right: 27px;
+}
+.sub__categoria {
+    font-size: 15px;
+    background: #1dbb01;
+    margin-right: 5px;
+    padding-inline: 5px;
+    border-radius: 15px;
 }
 
 .link {
@@ -664,7 +661,7 @@ const rules = {
 }
 
 .container__table {
-    box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+    /* box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23; */
     margin-top: 15px;
 
 }
@@ -703,8 +700,17 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     left: 0;
 }
 
-.mdicon {
-    color: white;
+.mdicon__lacamento {
+    background: #24cc0728;
+    border-radius: 50%;
+    padding: 5px;
+    margin-bottom: 5px;
+}
+.mdicon__card {
+    color: #1dbb01;
+    padding-right: 10px;
+    display: flex;
+    align-items: end;
 }
 
 .options {
@@ -712,8 +718,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .input {
-  background-color: #1e1e1e !important;
-  height: 40px;
+    background-color: #1e1e1e !important;
+    height: 40px;
     color: #ccc;
     width: 100%;
     border: none;
@@ -753,9 +759,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     color: #1dbb01 !important;
 }
 
-.container__table {
-    background-color: rgba(0, 0, 0, 0.1);
-}
 
 .table {
     background-color: rgba(0, 0, 0, 0.1);
