@@ -23,7 +23,7 @@
                         R$ {{ valueTotalRevenuesMonth }}
                     </span>
                 </div>
-                <div>
+                <!-- <div>
                     <mdicon
                         name="magnify"
                         class="mdicon me-3"
@@ -39,7 +39,7 @@
                         class="mdicon"
                         size="25"
                     />
-                </div>
+                </div> -->
             </div>
         </div>
         <div class="container__mes">
@@ -60,11 +60,11 @@
           class="btn__nova__receita"
           @click="formStoreRevenue = !formStoreRevenue"
         >
-          <mdicon
-                name="plus"
-                class="mdicon"
-                size="30"
-            />
+            <mdicon
+                    name="plus"
+                    class="mdicon"
+                    size="30"
+                />
         </button>
 
         <!-- ========================================================================= -->
@@ -305,26 +305,66 @@
                 :key="revenue.id"
                 >
                 <div class="card__lancamento">
-                    <div class="mdicon__card">
+                        <!-- :class="{ recebida: revenue.status === 'RECEBIDA' }" -->
+                    <div class="mdicon__card"
+                        :disabled="revenue.status === 'RECEBIDA'"
+                        @click="receivedRevenue(revenue)"
+                    >
                         <mdicon
-                                name="check"
-                                class="mdicon__lacamento"
-                                size="30"
-                            />
+                            :name="revenue.status === 'RECEBIDA' ? 'check' : (new Date() <= new Date (revenue.date) ? 'alert' : 'alert-remove')"
+                            class="mdicon__lacamento"
+                            :class="{ 
+                                paga: revenue.status === 'RECEBIDA', 
+                                'atrasada': new Date() > new Date(revenue.date) && revenue.status === 'AGUARDANDO',
+                                'aguardando': new Date() <= new Date(revenue.date) && revenue.status === 'AGUARDANDO', 
+                            }"
+                            size="30"
+                        />
                     </div>
                     <div style="width: 100%;">
                         <div class="header__visao_geral">
                             <span style="text-align: start;">
                                 {{ revenue.carteira}}
                             </span>
-                            <span>
-                                {{ revenue.date }}
-                                <mdicon
-                                    name="dots-vertical"
-                                    class="mdicon"
-                                    size="25"
-                                />
-                            </span>
+                            <div>
+                                <span>
+                                    {{ revenue.date }}
+                                </span>
+                                <span>
+                                    <mdicon
+                                        name="dots-vertical"
+                                        class="mdicon"
+                                        size="25"
+                                    />
+                                    <v-menu
+                                        activator="parent"
+                                        location="bottom end"
+                                        transition="fade-transition"
+                                        >
+                                            <!-- style="background-color: rgb(15, 15, 15); box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;" -->
+                                        <v-list
+                                            class="color"
+                                            style="background-color: rgb(15, 15, 15);"
+                                            density="compact"
+                                            min-width="250"
+                                            rounded="lg"
+                                            slim
+                                        >
+                                            <v-list-item
+                                                title="Editar"
+                                                link
+                                                @click="displayFormEditRevenue(revenue)"
+                                            ></v-list-item>
+                                            <v-list-item
+                                                title="Excluir"
+                                                link
+                                                @click="deletar(revenue.id)"
+                                            ></v-list-item>
+
+                                        </v-list>
+                                    </v-menu>
+                                </span>
+                            </div>
                         </div>
                         <div style="display: flex; justify-content: space-between">
                             <span class="categoria">
@@ -351,6 +391,7 @@
 
 <script setup lang="ts">
 import Card from "@/components/Card.vue";
+import FormLancamentos from "@/components/FormLancamentos.vue";
 
 import { ref, reactive, onMounted, type Ref } from "vue";
 
@@ -575,10 +616,15 @@ const rules = {
 }
 .header {
     display: flex;
-    /* justify-content: space-between; */
     padding: 10px;
-    /* background-color: #292d32; */
     color: #bdbdbd;
+}
+.link {
+    text-decoration: none;
+    color: #fefefe;
+}
+.opaco {
+    color: #757575 !important;
 }
 .header__items {
     display: flex;
@@ -586,18 +632,14 @@ const rules = {
     align-items: center;
     width: 100%;
 }
-.opaco {
-    color: #757575 !important;
-}
-.header__visao_geral {
-    display: flex;
-    justify-content: space-between;
-    color: #757575;
-}
 .valor {
     font-size: 13px;
 }
-
+.container__mes {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+}
 .mes {
     font-size: 25px;
     color: #bdbdbd;
@@ -612,21 +654,43 @@ const rules = {
     padding: 10px;
     color: #fefefe;
 }
-.container__mes {
-    width: 100%;
-    display: flex;
-    justify-content: space-around;
-}
-
-.conta__lancamento {
-    display: flex;
-    flex-direction: column;
+.container__table {
+    margin-top: 15px;
 }
 .card__lancamento {
     border-bottom: solid 1px #757575;
     display: flex;
 }
-
+.mdicon__card {
+    padding-right: 10px;
+    display: flex;
+    align-items: end;
+}
+.mdicon__lacamento {
+    border-radius: 50%;
+    padding: 5px;
+    margin-bottom: 5px;
+}
+.paga {
+    color: #1dbb01 !important;
+    background: #24cc0728 !important;
+}
+.atrasada {
+    color: #ff0000 !important;
+    background: #ff000021 !important;
+}
+.aguardando {
+    color: #e5ff00 !important;
+    background: #e5ff0021 !important;
+}
+.header__visao_geral {
+    display: flex;
+    justify-content: space-between;
+    color: #757575;
+}
+.color {
+    color: #BDBDBD;
+}
 .categoria {
     font-size: 20px;
     color: #bdbdbd;
@@ -640,10 +704,19 @@ const rules = {
     border-radius: 15px;
 }
 
-.link {
-    text-decoration: none;
-    color: #fefefe;
+
+
+
+.conta__lancamento {
+    display: flex;
+    flex-direction: column;
 }
+
+
+
+
+
+
 .form {
     display: flex;
     flex-direction: column;
@@ -660,11 +733,6 @@ const rules = {
     align-items: center;
 }
 
-.container__table {
-    /* box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23; */
-    margin-top: 15px;
-
-}
 
 .inputSimples {
     background-color: #1e1e1e;
@@ -700,18 +768,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     left: 0;
 }
 
-.mdicon__lacamento {
-    background: #24cc0728;
-    border-radius: 50%;
-    padding: 5px;
-    margin-bottom: 5px;
-}
-.mdicon__card {
-    color: #1dbb01;
-    padding-right: 10px;
-    display: flex;
-    align-items: end;
-}
+
+
+
 
 .options {
     background-color: #292d32;
@@ -755,9 +814,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     /* margin-top: 15px; */
 }
 
-.received {
-    color: #1dbb01 !important;
-}
 
 
 .table {

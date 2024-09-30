@@ -1,73 +1,43 @@
 <template>
-    <div class="content-wrapper">
-        <div class="header">
-            <router-link
-                class="link me-7 d-flex align-items-center opaco"
-                :to="{ name: 'dashboard' }"
-            >
-                <mdicon
-                    name="arrow-left"
-                    size="25"
-                />
+  <div class="content-wrapper">
+    <div class="pagetitle">
+      <nav class="d-flex justify-content-between ms-3 mb-3">
+        <ol class="breadcrumb bg-transparent">
+          <span class="me-3 text-white">
+            <router-link class="link" :to="{ name: 'dashboard' }">
+              <mdicon name="arrow-left" size="20" />
             </router-link>
-            <div class="header__items">
-                <div class="d-flex flex-column">
-                    <span
-                        class="fs-5"
-                    >
-                        Despesas
-                    </span>
-                    <span
-                        class="valor"
-                    >
-                        RS {{ valueTotalExpensesMonth }}
-                    </span>
-                </div>
-                <!-- <div>
-                    <mdicon
-                        name="magnify"
-                        class="mdicon me-3"
-                        size="25"
-                    />
-                    <mdicon
-                        name="clipboard-text"
-                        class="mdicon me-2"
-                        size="25"
-                    />
-                    <mdicon
-                        name="dots-vertical"
-                        class="mdicon"
-                        size="25"
-                    />
-                </div> -->
-            </div>
-        </div>
-        <div class="container__mes">
-            <mdicon
-                name="chevron-left"
-                class="mdicon"
-                size="30"
-            />
-            <span class="mes"> setembro </span>
-            <mdicon
-                name="chevron-right"
-                class="mdicon"
-                size="30"
-            />
-        </div>
-        <button
-            v-if="!formStoreExpense && !formEditExpense"
-            class="btn__nova__despesa"
-            @click="formStoreExpense = !formStoreExpense"
-        >
-            <mdicon
-                name="plus"
-                class="mdicon"
-                size="30"
-            />
-        </button>
-
+          </span>
+          <!-- :class="{ opaco: !formStoreExpense && !formEditExpense }" -->
+          <li class="breadcrumb-item text-white" @click="returnExpense">
+            despesas
+          </li>
+          <li
+            v-if="formStoreExpense"
+            :class="{ opaco: formStoreExpense }"
+            class="breadcrumb-item"
+          >
+            cadastrar de despesa
+          </li>
+          <li
+            v-if="formEditExpense"
+            :class="{ opaco: formEditExpense }"
+            class="breadcrumb-item"
+          >
+            editar de despesa
+          </li>
+        </ol>
         <!-- <FormLancamentos /> -->
+        <button
+          v-if="!formStoreExpense && !formEditExpense"
+          class="btn btn-danger text-whit"
+          @click="formStoreExpense = !formStoreExpense"
+        >
+          nova despesa
+        </button>
+      </nav>
+    </div>
+
     <!-- ========================================================================= -->
     <!-- ================ inicio formulario lançamentos despesas ================= -->
     <!-- ========================================================================= -->
@@ -306,92 +276,116 @@
     <!-- ========================================================================= -->
 
     <div v-if="!formStoreExpense && !formEditExpense" class="container-fluid">
+      <div class="card__container">
+        <Card
+          class="cards"
+          titulo="Despesas"
+          :valor="valueTotalExpensesMonth"
+        />
+        <Card class="cards" titulo="Pendentes" :valor="valuePending" />
+        <Card class="cards" titulo="Pagas" :valor="valuePay" />
+      </div>
+      <div class="container__table">
         <div
-                class="container__table"
-                v-for="(expense, key) in expensesMonth"
-                :key="expense.id"
-                >
-                <div class="card__lancamento">
-                        <!-- :class="{ recebida: revenue.status === 'RECEBIDA' }" -->
-                    <div class="mdicon__card"
-                        :disabled="expense.status === 'RECEBIDA'"
-                        @click="payExpense(expense)"
-                    >
-                        <mdicon
-                            :name="expense.status === 'PAGA' ? 'check' : (new Date() <= new Date (expense.date) ? 'alert' : 'alert-remove')"
-                            class="mdicon__lacamento"
-                            :class="{ 
-                                paga: expense.status === 'PAGA', 
-                                'atrasada': new Date() > new Date(expense.date) && expense.status === 'AGUARDANDO',
-                                'aguardando': new Date() <= new Date(expense.date) && expense.status === 'AGUARDANDO', 
-                            }"
-                            size="30"
-                        />
-                    </div>
-                    <div style="width: 100%;">
-                        <div class="header__visao_geral">
-                            <span style="text-align: start;">
-                                {{ expense.carteira}}
-                            </span>
-                            <div>
-                                <span>
-                                    {{ expense.date }}
-                                </span>
-                                <span>
-                                    <mdicon
-                                        name="dots-vertical"
-                                        class="mdicon"
-                                        size="25"
-                                    />
-                                    <v-menu
-                                        activator="parent"
-                                        location="bottom end"
-                                        transition="fade-transition"
-                                        >
-                                            <!-- style="background-color: rgb(15, 15, 15); box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;" -->
-                                        <v-list
-                                            class="color"
-                                            style="background-color: rgb(15, 15, 15);"
-                                            density="compact"
-                                            min-width="250"
-                                            rounded="lg"
-                                            slim
-                                        >
-                                            <v-list-item
-                                                title="Editar"
-                                                link
-                                                @click="displayFormEditExpense(expense)"
-                                            ></v-list-item>
-                                            <v-list-item
-                                                title="Excluir"
-                                                link
-                                                @click="deletar(expense.id)"
-                                            ></v-list-item>
-                                        </v-list>
-                                    </v-menu>
-                                </span>
-                            </div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between">
-                            <span class="categoria">
-                                {{ expense.descricao}}
-                            </span>
-                            <span class="categoria">
-                                R$ {{ formatValue(expense.valor) }}
-                            </span>
-                        </div>
-                        <div>
-                            <span class="sub__categoria">
-                                {{ expense.categoria }}
-                            </span>
-                            <span class="sub__categoria">
-                                {{ expense.categoria }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
+          v-if="expensesMonth && expensesMonth.length > 0"
+          class="col-12 col-lg-12"
+        >
+          <div
+            class="row justify-content-center card-header mx-0 py-1"
+            style="background-color: rgba(0, 0, 0, 0.25)"
+          >
+            <div class="d-flex text-center col-2">
+              <button
+                class="btn btn-outline-table text-white p-0 fs-5 bi bi-caret-left"
+              >
+                <mdicon class="mdicon" name="chevron-left" />
+              </button>
+              <p class="m-0 pt-1 border rounded-pill w-75 text-white">mes</p>
+              <button
+                class="btn btn-outline-table text-white p-0 fs-5 bi bi-caret-right"
+              >
+                <mdicon class="mdicon" name="chevron-right" />
+              </button>
             </div>
+          </div>
+          <div class="table-responsive">
+            <table
+              v-if="expensesMonth"
+              class="table"
+              style="background-color: rgba(0, 0, 0, 0.25); color: black"
+            >
+              <thead>
+                <tr>
+                  <th class="text-white text-center">Data</th>
+                  <th class="text-white text-center">Descrição</th>
+                  <th class="text-white text-center">Categoria</th>
+                  <th class="text-white text-center">Carteira</th>
+                  <th class="text-white text-center">Valor</th>
+                  <th class="text-white text-center">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(expense, key) in expensesMonth" :key="expense.id">
+                  <td class="text-white text-center">
+                    {{ expense.date }}
+                  </td>
+                  <td class="text-white text-center">
+                    {{ expense.descricao }}
+                  </td>
+                  <td class="text-white text-center">
+                    {{ expense.categoria }}
+                  </td>
+                  <td class="text-white text-center">
+                    {{ expense.carteira }}
+                  </td>
+                  <td class="text-white text-center">
+                    R$ {{ formatValue(expense.valor) }}
+                  </td>
+                  <td class="d-flex py-0 justify-content-center">
+                    <button
+                      class="btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 text-white"
+                      :class="{ pay: expense.status === 'PAGA' }"
+                      :disabled="expense.status === 'PAGA'"
+                      @click="payExpense(expense)"
+                    >
+                      <mdicon name="check-circle-outline" />
+                    </button>
+                    <!-- <button class="btn btn-outline-table p-0 text-white fs-4 bi bi-paperclip mx-2"
+                                            title="anexar arquivo">
+                                            <mdicon name="paperclip" />
+                                        </button> -->
+                    <button
+                      class="btn-outline-table p-0 text-white fs-4 bi bi-pencil mx-2"
+                      title="editar"
+                      @click="displayFormEditExpense(expense)"
+                    >
+                      <mdicon name="pencil-outline" />
+                    </button>
+                    <button
+                      type="submit"
+                      class="btn btn-outline-table p-0 text-white fs-4 bi bi-trash3 mx-2"
+                      title="deletar"
+                      @click="deletar(expense.id)"
+                    >
+                      <mdicon name="trash-can-outline" />
+                    </button>
+                    <!-- <button class="btn btn-outline-table p-0 text-white fs-4 bi bi-three-dots-vertical"
+                                            title="mais opções">
+                                            <mdicon name="dots-vertical" />
+                                        </button> -->
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <span v-else> Você não possui lançamentos a serem exibidos </span>
+          </div>
+        </div>
+        <h5 v-else class="card-title text-white text-center">
+          Você não possui despesas a serem exibidas
+        </h5>
+      </div>
     </div>
+    <div class="overlay toggle-menu" />
   </div>
 </template>
 
@@ -434,7 +428,6 @@ const categoriasNames = ref([]);
 userStore.user.categoriasDespesas.forEach((categoria) => {
   categoriasNames.value.push(categoria.name);
 });
-// let carteiras = ref(useWallets.walletsData.wallets.map((wallet) => wallet.name));
 let carteiras = ref(useWallets.walletsData.wallets.walletsNames);
 let errorsForm = ref({ errors: {} });
 let formStoreExpense = ref(false);
@@ -637,116 +630,18 @@ const rules = {
 </script>
 
 <style scoped>
-.content-wrapper {
-    position: relative;
-    height: 100%;
+.dashboard {
+  width: 100%;
 }
-.header {
-    display: flex;
-    padding: 10px;
-    color: #bdbdbd;
-}
+
 .link {
-    text-decoration: none;
-    color: #fefefe;
+  text-decoration: none;
+  color: #fefefe;
 }
+
 .opaco {
-    color: #757575 !important;
+  color: #6c757d !important;
 }
-.header__items {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-}
-.valor {
-    font-size: 13px;
-}
-.container__mes {
-    width: 100%;
-    display: flex;
-    justify-content: space-around;
-}
-.mes {
-    font-size: 25px;
-    color: #bdbdbd;
-}
-.btn__nova__despesa {
-    position: absolute;
-    right: 15px;
-    bottom: 15px;
-    background-color: #ff0000;
-    border: none;
-    border-radius: 50%;
-    padding: 10px;
-    color: #fefefe;
-}
-.container__table {
-  margin-top: 15px;
-}
-.card__lancamento {
-    border-bottom: solid 1px #757575;
-    display: flex;
-}
-.mdicon__card {
-    padding-right: 10px;
-    display: flex;
-    align-items: end;
-}
-.mdicon__lacamento {
-    border-radius: 50%;
-    padding: 5px;
-    margin-bottom: 5px;
-}
-.paga {
-    color: #1dbb01 !important;
-    background: #24cc0728 !important;
-}
-.atrasada {
-    color: #ff0000 !important;
-    background: #ff000021 !important;
-}
-.aguardando {
-    color: #e5ff00 !important;
-    background: #e5ff0021 !important;
-}
-.header__visao_geral {
-    display: flex;
-    justify-content: space-between;
-    color: #757575;
-}
-.color {
-    color: #BDBDBD;
-}
-.categoria {
-    font-size: 20px;
-    color: #bdbdbd;
-    padding-right: 27px;
-}
-.sub__categoria {
-    font-size: 15px;
-    background: #1dbb01;
-    margin-right: 5px;
-    padding-inline: 5px;
-    border-radius: 15px;
-}
-
-
-
-
-.conta__lancamento {
-    display: flex;
-    flex-direction: column;
-}
-
-
-
-
-
-
-
-
-
 
 .cadastro {
   box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
@@ -757,7 +652,10 @@ const rules = {
   align-items: center;
 }
 
-
+.container__table {
+  box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+  margin-top: 15px;
+}
 
 .inputSimples {
   background-color: #1e1e1e;

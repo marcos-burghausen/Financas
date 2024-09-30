@@ -6,32 +6,34 @@ use DateTime;
 
 trait ReleasesMonthTrait
 {
-    public function classifiesReleases(object $releases, string $typeReleases): array
+    public function classifiesReleases(object $lacamentos, string $tipoLancamentos, $mes = null): array
     {
+        $mes = $mes ?? date('m');
+
         $status = 'PAGA';
         $type = 'Pay';
-        if ($typeReleases === 'Revenues') {
+        if ($tipoLancamentos === 'Revenues') {
             $status = 'RECEBIDA';
             $type = 'Received';
         }
 
-        $valueReceivedOrPay = $this->valuePending($releases, $status);
-        $valuePending = $this->valuePending($releases, "AGUARDANDO");
+        $valorRecebidoOuPago = $this->valorPendenteMes($lacamentos, $mes, $status);
+        $valuePending = $this->valorPendente($lacamentos, "AGUARDANDO", $mes);
         // $valuePending = $this->valuePending($releases, date('m'), "AGUARDANDO");
-        $valueTotalMonth = $this->valueReleasesMonth($releases, date('m'));
-        $releasesgroupByMonth = $this->groupByMonth($releases);
+        $valorTotalMes = $this->valorLancamentosMes($lacamentos, $mes);
+        $releasesgroupByMonth = $this->groupByMonth($lacamentos);
         $addTotalValueMonth = $this->addTotalValueMonth($releasesgroupByMonth);
-        $releasesMonth = $this->releasesMonth($releases, date('m'));
+        $releasesMonth = $this->lancamentosMes($lacamentos, $mes);
         $Data = [
-            "Value{$type}{$typeReleases}" => $valueReceivedOrPay,
-            "ValuePending{$typeReleases}" => $valuePending,
-            "ValueTotal{$typeReleases}Month" => $valueTotalMonth,
-            "{$typeReleases}GroupByMonth" => $releasesgroupByMonth,
-            "{$typeReleases}AddTotalValueMonth" => $addTotalValueMonth,
-            "{$typeReleases}Month" => $releasesMonth,
+            "Value{$type}{$tipoLancamentos}" => $valorRecebidoOuPago,
+            "ValuePending{$tipoLancamentos}" => $valuePending,
+            "ValueTotal{$tipoLancamentos}Month" => $valorTotalMes,
+            "{$tipoLancamentos}GroupByMonth" => $releasesgroupByMonth,
+            "{$tipoLancamentos}AddTotalValueMonth" => $addTotalValueMonth,
+            "{$tipoLancamentos}Month" => $releasesMonth,
         ];
 
-        if ($typeReleases === 'Expenses') {
+        if ($tipoLancamentos === 'Expenses') {
             $totalExpensesDay = $this->totalExpensesDay($releasesMonth);
             $totalByCategoryExpenses = $this->totalByCategory($releasesMonth);
             $Data["totalExpensesDay"] = $totalExpensesDay;
@@ -73,21 +75,20 @@ trait ReleasesMonthTrait
         return $totalByCategory;
     }
 
-    public function releasesMonth(object $data, string $month): array
+    public function lancamentosMes(object $lancamentos, string $mes): array
     {
-        $releasesMonth = [];
-        foreach ($data as $data) {
-
-            if ($data && strtotime($data->date) >= strtotime(date("Y/{$month}/01")) && strtotime($data->date) <= strtotime(date("Y/{$month}/t"))) {
-                $releasesMonth[] = $data;
+        $lancamentosMes = [];
+        foreach ($lancamentos as $lancamento) {
+            if ($lancamento && strtotime($lancamento->date) >= strtotime(date("Y/{$mes}/01")) && strtotime($lancamento->date) <= strtotime(date("Y/{$mes}/t"))) {
+                $lancamentosMes[] = $lancamento;
             }
         }
-        return $releasesMonth;
+        return $lancamentosMes;
     }
 
-    public function valueReleasesMonth(object $data, string $month): int
+    public function valorLancamentosMes(object $lancamentos, string $mes): int
     {
-        $releasesMonth = $this->releasesMonth($data, $month);
+        $releasesMonth = $this->lancamentosMes($lancamentos, $mes);
 
         $valueReleasesMonth = [];
         foreach ($releasesMonth as $releases) {
@@ -96,23 +97,22 @@ trait ReleasesMonthTrait
         return $valueReleasesMonth = array_sum($valueReleasesMonth);
     }
 
-    public function valuePendingMonth(object $data, string $month, string $status): int
+    public function valorPendenteMes(object $lancamentos, string $mes, string $status): int
     {
-        $releasesMonth = $this->releasesMonth($data, $month);
-
-        $valuePendingMonth = [];
-        foreach ($releasesMonth as $release) {
-            if ($release->status === $status) {
-                $valuePendingMonth[] = $release->valor;
+        $lancamentosMes = $this->lancamentosMes($lancamentos, $mes);
+        $valorPendenteMes = [];
+        foreach ($lancamentosMes as $lancamento) {
+            if ($lancamento->status === $status) {
+                $valorPendenteMes[] = $lancamento->valor;
             }
         }
-        return $valuePendingMonth = array_sum($valuePendingMonth);
+        info($valorPendenteMes);
+        return $valorPendenteMes = array_sum($valorPendenteMes);
     }
-    public function valuePending(object $data, string $status): int
+    public function valorPendente(object $data, string $status): int
     {
         $valuePending = [];
         foreach ($data as $release) {
-            info($release);
             if ($release->status === $status) {
                 $valuePending[] = $release->valor;
             }

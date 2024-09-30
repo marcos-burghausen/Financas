@@ -71,7 +71,7 @@ class AuthController extends Controller
 
         // LogController::addsLog($request->email, Actions::LOGIN);
 
-        Mail::to('rafaelburghausen@gmail.com')->queue(new NotificationMail($user, 'Login', 'Login', $user->name));
+        // Mail::to('rafaelburghausen@gmail.com')->queue(new NotificationMail($user, 'Login', 'Login', $user->name));
 
         return response()->json([
             'token' => $token->original,

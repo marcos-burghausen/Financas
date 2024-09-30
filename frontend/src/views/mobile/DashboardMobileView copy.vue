@@ -18,7 +18,7 @@
                     </span>
                 <div style="display:flex; align-items: center;">
                     <span :style="{ color: totalBalance < 0 ? 'red' : '#757575' }" style="font-size: 13px;">
-                        R$ {{ totalBalanceFormatado }}
+                        R$ {{ formatValue(totalBalance) }}
                     </span>
                 </div>
             </div>
@@ -30,7 +30,7 @@
                 <div style="display:flex; align-items: center;">
                     <!-- <dir style="background: green; width:5px; height: 45px; margin-inline-end: 10px; margin-top: 5px;"></dir> -->
                     <span :style="{ color: totalBalance < 0 ? 'red' : 'green' }"  style="font-size: 18px;">
-                        R$ {{ totalBalanceFormatado }}
+                        R$ {{ formatValue(totalBalance) }}
                     </span>
                 </div>
             </div>
@@ -43,21 +43,12 @@
                     Previsto
                 </span>
                 <div style="display:flex; align-items: center;">
-                    <span :style="{ color: totalBalance < 0 ? 'red' : '#757575' }" style="font-size: 13px;">
-                        R$ {{ totalBalanceFormatado }}
+                    <span :style="{ color: valorPrevisto < 0 ? 'red' : '#757575' }" style="font-size: 13px;">
+                        R$ {{ formatValue(valorPrevisto) }}
                     </span>
                 </div>
             </div>
         </div>
-
-        <!-- <div class="teste2">
-            <span>
-            Gastos de hoje
-            </span>
-            <span style="color: red">
-                R$ {{ totalExpensesDay }}
-            </span>
-        </div> -->
 
         <div class="container__visao__geral">
             <div class="header__visao_geral">
@@ -70,7 +61,6 @@
                     size="25"
                 />
             </div>
-             <!-- <router-link :to="{ name: item.route }" > -->
             <router-link :to="{name: 'receitas'}" style="display:flex; align-items: center; text-decoration: none;">
                 <div style="border-inline-start: solid 5px green; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
                     <div class="tipo__lancamento">
@@ -86,7 +76,7 @@
                             R$ {{formatValue(valueReceived)}}
                         </span>
                         <span class="valor__previsto">
-                            R$ {{valueTotalRevenuesMonth}}
+                            R$ {{ formatValue(valueTotalRevenuesMonth) }}
                         </span>
                     </div>
                 </div>
@@ -103,15 +93,15 @@
                     </div>
                     <div class="tipo__lancamento">
                         <span class="lancamento">
-                            R$ {{valuePay}}
+                            R$ {{ formatValue(valuePay) }}
                         </span>
                         <span class="valor__previsto">
-                            R$ {{valueTotalExpensesMonth}}
+                            R$ {{ formatValue(valueTotalExpensesMonth) }}
                         </span>
                     </div>
                 </dir>
             </router-link>
-            <div style="display:flex; align-items: center;">
+            <!-- <div style="display:flex; align-items: center;">
                 <div style="border-inline-start: solid 5px orange; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
                     <div class="tipo__lancamento">
                         <span class="lancamento">
@@ -130,7 +120,7 @@
                         </span>
                     </div>
                 </div>
-            </div>
+            </div> -->
         </div>
 
         <!-- <div class="teste3">
@@ -227,43 +217,21 @@ const useRevenues = useRevenuesStore();
 
 const menuExpandido = ref(false);
 
-const props = defineProps({
-    totalBalance: {
-        type: String || Number,
-        required: true,
-    },
-    receitas: {
-        type: String || Number,
-        required: true,
-    },
-    despesas: {
-        type: [String || null],
-        required: false,
-        // default:null
-    },
-    totalExpensesDay: {
-        type: [String || null],
-        required: true,
-        // default:null
-    }
-});
 
 // const formatValue = (value: number): string =>{
 //     let valueFormatted = (value / 100).toLocaleString("pt-BR", { style: "decimal", minimumFractionDigits: 2, maximumFractionDigits: 2 });
 //     return valueFormatted;
 // };
 
-let valueTotalExpensesMonth = ref(formatValue(useExpenses.expensesData.expenses?.ValueTotalExpensesMonth));
-let valueTotalRevenuesMonth = ref(formatValue(useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth));
+let valueTotalExpensesMonth = ref(useExpenses.expensesData.expenses?.ValueTotalExpensesMonth);
+let valueTotalRevenuesMonth = ref(useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth);
+let valorPrevisto = ref(valueTotalRevenuesMonth.value - valueTotalExpensesMonth.value);
 let valuePay = ref(useExpenses.expensesData.expenses?.ValuePayExpenses);
 let valueReceived = ref(useRevenues.revenuesData.revenues?.ValueReceivedRevenues);
-// let totalBalance = ref(parseFloat(valueReceived.value.replace(",", ".")) - parseFloat(valuePay.value.replace(",", ".")));
 let totalBalance = ref(valueReceived.value - valuePay.value);
-console.log(totalBalance.value);
-let totalBalanceFormatado = ref(formatValue(totalBalance.value));
 // let totalCreditCard = ref(0);
-let expensesAddTotalValueMonth = ref(useExpenses.expensesData.expenses?.ExpensesAddTotalValueMonth);
-let revenuesAddTotalValueMonth = ref(useRevenues.revenuesData.revenues?.RevenuesAddTotalValueMonth);
+// let expensesAddTotalValueMonth = ref(useExpenses.expensesData.expenses?.ExpensesAddTotalValueMonth);
+// let revenuesAddTotalValueMonth = ref(useRevenues.revenuesData.revenues?.RevenuesAddTotalValueMonth);
 let totalByCategoryExpenses = ref(useExpenses.expensesData.expenses?.TotalByCategoryExpenses);
 let valuePendingRevenues = ref(formatValue(useRevenues.revenuesData.revenues?.ValuePendingRevenues));
 let valuePendingExpenses = ref(formatValue(useExpenses.expensesData.expenses?.ValuePendingExpenses));
@@ -274,75 +242,75 @@ const isAllZeros = (arr) => {
 
 // =============================== grafico de barras inicio =============================== //
 
-let totalYearValueExpenses = ref(Object.values(expensesAddTotalValueMonth.value));
-let totalYearValueRevenues = ref(Object.values(revenuesAddTotalValueMonth.value));
+// let totalYearValueExpenses = ref(Object.values(expensesAddTotalValueMonth.value));
+// let totalYearValueRevenues = ref(Object.values(revenuesAddTotalValueMonth.value));
 
-const options = {
-    chart: {
-        id: "vuechart-example",
-        foreColor: "#fefefe"
-    },
-    title: {
-        text: "receitas & despesas",
-        align: "left",
-        style: {
-            color: "#fefefe"
-        }
-    },
-    dataLabels: {
-        enabled: false,
-    },
-    labels: {
-        style: {
-            color: "#fefefe"
-        }
-    },
-    colors: ["#fb0404", "#77d08e"],
-    xaxis: {
-        categories: ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"],
-    },
-    tooltip: {
-        y: {
-            formatter: function (val) {
-                return "R$ " + val;
-            }
-        }, theme: "dark",
-    }
-};
-const series = [
-    {
-        name: "despesas",
-        data: totalYearValueExpenses.value,
-    },
-    {
-        name: "receitas",
-        data: totalYearValueRevenues.value,
-    }
-];
+// const options = {
+//     chart: {
+//         id: "vuechart-example",
+//         foreColor: "#fefefe"
+//     },
+//     title: {
+//         text: "receitas & despesas",
+//         align: "left",
+//         style: {
+//             color: "#fefefe"
+//         }
+//     },
+//     dataLabels: {
+//         enabled: false,
+//     },
+//     labels: {
+//         style: {
+//             color: "#fefefe"
+//         }
+//     },
+//     colors: ["#fb0404", "#77d08e"],
+//     xaxis: {
+//         categories: ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"],
+//     },
+//     tooltip: {
+//         y: {
+//             formatter: function (val) {
+//                 return "R$ " + val;
+//             }
+//         }, theme: "dark",
+//     }
+// };
+// const series = [
+//     {
+//         name: "despesas",
+//         data: totalYearValueExpenses.value,
+//     },
+//     {
+//         name: "receitas",
+//         data: totalYearValueRevenues.value,
+//     }
+// ];
 // =============================== grafico de barras fim =============================== //
 
 // =============================== grafico de pizza inicio =============================== //
-let category = ref(Object.keys(totalByCategoryExpenses.value));
-let valuesCategory = ref(Object.values(totalByCategoryExpenses.value));
+// let category = ref(Object.keys(totalByCategoryExpenses.value));
+// let valuesCategory = ref(Object.values(totalByCategoryExpenses.value));
 
-const options1 = {
-    chart: {
-        id: "vuechart-example",
-        foreColor: "#fefefe"
-    },
-    title: {
-        text: "despesas por categoria",
-        align: "center",
-        style: {
-            color: "#fefefe"
-        }
-    },
-    legend: {
-        position: "bottom"
-    },
-    labels: category.value
-};
-const series1 = valuesCategory.value;
+// const options1 = {
+//     chart: {
+//         id: "vuechart-example",
+//         foreColor: "#fefefe"
+//     },
+//     title: {
+//         text: "despesas por categoria",
+//         align: "center",
+//         style: {
+//             color: "#fefefe"
+//         }
+//     },
+//     legend: {
+//         position: "bottom"
+//     },
+//     labels: category.value
+// };
+// const series1 = valuesCategory.value;
 // =============================== grafico de pizza fim =============================== //
 
 
