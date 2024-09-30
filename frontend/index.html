@@ -16,31 +16,36 @@
 </html>
 
 <style scoped>
-  html {
-    max-width: 100%;
-    /* overflow: hidden; */
-    /* overflow-y: scroll; */
+/* Garante que o html e o body ocupem toda a altura */
+html, body {
+    height: 100%;   /* 100% da altura da viewport */
+    margin: 0;      /* Remove margens */
+    padding: 0;     /* Remove padding */
+    width: 100%;    /* 100% da largura da viewport */
   }
   
-  #app {
-    height: 100vh;
-    width: 100%;
-    max-width: 500px;
-    /* background-color: rgb(44, 44, 46); */
-    background-color: rgb(15, 15, 15);
-    /* max-width: 1500px; */
-  }
-  
+  /* Define o body como um contêiner flexbox */
   body {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    margin: 0;
-    /* background-color: rgb(44, 44, 46); */
+    display: flex;           /* Define o body como um contêiner flex */
+    /*flex-direction: column; */ /* Alinha os itens de cima para baixo */
+    justify-content: center; /* Alinha ao topo */
+    align-items: flex-start;       /* Começa o alinhamento no topo */
+    background-color: #282828;     /* Adiciona cor de fundo ao body */
   }
+
+  /* Define o contêiner principal */
+  #app {
+    position: relative; 
+    min-height: 100%;              /* Expande verticalmente conforme o conteúdo */
+    width: 100%;                   /* 100% da largura do contêiner */
+    max-width: 500px;              /* Limite de largura para o #app */
+    background-color: rgb(15, 15, 15); /* Cor de fundo */
+    box-sizing: border-box;        /* Inclui borda e padding no cálculo */
+  }
+
   @media screen and (min-width: 1500px) {
     #app {
-    margin-left: calc(50% - 750px);
+      margin-left: calc(50% - 750px); /* Ajusta a margem para telas grandes */
+    }
   }
-}
 </style>

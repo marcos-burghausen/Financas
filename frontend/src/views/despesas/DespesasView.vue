@@ -672,8 +672,8 @@ const rules = {
     color: #bdbdbd;
 }
 .btn__nova__despesa {
-    position: absolute;
-    right: 15px;
+    position: fixed;
+    right: calc((100vw - 500px) / 2 + 15px); /* Calcula a posição relativa ao centro do #app */
     bottom: 15px;
     background-color: #ff0000;
     border: none;
