@@ -307,98 +307,102 @@
     <!-- =================== fim formulario editar despesa ===================== -->
     <!-- ========================================================================= -->
 
-    <div v-if="!formStoreExpense && !formEditExpense" class="container-fluid">
-        <div
-                class="container__table"
-                v-for="(expense, key) in expensesMonth"
-                :key="expense.id"
-                >
-                <div class="card__lancamento">
-                        <!-- :class="{ recebida: revenue.status === 'RECEBIDA' }" -->
-                    <div class="mdicon__card"
-                        :disabled="expense.status === 'RECEBIDA'"
-                        @click="payExpense(expense)"
+    <div v-if="expensesMonth && expensesMonth.length > 0" >
+        <div v-if="!formStoreExpense && !formEditExpense" class="container-fluid">
+            <div
+                    class="container__table"
+                    v-for="(expense, key) in expensesMonth"
+                    :key="expense.id"
                     >
-                        <mdicon
-                            :name="expense.status === 'PAGA' ? 'check' : (new Date() <= new Date (expense.date) ? 'alert' : 'alert-remove')"
-                            class="mdicon__lacamento"
-                            :class="{ 
-                                paga: expense.status === 'PAGA', 
-                                'aguardando': new Date() <= new Date(expense.date) && expense.status === 'AGUARDANDO', 
-                                'atrasada': new Date() > new Date(expense.date) && expense.status === 'AGUARDANDO',
-                            }"
-                            size="30"
-                        />
-                    </div>
-                    <div style="width: 100%;">
-                        <div class="header__visao_geral">
-                            <span style="text-align: start;">
-                                {{ expense.carteira}}
-                            </span>
-                            <div>
-                                <span>
-                                    {{ expense.date }}
+                    <div class="card__lancamento">
+                            <!-- :class="{ recebida: revenue.status === 'RECEBIDA' }" -->
+                        <div class="mdicon__card"
+                            :disabled="expense.status === 'RECEBIDA'"
+                            @click="payExpense(expense)"
+                        >
+                            <mdicon
+                                :name="expense.status === 'PAGA' ? 'check' : (new Date() <= new Date (expense.date) ? 'alert' : 'alert-remove')"
+                                class="mdicon__lacamento"
+                                :class="{ 
+                                    paga: expense.status === 'PAGA', 
+                                    'aguardando': new Date() <= new Date(expense.date) && expense.status === 'AGUARDANDO', 
+                                    'atrasada': new Date() > new Date(expense.date) && expense.status === 'AGUARDANDO',
+                                }"
+                                size="30"
+                            />
+                        </div>
+                        <div style="width: 100%;">
+                            <div class="header__visao_geral">
+                                <span style="text-align: start;">
+                                    {{ expense.carteira}}
                                 </span>
-                                <span>
-                                    <mdicon
-                                        name="dots-vertical"
-                                        class="mdicon"
-                                        size="25"
-                                    />
-                                    <v-menu
-                                        activator="parent"
-                                        location="bottom end"
-                                        transition="fade-transition"
-                                        >
-                                            <!-- style="background-color: rgb(15, 15, 15); box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;" -->
-                                        <v-list
-                                            class="color"
-                                            style="background-color: rgb(15, 15, 15);"
-                                            density="compact"
-                                            min-width="250"
-                                            rounded="lg"
-                                            slim
-                                        >
-                                            <v-list-item
-                                                title="Editar"
-                                                link
-                                                @click="displayFormEditExpense(expense)"
-                                            ></v-list-item>
-                                            <v-list-item
-                                                title="Excluir"
-                                                link
-                                                @click="deletar(expense.id)"
-                                            ></v-list-item>
-                                        </v-list>
-                                    </v-menu>
+                                <div>
+                                    <span>
+                                        {{ expense.date }}
+                                    </span>
+                                    <span>
+                                        <mdicon
+                                            name="dots-vertical"
+                                            class="mdicon"
+                                            size="25"
+                                        />
+                                        <v-menu
+                                            activator="parent"
+                                            location="bottom end"
+                                            transition="fade-transition"
+                                            >
+                                                <!-- style="background-color: rgb(15, 15, 15); box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;" -->
+                                            <v-list
+                                                class="color"
+                                                style="background-color: rgb(15, 15, 15);"
+                                                density="compact"
+                                                min-width="250"
+                                                rounded="lg"
+                                                slim
+                                            >
+                                                <v-list-item
+                                                    title="Editar"
+                                                    link
+                                                    @click="displayFormEditExpense(expense)"
+                                                ></v-list-item>
+                                                <v-list-item
+                                                    title="Excluir"
+                                                    link
+                                                    @click="deletar(expense.id)"
+                                                ></v-list-item>
+                                            </v-list>
+                                        </v-menu>
+                                    </span>
+                                </div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between">
+                                <span class="categoria">
+                                    {{ expense.descricao}}
+                                </span>
+                                <span class="categoria">
+                                    R$ {{ formatValue(expense.valor) }}
+                                </span>
+                            </div>
+                            <div>
+                                <span class="sub__categoria">
+                                    {{ expense.categoria }}
+                                </span>
+                                <span class="sub__categoria">
+                                    {{ expense.categoria }}
                                 </span>
                             </div>
                         </div>
-                        <div style="display: flex; justify-content: space-between">
-                            <span class="categoria">
-                                {{ expense.descricao}}
-                            </span>
-                            <span class="categoria">
-                                R$ {{ formatValue(expense.valor) }}
-                            </span>
-                        </div>
-                        <div>
-                            <span class="sub__categoria">
-                                {{ expense.categoria }}
-                            </span>
-                            <span class="sub__categoria">
-                                {{ expense.categoria }}
-                            </span>
-                        </div>
                     </div>
                 </div>
-            </div>
+        </div>
     </div>
+    <NoDataComponent v-else />
   </div>
 </template>
 
 <script setup lang="ts">
 import Card from "@/components/Card.vue";
+import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
 
 import { ref, reactive, type Ref } from "vue";
 

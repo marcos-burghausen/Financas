@@ -296,104 +296,107 @@
         <!-- ==================== fim formulario editar receita ====================== -->
         <!-- ========================================================================= -->
 
-        <div
-            v-if="!formStoreRevenue && !formEditRevenue"
-            class="container-fluid"
-        >
-
+        <div v-if="revenuesMonth && revenuesMonth.length > 0" >
             <div
-                class="container__table"
-                v-for="(revenue, key) in revenuesMonth"
-                :key="revenue.id"
-                >
-                <div class="card__lancamento">
-                        <!-- :class="{ recebida: revenue.status === 'RECEBIDA' }" -->
-                    <div class="mdicon__card"
-                        :disabled="revenue.status === 'RECEBIDA'"
-                        @click="receivedRevenue(revenue)"
+                v-if="!formStoreRevenue && !formEditRevenue"
+                class="container-fluid"
+            >
+                <div
+                    class="container__table"
+                    v-for="(revenue, key) in revenuesMonth"
+                    :key="revenue.id"
                     >
-                        <mdicon
-                            :name="revenue.status === 'RECEBIDA' ? 'check' : (new Date() <= new Date (revenue.date) ? 'alert' : 'alert-remove')"
-                            class="mdicon__lacamento"
-                            :class="{ 
-                                paga: revenue.status === 'RECEBIDA', 
-                                'atrasada': new Date() > new Date(revenue.date) && revenue.status === 'AGUARDANDO',
-                                'aguardando': new Date() <= new Date(revenue.date) && revenue.status === 'AGUARDANDO', 
-                            }"
-                            size="30"
-                        />
-                    </div>
-                    <div style="width: 100%;">
-                        <div class="header__visao_geral">
-                            <span style="text-align: start;">
-                                {{ revenue.carteira}}
-                            </span>
-                            <div>
-                                <span>
-                                    {{ revenue.date }}
+                    <div class="card__lancamento">
+                            <!-- :class="{ recebida: revenue.status === 'RECEBIDA' }" -->
+                        <div class="mdicon__card"
+                            :disabled="revenue.status === 'RECEBIDA'"
+                            @click="receivedRevenue(revenue)"
+                        >
+                            <mdicon
+                                :name="revenue.status === 'RECEBIDA' ? 'check' : (new Date() <= new Date (revenue.date) ? 'alert' : 'alert-remove')"
+                                class="mdicon__lacamento"
+                                :class="{ 
+                                    paga: revenue.status === 'RECEBIDA', 
+                                    'atrasada': new Date() > new Date(revenue.date) && revenue.status === 'AGUARDANDO',
+                                    'aguardando': new Date() <= new Date(revenue.date) && revenue.status === 'AGUARDANDO', 
+                                }"
+                                size="30"
+                            />
+                        </div>
+                        <div style="width: 100%;">
+                            <div class="header__visao_geral">
+                                <span style="text-align: start;">
+                                    {{ revenue.carteira}}
                                 </span>
-                                <span>
-                                    <mdicon
-                                        name="dots-vertical"
-                                        class="mdicon"
-                                        size="25"
-                                    />
-                                    <v-menu
-                                        activator="parent"
-                                        location="bottom end"
-                                        transition="fade-transition"
-                                        >
-                                            <!-- style="background-color: rgb(15, 15, 15); box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;" -->
-                                        <v-list
-                                            class="color"
-                                            style="background-color: rgb(15, 15, 15);"
-                                            density="compact"
-                                            min-width="250"
-                                            rounded="lg"
-                                            slim
-                                        >
-                                            <v-list-item
-                                                title="Editar"
-                                                link
-                                                @click="displayFormEditRevenue(revenue)"
-                                            ></v-list-item>
-                                            <v-list-item
-                                                title="Excluir"
-                                                link
-                                                @click="deletar(revenue.id)"
-                                            ></v-list-item>
+                                <div>
+                                    <span>
+                                        {{ revenue.date }}
+                                    </span>
+                                    <span>
+                                        <mdicon
+                                            name="dots-vertical"
+                                            class="mdicon"
+                                            size="25"
+                                        />
+                                        <v-menu
+                                            activator="parent"
+                                            location="bottom end"
+                                            transition="fade-transition"
+                                            >
+                                                <!-- style="background-color: rgb(15, 15, 15); box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;" -->
+                                            <v-list
+                                                class="color"
+                                                style="background-color: rgb(15, 15, 15);"
+                                                density="compact"
+                                                min-width="250"
+                                                rounded="lg"
+                                                slim
+                                            >
+                                                <v-list-item
+                                                    title="Editar"
+                                                    link
+                                                    @click="displayFormEditRevenue(revenue)"
+                                                ></v-list-item>
+                                                <v-list-item
+                                                    title="Excluir"
+                                                    link
+                                                    @click="deletar(revenue.id)"
+                                                ></v-list-item>
 
-                                        </v-list>
-                                    </v-menu>
+                                            </v-list>
+                                        </v-menu>
+                                    </span>
+                                </div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between">
+                                <span class="categoria">
+                                    {{ revenue.descricao}}
+                                </span>
+                                <span class="categoria">
+                                    R$ {{ formatValue(revenue.valor) }}
                                 </span>
                             </div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between">
-                            <span class="categoria">
-                                {{ revenue.descricao}}
-                            </span>
-                            <span class="categoria">
-                                R$ {{ formatValue(revenue.valor) }}
-                            </span>
-                        </div>
-                        <div>
-                            <span class="sub__categoria">
-                                {{ revenue.categoria }}
-                            </span>
-                            <span class="sub__categoria">
-                                {{ revenue.categoria }}
-                            </span>
+                            <div>
+                                <span class="sub__categoria">
+                                    {{ revenue.categoria }}
+                                </span>
+                                <span class="sub__categoria">
+                                    {{ revenue.categoria }}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        <NoDataComponent v-else />
     </div>
 </template>
 
 <script setup lang="ts">
 import Card from "@/components/Card.vue";
 import FormLancamentos from "@/components/FormLancamentos.vue";
+import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
 
 import { ref, reactive, computed, onMounted, type Ref } from "vue";
 
