@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('icon', 20)->default('');
             $table->integer('saldo')->default(0);
             $table->integer('saldo_inicial')->default(0);
+            $table->integer('incluir_em_soma_inicial')->default(false);
             $table->string('descricao', 50)->nullable();
             $table->string('tipo', 50);
             $table->timestamps();

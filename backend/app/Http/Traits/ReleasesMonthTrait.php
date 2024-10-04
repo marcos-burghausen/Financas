@@ -2,13 +2,16 @@
 
 namespace App\Http\Traits;
 
+use App\Models\Conta;
 use DateTime;
 
 trait ReleasesMonthTrait
 {
-    public function classifiesReleases(object $lacamentos, string $tipoLancamentos, $mes = null): array
+    public function classifiesReleases(object $lacamentos, string $tipoLancamentos, $data = null): array
     {
-        $mes = $mes ?? date('m');
+        $mes = $data ?? date('Y-m');
+        // $mes = DateTime::createFromFormat('Y-m', $data)->format('m');
+        // info('mes ' . $mes);
 
         $status = 'PAGA';
         $type = 'Pay';
@@ -16,20 +19,23 @@ trait ReleasesMonthTrait
             $status = 'RECEBIDA';
             $type = 'Received';
         }
+        // $lacamentosMes = $this->lancamentosMes($lacamentos, $mes);
+        // info(['lacamentosMes ' => $lacamentosMes]);
 
         $valorRecebidoOuPago = $this->valorPendenteMes($lacamentos, $mes, $status);
-        $valuePending = $this->valorPendente($lacamentos, "AGUARDANDO", $mes);
+        // dd($valorRecebidoOuPago);
+        $valuePending = $this->valorPendenteMes($lacamentos, $mes, "AGUARDANDO");
         // $valuePending = $this->valuePending($releases, date('m'), "AGUARDANDO");
         $valorTotalMes = $this->valorLancamentosMes($lacamentos, $mes);
-        $releasesgroupByMonth = $this->groupByMonth($lacamentos);
-        $addTotalValueMonth = $this->addTotalValueMonth($releasesgroupByMonth);
+        // $releasesgroupByMonth = $this->groupByMonth($lacamentos);
+        // $addTotalValueMonth = $this->addTotalValueMonth($releasesgroupByMonth);
         $releasesMonth = $this->lancamentosMes($lacamentos, $mes);
         $Data = [
             "Value{$type}{$tipoLancamentos}" => $valorRecebidoOuPago,
             "ValuePending{$tipoLancamentos}" => $valuePending,
             "ValueTotal{$tipoLancamentos}Month" => $valorTotalMes,
-            "{$tipoLancamentos}GroupByMonth" => $releasesgroupByMonth,
-            "{$tipoLancamentos}AddTotalValueMonth" => $addTotalValueMonth,
+            // "{$tipoLancamentos}GroupByMonth" => $releasesgroupByMonth,
+            // "{$tipoLancamentos}AddTotalValueMonth" => $addTotalValueMonth,
             "{$tipoLancamentos}Month" => $releasesMonth,
         ];
 
@@ -78,8 +84,12 @@ trait ReleasesMonthTrait
     public function lancamentosMes(object $lancamentos, string $mes): array
     {
         $lancamentosMes = [];
+        $dataInicio = "{$mes}-01";
+        // info('dataInicio ' . $dataInicio);
+        $dataFim = (new DateTime($dataInicio))->format("Y-m-t");
+        // info('dataFim ' . $dataFim);
         foreach ($lancamentos as $lancamento) {
-            if ($lancamento && strtotime($lancamento->date) >= strtotime(date("Y/{$mes}/01")) && strtotime($lancamento->date) <= strtotime(date("Y/{$mes}/t"))) {
+            if ($lancamento && $lancamento->date >= $dataInicio && $lancamento->date <= $dataFim) {
                 $lancamentosMes[] = $lancamento;
             }
         }
@@ -100,14 +110,14 @@ trait ReleasesMonthTrait
     public function valorPendenteMes(object $lancamentos, string $mes, string $status): int
     {
         $lancamentosMes = $this->lancamentosMes($lancamentos, $mes);
-        $valorPendenteMes = [];
+        // dd($lancamentosMes);
+        $valorPendenteMes = 0;
         foreach ($lancamentosMes as $lancamento) {
             if ($lancamento->status === $status) {
-                $valorPendenteMes[] = $lancamento->valor;
+                $valorPendenteMes += $lancamento->valor;
             }
         }
-        info($valorPendenteMes);
-        return $valorPendenteMes = array_sum($valorPendenteMes);
+        return $valorPendenteMes; //= array_sum($valorPendenteMes);
     }
     public function valorPendente(object $data, string $status): int
     {
@@ -180,5 +190,65 @@ trait ReleasesMonthTrait
             $releases[] = $release;
         }
         return $formattedValue;
+    }
+
+    public function obterSaldoInicial(object $user, $mes = null): float
+    {
+        $mes = $mes ?? date('Y-m');
+        $user = auth()->user();
+        $contas = $user->contas()->get();
+        $somaSaldo = $user->contas()
+            ->where('incluir_em_soma_inicial', true)
+            ->sum('saldo_inicial');
+        $saldoInicial = 0;
+        // $despesas = $user->expenses()->get();
+        // $receitas = $user->revenues()->get();
+
+        $dataLimite = (new DateTime("$mes-01"))->modify('-1 day')->format('Y-m-d');
+
+        foreach ($contas as $conta) {
+            if ($conta->incluir_em_soma_inicial) {
+                $despesas = $user->expenses()
+                    ->where('carteira', $conta->name)
+                    ->where('status', 'PAGA')
+                    ->where('date', '<=', $dataLimite)
+                    ->sum('valor');
+                // ->get();
+                $receitas = $user->revenues()
+                    ->where('carteira', $conta->name)
+                    ->where('status', 'RECEBIDA')
+                    ->where('date', '<=', $dataLimite)
+                    ->sum('valor');
+                $saldoInicial = $somaSaldo + $receitas - $despesas;
+            }
+        }
+
+        return $saldoInicial; // Retorna o saldo inicial formatado
+    }
+
+    public function obterSaldoAtual(object $user, $mes = null): float
+    {
+        $mes = $mes ?? date('Y-m');
+        $contas = $user->contas()->get();
+        $saldoAtual = 0;
+        foreach ($contas as $conta) {
+            if ($conta->incluir_em_soma_inicial) {
+                $despesas = $user->expenses()
+                    ->where('carteira', $conta->name)
+                    ->where('status', 'PAGA')
+                    ->where('date', '<=', "$mes-31")
+                    ->sum('valor');
+
+                $receitas = $user->revenues()
+                    ->where('carteira', $conta->name)
+                    ->where('status', 'RECEBIDA')
+                    ->where('date', '<=', "$mes-31")
+                    ->sum('valor');
+
+                $saldoAtual = $receitas - $despesas;
+            }
+        }
+
+        return $saldoAtual;
     }
 }

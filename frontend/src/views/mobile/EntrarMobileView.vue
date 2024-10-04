@@ -113,10 +113,10 @@ const useWallets = useWalletsStore();
 const useUser = useUserStore();
 const errorStore = useErrorStore();
 const user: Ref<FormLogin> = ref({
-  // email: "rafaelburghausen@gmail.com",
-  // password: "Teste123@",
-  email: "",
-  password: "",
+  email: "rafaelburghausen@gmail.com",
+  password: "Teste123@",
+  // email: "",
+  // password: "",
 });
 const router = useRouter();
 const data = userData();
@@ -147,6 +147,8 @@ async function login() {
     useExpenses.setExpensesData(response.data.userData.expensesData);
     useRevenues.setRevenuesData(response.data.userData.revenuesData);
     useWallets.setWalletsData(response.data.userData.walletsData);
+    // useUser.setMesAno(response.data.userData.mes_ano_referencia);
+    // useWallets.setSaldoInicial(response.data.userData.walletsData.saldoInicial);
     // data.setTotalCreditCard(response.data.userData.totalCreditCard);
     // data.setTotalBalance(response.data.userData.totalBalance);
 

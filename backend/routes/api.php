@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BuscaDadosMesCntroller;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\WalletsController;
 use App\Http\Controllers\ExpenseController;
@@ -56,6 +57,9 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('/get-wallets', [WalletsController::class, 'getWallets']);
 
 
-    Route::post('save-category', [CategoryController::class, 'saveCategory']);
-    Route::post('delete-category', [CategoryController::class, 'deleteCategory']);
+    Route::post('/save-category', [CategoryController::class, 'saveCategory']);
+    Route::post('/delete-category', [CategoryController::class, 'deleteCategory']);
+
+
+    Route::post('/buscar-dados-mes', [BuscaDadosMesCntroller::class, 'buscarDadosMes']);
 });

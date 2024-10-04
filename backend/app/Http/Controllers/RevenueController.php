@@ -63,14 +63,13 @@ class RevenueController extends Controller
         if (!$saved) {
             return response()->json(Errors::ERROR_REGISTERING_REVENUE->response());
         }
+
         DB::commit();
 
-        $revenuesData = $this->classifiesReleases(auth()->user()->revenues()->get(), 'Revenues');
-
-
-        $wallets = [
+        $revenuesData = $this->classifiesReleases(auth()->user()->revenues()->get(), 'Revenues', $request->mesReferencia);
+        $walletsData = [
             'wallets' => auth()->user()->contas()->get(),
-            'walletsNames' => auth()->user()->contas()->pluck("name"),
+            'saldoInicial' => $this->obterSaldoInicial($user, $request->mesReferencia),
         ];
 
         Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Receita', $revenue->descricao));
@@ -78,7 +77,7 @@ class RevenueController extends Controller
         return response()->json([
             'success' => 'Receita cadastrada com sucesso',
             'revenuesData' => $revenuesData,
-            'walletsData' => $wallets,
+            'walletsData' => $walletsData,
         ], 200);
     }
 
@@ -98,22 +97,20 @@ class RevenueController extends Controller
         $carteira = Conta::where("user_id", auth()->user()->id)
             ->where("name", $request->carteira)
             ->first();
-        info($carteira);
 
         if ($carteira) {
             $carteira->saldo += str_replace([',', '.'], '', $revenue->valor);
             $carteira->save();
         }
-        info($carteira);
+
         DB::commit();
 
-        $revenuesData = $this->classifiesReleases(auth()->user()->revenues()->get(), 'Revenues');
+        $user = auth()->user();
+        $revenuesData = $this->classifiesReleases(auth()->user()->revenues()->get(), 'Revenues', $request->mesReferencia);
         $wallets = [
             'wallets' => auth()->user()->contas()->get(),
-            'walletsNames' => auth()->user()->contas()->pluck("name"),
+            'saldoInicial' => $this->obterSaldoInicial($user, $request->mesReferencia),
         ];
-
-        $user = auth()->user();
 
         Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Receita', $revenue->descricao));
 
@@ -126,6 +123,8 @@ class RevenueController extends Controller
 
     public function editRevenue(Request $request)
     {
+        DB::beginTransaction();
+
         $add = false;
         $sub = false;
         $revenue = Revenue::find($request->id);
@@ -136,6 +135,7 @@ class RevenueController extends Controller
         if ($request->status === 'AGUARDANDO' && $revenue->status === 'RECEBIDA' || $request->valor < $revenue->valor) {
             $sub = true;
         }
+
         $revenue->valor = str_replace([',', '.'], '', $request->valor);
         $revenue->date = $request->date;
         $revenue->descricao = $request->descricao;
@@ -158,43 +158,53 @@ class RevenueController extends Controller
         if ($carteira && $sub) {
             $carteira->saldo -= $revenue->valor;
         }
-        $carteira->save();
-        info($carteira);
 
-        $revenuesData = $this->classifiesReleases(auth()->user()->revenues()->get(), 'Revenues');
+        $carteira->save();
+
+        DB::commit();
 
         $user = auth()->user();
+        $revenuesData = $this->classifiesReleases(auth()->user()->revenues()->get(), 'Revenues', $request->mesReferencia);
+        $wallets = [
+            'wallets' => auth()->user()->contas()->get(),
+            'saldoInicial' => $this->obterSaldoInicial($user, $request->mesReferencia),
+        ];
+
 
         Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Receita', $revenue->descricao));
 
         return response()->json([
             'msg' => 'Receita editada com sucesso',
             'revenuesData' => $revenuesData,
-            'walletsData' => [
-                'wallets' => auth()->user()->contas()->get(),
-                'walletsNames' => auth()->user()->contas()->pluck("name"),
-            ],
+            'walletsData' => $wallets,
         ], 200);
     }
 
     public function deleteRevenue(Request $request)
     {
+        DB::beginTransaction();
         $revenue = Revenue::find($request->id);
 
         $deleted = Revenue::destroy($request->id);
         if (!$deleted) {
             return response()->json(Errors::ERROR_DELETING_REVENUE->response());
         }
-
-        $revenuesData = $this->classifiesReleases(auth()->user()->revenues()->get(), 'Revenues');
+        DB::commit();
 
         $user = auth()->user();
+        $revenuesData = $this->classifiesReleases(auth()->user()->revenues()->get(), 'Revenues', $request->mesReferencia);
+        $walletsData = [
+            'wallets' => auth()->user()->contas()->get(),
+            'saldoInicial' => $this->obterSaldoInicial($user, $request->mesReferencia),
+        ];
+
 
         Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Receita', $revenue->descricao));
 
         return response()->json([
             'msg' => 'Receita alterada com sucesso',
             'revenuesData' => $revenuesData,
+            'walletsData' => $walletsData,
         ], 200);
     }
 

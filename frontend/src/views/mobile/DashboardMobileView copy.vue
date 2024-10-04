@@ -7,7 +7,10 @@
     
         <CabecalhoMobile
             :menu-expandido="menuExpandido"
+            :mes-referencia="mesPorExtenso"
             @expandirMenu="menuExpandido = !menuExpandido"
+            @mesAnterior="mesAnterior"
+            @proximoMes="proximoMes"
         />
         
         <div class="container__saldo__conta d-flex justify-content-center">
@@ -17,19 +20,19 @@
                     Inicial
                     </span>
                 <div style="display:flex; align-items: center;">
-                    <span :style="{ color: totalBalance < 0 ? 'red' : '#757575' }" style="font-size: 13px;">
-                        R$ {{ formatValue(totalBalance) }}
+                    <span :style="{ color: saldoInicial < 0 ? 'red' : '#757575' }" style="font-size: 13px;">
+                        R$ {{ formatValue(saldoInicial) }}
                     </span>
                 </div>
             </div>
             <div class=" d-flex flex-column align-center justify-content-end">
                 <span class="fs-5" style=" color: #757575;">
-                    <mdicon :name="totalBalance < 0 ? 'minus-circle-outline' : 'plus-circle-outline'" size="22"/>
+                    <mdicon :name="totalBalance < 0 ? 'minus-circle-outline' : totalBalance > 0 ? 'heart-circle' : 'circle-outline'" size="22"/>
                     Saldo
                 </span>
                 <div style="display:flex; align-items: center;">
                     <!-- <dir style="background: green; width:5px; height: 45px; margin-inline-end: 10px; margin-top: 5px;"></dir> -->
-                    <span :style="{ color: totalBalance < 0 ? 'red' : 'green' }"  style="font-size: 18px;">
+                    <span :style="{ color: totalBalance < 0 ? 'red' : totalBalance > 0 ? 'green' : '#757575' }"  style="font-size: 18px;">
                         R$ {{ formatValue(totalBalance) }}
                     </span>
                 </div>
@@ -82,7 +85,7 @@
                 </div>
             </router-link>
             <router-link :to="{name: 'despesas'}" style="display:flex; align-items: center; text-decoration: none;">
-                <dir style="border-inline-start: solid 5px red; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
+                <div style="border-inline-start: solid 5px red; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
                     <div class="tipo__lancamento">
                         <span class="lancamento">
                             Despesas
@@ -99,7 +102,7 @@
                             R$ {{ formatValue(valueTotalExpensesMonth) }}
                         </span>
                     </div>
-                </dir>
+                </div>
             </router-link>
             <!-- <div style="display:flex; align-items: center;">
                 <div style="border-inline-start: solid 5px orange; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
@@ -203,17 +206,20 @@
 import CabecalhoMobile from "@/components/mobile/CabecalhoMobile.vue";
 import MenuLateralMobile from "@/components/mobile/MenuLateralMobile.vue";
 
-import { ref } from "vue";
+import { computed, ref } from "vue";
 
 import { useExpensesStore } from "@/store/expenses";
 import { useRevenuesStore } from "@/store/revenues";
 import { formatValue } from "@/utils/formatValue";
 import { useAuthStore } from "@/store/auth.js";
+import { useWalletsStore } from "@/store/wallets";
+import http from "@/services/http";
 
 const useAuth = useAuthStore();
 
 const useExpenses = useExpensesStore();
 const useRevenues = useRevenuesStore();
+const useWallets = useWalletsStore();
 
 const menuExpandido = ref(false);
 
@@ -222,22 +228,88 @@ const menuExpandido = ref(false);
 //     let valueFormatted = (value / 100).toLocaleString("pt-BR", { style: "decimal", minimumFractionDigits: 2, maximumFractionDigits: 2 });
 //     return valueFormatted;
 // };
-
+// console.log(mesAnoReferencia.value);
+// const mesPorExtenso = mesAnoReferencia ? mesAnoReferencia.value.split(" ")[0] : '';
+let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
+let saldoInicial = ref(useWallets.walletsData?.saldoInicial);
 let valueTotalExpensesMonth = ref(useExpenses.expensesData.expenses?.ValueTotalExpensesMonth);
 let valueTotalRevenuesMonth = ref(useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth);
-let valorPrevisto = ref(valueTotalRevenuesMonth.value - valueTotalExpensesMonth.value);
+let totalBalance = ref(useWallets.walletsData?.wallets[0].saldo);
+let valorPrevisto = ref(saldoInicial.value + valueTotalRevenuesMonth.value - valueTotalExpensesMonth.value);
 let valuePay = ref(useExpenses.expensesData.expenses?.ValuePayExpenses);
 let valueReceived = ref(useRevenues.revenuesData.revenues?.ValueReceivedRevenues);
-let totalBalance = ref(valueReceived.value - valuePay.value);
 // let totalCreditCard = ref(0);
 // let expensesAddTotalValueMonth = ref(useExpenses.expensesData.expenses?.ExpensesAddTotalValueMonth);
 // let revenuesAddTotalValueMonth = ref(useRevenues.revenuesData.revenues?.RevenuesAddTotalValueMonth);
 let totalByCategoryExpenses = ref(useExpenses.expensesData.expenses?.TotalByCategoryExpenses);
-let valuePendingRevenues = ref(formatValue(useRevenues.revenuesData.revenues?.ValuePendingRevenues));
-let valuePendingExpenses = ref(formatValue(useExpenses.expensesData.expenses?.ValuePendingExpenses));
+let valuePendingRevenues = ref(useRevenues.revenuesData.revenues?.ValuePendingRevenues);
+let valuePendingExpenses = ref(useExpenses.expensesData.expenses?.ValuePendingExpenses);
 
 const isAllZeros = (arr) => {
     return arr.every(value => value === "0,00");
+};
+
+
+const mesPorExtenso = computed(() => {
+    if (!mesAnoReferencia.value) return '';
+
+    const [ano, mes] = mesAnoReferencia.value.split("-");
+
+    const mesesPorExtenso = [
+        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+    ];
+
+    return mesesPorExtenso[parseInt(mes, 10) - 1];
+});
+
+const mesAnterior = () => {
+    const [ano, mes] = mesAnoReferencia.value.split("-");
+    const dataAtual = new Date(ano, mes - 1);
+    dataAtual.setMonth(dataAtual.getMonth() - 1);
+    mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(dataAtual.getMonth() + 1).padStart(2, '0')}`;
+    buscarDadosMes(mesAnoReferencia.value, 'anterior');
+};
+
+const proximoMes = () => {
+    const [ano, mes] = mesAnoReferencia.value.split("-");
+    const dataAtual = new Date(ano, mes - 1);
+    dataAtual.setMonth(dataAtual.getMonth() + 1);
+    mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(dataAtual.getMonth() + 1).padStart(2, '0')}`;
+    buscarDadosMes(mesAnoReferencia.value, 'proximo');
+};
+
+const buscarDadosMes = async (data: string, buscar: string) => {
+    try {
+        const res = await http.post('/buscar-dados-mes', {
+            'mes': data,
+            'buscar': buscar
+        });   
+        useWallets.setMesReferencia(res.data.walletsData.mes_ano_referencia);
+        useExpenses.setExpensesData(res.data.expensesData);
+        useRevenues.setRevenuesData(res.data.revenuesData);
+        useWallets.setWalletsData(res.data.walletsData);
+
+        mesAnoReferencia.value = res.data.walletsData.mes_ano_referencia;
+
+        saldoInicial.value = res.data.walletsData.saldoInicial;
+        totalBalance.value = res.data.walletsData.wallets[0].saldo;
+
+        valueTotalExpensesMonth.value = res.data.expensesData.ValueTotalExpensesMonth;
+        valueTotalRevenuesMonth.value = res.data.revenuesData.ValueTotalRevenuesMonth;
+
+        valorPrevisto.value = saldoInicial.value + valueTotalRevenuesMonth.value - valueTotalExpensesMonth.value;
+        
+        valuePay.value = res.data.expensesData.ValuePayExpenses;
+        valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
+
+        totalByCategoryExpenses.value = res.data.expensesData.TotalByCategoryExpenses;
+
+        valuePendingRevenues.value = res.data.revenuesData.ValuePendingRevenues;
+        valuePendingExpenses.value = res.data.expensesData.ValuePendingExpenses;
+    } catch (error) {
+        // 
+    }
 };
 
 // =============================== grafico de barras inicio =============================== //

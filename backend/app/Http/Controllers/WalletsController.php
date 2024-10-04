@@ -15,19 +15,19 @@ class WalletsController extends Controller
     {
         $data = $request->validate(
             [
-                'valor' =>[
+                'valor' => [
                     'nullable',
                     'max:40',
                     'regex:/^[0-9,.]+$/'
                 ],
-                'instituicaoFinanceira' =>[
+                'instituicaoFinanceira' => [
                     'required',
                     'min:2',
                     'max:20',
                     'unique:contas,name',
                     'regex:/^[a-zA-ZÀ-ÿ\s]+$/'
                 ],
-                'descricao' =>[
+                'descricao' => [
                     "nullable",
                     'max:50',
                     'regex:/^[a-zA-ZÀ-ÿ\s]+$/'
@@ -59,16 +59,17 @@ class WalletsController extends Controller
         $user = auth()->user();
 
         try {
-            $carteira = new Conta();
-            $carteira->user_id = $request->user_id;
-            $carteira->name = $request->instituicaoFinanceira;
+            $carteira                    = new Conta();
+            $carteira->user_id           = $request->user_id;
+            $carteira->name              = $request->instituicaoFinanceira;
             if ($request->valor) {
-                $carteira->saldo = str_replace([',', '.'], '', $request->valor);
+                $carteira->saldo         = str_replace([',', '.'], '', $request->valor);
+                $carteira->saldo_inicial = str_replace([',', '.'], '', $request->valor);
             }
-            $carteira->descricao = $request->descricao;
-            $carteira->tipo = $request->tipoConta;
-            $carteira->save();  
-            
+            $carteira->descricao         = $request->descricao;
+            $carteira->tipo              = $request->tipoConta;
+            $carteira->save();
+
             DB::commit();
         } catch (\Throwable $e) {
             info($e);

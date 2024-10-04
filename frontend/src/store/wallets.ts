@@ -11,20 +11,31 @@ export const useWalletsStore = defineStore("wallets", () => {
             : "");
 
 
-    function setWalletsData(wallets: Array<Wallets>): void {
-        walletsData.value = {
-            wallets
-        };
+    function setWalletsData(wallets: Wallets): void {
+            walletsData.value = wallets;
         localStorage.setItem("walletsData", JSON.stringify(walletsData.value));
     }
 
-    function setWallets(wallets) {
+    function setWallets(wallets: Wallets) {
         walletsData.value.wallets = wallets;
+        localStorage.setItem("walletsData", JSON.stringify(walletsData.value));
+    }
+    
+    function setSaldoInicial(saldoInicial: number) {
+        walletsData.value.saldoInicial = saldoInicial;
+        localStorage.setItem("walletsData", JSON.stringify(walletsData.value));
+    }
+
+    function setMesReferencia(mesReferencia: string) {
+        walletsData.value.mes_ano_referencia = mesReferencia;
+        localStorage.setItem("walletsData", JSON.stringify(walletsData.value));
     }
 
     return {
         walletsData,
         setWalletsData,
-        setWallets
+        setWallets,
+        setSaldoInicial,
+        setMesReferencia
     };
 });

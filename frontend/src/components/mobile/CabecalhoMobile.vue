@@ -11,12 +11,14 @@
                 name="chevron-left"
                 class="mdicon"
                 size="30"
+                @click="$emit('mesAnterior')"
             />
-            <span class="mes"> setembro </span>
+            <span class="mes"> {{mesReferencia}} </span>
             <mdicon
                 name="chevron-right"
                 class="mdicon"
                 size="30"
+                @click="$emit('proximoMes')"
             />
         </div>
         <div class="d-flex justify-space-around">
@@ -74,9 +76,12 @@ import http from "@/services/http";
 import { ref } from "vue";
 import { useUserStore } from "@/store/user";
 
-// const props = defineProps({
-//     menuExpandido: Boolean
-// });
+const props = defineProps({
+    mesReferencia: {
+    type: String,
+    default: ''
+  }
+});
 // const titulo = computed(() => props.name);
 const router = useRouter();
 const useAuth = useAuthStore();

@@ -1,8 +1,8 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
-import type { UserDAta } from "@/types/userData";
 import type { Category } from "@/types/category";
+import type { UserDAta } from "@/types/userData";
 
 export const useUserStore = defineStore("user", () => {
     // state
@@ -10,6 +10,9 @@ export const useUserStore = defineStore("user", () => {
         localStorage.getItem("user")
             ? JSON.parse(localStorage.getItem("user") as string)
             : "");
+    const mesAno = ref(
+        localStorage.getItem("mesAno")
+    );
 
     // getters
     const getCarteias = () => {
@@ -32,11 +35,19 @@ export const useUserStore = defineStore("user", () => {
         localStorage.setItem("user", JSON.stringify(user.value));
     }
 
+    function setMesAno(mes_ano: string) {
+        console.log(mes_ano);
+        mesAno.value = mes_ano;
+        localStorage.setItem("mesAno", JSON.stringify(mesAno.value));
+        
+    }
+
 
     return {
         user,
         getCarteias,
         setUserData,
+        setMesAno,
         setCategoriasDespesas,
         setCategoriasReceitas,
     };

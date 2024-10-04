@@ -268,8 +268,11 @@ class AuthController extends Controller
             'expensesData' => $this->classifiesReleases($user->expenses()->get(), 'Expenses'),
             'revenuesData' => $this->classifiesReleases($user->revenues()->get(), 'Revenues'),
             'walletsData' => [
+                'mes_ano_referencia' => date('Y-m'),
                 'wallets' => $user->contas()->get(),
                 'walletsNames' => $user->contas()->pluck("name"),
+                'saldoInicial' => $this->obterSaldoInicial($user),
+                // 'saldoAtual' => $this->obterSaldoAtual($user),
             ],
         ];
     }

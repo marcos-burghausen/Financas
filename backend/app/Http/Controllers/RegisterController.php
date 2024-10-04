@@ -18,7 +18,7 @@ class RegisterController extends Controller
     {
         $data = $request->validate(
             [
-                'name' =>[
+                'name' => [
                     'required',
                     'min:3',
                     'regex:/^[a-zA-ZÀ-ÿ\s]+$/'
@@ -42,7 +42,7 @@ class RegisterController extends Controller
                 'email.regex'              => 'O campo email deve ter um formato válido',
                 'password.required'        => 'O campo senha é obrigatório',
                 'password.regex'           => 'A senha deve ter pelo menos 8 caracteres sendo uma letra maiúcula, uma minúscula, um número e um caracter especial exeto aspas simples e dupla',
-  //              'confirmPassword.required' => 'O campo confirmação de senha é obrigatório',
+                //              'confirmPassword.required' => 'O campo confirmação de senha é obrigatório',
             ]
         );
 
@@ -63,14 +63,16 @@ class RegisterController extends Controller
             $user->save();
 
             $lastUser = User::latest('id')->first();
-            
-            $carteira            = new Conta;
-            $carteira->user_id   = $lastUser->id;
-            $carteira->name      = "Pessoal";
-            $carteira->icon      = "cash";
-            $carteira->descricao = "Carteira de uso pessoal";
-            $carteira->tipo      = "Pessoal";
-            $saved               = $carteira->save();
+
+            $carteira                          = new Conta;
+            $carteira->user_id                 = $lastUser->id;
+            $carteira->name                    = "Pessoal";
+            $carteira->icon                    = "cash";
+            $carteira->saldo_inicial           = 0;
+            $carteira->incluir_em_soma_inicial = true;
+            $carteira->descricao               = "Carteira de uso pessoal";
+            $carteira->tipo                    = "Pessoal";
+            $saved                             = $carteira->save();
             DB::commit();
         } catch (\Throwable $e) {
             info($e);

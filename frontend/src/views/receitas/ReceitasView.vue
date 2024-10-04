@@ -20,7 +20,7 @@
                     <span
                         class="valor"
                     >
-                        R$ {{ valueTotalRevenuesMonth }}
+                        R$ {{ formatValue(valueTotalRevenuesMonth) }}
                     </span>
                 </div>
                 <!-- <div>
@@ -47,12 +47,14 @@
                 name="chevron-left"
                 class="mdicon"
                 size="30"
+                @click="mesAnterior()"
             />
-            <span class="mes"> setembro </span>
+            <span class="mes"> {{mesPorExtenso}}  </span>
             <mdicon
                 name="chevron-right"
                 class="mdicon"
                 size="30"
+                @click="proximoMes()"
             />
         </div>
         <button
@@ -393,7 +395,7 @@
 import Card from "@/components/Card.vue";
 import FormLancamentos from "@/components/FormLancamentos.vue";
 
-import { ref, reactive, onMounted, type Ref } from "vue";
+import { ref, reactive, computed, onMounted, type Ref } from "vue";
 
 import type { Lancamentos } from "@/types/lancamentos";
 
@@ -406,8 +408,10 @@ import http from "@/services/http";
 import type { RevenueEdit } from "@/types/revenueEdit";
 import { useAuthStore } from "@/store/auth";
 import { useWalletsStore } from "@/store/wallets";
+import { useExpensesStore } from "@/store/expenses";
 
 
+const useExpenses = useExpensesStore();
 const useRevenues = useRevenuesStore();
 const userStore = useUserStore();
 const useWallets = useWalletsStore();
@@ -418,7 +422,8 @@ let validFormLancamentos = ref(false);
 let validFormEdit = ref(false);
 let loading = ref(false);
 
-let valueTotalRevenuesMonth = ref(formatValue(useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth));
+let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
+let valueTotalRevenuesMonth = ref(useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth);
 let valuePending = ref(formatValue(useRevenues.revenuesData.revenues?.ValuePendingRevenues));
 let revenuesMonth = ref(useRevenues.revenuesData.revenues?.RevenuesMonth);
 // console.log(revenuesMonth.value);
@@ -429,7 +434,7 @@ const categoriasNames = ref([]);
 userStore.user.categoriasReceitas.forEach((categoria) => {
     categoriasNames.value.push(categoria.name);
 });
-let carteiras = ref(useWallets.walletsData.wallets.walletsNames);
+let carteiras = ref(useWallets.walletsData.walletsNames);
 let errorsForm = ref({ errors: {} });
 let formStoreRevenue = ref(false);
 let formEditRevenue = ref(false);
@@ -443,7 +448,8 @@ let revenueEdit: Ref<RevenueEdit> = ref({
     carteira: "",
     status: "",
     created_at: "",
-    updated_at: ""
+    updated_at: "",
+    mesReferencia: mesAnoReferencia.value
 });
 const revenueUnedited: Ref<RevenueEdit> = ref({
     valor: "",
@@ -459,11 +465,63 @@ let release: Ref<Lancamentos> = ref({
     descricao: "",
     categoria: "",
     carteira: "",
-    status: ""
+    status: "",
+    mesReferencia: mesAnoReferencia.value
 });
 
 // onMounted( () => {
 // });
+
+const mesPorExtenso = computed(() => {
+    if (!mesAnoReferencia.value) return '';
+
+    const [ano, mes] = mesAnoReferencia.value.split("-");
+
+    const mesesPorExtenso = [
+        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+    ];
+
+    return mesesPorExtenso[parseInt(mes, 10) - 1];
+});
+
+const mesAnterior = () => {
+    const [ano, mes] = mesAnoReferencia.value.split("-");
+    const dataAtual = new Date(ano, mes - 1);
+    dataAtual.setMonth(dataAtual.getMonth() - 1);
+    mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(dataAtual.getMonth() + 1).padStart(2, '0')}`;
+    buscarDadosMes(mesAnoReferencia.value);
+};
+
+const proximoMes = () => {
+    const [ano, mes] = mesAnoReferencia.value.split("-");
+    const dataAtual = new Date(ano, mes - 1);
+    dataAtual.setMonth(dataAtual.getMonth() + 1);
+    mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(dataAtual.getMonth() + 1).padStart(2, '0')}`;
+    buscarDadosMes(mesAnoReferencia.value);
+};
+
+const buscarDadosMes = async (data) => {
+    try {
+        const res = await http.post('/buscar-dados-mes', { 'mes': data } )   
+        useWallets.setMesReferencia(res.data.walletsData.mes_ano_referencia);
+        useExpenses.setExpensesData(res.data.expensesData);
+        useRevenues.setRevenuesData(res.data.revenuesData);
+        useWallets.setWalletsData(res.data.walletsData);
+
+        mesAnoReferencia.value = res.data.walletsData.mes_ano_referencia;
+
+        revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
+
+        valueTotalRevenuesMonth.value = res.data.revenuesData.ValueTotalRevenuesMonth;
+
+        valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
+
+    } catch (error) {
+        // 
+    }
+};
+
 const formatValueSave = () => {
     let novoValor = release.value.valor.replace(/[^\d]/g, "");
 
@@ -522,11 +580,12 @@ const salvarLancamentos = async () => {
         release.value.status = status.value ? "RECEBIDA" : "AGUARDANDO";
         const res = await http.post("/save-revenue", release.value);
         useRevenues.setRevenuesData(res.data.revenuesData);
-        valueTotalRevenuesMonth.value = formatValue(res.data.revenuesData.ValueTotalRevenuesMonth);
-        valuePending.value = formatValue(res.data.revenuesData.ValuePendingRevenues);
-        valueReceived.value = formatValue(res.data.revenuesData.ValueReceivedRevenues);
+        valueTotalRevenuesMonth.value = res.data.revenuesData.ValueTotalRevenuesMonth;
+        valuePending.value = res.data.revenuesData.ValuePendingRevenues;
+        valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
         revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
-        useWallets.setWalletsData(res.data.walletsData);
+        useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
+        useWallets.setWallets(res.data.walletsData.wallets);
         clearInputs();
         formStoreRevenue.value = false;
     } catch (error) {
@@ -537,7 +596,11 @@ const salvarLancamentos = async () => {
 
 const receivedRevenue = async (revenue: RevenueEdit) => {
     try {
-        const res = await http.post("/received-revenue", { "id": revenue.id, "carteira": revenue.carteira });
+        const res = await http.post("/received-revenue", {
+            "id": revenue.id,
+            "carteira": revenue.carteira,
+            "mesReferencia": mesAnoReferencia.value,
+        });
         useRevenues.setRevenuesData(res.data.revenuesData);
         valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
         valuePending.value = res.data.revenuesData.ValuePendingRevenues;
@@ -565,9 +628,10 @@ const saveEditedRevenue = async () => {
     try {
         const res = await http.post("/edit-revenue", revenueEdit.value);
         useRevenues.setRevenuesData(res.data.revenuesData);
-        valueTotalRevenuesMonth.value = formatValue(res.data.revenuesData.ValueTotalRevenuesMonth);
-        valueReceived.value = formatValue(res.data.revenuesData.ValueReceivedRevenues);
-        valuePending.value = formatValue(res.data.revenuesData.ValuePendingRevenues);
+        useWallets.setWallets(res.data.walletsData.wallets);
+        valueTotalRevenuesMonth.value = res.data.revenuesData.ValueTotalRevenuesMonth;
+        valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
+        valuePending.value = res.data.revenuesData.ValuePendingRevenues;
         revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
     } catch (error) {
         // console.log(error.response.data.message);
@@ -582,11 +646,14 @@ const saveEditedRevenue = async () => {
 
 const deletar = async (id: number) => {
     try {
-        const res = await http.post("/delete-revenue", { "id": id });
+        const res = await http.post("/delete-revenue", {
+            "id": id,
+            "mesReferencia": mesAnoReferencia.value,
+        });
         useRevenues.setRevenuesData(res.data.revenuesData);
-        valueTotalRevenuesMonth.value = formatValue(res.data.revenuesData.ValueTotalRevenuesMonth);
-        valuePending.value = formatValue(res.data.revenuesData.ValuePendingRevenues);
-        valueReceived.value = formatValue(res.data.revenuesData.ValueReceivedRevenues);
+        valueTotalRevenuesMonth.value = res.data.revenuesData.ValueTotalRevenuesMonth;
+        valuePending.value = res.data.revenuesData.ValuePendingRevenues;
+        valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
         revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
     } catch (error) {
         // console.log(error);
@@ -640,13 +707,17 @@ const rules = {
     display: flex;
     justify-content: space-around;
 }
+.mdicon {
+    color: #757575;
+    cursor: pointer;
+}
 .mes {
     font-size: 25px;
     color: #bdbdbd;
 }
 .btn__nova__receita {
     position: fixed;
-    right: calc((100vw - 500px) / 2 + 15px); /* Calcula a posição relativa ao centro do #app */
+    right: calc((100vw - 500px) / 2 + 55px); /* Calcula a posição relativa ao centro do #app */
     bottom: 15px;
     background-color: #1dbb01;
     border: none;

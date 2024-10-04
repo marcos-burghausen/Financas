@@ -20,7 +20,7 @@
                     <span
                         class="valor"
                     >
-                        RS {{ valueTotalExpensesMonth }}
+                        RS {{ formatValue(valueTotalExpensesMonth) }}
                     </span>
                 </div>
                 <!-- <div>
@@ -47,12 +47,14 @@
                 name="chevron-left"
                 class="mdicon"
                 size="30"
+                @click="mesAnterior()"
             />
-            <span class="mes"> setembro </span>
+            <span class="mes"> {{mesPorExtenso}} </span>
             <mdicon
                 name="chevron-right"
                 class="mdicon"
                 size="30"
+                @click="proximoMes()"
             />
         </div>
         <button
@@ -322,8 +324,8 @@
                             class="mdicon__lacamento"
                             :class="{ 
                                 paga: expense.status === 'PAGA', 
-                                'atrasada': new Date() > new Date(expense.date) && expense.status === 'AGUARDANDO',
                                 'aguardando': new Date() <= new Date(expense.date) && expense.status === 'AGUARDANDO', 
+                                'atrasada': new Date() > new Date(expense.date) && expense.status === 'AGUARDANDO',
                             }"
                             size="30"
                         />
@@ -410,6 +412,9 @@ import { computed } from "vue";
 
 import type { RevenueEdit } from "@/types/revenueEdit";
 import { useWalletsStore } from "@/store/wallets";
+import { useRevenuesStore } from "@/store/revenues";
+
+const useRevenues = useRevenuesStore();
 
 const useExpenses = useExpensesStore();
 const userStore = useUserStore();
@@ -419,12 +424,9 @@ let validFormLancamentos = ref(false);
 let validFormEdit = ref(false);
 let loading = ref(false);
 
-let valueTotalExpensesMonth = ref(
-  formatValue(useExpenses.expensesData.expenses?.ValueTotalExpensesMonth)
-);
-let valuePending = ref(
-  formatValue(useExpenses.expensesData.expenses?.ValuePendingExpenses)
-);
+let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
+let valueTotalExpensesMonth = ref(useExpenses.expensesData.expenses?.ValueTotalExpensesMonth);
+let valuePending = ref(useExpenses.expensesData.expenses?.ValuePendingExpenses);
 let expensesMonth = ref(useExpenses.expensesData.expenses?.ExpensesMonth);
 let valuePay = ref(
   formatValue(useExpenses.expensesData.expenses?.ValuePayExpenses)
@@ -435,7 +437,7 @@ userStore.user.categoriasDespesas.forEach((categoria) => {
   categoriasNames.value.push(categoria.name);
 });
 // let carteiras = ref(useWallets.walletsData.wallets.map((wallet) => wallet.name));
-let carteiras = ref(useWallets.walletsData.wallets.walletsNames);
+let carteiras = ref(useWallets.walletsData.walletsNames);
 let errorsForm = ref({ errors: {} });
 let formStoreExpense = ref(false);
 let formEditExpense = ref(false);
@@ -450,6 +452,7 @@ let expenseEdit: Ref<RevenueEdit> = ref({
   status: "",
   created_at: "",
   updated_at: "",
+  mesReferencia: mesAnoReferencia.value
 });
 const expenseUnedited: Ref<RevenueEdit> = ref({
   valor: "",
@@ -466,7 +469,57 @@ let release = ref({
   descricao: "",
   categoria: "",
   carteira: "",
+  mesReferencia: mesAnoReferencia.value
 });
+
+const mesPorExtenso = computed(() => {
+    if (!mesAnoReferencia.value) return '';
+
+    const [ano, mes] = mesAnoReferencia.value.split("-");
+
+    const mesesPorExtenso = [
+        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+    ];
+
+    return mesesPorExtenso[parseInt(mes, 10) - 1];
+});
+
+const mesAnterior = () => {
+    const [ano, mes] = mesAnoReferencia.value.split("-");
+    const dataAtual = new Date(ano, mes - 1);
+    dataAtual.setMonth(dataAtual.getMonth() - 1);
+    mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(dataAtual.getMonth() + 1).padStart(2, '0')}`;
+    buscarDadosMes(mesAnoReferencia.value);
+};
+
+const proximoMes = () => {
+    const [ano, mes] = mesAnoReferencia.value.split("-");
+    const dataAtual = new Date(ano, mes - 1);
+    dataAtual.setMonth(dataAtual.getMonth() + 1);
+    mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(dataAtual.getMonth() + 1).padStart(2, '0')}`;
+    buscarDadosMes(mesAnoReferencia.value);
+};
+
+const buscarDadosMes = async (data) => {
+    try {
+        const res = await http.post('/buscar-dados-mes', { 'mes': data } )   
+        useWallets.setMesReferencia(res.data.walletsData.mes_ano_referencia);
+        useExpenses.setExpensesData(res.data.expensesData);
+        useRevenues.setRevenuesData(res.data.revenuesData);
+        useWallets.setWalletsData(res.data.walletsData);
+
+        mesAnoReferencia.value = res.data.walletsData.mes_ano_referencia;
+
+        expensesMonth.value = res.data.expensesData.ExpensesMonth;
+
+        valueTotalExpensesMonth.value = res.data.expensesData.ValueTotalExpensesMonth;
+        
+        valuePay.value = res.data.expensesData.ValuePayExpenses;
+    } catch (error) {
+        // 
+    }
+};
 
 const formatValueSave = () => {
   let novoValor = release.value.valor.replace(/[^\d]/g, "");
@@ -542,14 +595,12 @@ const salvarLancamentos = async () => {
     release.value.status = status.value ? "PAGA" : "AGUARDANDO";
     const res = await http.post("/save-expense", release.value);
     useExpenses.setExpensesData(res.data.expensesData);
-    valueTotalExpensesMonth.value = formatValue(
-      res.data.expensesData.ValueTotalExpensesMonth
-    );
-    valuePay.value = formatValue(res.data.expensesData.ValuePayExpenses);
-    valuePending.value = formatValue(
-      res.data.expensesData.ValuePendingExpenses
-    );
+    valueTotalExpensesMonth.value = res.data.expensesData.ValueTotalExpensesMonth;
+    valuePay.value = res.data.expensesData.ValuePayExpenses;
+    valuePending.value = res.data.expensesData.ValuePendingExpenses;
     expensesMonth.value = res.data.expensesData.ExpensesMonth;
+    useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
+    useWallets.setWallets(res.data.walletsData.wallets);
     clearInputs();
     formStoreExpense.value = false;
   } catch (error) {
@@ -560,18 +611,21 @@ const salvarLancamentos = async () => {
 
 const payExpense = async (expense: Lancamentos) => {
   try {
-    const res = await http.post("/pay-expense", { id: expense.id });
+    const res = await http.post("/pay-expense", {
+      id: expense.id,
+      "mesReferencia": mesAnoReferencia.value,
+    });
     useExpenses.setExpensesData(res.data.expensesData);
-    valuePending.value = formatValue(
-      res.data.expensesData.ValuePendingExpenses
-    );
-    valuePay.value = formatValue(res.data.expensesData.ValuePayExpenses);
+    valuePending.value = res.data.expensesData.ValuePendingExpenses;
+    valuePay.value = res.data.expensesData.ValuePayExpenses;
     // expense.status = 'PAGA';
     expensesMonth.value.forEach((expenses) => {
       if (expenses.id === expense.id) {
         expense.status = "PAGA";
       }
     });
+    useWallets.setWallets(res.data.walletsData.wallets);
+
   } catch (error) {
     // console.log(error);
   }
@@ -587,15 +641,11 @@ function displayFormEditExpense(expense: RevenueEdit) {
 const saveEditedExpense = async () => {
   try {
     const res = await http.post("/edit-expense", expenseEdit.value);
-    console.log(res);
     useExpenses.setExpensesData(res.data.expensesData);
-    valueTotalExpensesMonth.value = formatValue(
-      res.data.expensesData.ValueTotalExpensesMonth
-    );
-    valuePending.value = formatValue(
-      res.data.expensesData.ValuePendingExpenses
-    );
-    valuePay.value = formatValue(res.data.expensesData.ValuePayExpenses);
+    useWallets.setWallets(res.data.walletsData.wallets);
+    valueTotalExpensesMonth.value = res.data.expensesData.ValueTotalExpensesMonth;
+    valuePending.value = res.data.expensesData.ValuePendingExpenses;
+    valuePay.value = res.data.expensesData.ValuePayExpenses;
     expensesMonth.value = res.data.expensesData.ExpensesMonth;
   } catch (error) {
     // console.log(error);
@@ -606,15 +656,14 @@ const saveEditedExpense = async () => {
 
 const deletar = async (id: number) => {
   try {
-    const res = await http.post("/delete-expense", { id: id });
+    const res = await http.post("/delete-expense", {
+      "id": id,
+      "mesReferencia": mesAnoReferencia.value,
+     });
     useExpenses.setExpensesData(res.data.expensesData);
-    valueTotalExpensesMonth.value = formatValue(
-      res.data.expensesData.ValueTotalExpensesMonth
-    );
-    valuePending.value = formatValue(
-      res.data.expensesData.ValuePendingExpenses
-    );
-    valuePay.value = formatValue(res.data.expensesData.ValuePayExpenses);
+    valueTotalExpensesMonth.value = res.data.expensesData.ValueTotalExpensesMonth;
+    valuePending.value = res.data.expensesData.ValuePendingExpenses;
+    valuePay.value = res.data.expensesData.ValuePayExpenses;
     expensesMonth.value = res.data.expensesData.ExpensesMonth;
   } catch (error) {
     // console.log(error);
@@ -673,7 +722,7 @@ const rules = {
 }
 .btn__nova__despesa {
     position: fixed;
-    right: calc((100vw - 500px) / 2 + 15px); /* Calcula a posição relativa ao centro do #app */
+    right: calc((100vw - 500px) / 2 + 55px); /* Calcula a posição relativa ao centro do #app */
     bottom: 15px;
     background-color: #ff0000;
     border: none;
