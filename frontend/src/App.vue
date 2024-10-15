@@ -1,22 +1,22 @@
 <template>
-  <div class="d-flex h-100">
-    <!-- <template v-if="useAuth.isAuthenticated">
+  <!-- <div class="d-flex h-100"> -->
+  <!-- <template v-if="useAuth.isAuthenticated">
       <MenuLateralMobile
         :menu-expandido="menuExpandido"
         @expandirMenu="menuExpandido = !menuExpandido"
       />
     </template> -->
 
-    <div class="containerApp">
-       <!-- <template class="web" v-if="useAuth.isAuthenticated">
+  <div class="containerApp">
+    <!-- <template class="web" v-if="useAuth.isAuthenticated">
         <Cabecalho
           :menu-expandido="menuExpandido"
           @expandirMenu="menuExpandido = !menuExpandido"
         />
       </template> -->
-      <router-view />
-    </div>
+    <router-view />
   </div>
+  <!-- </div> -->
 </template>
 
 <script setup lang="ts">
@@ -35,6 +35,7 @@ const menuExpandido = ref(false);
 
 <style scoped>
 .containerApp {
+  min-height: 100%;
   width: 100%;
 }
 

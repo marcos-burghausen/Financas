@@ -20,6 +20,7 @@ return new class extends Migration
             $table->json('categoriasDespesas');
             $table->json('categoriasReceitas');
             $table->json('carteiras');
+            $table->enum('user_tipe', ['USER', 'TRADER', 'USER_TRADER', 'ADMIM', 'FULL'])->default('USER');
             $table->rememberToken();
             $table->timestamps();
         });

@@ -2,8 +2,8 @@ import { useAuthStore } from "@/store/auth";
 import axios from "axios";
 
 const axiosInstance = axios.create({
-    // baseURL: "http://localhost:4080/api",
-    baseURL: "https://mrfinancas.burghausen.com.br/api",
+    baseURL: "http://localhost:4080/api",
+    // baseURL: "https://mrfinancas.burghausen.com.br/api",
     headers: {
         "Accept": "application/json",
         "Content-type": "application/json"
@@ -29,7 +29,7 @@ axiosInstance.interceptors.request.use(
 
 axiosInstance.interceptors.response.use(
     response => {
-        // console.log("Interceptando o response antes da aplicação", response);
+        console.log("Interceptando o response antes da aplicação", response);
         return response;
     },
     error => {

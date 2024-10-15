@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
-import routes from "../router/routes.ts";
+import routes from "../router/routes";
 import HomeView from "../views/HomeView.vue";
 
 const router = createRouter({
@@ -14,6 +14,14 @@ const router = createRouter({
             path: "/auth/callback",
             name: "facebookCallback",
             component: () => import("../components/FacebookCallback.vue"),
+        },
+        {
+            path: "/dashboard-admim",
+            name: "dashAdmim",
+            component: () => import("../views/mobile/DashboardAdmimView.vue"),
+            meta: {
+                auth: true
+            }
         },
         {
             path: "/dashboard",

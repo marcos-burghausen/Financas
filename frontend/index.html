@@ -36,7 +36,9 @@ html, body {
   /* Define o contêiner principal */
   #app {
     position: relative; 
-    min-height: 100%;              /* Expande verticalmente conforme o conteúdo */
+    display: flex;                 /* Define o contêiner como flex */
+    /*flex-direction: column;        /* Alinha os itens de cima para baixo */
+    height: 100%;              /* Expande verticalmente conforme o conteúdo */
     width: 100%;                   /* 100% da largura do contêiner */
     max-width: 500px;              /* Limite de largura para o #app */
     background-color: rgb(15, 15, 15); /* Cor de fundo */
