@@ -1,15 +1,39 @@
 <template>
   <div class="content-wrapper">
-    <!-- <div class="pagetitle"> -->
-    <nav class="d-flex ms-3 mb-3 mt-3">
-      <span class="me-3 text-white">
-        <router-link class="link" :to="{ name: 'dashboard' }">
-          <mdicon name="arrow-left" size="20" />
-        </router-link>
-      </span>
-      <span class="text-white" style="font-size: 20px"> Contas </span>
-    </nav>
-    <!-- </div> -->
+    <div class="header">
+      <router-link
+        class="link me-7 d-flex align-items-center opaco"
+        :to="{ name: 'dashboard' }"
+      >
+        <mdicon name="arrow-left" size="25" />
+      </router-link>
+      <div class="header__items">
+        <div class="d-flex flex-column">
+          <span class="fs-5"> Contas </span>
+          <span class="valor">
+            <!-- R$ {{ formatValue(valueTotalRevenuesMonth) }} -->
+            R$ {{ "0,00" }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="container__mes">
+      <mdicon
+        name="chevron-left"
+        class="mdicon text-white"
+        size="30"
+        @click="$emit('mesAnterior')"
+      />
+      <span class="mes text-white fs-3"> {{ mesPorExtenso }} </span>
+      <mdicon
+        name="chevron-right"
+        class="mdicon text-white"
+        size="30"
+        @click="$emit('proximoMes')"
+      />
+    </div>
+
     <div class="mobile">
       <div class="body__carteira">
         <div class="saldo">
@@ -47,28 +71,22 @@
           </div>
         </div>
       </div>
-      <ModalNovaConta @updateContas="updateContas" />
-      <!-- <div class="btn__new__conta">
-        <div class="plus">
-          <mdicon
-            name="plus"
-            size="35"
-          />
-        </div>
-      </div> -->
+      <button
+        class="btn__nova__conta"
+        @click="formStoreRevenue = !formStoreRevenue"
+      >
+        <mdicon name="plus" class="mdicon" size="30" />
+      </button>
     </div>
 
-    <div class="pc">
+    <!-- <div class="pc">
       <div class="container__cards">
         <div class="card__new__conta">
           <div class="btn__new__conta">
-            <!-- <div class="plus"> -->
-            <!-- <mdicon
-                name="plus"
-                size="35"
-              /> -->
-            <ModalNovaConta />
-            <!-- </div> -->
+            <div class="plus">
+              <mdicon name="plus" size="35" />
+              <ModalNovaConta />
+            </div>
             <span class="add__conta">Criar conta</span>
           </div>
         </div>
@@ -109,25 +127,60 @@
           <span class="valor__card">R$ 130,00</span>
         </div>
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 
 <script setup lang="ts">
 import ModalNovaConta from "@/components/ModalNovaConta.vue";
 import { formatValue } from "@/utils/formatValue";
+import { computed } from "vue";
 
 import { useWalletsStore } from "@/store/wallets";
 import { ref } from "vue";
 
 const useWallets = useWalletsStore();
-let wallets = ref(useWallets.walletsData.wallets.wallets);
+let wallets = ref(useWallets.walletsData.wallets);
+let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
+
 const updateContas = (novoValor) => {
   wallets.value = novoValor;
 };
+
+const mesPorExtenso = computed(() => {
+  if (!mesAnoReferencia.value) return "";
+
+  const [ano, mes] = mesAnoReferencia.value.split("-");
+
+  const mesesPorExtenso = [
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
+  ];
+
+  return mesesPorExtenso[parseInt(mes, 10) - 1];
+});
 </script>
 
 <style scoped>
+.content-wrapper {
+  position: relative;
+  height: 100%;
+}
+.header {
+  display: flex;
+  padding: 10px;
+  color: #bdbdbd;
+}
 .link {
   text-decoration: none;
   color: #fefefe;
@@ -135,6 +188,28 @@ const updateContas = (novoValor) => {
 .opaco {
   color: #6c757d !important;
 }
+.header__items {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+.valor {
+  font-size: 13px;
+}
+.container__mes {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-block: 20px;
+}
+.mdicon {
+  cursor: pointer;
+  /* padding: 10px; */
+  /* box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23; */
+  border-radius: 20px;
+}
+
 .container__cards {
   width: 66%;
   display: flex;
@@ -277,6 +352,20 @@ const updateContas = (novoValor) => {
 }
 .pc {
   display: flex;
+}
+.btn__nova__conta {
+  position: fixed;
+  /* Calcula a posição relativa ao centro do #app */
+  /* right: calc(
+    (100vw - 500px) / 2 + 55px
+  ); */
+  right: 15px;
+  bottom: 15px;
+  background-color: #1dbb01;
+  border: none;
+  border-radius: 50%;
+  padding: 10px;
+  color: #fefefe;
 }
 
 @media screen and (max-width: 600px) {

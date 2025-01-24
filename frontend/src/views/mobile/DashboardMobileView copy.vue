@@ -1,110 +1,143 @@
 <template>
-    <div class="containe__mobile">
-        <MenuLateralMobile
-            :menu-expandido="menuExpandido"
-            @expandirMenu="menuExpandido = !menuExpandido"
-        />
-    
-        <CabecalhoMobile
-            :menu-expandido="menuExpandido"
-            :mes-referencia="mesPorExtenso"
-            @expandirMenu="menuExpandido = !menuExpandido"
-            @mesAnterior="mesAnterior"
-            @proximoMes="proximoMes"
-        />
-        
-        <div class="container__saldo__conta d-flex justify-content-center">
-            <div class="me-4 d-flex flex-column align-center justify-content-end">
-                    <span class="icon__text">
-                    <mdicon name="check-circle-outline" size="18"/>
-                    Inicial
-                    </span>
-                <div style="display:flex; align-items: center;">
-                    <span :style="{ color: saldoInicial < 0 ? 'red' : '#757575' }" style="font-size: 13px;">
-                        R$ {{ formatValue(saldoInicial) }}
-                    </span>
-                </div>
-            </div>
-            <div class=" d-flex flex-column align-center justify-content-end">
-                <span class="fs-5" style=" color: #757575;">
-                    <mdicon :name="totalBalance < 0 ? 'minus-circle-outline' : totalBalance > 0 ? 'heart-circle' : 'circle-outline'" size="22"/>
-                    Saldo
-                </span>
-                <div style="display:flex; align-items: center;">
-                    <!-- <dir style="background: green; width:5px; height: 45px; margin-inline-end: 10px; margin-top: 5px;"></dir> -->
-                    <span :style="{ color: totalBalance < 0 ? 'red' : totalBalance > 0 ? 'green' : '#757575' }"  style="font-size: 18px;">
-                        R$ {{ formatValue(totalBalance) }}
-                    </span>
-                </div>
-            </div>
-            <div class="ms-4 d-flex flex-column align-center justify-content-end">
-                <span class="icon__text">
-                    <mdicon name="clock-outline" size="20"/>
-                    <!-- <mdicon name="plus-circle-outline" />
+  <div class="containe__mobile">
+    <MenuLateralMobile
+      :menu-expandido="menuExpandido"
+      @expandirMenu="menuExpandido = !menuExpandido"
+    />
+
+    <CabecalhoMobile
+      :menu-expandido="menuExpandido"
+      :mes-referencia="mesPorExtenso"
+      @expandirMenu="menuExpandido = !menuExpandido"
+      @mesAnterior="mesAnterior"
+      @proximoMes="proximoMes"
+    />
+
+    <div class="container__saldo__conta d-flex justify-content-center">
+      <div class="me-4 d-flex flex-column align-center justify-content-end">
+        <span class="icon__text">
+          <mdicon name="check-circle-outline" size="18" />
+          Inicial
+        </span>
+        <div style="display: flex; align-items: center">
+          <span
+            :style="{ color: saldoInicial < 0 ? 'red' : '#757575' }"
+            style="font-size: 13px"
+          >
+            R$ {{ formatValue(saldoInicial) }}
+          </span>
+        </div>
+      </div>
+      <div class="d-flex flex-column align-center justify-content-end">
+        <span class="fs-5" style="color: #757575">
+          <mdicon
+            :name="
+              totalBalance < 0
+                ? 'minus-circle-outline'
+                : totalBalance > 0
+                ? 'heart-circle'
+                : 'circle-outline'
+            "
+            size="22"
+          />
+          Saldo
+        </span>
+        <div style="display: flex; align-items: center">
+          <!-- <dir style="background: green; width:5px; height: 45px; margin-inline-end: 10px; margin-top: 5px;"></dir> -->
+          <span
+            :style="{
+              color:
+                totalBalance < 0
+                  ? 'red'
+                  : totalBalance > 0
+                  ? 'green'
+                  : '#757575',
+            }"
+            style="font-size: 18px"
+          >
+            R$ {{ formatValue(totalBalance) }}
+          </span>
+        </div>
+      </div>
+      <div class="ms-4 d-flex flex-column align-center justify-content-end">
+        <span class="icon__text">
+          <mdicon name="clock-outline" size="20" />
+          <!-- <mdicon name="plus-circle-outline" />
                     <mdicon name="minus-circle-outline" />
                     <mdicon name="clock-outline" /> -->
-                    Previsto
-                </span>
-                <div style="display:flex; align-items: center;">
-                    <span :style="{ color: valorPrevisto < 0 ? 'red' : '#757575' }" style="font-size: 13px;">
-                        R$ {{ formatValue(valorPrevisto) }}
-                    </span>
-                </div>
-            </div>
+          Previsto
+        </span>
+        <div style="display: flex; align-items: center">
+          <span
+            :style="{ color: valorPrevisto < 0 ? 'red' : '#757575' }"
+            style="font-size: 13px"
+          >
+            R$ {{ formatValue(valorPrevisto) }}
+          </span>
         </div>
+      </div>
+    </div>
 
-        <div class="container__visao__geral">
-            <div class="header__visao_geral">
-                <span style="text-align: start;">
-                    Visão geral
-                </span>
-                <mdicon
-                    name="dots-vertical"
-                    class="mdicon"
-                    size="25"
-                />
-            </div>
-            <router-link :to="{name: 'receitas'}" style="display:flex; align-items: center; text-decoration: none;">
-                <div style="border-inline-start: solid 5px green; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
-                    <div class="tipo__lancamento">
-                        <span class="lancamento">
-                            Receitas
-                        </span>
-                        <span class="previsto">
-                            previsto
-                        </span>
-                    </div>
-                    <div class="tipo__lancamento">
-                        <span class="lancamento">
-                            R$ {{formatValue(valueReceived)}}
-                        </span>
-                        <span class="valor__previsto">
-                            R$ {{ formatValue(valueTotalRevenuesMonth) }}
-                        </span>
-                    </div>
-                </div>
-            </router-link>
-            <router-link :to="{name: 'despesas'}" style="display:flex; align-items: center; text-decoration: none;">
-                <div style="border-inline-start: solid 5px red; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
-                    <div class="tipo__lancamento">
-                        <span class="lancamento">
-                            Despesas
-                        </span>
-                        <span class="previsto">
-                            previsto
-                        </span>
-                    </div>
-                    <div class="tipo__lancamento">
-                        <span class="lancamento">
-                            R$ {{ formatValue(valuePay) }}
-                        </span>
-                        <span class="valor__previsto">
-                            R$ {{ formatValue(valueTotalExpensesMonth) }}
-                        </span>
-                    </div>
-                </div>
-            </router-link>
-            <!-- <div style="display:flex; align-items: center;">
+    <div class="container__visao__geral">
+      <div class="header__visao_geral">
+        <span style="text-align: start"> Visão geral </span>
+        <mdicon name="dots-vertical" class="mdicon" size="25" />
+      </div>
+      <router-link
+        :to="{ name: 'receitas' }"
+        style="display: flex; align-items: center; text-decoration: none"
+      >
+        <div
+          style="
+            border-inline-start: solid 5px green;
+            margin: 5px 0 5px 0;
+            padding: 0 0 0 10px;
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+          "
+        >
+          <div class="tipo__lancamento">
+            <span class="lancamento"> Receitas </span>
+            <span class="previsto"> previsto </span>
+          </div>
+          <div class="tipo__lancamento">
+            <span class="lancamento">
+              R$ {{ formatValue(valueReceived) }}
+            </span>
+            <span class="valor__previsto">
+              R$ {{ formatValue(valueTotalRevenuesMonth) }}
+            </span>
+          </div>
+        </div>
+      </router-link>
+      <router-link
+        :to="{ name: 'despesas' }"
+        style="display: flex; align-items: center; text-decoration: none"
+      >
+        <div
+          style="
+            border-inline-start: solid 5px red;
+            margin: 5px 0 5px 0;
+            padding: 0 0 0 10px;
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+          "
+        >
+          <div class="tipo__lancamento">
+            <span class="lancamento"> Despesas </span>
+            <span class="previsto"> previsto </span>
+          </div>
+          <div class="tipo__lancamento">
+            <span class="lancamento"> R$ {{ formatValue(valuePay) }} </span>
+            <span class="valor__previsto">
+              R$ {{ formatValue(valueTotalExpensesMonth) }}
+            </span>
+          </div>
+        </div>
+      </router-link>
+      <!-- <div style="display:flex; align-items: center;">
                 <div style="border-inline-start: solid 5px orange; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
                     <div class="tipo__lancamento">
                         <span class="lancamento">
@@ -124,9 +157,9 @@
                     </div>
                 </div>
             </div> -->
-        </div>
+    </div>
 
-        <!-- <div class="teste3">
+    <!-- <div class="teste3">
             <span style="text-align: start;">
             Pendências e alertas
             </span>
@@ -199,7 +232,7 @@
                 </dir>
             </div>
         </div> -->
-    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -223,7 +256,6 @@ const useWallets = useWalletsStore();
 
 const menuExpandido = ref(false);
 
-
 // const formatValue = (value: number): string =>{
 //     let valueFormatted = (value / 100).toLocaleString("pt-BR", { style: "decimal", minimumFractionDigits: 2, maximumFractionDigits: 2 });
 //     return valueFormatted;
@@ -232,84 +264,119 @@ const menuExpandido = ref(false);
 // const mesPorExtenso = mesAnoReferencia ? mesAnoReferencia.value.split(" ")[0] : '';
 let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
 let saldoInicial = ref(useWallets.walletsData?.saldoInicial);
-let valueTotalExpensesMonth = ref(useExpenses.expensesData.expenses?.ValueTotalExpensesMonth);
-let valueTotalRevenuesMonth = ref(useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth);
+let valueTotalExpensesMonth = ref(
+  useExpenses.expensesData.expenses?.ValueTotalExpensesMonth
+);
+let valueTotalRevenuesMonth = ref(
+  useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth
+);
 let totalBalance = ref(useWallets.walletsData?.wallets[0].saldo);
-let valorPrevisto = ref(saldoInicial.value + valueTotalRevenuesMonth.value - valueTotalExpensesMonth.value);
+let valorPrevisto = ref(
+  saldoInicial.value +
+    valueTotalRevenuesMonth.value -
+    valueTotalExpensesMonth.value
+);
 let valuePay = ref(useExpenses.expensesData.expenses?.ValuePayExpenses);
-let valueReceived = ref(useRevenues.revenuesData.revenues?.ValueReceivedRevenues);
+let valueReceived = ref(
+  useRevenues.revenuesData.revenues?.ValueReceivedRevenues
+);
 // let totalCreditCard = ref(0);
 // let expensesAddTotalValueMonth = ref(useExpenses.expensesData.expenses?.ExpensesAddTotalValueMonth);
 // let revenuesAddTotalValueMonth = ref(useRevenues.revenuesData.revenues?.RevenuesAddTotalValueMonth);
-let totalByCategoryExpenses = ref(useExpenses.expensesData.expenses?.TotalByCategoryExpenses);
-let valuePendingRevenues = ref(useRevenues.revenuesData.revenues?.ValuePendingRevenues);
-let valuePendingExpenses = ref(useExpenses.expensesData.expenses?.ValuePendingExpenses);
+let totalByCategoryExpenses = ref(
+  useExpenses.expensesData.expenses?.TotalByCategoryExpenses
+);
+let valuePendingRevenues = ref(
+  useRevenues.revenuesData.revenues?.ValuePendingRevenues
+);
+let valuePendingExpenses = ref(
+  useExpenses.expensesData.expenses?.ValuePendingExpenses
+);
 
 const isAllZeros = (arr) => {
-    return arr.every(value => value === "0,00");
+  return arr.every((value) => value === "0,00");
 };
 
-
 const mesPorExtenso = computed(() => {
-    if (!mesAnoReferencia.value) return '';
+  if (!mesAnoReferencia.value) return "";
 
-    const [ano, mes] = mesAnoReferencia.value.split("-");
+  const [ano, mes] = mesAnoReferencia.value.split("-");
 
-    const mesesPorExtenso = [
-        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-    ];
+  const mesesPorExtenso = [
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
+  ];
 
-    return mesesPorExtenso[parseInt(mes, 10) - 1];
+  return mesesPorExtenso[parseInt(mes, 10) - 1];
 });
 
 const mesAnterior = () => {
-    const [ano, mes] = mesAnoReferencia.value.split("-");
-    const dataAtual = new Date(ano, mes - 1);
-    dataAtual.setMonth(dataAtual.getMonth() - 1);
-    mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(dataAtual.getMonth() + 1).padStart(2, '0')}`;
-    buscarDadosMes(mesAnoReferencia.value, 'anterior');
+  const [ano, mes] = mesAnoReferencia.value.split("-");
+  const dataAtual = new Date(ano, mes - 1);
+  dataAtual.setMonth(dataAtual.getMonth() - 1);
+  mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
+    dataAtual.getMonth() + 1
+  ).padStart(2, "0")}`;
+  buscarDadosMes(mesAnoReferencia.value, "anterior");
 };
 
 const proximoMes = () => {
-    const [ano, mes] = mesAnoReferencia.value.split("-");
-    const dataAtual = new Date(ano, mes - 1);
-    dataAtual.setMonth(dataAtual.getMonth() + 1);
-    mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(dataAtual.getMonth() + 1).padStart(2, '0')}`;
-    buscarDadosMes(mesAnoReferencia.value, 'proximo');
+  const [ano, mes] = mesAnoReferencia.value.split("-");
+  const dataAtual = new Date(ano, mes - 1);
+  dataAtual.setMonth(dataAtual.getMonth() + 1);
+  mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
+    dataAtual.getMonth() + 1
+  ).padStart(2, "0")}`;
+  buscarDadosMes(mesAnoReferencia.value, "proximo");
 };
 
 const buscarDadosMes = async (data: string, buscar: string) => {
-    try {
-        const res = await http.post('/buscar-dados-mes', {
-            'mes': data,
-            'buscar': buscar
-        });   
-        useWallets.setMesReferencia(res.data.walletsData.mes_ano_referencia);
-        useExpenses.setExpensesData(res.data.expensesData);
-        useRevenues.setRevenuesData(res.data.revenuesData);
-        useWallets.setWalletsData(res.data.walletsData);
+  try {
+    const res = await http.post("/buscar-dados-mes", {
+      mes: data,
+      buscar: buscar,
+    });
+    useWallets.setMesReferencia(res.data.walletsData.mes_ano_referencia);
+    useExpenses.setExpensesData(res.data.expensesData);
+    useRevenues.setRevenuesData(res.data.revenuesData);
+    useWallets.setWalletsData(res.data.walletsData);
 
-        mesAnoReferencia.value = res.data.walletsData.mes_ano_referencia;
+    mesAnoReferencia.value = res.data.walletsData.mes_ano_referencia;
 
-        saldoInicial.value = res.data.walletsData.saldoInicial;
-        totalBalance.value = res.data.walletsData.wallets[0].saldo;
+    saldoInicial.value = res.data.walletsData.saldoInicial;
+    totalBalance.value = res.data.walletsData.wallets[0].saldo;
 
-        valueTotalExpensesMonth.value = res.data.expensesData.ValueTotalExpensesMonth;
-        valueTotalRevenuesMonth.value = res.data.revenuesData.ValueTotalRevenuesMonth;
+    valueTotalExpensesMonth.value =
+      res.data.expensesData.ValueTotalExpensesMonth;
+    valueTotalRevenuesMonth.value =
+      res.data.revenuesData.ValueTotalRevenuesMonth;
 
-        valorPrevisto.value = saldoInicial.value + valueTotalRevenuesMonth.value - valueTotalExpensesMonth.value;
-        
-        valuePay.value = res.data.expensesData.ValuePayExpenses;
-        valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
+    valorPrevisto.value =
+      saldoInicial.value +
+      valueTotalRevenuesMonth.value -
+      valueTotalExpensesMonth.value;
 
-        totalByCategoryExpenses.value = res.data.expensesData.TotalByCategoryExpenses;
+    valuePay.value = res.data.expensesData.ValuePayExpenses;
+    valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
 
-        valuePendingRevenues.value = res.data.revenuesData.ValuePendingRevenues;
-        valuePendingExpenses.value = res.data.expensesData.ValuePendingExpenses;
-    } catch (error) {
-        // 
-    }
+    totalByCategoryExpenses.value =
+      res.data.expensesData.TotalByCategoryExpenses;
+
+    valuePendingRevenues.value = res.data.revenuesData.ValuePendingRevenues;
+    valuePendingExpenses.value = res.data.expensesData.ValuePendingExpenses;
+  } catch (error) {
+    //
+  }
 };
 
 // =============================== grafico de barras inicio =============================== //
@@ -384,14 +451,12 @@ const buscarDadosMes = async (data: string, buscar: string) => {
 // };
 // const series1 = valuesCategory.value;
 // =============================== grafico de pizza fim =============================== //
-
-
 </script>
 
 <style scoped>
 .containe__mobile {
-    position: relative;
-    height: 100%;
+  position: relative;
+  height: 100%;
 }
 
 .container__saldo__conta {
@@ -405,9 +470,9 @@ const buscarDadosMes = async (data: string, buscar: string) => {
   border-radius: 10px;
 }
 .icon__text {
-      font-size: 15px;
-      color: #757575;
-    }
+  font-size: 15px;
+  color: #757575;
+}
 .teste2 {
   color: #fefefe;
   font-size: 20px;
@@ -448,7 +513,7 @@ const buscarDadosMes = async (data: string, buscar: string) => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
-  color: #BDBDBD;
+  color: #bdbdbd;
 }
 .cards__lancamentos {
   display: flex;
@@ -461,54 +526,53 @@ const buscarDadosMes = async (data: string, buscar: string) => {
   flex-direction: column;
 }
 .lancamento {
-    font-size: 15px;
-    color: #BDBDBD;
+  font-size: 15px;
+  color: #bdbdbd;
 }
 .previsto {
-    font-size: 12px;
-    color: #757575;
+  font-size: 12px;
+  color: #757575;
 }
 .valor__previsto {
-    font-size: 12px;
-    color: #757575;
-    display: flex;
-    justify-content: end;
+  font-size: 12px;
+  color: #757575;
+  display: flex;
+  justify-content: end;
 }
 .valor {
-    text-align: center;
+  text-align: center;
 }
 .opaco {
-    color: #6c757d !important;
+  color: #6c757d !important;
 }
 
 .card__container {
-    display: flex;
+  display: flex;
 }
 
 .cards {
-    width: 33.33%;
-    color: #ccc;
-    font-size: 30px;
-    background-color: rgba(0, 0, 0, 0.1);
+  width: 33.33%;
+  color: #ccc;
+  font-size: 30px;
+  background-color: rgba(0, 0, 0, 0.1);
 }
 .chart__container {
-    box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
-    margin-top: 10px;
-    height: calc(100% - 125px);
-    padding: 10px 0 0 0;
+  box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+  margin-top: 10px;
+  height: calc(100% - 125px);
+  padding: 10px 0 0 0;
 }
 
-
 .chart1 {
-    background: transparent;
+  background: transparent;
 }
 
 .container__charts {
-    /* box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23; */
-    background-color: rgba(0, 0, 0, 0.1);
-    display: flex;
-    padding: 0;
-    height: 100%;
+  /* box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23; */
+  background-color: rgba(0, 0, 0, 0.1);
+  display: flex;
+  padding: 0;
+  height: 100%;
 }
 
 @media screen and (max-width: 600px) {
@@ -518,22 +582,21 @@ const buscarDadosMes = async (data: string, buscar: string) => {
   .cards {
     width: 100%;
   }
-    
 }
-  
+
 @media screen and (max-width: 650px) {
   .container__charts {
-      display: flex;
-      flex-direction: column;
-    }
+    display: flex;
+    flex-direction: column;
+  }
 }
 @media screen and (min-width: 651px) {
-   .chart1 {
+  .chart1 {
     width: 65%;
-   }
-   .chart2 {
+  }
+  .chart2 {
     width: 35%;
-   }
+  }
 }
 
 @media screen and (min-width: 501px) {

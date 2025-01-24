@@ -29,7 +29,7 @@ axiosInstance.interceptors.request.use(
 
 axiosInstance.interceptors.response.use(
     response => {
-        console.log("Interceptando o response antes da aplicação", response);
+        // console.log("Interceptando o response antes da aplicação", response);
         return response;
     },
     error => {

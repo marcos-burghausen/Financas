@@ -75,20 +75,20 @@ const props = defineProps({
 });
 
 const itensSideBar = ref([
-  {
-    name: "Admin",
-    icon: "view-dashboard",
-    route: "dashAdmim",
-    adminOnly: true,
-  },
-  { name: "Trader", icon: "chart-line", route: "dashAdmim", traderOnly: true },
-  {
-    name: "Dashboard",
-    icon: "view-dashboard",
-    route: "dashboard",
-    adminOnly: false,
-    traderOnly: false,
-  },
+  // {
+  //   name: "Admin",
+  //   icon: "view-dashboard",
+  //   route: "dashAdmim",
+  //   adminOnly: true,
+  // },
+  // { name: "Trader", icon: "chart-line", route: "dashAdmim", traderOnly: true },
+  // {
+  //   name: "Dashboard",
+  //   icon: "view-dashboard",
+  //   route: "dashboard",
+  //   adminOnly: false,
+  //   traderOnly: false,
+  // },
   {
     name: "Contas",
     icon: "bank-outline",
