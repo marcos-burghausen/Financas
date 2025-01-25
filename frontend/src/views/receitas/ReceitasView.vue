@@ -48,13 +48,14 @@
         @click="proximoMes()"
       />
     </div>
-    <button
+    <!-- <button
       v-if="!formStoreRevenue && !formEditRevenue"
       class="btn__nova__receita"
       @click="formStoreRevenue = !formStoreRevenue"
     >
       <mdicon name="plus" class="mdicon" size="30" />
-    </button>
+    </button> -->
+    <FormLancamentos />
 
     <!-- ========================================================================= -->
     <!-- ================ inicio formulario lançamentos receitas ================= -->
@@ -472,6 +473,7 @@ const revenueUnedited: Ref<RevenueEdit> = ref({
 });
 let release: Ref<Lancamentos> = ref({
   valor: "",
+  tipo: "Não recorente",
   date: "",
   descricao: "",
   categoria: "",
@@ -508,7 +510,7 @@ const mesPorExtenso = computed(() => {
     return mesesPorExtenso[parseInt(mes, 10) - 1];
   } else {
     const mesAbreviado = mesesPorExtenso[parseInt(mes, 10) - 1].slice(0, 3);
-    return `${mesAbreviado}.${ano.slice(2)}`;
+    return `${mesAbreviado}./${ano.slice(2)}`;
   }
 });
 
