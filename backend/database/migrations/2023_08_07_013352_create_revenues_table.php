@@ -15,12 +15,15 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users');
+            $table->string('descricao', 20);
             $table->integer('valor');
+            $table->enum('tipo', ['Não recorrente', 'Parcelada', 'Fixa']);
+            $table->integer('numParcelas')->nullable();
+            $table->enum('periodicidade', ['Mensal', 'Diario', 'Semanal', 'Quinzenal', 'Trimenstral', 'Anual']);
             $table->date('date');
-            $table->string('descricao', 255);
-            $table->string('categoria', 255);
-            $table->string('carteira', 255);
-            $table->string('status', 10)->default('AGUARDANDO');
+            $table->enum('status', ['Efetivada', 'Pendente'])->default('Efetivada');
+            $table->string('categoria', 30);
+            $table->string('carteira', 30);
             $table->timestamps();
         });
     }

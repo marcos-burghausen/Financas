@@ -92,7 +92,7 @@
                 checked
               />
               <label class="form-check-label" for="flexSwitchCheckChecked"
-                >Recebida</label
+                >Efetivada</label
               >
             </div>
 
@@ -232,7 +232,7 @@
               density="compact"
               variant="outlined"
               :rules="[rules.requiredCatagoria]"
-              :items="['RECEBIDA', 'AGUARDANDO']"
+              :items="['Efetivada', 'Pendente']"
               label="Status"
               placeholder="Select..."
               class="mb-7 input"
@@ -305,15 +305,15 @@
           :key="revenue.id"
         >
           <div class="card__lancamento">
-            <!-- :class="{ recebida: revenue.status === 'RECEBIDA' }" -->
+            <!-- :class="{ Efetivada: revenue.status === 'Efetivada' }" -->
             <div
               class="mdicon__card"
-              :disabled="revenue.status === 'RECEBIDA'"
+              :disabled="revenue.status === 'Efetivada'"
               @click="receivedRevenue(revenue)"
             >
               <mdicon
                 :name="
-                  revenue.status === 'RECEBIDA'
+                  revenue.status === 'Efetivada'
                     ? 'check'
                     : new Date() <= new Date(revenue.date)
                     ? 'alert'
@@ -321,13 +321,13 @@
                 "
                 class="mdicon__lacamento"
                 :class="{
-                  paga: revenue.status === 'RECEBIDA',
+                  paga: revenue.status === 'Efetivada',
                   atrasada:
                     new Date() > new Date(revenue.date) &&
-                    revenue.status === 'AGUARDANDO',
-                  aguardando:
+                    revenue.status === 'Pendente',
+                  Pendente:
                     new Date() <= new Date(revenue.date) &&
-                    revenue.status === 'AGUARDANDO',
+                    revenue.status === 'Pendente',
                 }"
                 size="30"
               />
@@ -625,7 +625,7 @@ const returnRevenue = () => {
 
 const salvarLancamentos = async () => {
   try {
-    release.value.status = status.value ? "RECEBIDA" : "AGUARDANDO";
+    release.value.status = status.value ? "Efetivada" : "Pendente";
     const res = await http.post("/save-revenue", release.value);
     useRevenues.setRevenuesData(res.data.revenuesData);
     valueTotalRevenuesMonth.value =
@@ -656,7 +656,7 @@ const receivedRevenue = async (revenue: RevenueEdit) => {
     // revenue.status = 'PAGA';
     revenuesMonth.value.forEach((revenues) => {
       if (revenues.id === revenue.id) {
-        revenues.status = "RECEBIDA";
+        revenues.status = "Efetivada";
       }
     });
     useWallets.setWallets(res.data.walletsData.wallets);
@@ -798,7 +798,7 @@ const rules = {
   color: #ff0000 !important;
   background: #ff000021 !important;
 }
-.aguardando {
+.Pendente {
   color: #e5ff00 !important;
   background: #e5ff0021 !important;
 }

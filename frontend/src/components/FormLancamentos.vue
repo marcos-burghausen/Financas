@@ -81,7 +81,9 @@
         type="text"
         hide-details="auto"
         label="Descricao"
+        required
         class="mb-8 imput"
+        :rules="[rules.requiredDescricao]"
         rows="1"
       >
         <template #prepend-inner>
@@ -184,7 +186,7 @@
       <!-- <ModalParcelar v-model="ModalParcelar" /> -->
 
       <v-text-field
-        v-model="releases.data"
+        v-model="releases.date"
         variant="underlined"
         hide-details="auto"
         label="Data"
@@ -237,9 +239,9 @@
 
       <v-autocomplete
         ref="country"
-        v-model="country"
-        :items="countries"
-        :rules="[() => !!country || 'This field is required']"
+        v-model="releases.categoria"
+        :items="categoriasNames"
+        :rules="[rules.requiredCatagoria]"
         label="Categoria"
         placeholder="Select..."
         required
@@ -247,10 +249,10 @@
         variant="underlined"
       >
         <template #prepend-inner>
-          <mdicon class="icon__modify" name="calendar" />
+          <mdicon class="icon__modify" name="scatter-plot" />
         </template>
       </v-autocomplete>
-      <v-autocomplete
+      <!-- <v-autocomplete
         ref="country"
         v-model="country"
         :items="countries"
@@ -262,14 +264,14 @@
         variant="underlined"
       >
         <template #prepend-inner>
-          <mdicon class="icon__modify" name="calendar" />
+          <mdicon class="icon__modify" name="scatter-plot" />
         </template>
-      </v-autocomplete>
+      </v-autocomplete> -->
       <v-autocomplete
         ref="country"
-        v-model="country"
-        :items="countries"
-        :rules="[() => !!country || 'This field is required']"
+        v-model="releases.carteira"
+        :items="carteiras"
+        :rules="[rules.requiredCarteira]"
         label="Conta"
         placeholder="Select..."
         required
@@ -277,7 +279,7 @@
         variant="underlined"
       >
         <template #prepend-inner>
-          <mdicon class="icon__modify" name="calendar" />
+          <mdicon class="icon__modify" name="bank" />
         </template>
       </v-autocomplete>
 
@@ -321,30 +323,60 @@ import type { Lancamentos } from "@/types/lancamentos";
 import { useWalletsStore } from "@/store/wallets";
 import ModalTipoLancamento from "@/components/ModalTipoLancamento.vue";
 import ModalParcelar from "@/components/ModalParcelar.vue";
+import { useRevenuesStore } from "@/store/revenues";
+import { formatValue } from "@/utils/formatValue";
 
 const userStore = useUserStore();
 const useWallets = useWalletsStore();
+const useRevenues = useRevenuesStore();
 
 let categorias = reactive(userStore.user.categoriasDespesas);
 let openTipoLancamento = ref(false);
 let openParcelas = ref(false);
+let errorsForm = ref({ errors: {} });
 let parcelar = ref(false);
 let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
+let valueTotalRevenuesMonth = ref(
+  useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth
+);
+let valuePending = ref(
+  formatValue(useRevenues.revenuesData.revenues?.ValuePendingRevenues)
+);
+let revenuesMonth = ref(useRevenues.revenuesData.revenues?.RevenuesMonth);
+// console.log(revenuesMonth.value);
+let valueReceived = ref(
+  formatValue(useRevenues.revenuesData.revenues?.ValueReceivedRevenues)
+);
 const selectedColor = ref("");
 const tiposLancamento = ref(["Não recorrente", "Parcelada", "Fixa mensal"]);
+
+const getCurrentDate = () => {
+  const today = new Date();
+  const day = String(today.getDate()).padStart(2, '0');
+  const month = String(today.getMonth() + 1).padStart(2, '0'); // Janeiro é 0!
+  const year = today.getFullYear();
+  return `${year}-${month}-${day}`;
+};
+
 let releases: Ref<Lancamentos> = ref({
-  descricao: "",
+  descricao: " ",
   valor: "",
   tipo: "Não recorrente",
-  numParcelas: 2,
+  numParcelas: 0,
   periodicidade: "Mensal",
-  date: "",
-  categoria: "",
-  carteira: "",
+  date: getCurrentDate(),
+  categoria: "Outros",
+  carteira: "Pessoal",
   status: "Efetivada",
   mesReferencia: mesAnoReferencia.value,
 });
 
+const categoriasNames = ref([]);
+userStore.user.categoriasReceitas.forEach((categoria) => {
+  categoriasNames.value.push(categoria.name);
+});
+
+let carteiras = ref(useWallets.walletsData.walletsNames);
 const selectedIcon = ref("");
 const openModal = ref(false);
 let validFormLancamentos = ref(false);
@@ -359,6 +391,9 @@ const toggleStatus = () => {
   releases.value.status =
     releases.value.status === "Efetivada" ? "Pendente" : "Efetivada";
 };
+
+
+
 const emit = defineEmits([
   "updateCategoriasDespesas",
   "updateCategoriasReceitas",
@@ -369,6 +404,27 @@ const selecionarTipo = (item: string) => {
   openTipoLancamento.value = false;
   if (item === "Parcelada") {
     openParcelas.value = true;
+  }
+};
+
+const salvarLancamentos = async () => {
+  try {
+    releases.value.status = status.value ? "Efetivada" : "pendente";
+    const res = await http.post("/save-revenue", releases.value);
+    useRevenues.setRevenuesData(res.data.revenuesData);
+    valueTotalRevenuesMonth.value =
+      res.data.revenuesData.ValueTotalRevenuesMonth;
+    console.log('chegui');
+    valuePending.value = res.data.revenuesData.ValuePendingRevenues;
+    valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
+    revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
+    useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
+    useWallets.setWallets(res.data.walletsData.wallets);
+    clearInputs();
+    openModal.value = false;
+  } catch (error) {
+    console.log(error.response.data.errors);
+    errorsForm.value["errors"] = error.response.data["errors"];
   }
 };
 

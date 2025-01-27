@@ -20,12 +20,17 @@ class RevenueController extends Controller
     {
         $data = $request->validate(
             [
-                'valor'     => 'required',
-                'date'      => 'required|date',
-                'descricao' => 'required|string',
-                'categoria' => 'required|string',
-                'carteira'  => 'required|string',
-                'status'    => 'string'
+                'valor'         => 'required',
+                'date'          => 'required|date',
+                'descricao'     => 'required|string',
+                'categoria'     => 'required|string',
+                'carteira'      => 'required|string',
+                'status'        => 'string',
+                'mesReferencia' => 'string',
+                'numParcelas'   => 'nullable|int',
+                'periodicidade' => 'nullable|string',
+                'status'        => 'nullable|string',
+                'tipo'          => 'string'
             ],
             [
                 'valor.required'     => 'O campo valor é obrigatório',
@@ -49,7 +54,7 @@ class RevenueController extends Controller
         $revenue->status    = $data['status'];
         $saved = $revenue->save();
 
-        if ($data['status'] === 'RECEBIDA') {
+        if ($data['status'] === 'Efetivada') {
             $conta = Conta::where('user_id', auth()->user()->id)
                 ->where('name', $data['carteira'])
                 ->first();
@@ -86,7 +91,7 @@ class RevenueController extends Controller
 
         DB::beginTransaction();
         $revenue = Revenue::find($request->id);
-        $revenue->status = 'RECEBIDA';
+        $revenue->status = 'Efetivada';
         // $revenue->valor = str_replace([',','.'], '', $revenue->valor);
         $saved = $revenue->save();
 
@@ -128,11 +133,11 @@ class RevenueController extends Controller
         $add = false;
         $sub = false;
         $revenue = Revenue::find($request->id);
-        if ($request->status === 'RECEBIDA' && $revenue->status === 'AGUARDANDO') {
+        if ($request->status === 'Efetivada' && $revenue->status === 'Pendente') {
             $add = true;
         }
 
-        if ($request->status === 'AGUARDANDO' && $revenue->status === 'RECEBIDA' || $request->valor < $revenue->valor) {
+        if ($request->status === 'Pendente' && $revenue->status === 'Efetivada' || $request->valor < $revenue->valor) {
             $sub = true;
         }
 
