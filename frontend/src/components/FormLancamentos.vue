@@ -81,7 +81,7 @@
         type="text"
         hide-details="auto"
         label="Descricao"
-        class="mb-5 imput"
+        class="mb-8 imput"
         rows="1"
       >
         <template #prepend-inner>
@@ -96,7 +96,7 @@
         hide-details="auto"
         label="Valor"
         type="tel"
-        class="mb-5 imput"
+        class="mb-8 imput"
         :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
         @input="formatValueSave()"
       >
@@ -105,11 +105,83 @@
         </template>
       </v-text-field>
 
-      <ModalTipoLancamento
+      <v-text-field
+        v-model="releases.tipo"
+        variant="underlined"
+        label="Tipo"
+        type="text"
+        class="mb-8 imput"
+        @click="openTipoLancamento = true"
+      >
+        <template #prepend-inner>
+          <mdicon class="icon__modify" name="refresh" />
+        </template>
+      </v-text-field>
+
+      <div v-if="openTipoLancamento" class="tipo">
+        <div class="modal__tipo">
+          <div
+            v-for="(item, index) in tiposLancamento"
+            :key="index"
+            class="cor__icon"
+          >
+            <div class="container__tipos">
+              <div class="container__tipo" @click="selecionarTipo(item)">
+                <mdicon
+                  :class="releases.tipo == item ? 'selected' : ''"
+                  :name="
+                    releases.tipo == item
+                      ? 'radiobox-marked'
+                      : 'checkbox-blank-circle-outline'
+                  "
+                />
+                <span class="ms-3">{{ item }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="openParcelas" class="parcelas">
+        <div class="container__parcelas pb-5">
+          <div class="modal__parcelas">
+            <v-text-field
+              v-model="releases.numParcelas"
+              variant="underlined"
+              type="text"
+              class="mb-8 imput"
+            >
+              <template #prepend-inner>
+                <mdicon class="me-2" name="refresh" />
+                <span class="me-2">Quantidade </span>
+              </template>
+            </v-text-field>
+            <v-text-field
+              v-model="releases.periodicidade"
+              variant="underlined"
+              type="text"
+              class="mb-8 imput"
+            >
+              <template #prepend-inner>
+                <mdicon class="me-2" name="refresh" />
+                <span class="me-2">Periodicidade </span>
+              </template>
+            </v-text-field>
+          </div>
+          <div class="botoes__parcelas mx-5">
+            <v-btn class="px-5 me-5 cancelar"> Cancelar </v-btn>
+            <v-btn class="btn__concluido px-5" type="submit"> Concluido </v-btn>
+          </div>
+        </div>
+      </div>
+
+      <!-- <ModalTipoLancamento
         v-model="openModal"
         :items="items"
         @updateSelectedIcon="updateSelectedIcon"
-      />
+      /> -->
+
+      <!-- <ModalParcelar v-model="ModalParcelar" /> -->
 
       <v-text-field
         v-model="releases.data"
@@ -163,28 +235,6 @@
         </template>
       </v-text-field>
 
-      <!-- <v-select label="Default">
-        <template #prepend-inner>
-          <mdicon class="icon__modify" name="currency-usd" /> </template
-      ></v-select> -->
-
-      <v-checkbox v-model="agreement" color="deep-purple">
-        <template v-slot:label>
-          I agree to the&nbsp;
-          <a href="#" @click.stop.prevent="dialog = true">Terms of Service</a>
-          &nbsp;and&nbsp;
-          <a href="#" @click.stop.prevent="dialog = true">Privacy Policy</a>*
-        </template>
-      </v-checkbox>
-
-      <v-switch
-        v-model="people"
-        color="primary"
-        label="John"
-        value="John"
-        hide-details
-      ></v-switch>
-
       <v-autocomplete
         ref="country"
         v-model="country"
@@ -195,7 +245,11 @@
         required
         style="color: #ccc"
         variant="underlined"
-      ></v-autocomplete>
+      >
+        <template #prepend-inner>
+          <mdicon class="icon__modify" name="calendar" />
+        </template>
+      </v-autocomplete>
       <v-autocomplete
         ref="country"
         v-model="country"
@@ -206,7 +260,11 @@
         required
         style="color: #ccc"
         variant="underlined"
-      ></v-autocomplete>
+      >
+        <template #prepend-inner>
+          <mdicon class="icon__modify" name="calendar" />
+        </template>
+      </v-autocomplete>
       <v-autocomplete
         ref="country"
         v-model="country"
@@ -217,9 +275,13 @@
         required
         style="color: #ccc"
         variant="underlined"
-      ></v-autocomplete>
+      >
+        <template #prepend-inner>
+          <mdicon class="icon__modify" name="calendar" />
+        </template>
+      </v-autocomplete>
 
-      <div
+      <!-- <div
         class="form-group p-0 container d-flex justify-content-between col-12 mt-2 mb-4"
       >
         <v-btn
@@ -247,7 +309,7 @@
         >
           Salvar
         </v-btn>
-      </div>
+      </div> -->
     </v-form>
   </div>
 </template>
@@ -258,24 +320,31 @@ import http from "@/services/http";
 import type { Lancamentos } from "@/types/lancamentos";
 import { useWalletsStore } from "@/store/wallets";
 import ModalTipoLancamento from "@/components/ModalTipoLancamento.vue";
+import ModalParcelar from "@/components/ModalParcelar.vue";
 
 const userStore = useUserStore();
 const useWallets = useWalletsStore();
 
 let categorias = reactive(userStore.user.categoriasDespesas);
+let openTipoLancamento = ref(false);
+let openParcelas = ref(false);
+let parcelar = ref(false);
 let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
 const selectedColor = ref("");
+const tiposLancamento = ref(["Não recorrente", "Parcelada", "Fixa mensal"]);
 let releases: Ref<Lancamentos> = ref({
-  valor: "",
-  date: "",
   descricao: "",
+  valor: "",
+  tipo: "Não recorrente",
+  numParcelas: 2,
+  periodicidade: "Mensal",
+  date: "",
   categoria: "",
   carteira: "",
   status: "Efetivada",
   mesReferencia: mesAnoReferencia.value,
 });
 
-const items = ref(["Não recorrente", "parcelar ou repetir", "Fixa mensal"]);
 const selectedIcon = ref("");
 const openModal = ref(false);
 let validFormLancamentos = ref(false);
@@ -294,6 +363,14 @@ const emit = defineEmits([
   "updateCategoriasDespesas",
   "updateCategoriasReceitas",
 ]);
+
+const selecionarTipo = (item: string) => {
+  releases.value.tipo = item;
+  openTipoLancamento.value = false;
+  if (item === "Parcelada") {
+    openParcelas.value = true;
+  }
+};
 
 const updateSelectedIcon = (novoValor: string) => {
   selectedIcon.value = novoValor;
@@ -373,6 +450,99 @@ const rules = {
 </script>
 
 <style scoped>
+.botoes__parcelas {
+  display: flex;
+  justify-content: end;
+  margin-top: 20px;
+}
+.container__parcelas {
+  background: #2c2c2e;
+  color: #fefefe;
+  width: 90%;
+  /* height: 200px; */
+  margin: 15px auto;
+  border-radius: 20px;
+  /* padding: 15px; */
+}
+.modal__parcelas {
+  /* background: #2c2c2e; */
+  color: #fefefe;
+  width: 90%;
+  /* height: 200px; */
+  margin: 15px auto;
+  /* border-radius: 20px; */
+  /* padding: 15px; */
+}
+.parcelas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: end;
+}
+.tipo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.selected {
+  color: #77d08e;
+}
+
+.container__tipos {
+  width: 100%;
+  display: flex;
+  /* flex-direction: column; */
+  /* align-items: center; */
+}
+
+.container__tipo {
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  /* justify-content: center; */
+  margin-block: 10px;
+}
+
+.modal__tipo {
+  background: #2c2c2e;
+  /* position: relative; */
+  color: #fefefe;
+  /* z-index: 999; */
+  /* top: 20%; */
+  /* left: 50%; */
+  width: 50%;
+  max-width: 450px;
+  height: 200px;
+  /* margin-left: 2.5%; */
+  border-radius: 20px;
+  padding: 15px;
+}
+
+/* .container__tipo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+} */
+
 .form__check {
   width: 40px;
   height: 20px;
@@ -440,9 +610,15 @@ const rules = {
   justify-content: center;
   align-items: center;
 }
-.salvar {
+.cancelar {
+  border-radius: 20px;
+  background-color: transparent;
+  color: #77d08e;
+}
+.btn__concluido {
   border-radius: 20px;
   background-color: #77d08e;
+  /* color: #fefefe; */
 }
 .close:hover {
   background-color: #1c1c1e;

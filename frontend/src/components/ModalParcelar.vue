@@ -64,7 +64,7 @@ const props = defineProps({
   },
 });
 const tipo = ref("Não recorrente");
-const tiposLancamento = ref(["Não recorrente", "Parcelar", "Fixa mensal"]);
+const tipoLancamento = ref(["Não recorrente", "Parcelar", "Fixa mensal"]);
 
 const emit = defineEmits([
   "updateCategoriasDespesas",
