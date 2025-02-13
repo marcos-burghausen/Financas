@@ -1,7 +1,29 @@
-version: '3.9'
-
 services:
-
+  # Django
+  django:
+    image: python:3.13
+    container_name: Mr_backend_django
+    working_dir: /app
+    stdin_open: true
+    tty: true
+    command: bash -c "pip install -r requirements.txt && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./Mr_backend_django:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - network
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PASSWORD: user
+      MYSQL_USER: user
+      MYSQL_DATABASE: Mr_database
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: senha
   #php+apache
   php:
     image: marcosrafaelburghausen/php8.3-apache2.4
