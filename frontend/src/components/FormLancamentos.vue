@@ -55,25 +55,7 @@
         >
           Salvar
         </v-btn>
-        <!-- <div>
-                    <mdicon
-                        name="magnify"
-                        class="mdicon me-3"
-                        size="25"
-                    />
-                    <mdicon
-                        name="clipboard-text"
-                        class="mdicon me-2"
-                        size="25"
-                    />
-                    <mdicon
-                        name="dots-vertical"
-                        class="mdicon"
-                        size="25"
-                    />
-                </div> -->
       </div>
-      <!-- </div> -->
 
       <v-textarea
         v-model="releases.descricao"
@@ -171,7 +153,12 @@
             </v-text-field>
           </div>
           <div class="botoes__parcelas mx-5">
-            <v-btn class="px-5 me-5 cancelar"> Cancelar </v-btn>
+            <v-btn
+              class="px-5 me-5 cancelar"
+              @click="openParcelas = !openParcelas"
+            >
+              Cancelar
+            </v-btn>
             <v-btn class="btn__concluido px-5" type="submit"> Concluido </v-btn>
           </div>
         </div>
@@ -352,18 +339,18 @@ const tiposLancamento = ref(["Não recorrente", "Parcelada", "Fixa mensal"]);
 
 const getCurrentDate = () => {
   const today = new Date();
-  const day = String(today.getDate()).padStart(2, '0');
-  const month = String(today.getMonth() + 1).padStart(2, '0'); // Janeiro é 0!
+  const day = String(today.getDate()).padStart(2, "0");
+  const month = String(today.getMonth() + 1).padStart(2, "0"); // Janeiro é 0!
   const year = today.getFullYear();
   return `${year}-${month}-${day}`;
 };
 
 let releases: Ref<Lancamentos> = ref({
-  descricao: " ",
+  descricao: "",
   valor: "",
   tipo: "Não recorrente",
   numParcelas: 0,
-  periodicidade: "Mensal",
+  periodicidade: "",
   date: getCurrentDate(),
   categoria: "Outros",
   carteira: "Pessoal",
@@ -392,12 +379,7 @@ const toggleStatus = () => {
     releases.value.status === "Efetivada" ? "Pendente" : "Efetivada";
 };
 
-
-
-const emit = defineEmits([
-  "updateCategoriasDespesas",
-  "updateCategoriasReceitas",
-]);
+const emit = defineEmits(["updateData"]);
 
 const selecionarTipo = (item: string) => {
   releases.value.tipo = item;
@@ -414,10 +396,7 @@ const salvarLancamentos = async () => {
     useRevenues.setRevenuesData(res.data.revenuesData);
     valueTotalRevenuesMonth.value =
       res.data.revenuesData.ValueTotalRevenuesMonth;
-    console.log('chegui');
-    valuePending.value = res.data.revenuesData.ValuePendingRevenues;
-    valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
-    revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
+    emit("updateData", res.data.revenuesData);
     useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
     useWallets.setWallets(res.data.walletsData.wallets);
     clearInputs();
@@ -497,7 +476,7 @@ const rules = {
     "O campo valor deve ser maior que zero",
   requiredData: (value: string) => !!value || "O campo data é obrigatório",
   requiredDescricao: (value: string) =>
-    !!value || "O campo escriçãp é obrigatório",
+    !!value || "O campo descriçãp é obrigatório",
   requiredCatagoria: (value: string) =>
     !!value || "O campo categoria é obrigatório",
   requiredCarteira: (value: string) =>

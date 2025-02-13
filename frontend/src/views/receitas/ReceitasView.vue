@@ -55,7 +55,7 @@
     >
       <mdicon name="plus" class="mdicon" size="30" />
     </button> -->
-    <FormLancamentos />
+    <FormLancamentos @updateData="updateData" />
 
     <!-- ========================================================================= -->
     <!-- ================ inicio formulario lançamentos receitas ================= -->
@@ -513,6 +513,13 @@ const mesPorExtenso = computed(() => {
     return `${mesAbreviado}./${ano.slice(2)}`;
   }
 });
+
+const updateData = (novoValor) => {
+  valueTotalRevenuesMonth.value = novoValor.ValueTotalRevenuesMonth;
+  valueReceived.value = novoValor.ValueReceivedRevenues;
+  valuePending.value = novoValor.ValuePendingRevenues;
+  revenuesMonth.value = novoValor.RevenuesMonth;
+};
 
 const mesAnterior = () => {
   const [ano, mes] = mesAnoReferencia.value.split("-");
