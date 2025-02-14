@@ -2,9 +2,15 @@
   <div class="box">
     <div class="container__dados">
       <figure class="figure">
-        <img src="@/assets/img/2.png" class="img" alt="logo" />
+        <img
+          src="@/assets/img/2.png"
+          class="img"
+          alt="logo"
+        >
       </figure>
-      <h2 class="title">Bem vido ao Mr Finanças</h2>
+      <h2 class="title">
+        Bem vido ao Mr Finanças
+      </h2>
       <div class="social__media">
         <ul class="list__social__media">
           <a
@@ -13,7 +19,10 @@
             @click="initiateFacebookLogin()"
           >
             <li class="item__social__media">
-              <mdicon class="icon__modify" name="facebook" />
+              <mdicon
+                class="icon__modify"
+                name="facebook"
+              />
             </li>
           </a>
           <!-- <a class="link__social__media" href="#">
@@ -30,7 +39,12 @@
       </div>
       <!-- <p class="sub__title">ou use sua conta de e-mail:</p> -->
       <ErrorMessage />
-      <v-form v-model="validForm" class="form" @submit.prevent="login">
+      <v-form
+        v-model="validForm"
+        class="form"
+        @submit.prevent="login"
+      >
+        {% csrf_token %}
         <v-text-field
           v-model="user.email"
           variant="outlined"
@@ -43,7 +57,10 @@
           autocomplete="on"
         >
           <template #prepend-inner>
-            <mdicon class="icon__modify" name="email-outline" />
+            <mdicon
+              class="icon__modify"
+              name="email-outline"
+            />
           </template>
         </v-text-field>
 
@@ -57,7 +74,10 @@
           class="mb-5 input"
         >
           <template #prepend-inner>
-            <mdicon class="icon__modify" name="lock" />
+            <mdicon
+              class="icon__modify"
+              name="lock"
+            />
           </template>
           <template #append-inner>
             <mdicon
@@ -69,8 +89,15 @@
         </v-text-field>
 
         <div class="container__button">
-          <a class="link" href="#">esqueceu sua senha?</a>
-          <a class="btn__register" href="#" @click.prevent="emits('nextStep')">
+          <a
+            class="link"
+            href="#"
+          >esqueceu sua senha?</a>
+          <a
+            class="btn__register"
+            href="#"
+            @click.prevent="emits('nextStep')"
+          >
             cadastre-se.
           </a>
         </div>
@@ -89,7 +116,7 @@
 </template>
 
 <script setup lang="ts">
-import ErrorsForm from "@/components/ModalErrorsForm.vue";
+import ErrorsForm from "../../components/ModalErrorsForm.vue";
 import ErrorMessage from "@/components/ErrorMessage.vue";
 
 import { useExpensesStore } from "@/store/expenses";
@@ -103,7 +130,7 @@ import { useRouter } from "vue-router";
 import http from "@/services/http";
 
 import type { FormLogin } from "@/types/formLogin";
-import { ref, type Ref } from "vue";
+import { onMounted, ref, type Ref } from "vue";
 import { AxiosError } from "axios";
 
 const emits = defineEmits(["nextStep"]);
@@ -113,10 +140,10 @@ const useWallets = useWalletsStore();
 const useUser = useUserStore();
 const errorStore = useErrorStore();
 const user: Ref<FormLogin> = ref({
-  email: "rafaelburghausen@gmail.com",
-  password: "Teste123@",
-  // email: "",
-  // password: "",
+    email: "rafaelburghausen@gmail.com",
+    password: "Teste123@",
+    // email: "",
+    // password: "",
 });
 const router = useRouter();
 const data = userData();
@@ -125,48 +152,64 @@ const useAuth = useAuthStore();
 let validForm = ref(false);
 let mostrarSenha = ref(true);
 let loading = ref(false);
+let csrfToken = ref("");
+
+onMounted(async() => {
+    try {
+        const response = await http.get("/csrf-token/");
+        csrfToken.value = response.data.csrfToken;
+        console.log(csrfToken.value);
+    } catch (error) {
+        console.log("Erro ao buscar o CSRF token", error);
+    }
+});
 
 async function initiateFacebookLogin() {
-  // errorStore.unsetError();
-  try {
-    loading.value = true;
-    const response = await http.get("/auth/redirect");
-    window.location.href = response.data.redirect_url;
-  } catch (error) {
-    console.error("Erro ao iniciar login do Facebook", error);
-  }
+    // errorStore.unsetError();
+    try {
+        loading.value = true;
+        const response = await http.get("/auth/redirect");
+        window.location.href = response.data.redirect_url;
+    } catch (error) {
+        console.error("Erro ao iniciar login do Facebook", error);
+    }
 }
 
 async function login() {
-  errorStore.unsetError();
-  try {
-    loading.value = true;
-    const response = await http.post("/auth", user.value);
-    useAuth.setToken(response.data.token);
-    useUser.setUserData(response.data.user);
-    useExpenses.setExpensesData(response.data.userData.expensesData);
-    useRevenues.setRevenuesData(response.data.userData.revenuesData);
-    useWallets.setWalletsData(response.data.userData.walletsData);
-    // useUser.setMesAno(response.data.userData.mes_ano_referencia);
-    // useWallets.setSaldoInicial(response.data.userData.walletsData.saldoInicial);
-    // data.setTotalCreditCard(response.data.userData.totalCreditCard);
-    // data.setTotalBalance(response.data.userData.totalBalance);
+    errorStore.unsetError();
+    try {
+        loading.value = true;
+        const response = await http.post("/auth/login/", user.value, {
+            headers: {
+                "X-CSRFToken": csrfToken.value,
+            }
+        });
+        console.log(response);
+        useAuth.setToken(response.data.token);
+        useUser.setUserData(response.data.user);
+        useExpenses.setExpensesData(response.data.userData.expensesData);
+        useRevenues.setRevenuesData(response.data.userData.revenuesData);
+        useWallets.setWalletsData(response.data.userData.walletsData);
+        // useUser.setMesAno(response.data.userData.mes_ano_referencia);
+        // useWallets.setSaldoInicial(response.data.userData.walletsData.saldoInicial);
+        // data.setTotalCreditCard(response.data.userData.totalCreditCard);
+        // data.setTotalBalance(response.data.userData.totalBalance);
 
-    router.push({ name: "dashboard" });
-  } catch (error) {
-    if (error.response.data.errors) {
-      errorStore.setErrorFromForm(error);
-    } else {
-      errorStore.setErrorFromResponse(error);
+        router.push({ name: "dashboard" });
+    } catch (error) {
+        if (error.response.data.errors) {
+            errorStore.setErrorFromForm(error);
+        } else {
+            errorStore.setErrorFromResponse(error);
+        }
+    } finally {
+        loading.value = false;
     }
-  } finally {
-    loading.value = false;
-  }
 }
 
 const rules = {
-  requiredEmail: (value: string) => !!value || "O campo email é obrigatório",
-  requiredSenha: (value: string) => !!value || "O campo senha é obrigatório",
+    requiredEmail: (value: string) => !!value || "O campo email é obrigatório",
+    requiredSenha: (value: string) => !!value || "O campo senha é obrigatório",
 };
 </script>
 <style scoped>

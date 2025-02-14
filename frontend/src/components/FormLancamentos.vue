@@ -7,7 +7,10 @@
     @click="openModal = true"
   />
 
-  <div v-if="openModal" class="container__modal">
+  <div
+    v-if="openModal"
+    class="container__modal"
+  >
     <v-form
       v-model="validFormLancamentos"
       class="form__lançamentos"
@@ -39,7 +42,10 @@
             clearInputs();
           "
         >
-          <mdicon name="close" size="25" />
+          <mdicon
+            name="close"
+            size="25"
+          />
         </buttom>
         <div class="d-flex flex-column">
           <span class="fs-5"> Nova receitas </span>
@@ -87,7 +93,10 @@
         rows="1"
       >
         <template #prepend-inner>
-          <mdicon class="icon__modify" name="text-long" />
+          <mdicon
+            class="icon__modify"
+            name="text-long"
+          />
         </template>
       </v-textarea>
 
@@ -103,7 +112,10 @@
         @input="formatValueSave()"
       >
         <template #prepend-inner>
-          <mdicon class="icon__modify" name="currency-usd" />
+          <mdicon
+            class="icon__modify"
+            name="currency-usd"
+          />
         </template>
       </v-text-field>
 
@@ -116,11 +128,17 @@
         @click="openTipoLancamento = true"
       >
         <template #prepend-inner>
-          <mdicon class="icon__modify" name="refresh" />
+          <mdicon
+            class="icon__modify"
+            name="refresh"
+          />
         </template>
       </v-text-field>
 
-      <div v-if="openTipoLancamento" class="tipo">
+      <div
+        v-if="openTipoLancamento"
+        class="tipo"
+      >
         <div class="modal__tipo">
           <div
             v-for="(item, index) in tiposLancamento"
@@ -128,7 +146,10 @@
             class="cor__icon"
           >
             <div class="container__tipos">
-              <div class="container__tipo" @click="selecionarTipo(item)">
+              <div
+                class="container__tipo"
+                @click="selecionarTipo(item)"
+              >
                 <mdicon
                   :class="releases.tipo == item ? 'selected' : ''"
                   :name="
@@ -144,7 +165,10 @@
         </div>
       </div>
 
-      <div v-if="openParcelas" class="parcelas">
+      <div
+        v-if="openParcelas"
+        class="parcelas"
+      >
         <div class="container__parcelas pb-5">
           <div class="modal__parcelas">
             <v-text-field
@@ -154,7 +178,10 @@
               class="mb-8 imput"
             >
               <template #prepend-inner>
-                <mdicon class="me-2" name="refresh" />
+                <mdicon
+                  class="me-2"
+                  name="refresh"
+                />
                 <span class="me-2">Quantidade </span>
               </template>
             </v-text-field>
@@ -165,14 +192,24 @@
               class="mb-8 imput"
             >
               <template #prepend-inner>
-                <mdicon class="me-2" name="refresh" />
+                <mdicon
+                  class="me-2"
+                  name="refresh"
+                />
                 <span class="me-2">Periodicidade </span>
               </template>
             </v-text-field>
           </div>
           <div class="botoes__parcelas mx-5">
-            <v-btn class="px-5 me-5 cancelar"> Cancelar </v-btn>
-            <v-btn class="btn__concluido px-5" type="submit"> Concluido </v-btn>
+            <v-btn class="px-5 me-5 cancelar">
+              Cancelar
+            </v-btn>
+            <v-btn
+              class="btn__concluido px-5"
+              type="submit"
+            >
+              Concluido
+            </v-btn>
           </div>
         </div>
       </div>
@@ -195,7 +232,10 @@
         class="mb-5 imput"
       >
         <template #prepend-inner>
-          <mdicon class="icon__modify" name="calendar" />
+          <mdicon
+            class="icon__modify"
+            name="calendar"
+          />
         </template>
       </v-text-field>
 
@@ -232,7 +272,7 @@
                   ? 'switch__check__efetivada'
                   : 'switch__check'
               "
-            ></div>
+            />
           </div>
         </template>
       </v-text-field>
@@ -249,7 +289,10 @@
         variant="underlined"
       >
         <template #prepend-inner>
-          <mdicon class="icon__modify" name="scatter-plot" />
+          <mdicon
+            class="icon__modify"
+            name="scatter-plot"
+          />
         </template>
       </v-autocomplete>
       <!-- <v-autocomplete
@@ -279,7 +322,10 @@
         variant="underlined"
       >
         <template #prepend-inner>
-          <mdicon class="icon__modify" name="bank" />
+          <mdicon
+            class="icon__modify"
+            name="bank"
+          />
         </template>
       </v-autocomplete>
 
@@ -337,43 +383,43 @@ let errorsForm = ref({ errors: {} });
 let parcelar = ref(false);
 let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
 let valueTotalRevenuesMonth = ref(
-  useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth
+    useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth
 );
 let valuePending = ref(
-  formatValue(useRevenues.revenuesData.revenues?.ValuePendingRevenues)
+    formatValue(useRevenues.revenuesData.revenues?.ValuePendingRevenues)
 );
 let revenuesMonth = ref(useRevenues.revenuesData.revenues?.RevenuesMonth);
 // console.log(revenuesMonth.value);
 let valueReceived = ref(
-  formatValue(useRevenues.revenuesData.revenues?.ValueReceivedRevenues)
+    formatValue(useRevenues.revenuesData.revenues?.ValueReceivedRevenues)
 );
 const selectedColor = ref("");
 const tiposLancamento = ref(["Não recorrente", "Parcelada", "Fixa mensal"]);
 
 const getCurrentDate = () => {
-  const today = new Date();
-  const day = String(today.getDate()).padStart(2, '0');
-  const month = String(today.getMonth() + 1).padStart(2, '0'); // Janeiro é 0!
-  const year = today.getFullYear();
-  return `${year}-${month}-${day}`;
+    const today = new Date();
+    const day = String(today.getDate()).padStart(2, "0");
+    const month = String(today.getMonth() + 1).padStart(2, "0"); // Janeiro é 0!
+    const year = today.getFullYear();
+    return `${year}-${month}-${day}`;
 };
 
 let releases: Ref<Lancamentos> = ref({
-  descricao: " ",
-  valor: "",
-  tipo: "Não recorrente",
-  numParcelas: 0,
-  periodicidade: "Mensal",
-  date: getCurrentDate(),
-  categoria: "Outros",
-  carteira: "Pessoal",
-  status: "Efetivada",
-  mesReferencia: mesAnoReferencia.value,
+    descricao: " ",
+    valor: "",
+    tipo: "Não recorrente",
+    numParcelas: 0,
+    periodicidade: "Mensal",
+    date: getCurrentDate(),
+    categoria: "Outros",
+    carteira: "Pessoal",
+    status: "Efetivada",
+    mesReferencia: mesAnoReferencia.value,
 });
 
 const categoriasNames = ref([]);
 userStore.user.categoriasReceitas.forEach((categoria) => {
-  categoriasNames.value.push(categoria.name);
+    categoriasNames.value.push(categoria.name);
 });
 
 let carteiras = ref(useWallets.walletsData.walletsNames);
@@ -388,120 +434,120 @@ const nameCategory = ref("");
 //     }
 // });
 const toggleStatus = () => {
-  releases.value.status =
+    releases.value.status =
     releases.value.status === "Efetivada" ? "Pendente" : "Efetivada";
 };
 
 
 
 const emit = defineEmits([
-  "updateCategoriasDespesas",
-  "updateCategoriasReceitas",
+    "updateCategoriasDespesas",
+    "updateCategoriasReceitas",
 ]);
 
 const selecionarTipo = (item: string) => {
-  releases.value.tipo = item;
-  openTipoLancamento.value = false;
-  if (item === "Parcelada") {
-    openParcelas.value = true;
-  }
+    releases.value.tipo = item;
+    openTipoLancamento.value = false;
+    if (item === "Parcelada") {
+        openParcelas.value = true;
+    }
 };
 
 const salvarLancamentos = async () => {
-  try {
-    releases.value.status = status.value ? "Efetivada" : "pendente";
-    const res = await http.post("/save-revenue", releases.value);
-    useRevenues.setRevenuesData(res.data.revenuesData);
-    valueTotalRevenuesMonth.value =
+    try {
+        releases.value.status = status.value ? "Efetivada" : "pendente";
+        const res = await http.post("/save-revenue", releases.value);
+        useRevenues.setRevenuesData(res.data.revenuesData);
+        valueTotalRevenuesMonth.value =
       res.data.revenuesData.ValueTotalRevenuesMonth;
-    console.log('chegui');
-    valuePending.value = res.data.revenuesData.ValuePendingRevenues;
-    valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
-    revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
-    useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
-    useWallets.setWallets(res.data.walletsData.wallets);
-    clearInputs();
-    openModal.value = false;
-  } catch (error) {
-    console.log(error.response.data.errors);
-    errorsForm.value["errors"] = error.response.data["errors"];
-  }
+        console.log("chegui");
+        valuePending.value = res.data.revenuesData.ValuePendingRevenues;
+        valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
+        revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
+        useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
+        useWallets.setWallets(res.data.walletsData.wallets);
+        clearInputs();
+        openModal.value = false;
+    } catch (error) {
+        console.log(error.response.data.errors);
+        errorsForm.value["errors"] = error.response.data["errors"];
+    }
 };
 
 const updateSelectedIcon = (novoValor: string) => {
-  selectedIcon.value = novoValor;
+    selectedIcon.value = novoValor;
 };
 const updateSelectedColor = (novoValor: string) => {
-  selectedColor.value = novoValor;
+    selectedColor.value = novoValor;
 };
 
 const clearInputs = () => {
-  releases.value.valor = "";
-  releases.value.date = "";
-  releases.value.descricao = "";
-  releases.value.categoria = "";
-  releases.value.carteira = "";
+    releases.value.valor = "";
+    releases.value.date = "";
+    releases.value.descricao = "";
+    releases.value.categoria = "";
+    releases.value.carteira = "";
 };
 
 const saveCategory = async () => {
-  const data = ref({
-    name: nameCategory.value,
-    color: selectedColor.value,
-    icon: selectedIcon.value,
-    typeCategory: "",
-    edit: true,
-  });
-  try {
-    data.value.typeCategory =
+    const data = ref({
+        name: nameCategory.value,
+        color: selectedColor.value,
+        icon: selectedIcon.value,
+        typeCategory: "",
+        edit: true,
+    });
+    try {
+        data.value.typeCategory =
       props.color === "color__despesa" ? "despesa" : "receita";
 
-    const res = await http.post("/save-category", data.value);
-    useUser.setUserData(res.data.user);
-    if (res.data.categoriasDespesas) {
-      emit("updateCategoriasDespesas", res.data.categoriasDespesas);
-    }
-    if (res.data.categoriasReceitas) {
-      emit("updateCategoriasReceitas", res.data.categoriasReceitas);
-    }
-    nameCategory.value = "";
-    selectedColor.value = "";
-    selectedIcon.value = "";
-    openModal.value = false;
-  } catch (error) {
+        const res = await http.post("/save-category", data.value);
+        useUser.setUserData(res.data.user);
+        if (res.data.categoriasDespesas) {
+            emit("updateCategoriasDespesas", res.data.categoriasDespesas);
+        }
+        if (res.data.categoriasReceitas) {
+            emit("updateCategoriasReceitas", res.data.categoriasReceitas);
+        }
+        nameCategory.value = "";
+        selectedColor.value = "";
+        selectedIcon.value = "";
+        openModal.value = false;
+    } catch (error) {
     // console.log(error);
-  }
+    }
 };
 
 const formatValueSave = () => {
-  let novoValor = releases.value.valor.replace(/[^\d]/g, "");
+    let novoValor = releases.value.valor.replace(/[^\d]/g, "");
 
-  if (novoValor.length > 1) {
-    const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
-    const parteDecimal = novoValor.slice(-2);
-    const parteInteiraFormatada = parteInteira.replace(
-      /\B(?=(\d{3})+(?!\d))/g,
-      "."
-    );
-    releases.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
-  } else if (novoValor.length === 1) {
-    releases.value.valor = `$ 0,0${novoValor}`;
-  } else {
-    releases.value.valor = "$ 0,00";
-  }
+    if (novoValor.length > 1) {
+        const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
+        const parteDecimal = novoValor.slice(-2);
+        const parteInteiraFormatada = parteInteira.replace(
+            /\B(?=(\d{3})+(?!\d))/g,
+            "."
+        );
+        releases.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
+    } else if (novoValor.length === 1) {
+        releases.value.valor = `$ 0,0${novoValor}`;
+    } else {
+        releases.value.valor = "$ 0,00";
+    }
 };
 
 const rules = {
-  requiredValor: (value: string) => !!value || "O campo valor é obrigatório",
-  requiredValorMaiorQue0: (value: string) =>
-    parseFloat(value.replace(",", ".")) > 0 ||
+    requiredValor: (value: string) => !!value || "O campo valor é obrigatório",
+    requiredValorMaiorQue0: (value: string) =>
+        parseFloat(value.replace(",", ".")) > 0 ||
     "O campo valor deve ser maior que zero",
-  requiredData: (value: string) => !!value || "O campo data é obrigatório",
-  requiredDescricao: (value: string) =>
-    !!value || "O campo escriçãp é obrigatório",
-  requiredCatagoria: (value: string) =>
-    !!value || "O campo categoria é obrigatório",
-  requiredCarteira: (value: string) =>
-    !!value || "O campo categoria é obrigatório",
+    requiredData: (value: string) => !!value || "O campo data é obrigatório",
+    requiredDescricao: (value: string) =>
+        !!value || "O campo escriçãp é obrigatório",
+    requiredCatagoria: (value: string) =>
+        !!value || "O campo categoria é obrigatório",
+    requiredCarteira: (value: string) =>
+        !!value || "O campo categoria é obrigatório",
 };
 </script>
 

@@ -6,7 +6,7 @@ services:
     working_dir: /app
     stdin_open: true
     tty: true
-    command: bash -c "pip install -r requirements.txt && python manage.py runserver 0.0.0.0:8000"
+    command: bash -c "pip install --upgrade pip && pip install -r requirements.txt && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - ./Mr_backend_django:/app
     ports:
