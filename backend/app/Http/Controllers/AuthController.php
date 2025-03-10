@@ -193,9 +193,9 @@ class AuthController extends Controller
         return response()->json([
             'token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 1,
+            'expires_in' => auth()->factory()->getTTL() * 30 * 2,
             'iat' => time(),
-            'expires' => time() + 10,
+            'expires' => time() + 30 * 60,
         ], 200);
     }
 

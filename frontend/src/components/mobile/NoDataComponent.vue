@@ -1,14 +1,18 @@
 <template>
   <div class="no-data-container">
-    <img src="../../assets/img/nadaAqui.svg" alt="No Data" class="no-data-image" />
+    <img
+      src="../../assets/img/nadaAqui.svg"
+      alt="No Data"
+      class="no-data-image"
+    />
     <p class="no-data-text">Nenhum dado disponível no momento.</p>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'NoDataComponent'
-}
+  name: "NoDataComponent",
+};
 </script>
 
 <style scoped>
@@ -17,8 +21,9 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  flex-grow: 1;
   text-align: center;
+  /* min-height: 0; */
 }
 
 .no-data-image {

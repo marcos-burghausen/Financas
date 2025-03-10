@@ -1,5 +1,5 @@
 <template>
-  <div class="content-wrapper">
+  <div class="receitas">
     <div class="header">
       <router-link
         class="link me-7 d-flex align-items-center opaco"
@@ -732,8 +732,9 @@ const rules = {
 </script>
 
 <style>
-.content-wrapper {
-  position: relative;
+.receitas {
+  display: flex;
+  flex-direction: column;
   height: 100%;
 }
 .header {

@@ -176,7 +176,7 @@
         v-model="releases.date"
         variant="underlined"
         hide-details="auto"
-        label="Data"
+        label="Data vencimento"
         type="date"
         :rules="[rules.requiredData]"
         class="mb-5 imput"
@@ -239,9 +239,9 @@
           <mdicon class="icon__modify" name="scatter-plot" />
         </template>
       </v-autocomplete>
-      <!-- <v-autocomplete
+      <v-autocomplete
         ref="country"
-        v-model="country"
+        v-model="releases.subCategoria"
         :items="countries"
         :rules="[() => !!country || 'This field is required']"
         label="Subcategoria"
@@ -253,7 +253,7 @@
         <template #prepend-inner>
           <mdicon class="icon__modify" name="scatter-plot" />
         </template>
-      </v-autocomplete> -->
+      </v-autocomplete>
       <v-autocomplete
         ref="country"
         v-model="releases.carteira"
@@ -269,6 +269,25 @@
           <mdicon class="icon__modify" name="bank" />
         </template>
       </v-autocomplete>
+
+      <!-- <div class="d-flex justify-content-center"> -->
+      <v-btn
+        append-icon="mdi-account-circle"
+        variant="plain"
+        size="x-small"
+        style="color: #77d08e"
+        block
+        @click="informacoes = !informacoes"
+      >
+        Mais informações
+        <template v-slot:append>
+          <mdicon
+            :name="informacoes ? 'chevron-up' : 'chevron-down'"
+            class="pb-2 fs-3"
+          />
+        </template>
+      </v-btn>
+      <!-- </div> -->
 
       <!-- <div
         class="form-group p-0 container d-flex justify-content-between col-12 mt-2 mb-4"
@@ -317,6 +336,7 @@ const userStore = useUserStore();
 const useWallets = useWalletsStore();
 const useRevenues = useRevenuesStore();
 
+let informacoes = ref(false);
 let categorias = reactive(userStore.user.categoriasDespesas);
 let openTipoLancamento = ref(false);
 let openParcelas = ref(false);
@@ -353,6 +373,7 @@ let releases: Ref<Lancamentos> = ref({
   periodicidade: "",
   date: getCurrentDate(),
   categoria: "Outros",
+  subCategoria: "Outros",
   carteira: "Pessoal",
   status: "Efetivada",
   mesReferencia: mesAnoReferencia.value,
@@ -485,6 +506,29 @@ const rules = {
 </script>
 
 <style scoped>
+.mdicon {
+  cursor: pointer;
+  padding: 10px;
+  /* box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23; */
+  border-radius: 50px;
+  position: absolute;
+  right: 30px;
+  bottom: 30px;
+  background-color: #77d08e;
+  color: #fefefe;
+}
+.container__modal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* background: rgba(0, 0, 0, 0.5); */
+  background: rgb(15, 15, 15);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 .botoes__parcelas {
   display: flex;
   justify-content: end;
@@ -605,29 +649,7 @@ const rules = {
   border-radius: 50%;
   background-color: #77d08e;
 }
-.mdicon {
-  cursor: pointer;
-  padding: 10px;
-  /* box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23; */
-  border-radius: 20px;
-  position: absolute;
-  right: 15px;
-  bottom: 15px;
-  background-color: #77d08e;
-  color: #fefefe;
-}
-.container__modal {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  /* background: rgba(0, 0, 0, 0.5); */
-  background: rgb(15, 15, 15);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+
 .form__lançamentos {
   width: 100%;
   padding: 0 10px;

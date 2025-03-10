@@ -1,29 +1,20 @@
 <template>
-    <div class="content-wrapper">
-        <div class="header">
-            <router-link
-                class="link me-7 d-flex align-items-center opaco"
-                :to="{ name: 'dashboard' }"
-            >
-                <mdicon
-                    name="arrow-left"
-                    size="25"
-                />
-            </router-link>
-            <div class="header__items">
-                <div class="d-flex flex-column">
-                    <span
-                        class="fs-5"
-                    >
-                        Despesas
-                    </span>
-                    <span
-                        class="valor"
-                    >
-                        RS {{ formatValue(valueTotalExpensesMonth) }}
-                    </span>
-                </div>
-                <!-- <div>
+  <div class="content-wrapper">
+    <div class="header">
+      <router-link
+        class="link me-7 d-flex align-items-center opaco"
+        :to="{ name: 'dashboard' }"
+      >
+        <mdicon name="arrow-left" size="25" />
+      </router-link>
+      <div class="header__items">
+        <div class="d-flex flex-column">
+          <span class="fs-5"> Despesas </span>
+          <span class="valor">
+            RS {{ formatValue(valueTotalExpensesMonth) }}
+          </span>
+        </div>
+        <!-- <div>
                     <mdicon
                         name="magnify"
                         class="mdicon me-3"
@@ -40,36 +31,32 @@
                         size="25"
                     />
                 </div> -->
-            </div>
-        </div>
-        <div class="container__mes">
-            <mdicon
-                name="chevron-left"
-                class="mdicon"
-                size="30"
-                @click="mesAnterior()"
-            />
-            <span class="mes"> {{mesPorExtenso}} </span>
-            <mdicon
-                name="chevron-right"
-                class="mdicon"
-                size="30"
-                @click="proximoMes()"
-            />
-        </div>
-        <button
-            v-if="!formStoreExpense && !formEditExpense"
-            class="btn__nova__despesa"
-            @click="formStoreExpense = !formStoreExpense"
-        >
-            <mdicon
-                name="plus"
-                class="mdicon"
-                size="30"
-            />
-        </button>
+      </div>
+    </div>
+    <div class="container__mes">
+      <mdicon
+        name="chevron-left"
+        class="mdicon"
+        size="30"
+        @click="mesAnterior()"
+      />
+      <span class="mes"> {{ mesPorExtenso }} </span>
+      <mdicon
+        name="chevron-right"
+        class="mdicon"
+        size="30"
+        @click="proximoMes()"
+      />
+    </div>
+    <button
+      v-if="!formStoreExpense && !formEditExpense"
+      class="btn__nova__despesa"
+      @click="formStoreExpense = !formStoreExpense"
+    >
+      <mdicon name="plus" class="mdicon" size="30" />
+    </button>
 
-        <!-- <FormLancamentos /> -->
+    <!-- <FormLancamentos /> -->
     <!-- ========================================================================= -->
     <!-- ================ inicio formulario lançamentos despesas ================= -->
     <!-- ========================================================================= -->
@@ -307,94 +294,101 @@
     <!-- =================== fim formulario editar despesa ===================== -->
     <!-- ========================================================================= -->
 
-    <div v-if="expensesMonth && expensesMonth.length > 0" >
-        <div v-if="!formStoreExpense && !formEditExpense" class="container-fluid">
+    <div v-if="expensesMonth && expensesMonth.length > 0">
+      <div v-if="!formStoreExpense && !formEditExpense" class="container-fluid">
+        <div
+          class="container__table"
+          v-for="(expense, key) in expensesMonth"
+          :key="expense.id"
+        >
+          <div class="card__lancamento">
+            <!-- :class="{ recebida: revenue.status === 'RECEBIDA' }" -->
             <div
-                    class="container__table"
-                    v-for="(expense, key) in expensesMonth"
-                    :key="expense.id"
+              class="mdicon__card"
+              :disabled="expense.status === 'RECEBIDA'"
+              @click="payExpense(expense)"
+            >
+              <mdicon
+                :name="
+                  expense.status === 'PAGA'
+                    ? 'check'
+                    : new Date() <= new Date(expense.date)
+                    ? 'alert'
+                    : 'alert-remove'
+                "
+                class="mdicon__lacamento"
+                :class="{
+                  paga: expense.status === 'PAGA',
+                  aguardando:
+                    new Date() <= new Date(expense.date) &&
+                    expense.status === 'AGUARDANDO',
+                  atrasada:
+                    new Date() > new Date(expense.date) &&
+                    expense.status === 'AGUARDANDO',
+                }"
+                size="30"
+              />
+            </div>
+            <div style="width: 100%">
+              <div class="header__visao_geral">
+                <span style="text-align: start">
+                  {{ expense.carteira }}
+                </span>
+                <div>
+                  <span>
+                    {{ expense.date }}
+                  </span>
+                  <span>
+                    <mdicon name="dots-vertical" class="mdicon" size="25" />
+                    <v-menu
+                      activator="parent"
+                      location="bottom end"
+                      transition="fade-transition"
                     >
-                    <div class="card__lancamento">
-                            <!-- :class="{ recebida: revenue.status === 'RECEBIDA' }" -->
-                        <div class="mdicon__card"
-                            :disabled="expense.status === 'RECEBIDA'"
-                            @click="payExpense(expense)"
-                        >
-                            <mdicon
-                                :name="expense.status === 'PAGA' ? 'check' : (new Date() <= new Date (expense.date) ? 'alert' : 'alert-remove')"
-                                class="mdicon__lacamento"
-                                :class="{ 
-                                    paga: expense.status === 'PAGA', 
-                                    'aguardando': new Date() <= new Date(expense.date) && expense.status === 'AGUARDANDO', 
-                                    'atrasada': new Date() > new Date(expense.date) && expense.status === 'AGUARDANDO',
-                                }"
-                                size="30"
-                            />
-                        </div>
-                        <div style="width: 100%;">
-                            <div class="header__visao_geral">
-                                <span style="text-align: start;">
-                                    {{ expense.carteira}}
-                                </span>
-                                <div>
-                                    <span>
-                                        {{ expense.date }}
-                                    </span>
-                                    <span>
-                                        <mdicon
-                                            name="dots-vertical"
-                                            class="mdicon"
-                                            size="25"
-                                        />
-                                        <v-menu
-                                            activator="parent"
-                                            location="bottom end"
-                                            transition="fade-transition"
-                                            >
-                                                <!-- style="background-color: rgb(15, 15, 15); box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;" -->
-                                            <v-list
-                                                class="color"
-                                                style="background-color: rgb(15, 15, 15);"
-                                                density="compact"
-                                                min-width="250"
-                                                rounded="lg"
-                                                slim
-                                            >
-                                                <v-list-item
-                                                    title="Editar"
-                                                    link
-                                                    @click="displayFormEditExpense(expense)"
-                                                ></v-list-item>
-                                                <v-list-item
-                                                    title="Excluir"
-                                                    link
-                                                    @click="deletar(expense.id)"
-                                                ></v-list-item>
-                                            </v-list>
-                                        </v-menu>
-                                    </span>
-                                </div>
-                            </div>
-                            <div style="display: flex; justify-content: space-between">
-                                <span class="categoria">
-                                    {{ expense.descricao}}
-                                </span>
-                                <span class="categoria">
-                                    R$ {{ formatValue(expense.valor) }}
-                                </span>
-                            </div>
-                            <div>
-                                <span class="sub__categoria">
-                                    {{ expense.categoria }}
-                                </span>
-                                <span class="sub__categoria">
-                                    {{ expense.categoria }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+                      <!-- style="background-color: rgb(15, 15, 15); box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;" -->
+                      <v-list
+                        class="color"
+                        style="background-color: rgb(15, 15, 15)"
+                        density="compact"
+                        min-width="250"
+                        rounded="lg"
+                        slim
+                      >
+                        <v-list-item
+                          title="Editar"
+                          link
+                          @click="displayFormEditExpense(expense)"
+                        ></v-list-item>
+                        <v-list-item
+                          title="Excluir"
+                          link
+                          @click="deletar(expense.id)"
+                        ></v-list-item>
+                      </v-list>
+                    </v-menu>
+                  </span>
                 </div>
+              </div>
+              <div style="display: flex; justify-content: space-between">
+                <span class="categoria">
+                  {{ expense.descricao }}
+                </span>
+                <span class="categoria">
+                  R$ {{ formatValue(expense.valor) }}
+                </span>
+              </div>
+              <div>
+                <span class="sub__categoria">
+                  {{ expense.categoria }}
+                </span>
+                <span class="sub__categoria">
+                  {{ expense.categoria }}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
     <NoDataComponent v-else />
   </div>
@@ -429,7 +423,9 @@ let validFormEdit = ref(false);
 let loading = ref(false);
 
 let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
-let valueTotalExpensesMonth = ref(useExpenses.expensesData.expenses?.ValueTotalExpensesMonth);
+let valueTotalExpensesMonth = ref(
+  useExpenses.expensesData.expenses?.ValueTotalExpensesMonth
+);
 let valuePending = ref(useExpenses.expensesData.expenses?.ValuePendingExpenses);
 let expensesMonth = ref(useExpenses.expensesData.expenses?.ExpensesMonth);
 let valuePay = ref(
@@ -456,7 +452,7 @@ let expenseEdit: Ref<RevenueEdit> = ref({
   status: "",
   created_at: "",
   updated_at: "",
-  mesReferencia: mesAnoReferencia.value
+  mesReferencia: mesAnoReferencia.value,
 });
 const expenseUnedited: Ref<RevenueEdit> = ref({
   valor: "",
@@ -473,56 +469,71 @@ let release = ref({
   descricao: "",
   categoria: "",
   carteira: "",
-  mesReferencia: mesAnoReferencia.value
+  mesReferencia: mesAnoReferencia.value,
 });
 
 const mesPorExtenso = computed(() => {
-    if (!mesAnoReferencia.value) return '';
+  if (!mesAnoReferencia.value) return "";
 
-    const [ano, mes] = mesAnoReferencia.value.split("-");
+  const [ano, mes] = mesAnoReferencia.value.split("-");
 
-    const mesesPorExtenso = [
-        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-    ];
+  const mesesPorExtenso = [
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
+  ];
 
-    return mesesPorExtenso[parseInt(mes, 10) - 1];
+  return mesesPorExtenso[parseInt(mes, 10) - 1];
 });
 
 const mesAnterior = () => {
-    const [ano, mes] = mesAnoReferencia.value.split("-");
-    const dataAtual = new Date(ano, mes - 1);
-    dataAtual.setMonth(dataAtual.getMonth() - 1);
-    mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(dataAtual.getMonth() + 1).padStart(2, '0')}`;
-    buscarDadosMes(mesAnoReferencia.value);
+  const [ano, mes] = mesAnoReferencia.value.split("-");
+  const dataAtual = new Date(ano, mes - 1);
+  dataAtual.setMonth(dataAtual.getMonth() - 1);
+  mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
+    dataAtual.getMonth() + 1
+  ).padStart(2, "0")}`;
+  buscarDadosMes(mesAnoReferencia.value);
 };
 
 const proximoMes = () => {
-    const [ano, mes] = mesAnoReferencia.value.split("-");
-    const dataAtual = new Date(ano, mes - 1);
-    dataAtual.setMonth(dataAtual.getMonth() + 1);
-    mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(dataAtual.getMonth() + 1).padStart(2, '0')}`;
-    buscarDadosMes(mesAnoReferencia.value);
+  const [ano, mes] = mesAnoReferencia.value.split("-");
+  const dataAtual = new Date(ano, mes - 1);
+  dataAtual.setMonth(dataAtual.getMonth() + 1);
+  mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
+    dataAtual.getMonth() + 1
+  ).padStart(2, "0")}`;
+  buscarDadosMes(mesAnoReferencia.value);
 };
 
 const buscarDadosMes = async (data) => {
-    try {
-        const res = await http.post('/buscar-dados-mes', { 'mes': data } )   
-        useWallets.setMesReferencia(res.data.walletsData.mes_ano_referencia);
-        useExpenses.setExpensesData(res.data.expensesData);
-        useRevenues.setRevenuesData(res.data.revenuesData);
-        useWallets.setWalletsData(res.data.walletsData);
+  try {
+    const res = await http.post("/buscar-dados-mes", { mes: data });
+    useWallets.setMesReferencia(res.data.walletsData.mes_ano_referencia);
+    useExpenses.setExpensesData(res.data.expensesData);
+    useRevenues.setRevenuesData(res.data.revenuesData);
+    useWallets.setWalletsData(res.data.walletsData);
 
-        mesAnoReferencia.value = res.data.walletsData.mes_ano_referencia;
+    mesAnoReferencia.value = res.data.walletsData.mes_ano_referencia;
 
-        expensesMonth.value = res.data.expensesData.ExpensesMonth;
+    expensesMonth.value = res.data.expensesData.ExpensesMonth;
 
-        valueTotalExpensesMonth.value = res.data.expensesData.ValueTotalExpensesMonth;
-        
-        valuePay.value = res.data.expensesData.ValuePayExpenses;
-    } catch (error) {
-        // 
-    }
+    valueTotalExpensesMonth.value =
+      res.data.expensesData.ValueTotalExpensesMonth;
+
+    valuePay.value = res.data.expensesData.ValuePayExpenses;
+  } catch (error) {
+    //
+  }
 };
 
 const formatValueSave = () => {
@@ -599,7 +610,8 @@ const salvarLancamentos = async () => {
     release.value.status = status.value ? "PAGA" : "AGUARDANDO";
     const res = await http.post("/save-expense", release.value);
     useExpenses.setExpensesData(res.data.expensesData);
-    valueTotalExpensesMonth.value = res.data.expensesData.ValueTotalExpensesMonth;
+    valueTotalExpensesMonth.value =
+      res.data.expensesData.ValueTotalExpensesMonth;
     valuePay.value = res.data.expensesData.ValuePayExpenses;
     valuePending.value = res.data.expensesData.ValuePendingExpenses;
     expensesMonth.value = res.data.expensesData.ExpensesMonth;
@@ -617,7 +629,7 @@ const payExpense = async (expense: Lancamentos) => {
   try {
     const res = await http.post("/pay-expense", {
       id: expense.id,
-      "mesReferencia": mesAnoReferencia.value,
+      mesReferencia: mesAnoReferencia.value,
     });
     useExpenses.setExpensesData(res.data.expensesData);
     valuePending.value = res.data.expensesData.ValuePendingExpenses;
@@ -629,7 +641,6 @@ const payExpense = async (expense: Lancamentos) => {
       }
     });
     useWallets.setWallets(res.data.walletsData.wallets);
-
   } catch (error) {
     // console.log(error);
   }
@@ -647,7 +658,8 @@ const saveEditedExpense = async () => {
     const res = await http.post("/edit-expense", expenseEdit.value);
     useExpenses.setExpensesData(res.data.expensesData);
     useWallets.setWallets(res.data.walletsData.wallets);
-    valueTotalExpensesMonth.value = res.data.expensesData.ValueTotalExpensesMonth;
+    valueTotalExpensesMonth.value =
+      res.data.expensesData.ValueTotalExpensesMonth;
     valuePending.value = res.data.expensesData.ValuePendingExpenses;
     valuePay.value = res.data.expensesData.ValuePayExpenses;
     expensesMonth.value = res.data.expensesData.ExpensesMonth;
@@ -661,11 +673,12 @@ const saveEditedExpense = async () => {
 const deletar = async (id: number) => {
   try {
     const res = await http.post("/delete-expense", {
-      "id": id,
-      "mesReferencia": mesAnoReferencia.value,
-     });
+      id: id,
+      mesReferencia: mesAnoReferencia.value,
+    });
     useExpenses.setExpensesData(res.data.expensesData);
-    valueTotalExpensesMonth.value = res.data.expensesData.ValueTotalExpensesMonth;
+    valueTotalExpensesMonth.value =
+      res.data.expensesData.ValueTotalExpensesMonth;
     valuePending.value = res.data.expensesData.ValuePendingExpenses;
     valuePay.value = res.data.expensesData.ValuePayExpenses;
     expensesMonth.value = res.data.expensesData.ExpensesMonth;
@@ -691,115 +704,106 @@ const rules = {
 
 <style scoped>
 .content-wrapper {
-    position: relative;
-    height: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 .header {
-    display: flex;
-    padding: 10px;
-    color: #bdbdbd;
+  display: flex;
+  padding: 10px;
+  color: #bdbdbd;
 }
 .link {
-    text-decoration: none;
-    color: #fefefe;
+  text-decoration: none;
+  color: #fefefe;
 }
 .opaco {
-    color: #757575 !important;
+  color: #757575 !important;
 }
 .header__items {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 .valor {
-    font-size: 13px;
+  font-size: 13px;
 }
 .container__mes {
-    width: 100%;
-    display: flex;
-    justify-content: space-around;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
 }
 .mes {
-    font-size: 25px;
-    color: #bdbdbd;
+  font-size: 25px;
+  color: #bdbdbd;
 }
 .btn__nova__despesa {
-    position: fixed;
-    right: calc((100vw - 500px) / 2 + 55px); /* Calcula a posição relativa ao centro do #app */
-    bottom: 15px;
-    background-color: #ff0000;
-    border: none;
-    border-radius: 50%;
-    padding: 10px;
-    color: #fefefe;
+  position: fixed;
+  right: calc(
+    (100vw - 500px) / 2 + 55px
+  ); /* Calcula a posição relativa ao centro do #app */
+  bottom: 15px;
+  background-color: #ff0000;
+  border: none;
+  border-radius: 50%;
+  padding: 10px;
+  color: #fefefe;
 }
 .container__table {
   margin-top: 15px;
 }
 .card__lancamento {
-    border-bottom: solid 1px #757575;
-    display: flex;
+  border-bottom: solid 1px #757575;
+  display: flex;
 }
 .mdicon__card {
-    padding-right: 10px;
-    display: flex;
-    align-items: end;
+  padding-right: 10px;
+  display: flex;
+  align-items: end;
 }
 .mdicon__lacamento {
-    border-radius: 50%;
-    padding: 5px;
-    margin-bottom: 5px;
+  border-radius: 50%;
+  padding: 5px;
+  margin-bottom: 5px;
 }
 .paga {
-    color: #1dbb01 !important;
-    background: #24cc0728 !important;
+  color: #1dbb01 !important;
+  background: #24cc0728 !important;
 }
 .atrasada {
-    color: #ff0000 !important;
-    background: #ff000021 !important;
+  color: #ff0000 !important;
+  background: #ff000021 !important;
 }
 .aguardando {
-    color: #e5ff00 !important;
-    background: #e5ff0021 !important;
+  color: #e5ff00 !important;
+  background: #e5ff0021 !important;
 }
 .header__visao_geral {
-    display: flex;
-    justify-content: space-between;
-    color: #757575;
+  display: flex;
+  justify-content: space-between;
+  color: #757575;
 }
 .color {
-    color: #BDBDBD;
+  color: #bdbdbd;
 }
 .categoria {
-    font-size: 20px;
-    color: #bdbdbd;
-    padding-right: 27px;
+  font-size: 20px;
+  color: #bdbdbd;
+  padding-right: 27px;
 }
 .sub__categoria {
-    font-size: 15px;
-    background: #1dbb01;
-    margin-right: 5px;
-    padding-inline: 5px;
-    border-radius: 15px;
+  font-size: 15px;
+  background: #1dbb01;
+  margin-right: 5px;
+  padding-inline: 5px;
+  border-radius: 15px;
 }
-
-
-
 
 .conta__lancamento {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
-
-
-
-
-
-
-
-
-
 
 .cadastro {
   box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
@@ -809,8 +813,6 @@ const rules = {
   flex-direction: column;
   align-items: center;
 }
-
-
 
 .inputSimples {
   background-color: #1e1e1e;

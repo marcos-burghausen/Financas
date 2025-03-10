@@ -42,7 +42,6 @@ import { useRoute } from "vue-router";
 import { useUserStore } from "@/store/user";
 
 const useUser = useUserStore();
-console.log(useUser.user.user_tipe);
 
 const route = useRoute();
 

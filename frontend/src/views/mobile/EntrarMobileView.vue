@@ -142,6 +142,7 @@ async function login() {
   try {
     loading.value = true;
     const response = await http.post("/auth", user.value);
+    console.log(response);
     useAuth.setToken(response.data.token);
     useUser.setUserData(response.data.user);
     useExpenses.setExpensesData(response.data.userData.expensesData);
