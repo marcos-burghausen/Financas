@@ -19,15 +19,17 @@
 /* Garante que o html e o body ocupem toda a altura */
 html, body {
     height: 100%;   /* 100% da altura da viewport */
+    min-height: 100%;   /* 100% da altura da viewport */
     margin: 0;      /* Remove margens */
     padding: 0;     /* Remove padding */
     width: 100%;    /* 100% da largura da viewport */
+    /* overflow: auto; Adiciona barra de rolagem quando necessário */
   }
   
   /* Define o body como um contêiner flexbox */
   body {
     display: flex;           /* Define o body como um contêiner flex */
-    /*flex-direction: column; */ /* Alinha os itens de cima para baixo */
+    /* flex-direction: column; Alinha os itens de cima para baixo */
     justify-content: center; /* Alinha ao topo */
     align-items: flex-start;       /* Começa o alinhamento no topo */
     background-color: #282828;     /* Adiciona cor de fundo ao body */
@@ -37,12 +39,14 @@ html, body {
   #app {
     position: relative; 
     display: flex;                 /* Define o contêiner como flex */
-    /*flex-direction: column;        /* Alinha os itens de cima para baixo */
+    /* flex-direction: column;        Alinha os itens de cima para baixo */
     height: 100%;              /* Expande verticalmente conforme o conteúdo */
     width: 100%;                   /* 100% da largura do contêiner */
     max-width: 500px;              /* Limite de largura para o #app */
     background-color: rgb(15, 15, 15); /* Cor de fundo */
     box-sizing: border-box;        /* Inclui borda e padding no cálculo */
+    overflow: auto;              /*   Adiciona barra de rolagem quando necessário */
+    /* padding-bottom: 20px; */
   }
 
   @media screen and (min-width: 1500px) {

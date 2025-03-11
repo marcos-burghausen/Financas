@@ -35,8 +35,9 @@ const menuExpandido = ref(false);
 
 <style scoped>
 .containerApp {
-  height: 100%;
+  min-height: 100%;
   width: 100%;
+  /* padding-bottom: 10px; */
 }
 
 @media screen and (min-width: 501px) {

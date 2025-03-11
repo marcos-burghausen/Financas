@@ -1,20 +1,24 @@
 <template>
-  <mdicon
-    type="button"
-    title="adcionar nova receita"
-    name="plus"
-    class="mdicon"
-    @click="openModal = true"
-  />
+  <div>
+    <mdicon
+      type="button"
+      title="adcionar nova receita"
+      name="plus"
+      class="mdicon"
+      @click="openModal = true"
+    />
 
-  <div v-if="openModal" class="container__modal">
-    <v-form
-      v-model="validFormLancamentos"
-      class="form__lançamentos"
-      @submit.prevent="salvarLancamentos"
+    <div
+      v-if="openModal"
+      class="container__modal"
     >
-      <!-- <div class="header"> -->
-      <!-- <buttom
+      <v-form
+        v-model="validFormLancamentos"
+        class="form__lançamentos"
+        @submit.prevent="salvarLancamentos"
+      >
+        <!-- <div class="header"> -->
+        <!-- <buttom
           :disabled="loading"
           :loading="loading"
           class="px-5 close"
@@ -27,266 +31,524 @@
         >
           <mdicon name="close" size="25" />
         </buttom> -->
-      <div class="header__items">
-        <buttom
-          :disabled="loading"
-          :loading="loading"
-          class="px-5 close"
-          @click="
-            {
-              openModal = !openModal;
-            }
-            clearInputs();
-          "
-        >
-          <mdicon name="close" size="25" />
-        </buttom>
-        <div class="d-flex flex-column">
-          <span class="fs-5"> Nova receitas </span>
-        </div>
-        <v-btn
-          :disabled="
-            loading || !validFormLancamentos || releases.valor === '0,00'
-          "
-          :loading="loading"
-          style="background-color: #77d08e"
-          class="salvar px-5"
-          type="submit"
-        >
-          Salvar
-        </v-btn>
-      </div>
-
-      <v-textarea
-        v-model="releases.descricao"
-        variant="underlined"
-        type="text"
-        hide-details="auto"
-        label="Descricao"
-        required
-        class="mb-8 imput"
-        :rules="[rules.requiredDescricao]"
-        rows="1"
-      >
-        <template #prepend-inner>
-          <mdicon class="icon__modify" name="text-long" />
-        </template>
-      </v-textarea>
-
-      <v-text-field
-        v-model="releases.valor"
-        variant="underlined"
-        placeholder="0,00"
-        hide-details="auto"
-        label="Valor"
-        type="tel"
-        class="mb-8 imput"
-        :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
-        @input="formatValueSave()"
-      >
-        <template #prepend-inner>
-          <mdicon class="icon__modify" name="currency-usd" />
-        </template>
-      </v-text-field>
-
-      <v-text-field
-        v-model="releases.tipo"
-        variant="underlined"
-        label="Tipo"
-        type="text"
-        class="mb-8 imput"
-        @click="openTipoLancamento = true"
-      >
-        <template #prepend-inner>
-          <mdicon class="icon__modify" name="refresh" />
-        </template>
-      </v-text-field>
-
-      <div v-if="openTipoLancamento" class="tipo">
-        <div class="modal__tipo">
-          <div
-            v-for="(item, index) in tiposLancamento"
-            :key="index"
-            class="cor__icon"
+        <div class="header__items">
+          <buttom
+            :disabled="loading"
+            :loading="loading"
+            class="px-5 close"
+            @click="
+              {
+                openModal = !openModal;
+              }
+              clearInputs();
+            "
           >
-            <div class="container__tipos">
-              <div class="container__tipo" @click="selecionarTipo(item)">
-                <mdicon
-                  :class="releases.tipo == item ? 'selected' : ''"
-                  :name="
-                    releases.tipo == item
-                      ? 'radiobox-marked'
-                      : 'checkbox-blank-circle-outline'
-                  "
-                />
-                <span class="ms-3">{{ item }}</span>
+            <mdicon
+              name="close"
+              size="25"
+            />
+          </buttom>
+          <div class="d-flex flex-column">
+            <span class="fs-5"> Nova receitas </span>
+          </div>
+          <v-btn
+            :disabled="
+              loading || !validFormLancamentos || releases.valor === '0,00'
+            "
+            :loading="loading"
+            style="background-color: #77d08e"
+            class="salvar px-5"
+            type="submit"
+          >
+            Salvar
+          </v-btn>
+        </div>
+
+        <v-textarea
+          v-model="releases.descricao"
+          variant="underlined"
+          type="text"
+          hide-details="auto"
+          label="Descricao"
+          required
+          class="mb-8 imput"
+          :rules="[rules.requiredDescricao]"
+          rows="1"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="text-long"
+            />
+          </template>
+        </v-textarea>
+
+        <v-text-field
+          v-model="releases.valor"
+          variant="underlined"
+          placeholder="0,00"
+          hide-details="auto"
+          label="Valor"
+          type="tel"
+          class="mb-8 imput"
+          :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
+          @input="formatValueSave()"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="currency-usd"
+            />
+          </template>
+        </v-text-field>
+
+        <v-text-field
+          v-model="releases.tipo"
+          variant="underlined"
+          label="Tipo"
+          type="text"
+          class="mb-8 imput"
+          @click="openTipoLancamento = true"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="refresh"
+            />
+          </template>
+        </v-text-field>
+
+        <div
+          v-if="openTipoLancamento"
+          class="tipo"
+        >
+          <div class="modal__tipo">
+            <div
+              v-for="(item, index) in tiposLancamento"
+              :key="index"
+              class="cor__icon"
+            >
+              <div class="container__tipos">
+                <div
+                  class="container__tipo"
+                  @click="selecionarTipo(item)"
+                >
+                  <mdicon
+                    :class="releases.tipo == item ? 'selected' : ''"
+                    :name="
+                      releases.tipo == item
+                        ? 'radiobox-marked'
+                        : 'checkbox-blank-circle-outline'
+                    "
+                  />
+                  <span class="ms-3">{{ item }}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div v-if="openParcelas" class="parcelas">
-        <div class="container__parcelas pb-5">
-          <div class="modal__parcelas">
-            <v-text-field
-              v-model="releases.numParcelas"
-              variant="underlined"
-              type="text"
-              class="mb-8 imput"
-            >
-              <template #prepend-inner>
-                <mdicon class="me-2" name="refresh" />
-                <span class="me-2">Quantidade </span>
-              </template>
-            </v-text-field>
-            <v-text-field
-              v-model="releases.periodicidade"
-              variant="underlined"
-              type="text"
-              class="mb-8 imput"
-            >
-              <template #prepend-inner>
-                <mdicon class="me-2" name="refresh" />
-                <span class="me-2">Periodicidade </span>
-              </template>
-            </v-text-field>
-          </div>
-          <div class="botoes__parcelas mx-5">
-            <v-btn
-              class="px-5 me-5 cancelar"
-              @click="openParcelas = !openParcelas"
-            >
-              Cancelar
-            </v-btn>
-            <v-btn class="btn__concluido px-5" type="submit"> Concluido </v-btn>
+        <div
+          v-if="openParcelas"
+          class="parcelas"
+        >
+          <div class="container__parcelas pb-5">
+            <div class="modal__parcelas">
+              <v-text-field
+                v-model="releases.numParcelas"
+                variant="underlined"
+                type="text"
+                class="mb-8 imput"
+              >
+                <template #prepend-inner>
+                  <mdicon
+                    class="me-2"
+                    name="refresh"
+                  />
+                  <span class="me-2">Quantidade </span>
+                </template>
+              </v-text-field>
+              <v-text-field
+                v-model="releases.periodicidade"
+                variant="underlined"
+                type="text"
+                class="mb-8 imput"
+              >
+                <template #prepend-inner>
+                  <mdicon
+                    class="me-2"
+                    name="refresh"
+                  />
+                  <span class="me-2">Periodicidade </span>
+                </template>
+              </v-text-field>
+            </div>
+            <div class="botoes__parcelas mx-5">
+              <v-btn
+                class="px-5 me-5 cancelar"
+                @click="openParcelas = !openParcelas"
+              >
+                Cancelar
+              </v-btn>
+              <v-btn
+                class="btn__concluido px-5"
+                type="submit"
+              >
+                Concluido
+              </v-btn>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- <ModalTipoLancamento
+        <!-- <ModalTipoLancamento
         v-model="openModal"
         :items="items"
         @updateSelectedIcon="updateSelectedIcon"
       /> -->
 
-      <!-- <ModalParcelar v-model="ModalParcelar" /> -->
+        <!-- <ModalParcelar v-model="ModalParcelar" /> -->
 
-      <v-text-field
-        v-model="releases.date"
-        variant="underlined"
-        hide-details="auto"
-        label="Data vencimento"
-        type="date"
-        :rules="[rules.requiredData]"
-        class="mb-5 imput"
-      >
-        <template #prepend-inner>
-          <mdicon class="icon__modify" name="calendar" />
-        </template>
-      </v-text-field>
+        <v-text-field
+          v-model="releases.date"
+          variant="underlined"
+          hide-details="auto"
+          label="Data vencimento"
+          type="date"
+          :rules="[rules.requiredData]"
+          class="mb-5 imput"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="calendar"
+            />
+          </template>
+        </v-text-field>
 
-      <v-text-field
-        v-model="releases.status"
-        variant="underlined"
-        hide-details="auto"
-        type="text"
-        class="mb-5 imput cursor__pointer"
-        style="cursor: pointer !important"
-        @click="toggleStatus"
-      >
-        <template #prepend-inner>
-          <mdicon
-            class="icon__modify"
-            :name="
-              releases.status == 'Efetivada'
-                ? 'check-circle-outline'
-                : 'clock-time-three-outline'
-            "
-          />
-        </template>
-        <template #append-inner>
-          <div
-            :class="
-              releases.status == 'Efetivada'
-                ? 'form__check__efetivada'
-                : 'form__check'
-            "
-          >
+        <v-text-field
+          v-model="releases.status"
+          variant="underlined"
+          hide-details="auto"
+          type="text"
+          class="mb-5 imput cursor__pointer"
+          style="cursor: pointer !important"
+          @click="toggleStatus"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              :name="
+                releases.status == 'Efetivada'
+                  ? 'check-circle-outline'
+                  : 'clock-time-three-outline'
+              "
+            />
+          </template>
+          <template #append-inner>
             <div
               :class="
                 releases.status == 'Efetivada'
-                  ? 'switch__check__efetivada'
-                  : 'switch__check'
+                  ? 'form__check__efetivada'
+                  : 'form__check'
               "
-            ></div>
-          </div>
-        </template>
-      </v-text-field>
+            >
+              <div
+                :class="
+                  releases.status == 'Efetivada'
+                    ? 'switch__check__efetivada'
+                    : 'switch__check'
+                "
+              />
+            </div>
+          </template>
+        </v-text-field>
 
-      <v-autocomplete
-        ref="country"
-        v-model="releases.categoria"
-        :items="categoriasNames"
-        :rules="[rules.requiredCatagoria]"
-        label="Categoria"
-        placeholder="Select..."
-        required
-        style="color: #ccc"
-        variant="underlined"
-      >
-        <template #prepend-inner>
-          <mdicon class="icon__modify" name="scatter-plot" />
-        </template>
-      </v-autocomplete>
-      <v-autocomplete
-        ref="country"
-        v-model="releases.subCategoria"
-        :items="countries"
-        :rules="[() => !!country || 'This field is required']"
-        label="Subcategoria"
-        placeholder="Select..."
-        required
-        style="color: #ccc"
-        variant="underlined"
-      >
-        <template #prepend-inner>
-          <mdicon class="icon__modify" name="scatter-plot" />
-        </template>
-      </v-autocomplete>
-      <v-autocomplete
-        ref="country"
-        v-model="releases.carteira"
-        :items="carteiras"
-        :rules="[rules.requiredCarteira]"
-        label="Conta"
-        placeholder="Select..."
-        required
-        style="color: #ccc"
-        variant="underlined"
-      >
-        <template #prepend-inner>
-          <mdicon class="icon__modify" name="bank" />
-        </template>
-      </v-autocomplete>
+        <v-autocomplete
+          ref="country"
+          v-model="releases.categoria"
+          :items="categoriasNames"
+          :rules="[rules.requiredCatagoria]"
+          label="Categoria"
+          placeholder="Select..."
+          required
+          style="color: #ccc"
+          variant="underlined"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="scatter-plot"
+            />
+          </template>
+        </v-autocomplete>
+        <!-- <v-autocomplete
+          ref="country"
+          v-model="releases.subCategoria"
+          :items="countries"
+          :rules="[() => !!country || 'This field is required']"
+          label="Subcategoria"
+          placeholder="Select..."
+          required
+          style="color: #ccc"
+          variant="underlined"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="scatter-plot"
+            />
+          </template>
+        </v-autocomplete> -->
+        <v-autocomplete
+          ref="country"
+          v-model="releases.carteira"
+          :items="carteiras"
+          :rules="[rules.requiredCarteira]"
+          label="Conta"
+          placeholder="Select..."
+          required
+          style="color: #ccc"
+          variant="underlined"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="bank"
+            />
+          </template>
+        </v-autocomplete>
+        <!-- <v-btn
+          v-if="!informacoes"
+          append-icon="mdi-account-circle"
+          variant="plain"
+          size="x-small"
+          style="color: #77d08e"
+          block
+          @click="informacoes = !informacoes"
+        >
+          Mais informações
+          <template #append>
+            <mdicon
+              :name="informacoes ? 'chevron-up' : 'chevron-down'"
+              class="pb-2 fs-3"
+            />
+          </template>
+        </v-btn>
+        <v-text-field
+          v-if="informacoes"
+          v-model="releases.date"
+          variant="underlined"
+          hide-details="auto"
+          label="Data lançamento"
+          type="date"
+          :rules="[rules.requiredData]"
+          class="mb-5 imput"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="calendar-clock"
+            />
+          </template>
+        </v-text-field>
+        <v-text-field
+          v-if="informacoes"
+          v-model="releases.date"
+          variant="underlined"
+          hide-details="auto"
+          label="Data efetivação"
+          type="date"
+          :rules="[rules.requiredData]"
+          class="mb-5 imput"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="calendar-check"
+            />
+          </template>
+        </v-text-field>
+        <v-text-field
+          v-if="informacoes"
+          variant="underlined"
+          hide-details="auto"
+          type="text"
+          class="mb-5 imput cursor__pointer"
+          style="cursor: pointer !important"
+          @click="toggleStatus"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              :name="
+                releases.status == 'Efetivada'
+                  ? 'check-circle-outline'
+                  : 'clock-time-three-outline'
+              "
+            />
+          </template>
+          Não efetivar automaticamente
+          <template #append-inner>
+            <div
+              :class="
+                releases.status == 'Efetivada'
+                  ? 'form__check__efetivada'
+                  : 'form__check'
+              "
+            >
+              <div
+                :class="
+                  releases.status == 'Efetivada'
+                    ? 'switch__check__efetivada'
+                    : 'switch__check'
+                "
+              />
+            </div>
+          </template>
+        </v-text-field>
+        <v-text-field
+          v-if="informacoes"
+          variant="underlined"
+          hide-details="auto"
+          type="text"
+          class="mb-5 imput cursor__pointer"
+          style="cursor: pointer !important"
+          @click="toggleStatus"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="chart-bar"
+            />
+          </template>
+          Ignorar em Estatisitcas e Graficos
+          <template #append-inner>
+            <div
+              :class="
+                releases.status == 'Efetivada'
+                  ? 'form__check__efetivada'
+                  : 'form__check'
+              "
+            >
+              <div
+                :class="
+                  releases.status == 'Efetivada'
+                    ? 'switch__check__efetivada'
+                    : 'switch__check'
+                "
+              />
+            </div>
+          </template>
+        </v-text-field>
+        <v-text-field
+          v-if="informacoes"
+          variant="underlined"
+          hide-details="auto"
+          type="text"
+          class="mb-5 imput cursor__pointer"
+          style="cursor: pointer !important"
+          @click="toggleStatus"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="circle-multiple-outline"
+            />
+          </template>
+          Ignorar em Economia mensal
+          <template #append-inner>
+            <div
+              :class="
+                releases.status == 'Efetivada'
+                  ? 'form__check__efetivada'
+                  : 'form__check'
+              "
+            >
+              <div
+                :class="
+                  releases.status == 'Efetivada'
+                    ? 'switch__check__efetivada'
+                    : 'switch__check'
+                "
+              />
+            </div>
+          </template>
+        </v-text-field>
+        <v-text-field
+          v-if="informacoes"
+          variant="underlined"
+          hide-details="auto"
+          type="text"
+          class="mb-5 imput cursor__pointer"
+          style="cursor: pointer !important"
+          @click="toggleStatus"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="currency-usd-off"
+            />
+          </template>
+          Ignorar em totais
+          <template #append-inner>
+            <div
+              :class="
+                releases.status == 'Efetivada'
+                  ? 'form__check__efetivada'
+                  : 'form__check'
+              "
+            >
+              <div
+                :class="
+                  releases.status == 'Efetivada'
+                    ? 'switch__check__efetivada'
+                    : 'switch__check'
+                "
+              />
+            </div>
+          </template>
+        </v-text-field>
+        <v-text-field
+          v-if="informacoes"
+          variant="underlined"
+          hide-details="auto"
+          type="text"
+          class="mb-5 imput cursor__pointer"
+          style="cursor: pointer !important"
+          @click="toggleStatus"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              :name="
+                releases.status == 'Efetivada'
+                  ? 'check-circle-outline'
+                  : 'clock-time-three-outline'
+              "
+            />
+          </template>
+          Não efetivar automaticamente
+          <template #append-inner>
+            <div
+              :class="
+                releases.status == 'Efetivada'
+                  ? 'form__check__efetivada'
+                  : 'form__check'
+              "
+            >
+              <div
+                :class="
+                  releases.status == 'Efetivada'
+                    ? 'switch__check__efetivada'
+                    : 'switch__check'
+                "
+              />
+            </div>
+          </template>
+        </v-text-field> -->
 
       <!-- <div class="d-flex justify-content-center"> -->
-      <v-btn
-        append-icon="mdi-account-circle"
-        variant="plain"
-        size="x-small"
-        style="color: #77d08e"
-        block
-        @click="informacoes = !informacoes"
-      >
-        Mais informações
-        <template v-slot:append>
-          <mdicon
-            :name="informacoes ? 'chevron-up' : 'chevron-down'"
-            class="pb-2 fs-3"
-          />
-        </template>
-      </v-btn>
+      
       <!-- </div> -->
 
       <!-- <div
@@ -318,7 +580,8 @@
           Salvar
         </v-btn>
       </div> -->
-    </v-form>
+      </v-form>
+    </div>
   </div>
 </template>
 <script setup lang="ts">
@@ -344,44 +607,44 @@ let errorsForm = ref({ errors: {} });
 let parcelar = ref(false);
 let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
 let valueTotalRevenuesMonth = ref(
-  useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth
+    useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth
 );
 let valuePending = ref(
-  formatValue(useRevenues.revenuesData.revenues?.ValuePendingRevenues)
+    formatValue(useRevenues.revenuesData.revenues?.ValuePendingRevenues)
 );
 let revenuesMonth = ref(useRevenues.revenuesData.revenues?.RevenuesMonth);
 // console.log(revenuesMonth.value);
 let valueReceived = ref(
-  formatValue(useRevenues.revenuesData.revenues?.ValueReceivedRevenues)
+    formatValue(useRevenues.revenuesData.revenues?.ValueReceivedRevenues)
 );
 const selectedColor = ref("");
 const tiposLancamento = ref(["Não recorrente", "Parcelada", "Fixa mensal"]);
 
 const getCurrentDate = () => {
-  const today = new Date();
-  const day = String(today.getDate()).padStart(2, "0");
-  const month = String(today.getMonth() + 1).padStart(2, "0"); // Janeiro é 0!
-  const year = today.getFullYear();
-  return `${year}-${month}-${day}`;
+    const today = new Date();
+    const day = String(today.getDate()).padStart(2, "0");
+    const month = String(today.getMonth() + 1).padStart(2, "0"); // Janeiro é 0!
+    const year = today.getFullYear();
+    return `${year}-${month}-${day}`;
 };
 
 let releases: Ref<Lancamentos> = ref({
-  descricao: "",
-  valor: "",
-  tipo: "Não recorrente",
-  numParcelas: 0,
-  periodicidade: "",
-  date: getCurrentDate(),
-  categoria: "Outros",
-  subCategoria: "Outros",
-  carteira: "Pessoal",
-  status: "Efetivada",
-  mesReferencia: mesAnoReferencia.value,
+    descricao: "",
+    valor: "",
+    tipo: "Não recorrente",
+    numParcelas: 0,
+    periodicidade: "",
+    date: getCurrentDate(),
+    categoria: "Outros",
+    subCategoria: "Outros",
+    carteira: "Pessoal",
+    status: "Efetivada",
+    mesReferencia: mesAnoReferencia.value,
 });
 
 const categoriasNames = ref([]);
 userStore.user.categoriasReceitas.forEach((categoria) => {
-  categoriasNames.value.push(categoria.name);
+    categoriasNames.value.push(categoria.name);
 });
 
 let carteiras = ref(useWallets.walletsData.walletsNames);
@@ -396,112 +659,112 @@ const nameCategory = ref("");
 //     }
 // });
 const toggleStatus = () => {
-  releases.value.status =
+    releases.value.status =
     releases.value.status === "Efetivada" ? "Pendente" : "Efetivada";
 };
 
 const emit = defineEmits(["updateData"]);
 
 const selecionarTipo = (item: string) => {
-  releases.value.tipo = item;
-  openTipoLancamento.value = false;
-  if (item === "Parcelada") {
-    openParcelas.value = true;
-  }
+    releases.value.tipo = item;
+    openTipoLancamento.value = false;
+    if (item === "Parcelada") {
+        openParcelas.value = true;
+    }
 };
 
 const salvarLancamentos = async () => {
-  try {
-    releases.value.status = status.value ? "Efetivada" : "pendente";
-    const res = await http.post("/save-revenue", releases.value);
-    useRevenues.setRevenuesData(res.data.revenuesData);
-    valueTotalRevenuesMonth.value =
+    try {
+        releases.value.status = status.value ? "Efetivada" : "pendente";
+        const res = await http.post("/save-revenue", releases.value);
+        useRevenues.setRevenuesData(res.data.revenuesData);
+        valueTotalRevenuesMonth.value =
       res.data.revenuesData.ValueTotalRevenuesMonth;
-    emit("updateData", res.data.revenuesData);
-    useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
-    useWallets.setWallets(res.data.walletsData.wallets);
-    clearInputs();
-    openModal.value = false;
-  } catch (error) {
-    console.log(error.response.data.errors);
-    errorsForm.value["errors"] = error.response.data["errors"];
-  }
+        emit("updateData", res.data.revenuesData);
+        useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
+        useWallets.setWallets(res.data.walletsData.wallets);
+        clearInputs();
+        openModal.value = false;
+    } catch (error) {
+        console.log(error.response.data.errors);
+        errorsForm.value["errors"] = error.response.data["errors"];
+    }
 };
 
 const updateSelectedIcon = (novoValor: string) => {
-  selectedIcon.value = novoValor;
+    selectedIcon.value = novoValor;
 };
 const updateSelectedColor = (novoValor: string) => {
-  selectedColor.value = novoValor;
+    selectedColor.value = novoValor;
 };
 
 const clearInputs = () => {
-  releases.value.valor = "";
-  releases.value.date = "";
-  releases.value.descricao = "";
-  releases.value.categoria = "";
-  releases.value.carteira = "";
+    releases.value.valor = "";
+    releases.value.date = "";
+    releases.value.descricao = "";
+    releases.value.categoria = "";
+    releases.value.carteira = "";
 };
 
 const saveCategory = async () => {
-  const data = ref({
-    name: nameCategory.value,
-    color: selectedColor.value,
-    icon: selectedIcon.value,
-    typeCategory: "",
-    edit: true,
-  });
-  try {
-    data.value.typeCategory =
+    const data = ref({
+        name: nameCategory.value,
+        color: selectedColor.value,
+        icon: selectedIcon.value,
+        typeCategory: "",
+        edit: true,
+    });
+    try {
+        data.value.typeCategory =
       props.color === "color__despesa" ? "despesa" : "receita";
 
-    const res = await http.post("/save-category", data.value);
-    useUser.setUserData(res.data.user);
-    if (res.data.categoriasDespesas) {
-      emit("updateCategoriasDespesas", res.data.categoriasDespesas);
-    }
-    if (res.data.categoriasReceitas) {
-      emit("updateCategoriasReceitas", res.data.categoriasReceitas);
-    }
-    nameCategory.value = "";
-    selectedColor.value = "";
-    selectedIcon.value = "";
-    openModal.value = false;
-  } catch (error) {
+        const res = await http.post("/save-category", data.value);
+        useUser.setUserData(res.data.user);
+        if (res.data.categoriasDespesas) {
+            emit("updateCategoriasDespesas", res.data.categoriasDespesas);
+        }
+        if (res.data.categoriasReceitas) {
+            emit("updateCategoriasReceitas", res.data.categoriasReceitas);
+        }
+        nameCategory.value = "";
+        selectedColor.value = "";
+        selectedIcon.value = "";
+        openModal.value = false;
+    } catch (error) {
     // console.log(error);
-  }
+    }
 };
 
 const formatValueSave = () => {
-  let novoValor = releases.value.valor.replace(/[^\d]/g, "");
+    let novoValor = releases.value.valor.replace(/[^\d]/g, "");
 
-  if (novoValor.length > 1) {
-    const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
-    const parteDecimal = novoValor.slice(-2);
-    const parteInteiraFormatada = parteInteira.replace(
-      /\B(?=(\d{3})+(?!\d))/g,
-      "."
-    );
-    releases.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
-  } else if (novoValor.length === 1) {
-    releases.value.valor = `$ 0,0${novoValor}`;
-  } else {
-    releases.value.valor = "$ 0,00";
-  }
+    if (novoValor.length > 1) {
+        const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
+        const parteDecimal = novoValor.slice(-2);
+        const parteInteiraFormatada = parteInteira.replace(
+            /\B(?=(\d{3})+(?!\d))/g,
+            "."
+        );
+        releases.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
+    } else if (novoValor.length === 1) {
+        releases.value.valor = `$ 0,0${novoValor}`;
+    } else {
+        releases.value.valor = "$ 0,00";
+    }
 };
 
 const rules = {
-  requiredValor: (value: string) => !!value || "O campo valor é obrigatório",
-  requiredValorMaiorQue0: (value: string) =>
-    parseFloat(value.replace(",", ".")) > 0 ||
+    requiredValor: (value: string) => !!value || "O campo valor é obrigatório",
+    requiredValorMaiorQue0: (value: string) =>
+        parseFloat(value.replace(",", ".")) > 0 ||
     "O campo valor deve ser maior que zero",
-  requiredData: (value: string) => !!value || "O campo data é obrigatório",
-  requiredDescricao: (value: string) =>
-    !!value || "O campo descriçãp é obrigatório",
-  requiredCatagoria: (value: string) =>
-    !!value || "O campo categoria é obrigatório",
-  requiredCarteira: (value: string) =>
-    !!value || "O campo categoria é obrigatório",
+    requiredData: (value: string) => !!value || "O campo data é obrigatório",
+    requiredDescricao: (value: string) =>
+        !!value || "O campo descriçãp é obrigatório",
+    requiredCatagoria: (value: string) =>
+        !!value || "O campo categoria é obrigatório",
+    requiredCarteira: (value: string) =>
+        !!value || "O campo categoria é obrigatório",
 };
 </script>
 
@@ -518,16 +781,19 @@ const rules = {
   color: #fefefe;
 }
 .container__modal {
-  position: absolute;
+  /* position: absolute;
   top: 0;
-  left: 0;
+  left: 0; */
   width: 100%;
   height: 100%;
+  min-height: 100%;
   /* background: rgba(0, 0, 0, 0.5); */
   background: rgb(15, 15, 15);
   display: flex;
   justify-content: center;
   align-items: center;
+  /* overflow: auto; */
+  padding: 10px;
 }
 .botoes__parcelas {
   display: flex;

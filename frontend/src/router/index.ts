@@ -51,6 +51,7 @@ const router = createRouter({
             path: "/receitas",
             name: "receitas",
             component: () => import("../views/receitas/ReceitasView.vue"),
+            // component: () => import("../views/receitas/ReceitasView copy.vue"),
             meta: {
                 auth: true
             }

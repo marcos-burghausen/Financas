@@ -1,423 +1,107 @@
 <template>
-  <div class="content-wrapper">
-    <div class="pagetitle">
-      <nav class="d-flex justify-content-between ms-3 mb-3">
-        <ol class="breadcrumb bg-transparent ">
-          <span class=" me-3 text-white">
-            <router-link
-              class="link"
-              :to="{ name: 'dashboard' }"
-            >
-              <mdicon
-                name="arrow-left"
-                size="20"
-              />
-            </router-link>
-          </span>
-          <li
-            class="breadcrumb-item text-white"
-            @click="returnRevenue"
+  <v-card
+    class="mx-auto"
+    max-width="448"
+  >
+    <v-layout>
+      <v-app-bar
+        color="info"
+        density="prominent"
+      >
+        <template #prepend>
+          <v-app-bar-nav-icon />
+        </template>
+
+        <v-app-bar-title>My Recent Trips</v-app-bar-title>
+
+        <template #append>
+          <v-btn icon>
+            <v-icon>mdi-dots-vertical</v-icon>
+          </v-btn>
+        </template>
+      </v-app-bar>
+
+      <v-main>
+        <v-container fluid>
+          <v-card
+            class="mb-2"
+            density="compact"
+            prepend-avatar="https://randomuser.me/api/portraits/women/10.jpg"
+            subtitle="Salsa, merengue, y cumbia"
+            title="Cuba"
+            variant="text"
+            border
           >
-            Receitas
-          </li>
-          <li
-            v-if="formStoreRevenue"
-            :class="{ opaco: formStoreRevenue }"
-            class="breadcrumb-item"
-          >
-            cadastrar de receita
-          </li>
-          <li
-            v-if="formEditRevenue"
-            :class="{ opaco: formEditRevenue }"
-            class="breadcrumb-item"
-          >
-            editar de receita
-          </li>
-        </ol>
-        <button
-          v-if="!formStoreRevenue && !formEditRevenue"
-          class="btn btn-danger text-whit"
-          @click="formStoreRevenue = !formStoreRevenue"
-        >
-          nova receita
-        </button>
-      </nav>
-    </div>
-
-    <!-- ========================================================================= -->
-    <!-- ================ inicio formulario lançamentos receitas ================= -->
-    <!-- ========================================================================= -->
-    <div
-      v-if="formStoreRevenue"
-      class="container-fluid"
-    >
-      <div class="container d-flex justify-content-center">
-        <div class="cadastro">
-          <v-form
-            v-model="validFormLancamentos"
-            class="form"
-            @submit.prevent="salvarLancamentos"
-          >
-            <v-text-field
-              v-model="release.valor"
-              autofocus
-              density="compact"
-              prefix="R$"
-              placeholder="0,00"
-              variant="outlined"
-              type="tel"
-              hide-details="auto"
-              label="Valor"
-              :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
-              class="mb-5 input"
-              @input="formatValueSave()"
+            <v-img
+              height="128"
+              src="https://picsum.photos/512/128?image=660"
+              cover
             />
 
-            <div class="form-check form-switch text-white">
-              <input
-                id="flexSwitchCheckChecked"
-                v-model="status"
-                class="form-check-input mb-5"
-                type="checkbox"
-                checked
-              >
-              <label
-                class="form-check-label"
-                for="flexSwitchCheckChecked"
-              >Recebida</label>
-            </div>
+            <v-card-text>
+              During my last trip to South America, I spent 2 weeks traveling through Patagonia in Chile.
+            </v-card-text>
 
-            <v-text-field
-              v-model="release.date"
-              density="compact"
-              variant="outlined"
-              type="date"
-              hide-details="auto"
-              label="Data"
-              :rules="[rules.requiredData]"
-              class="mb-7 input"
-            />
-
-            <v-text-field
-              v-model="release.descricao"
-              density="compact"
-              variant="outlined"
-              type="text"
-              hide-details="auto"
-              label="Descriçao"
-              :rules="[rules.requiredDescricao]"
-              class="mb-7 input"
-            />
-
-            <v-autocomplete
-              v-model="release.categoria"
-              density="compact"
-              variant="outlined"
-              :rules="[rules.requiredCatagoria]"
-              :items="categoriasNames"
-              label="Categoria"
-              placeholder="Select..."
-              class="mb-7 input"
-            />
-
-            <v-autocomplete
-              v-model="release.carteira"
-              density="compact"
-              variant="outlined"
-              :rules="[rules.requiredCarteira]"
-              :items="carteiras"
-              label="Carteira"
-              placeholder="Select..."
-              class="mb-7 input"
-            />
-
-            <div class="form-group p-0 container d-flex justify-content-between col-12 mt-2 mb-4">
+            <template #actions>
               <v-btn
-                :disabled="loading"
-                :loading="loading"
-                style="background-color: #dc3545; color: #fefefe;;"
-                class=" px-5"
-                @click="{ formStoreRevenue = !formStoreRevenue }; clearInputs()"
+                color="primary"
+                variant="text"
               >
-                Cancelar
+                View More
               </v-btn>
+
               <v-btn
-                :disabled="loading || !validFormLancamentos || release.valor === '0,00'"
-                :loading="loading"
-                style="background-color: #77d08e;"
-                class=" btn-light px-5"
-                type="submit"
+                color="primary"
+                variant="text"
               >
-                Salvar
+                See in Map
               </v-btn>
-            </div>
-          </v-form>
-        </div>
-      </div>
-    </div>
-    <!-- ========================================================================= -->
-    <!-- ================= fim formulario lançamentos receitas =================== -->
-    <!-- ========================================================================= -->
+            </template>
+          </v-card>
 
-
-    <!-- ========================================================================= -->
-    <!-- =================== inicio formulario editar receita= =================== -->
-    <!-- ========================================================================= -->
-    <div
-      v-if="formEditRevenue"
-      class="container-fluid"
-      style="padding: 0 !important;"
-    >
-      <div class="container d-flex justify-content-center">
-        <div class="cadastro">
-          <v-form
-            v-model="validFormEdit"
-            class="form"
-            @submit.prevent="saveEditedRevenue"
+          <v-card
+            density="comfortable"
+            prepend-avatar="https://randomuser.me/api/portraits/women/17.jpg"
+            subtitle="Salsa, merengue, y cumbia"
+            title="Florida"
+            variant="text"
+            border
           >
-            <v-text-field
-              v-model="revenueEdit.valor"
-              density="compact"
-              prefix="R$"
-              variant="outlined"
-              type="tel"
-              hide-details="auto"
-              label="Valor"
-              :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
-              class="mb-5 input"
-              @input="formatValueEdit()"
+            <v-img
+              height="128"
+              src="https://picsum.photos/512/128?random"
+              cover
             />
 
-            <v-text-field
-              v-model="revenueEdit.date"
-              density="compact"
-              variant="outlined"
-              type="date"
-              hide-details="auto"
-              label="Data"
-              :rules="[rules.requiredData]"
-              class="mb-7 input"
-            />
+            <v-card-text>
+              During my last trip to Florida, I spent 2 weeks traveling through the Everglades.
+            </v-card-text>
 
-            <v-text-field
-              v-model="revenueEdit.descricao"
-              density="compact"
-              variant="outlined"
-              type="text"
-              hide-details="auto"
-              label="Descriçao"
-              :rules="[rules.requiredDescricao]"
-              class="mb-7 input"
-            />
-
-            <v-autocomplete
-              v-model="revenueEdit.status"
-              density="compact"
-              variant="outlined"
-              :rules="[rules.requiredCatagoria]"
-              :items="['RECEBIDA', 'AGUARDANDO']"
-              label="Status"
-              placeholder="Select..."
-              class="mb-7 input"
-            />
-
-            <v-autocomplete
-              v-model="revenueEdit.categoria"
-              density="compact"
-              variant="outlined"
-              :rules="[rules.requiredCatagoria]"
-              :items="categoriasNames"
-              label="Categoria"
-              placeholder="Select..."
-              class="mb-7 input"
-            />
-
-            <v-autocomplete
-              v-model="revenueEdit.carteira"
-              density="compact"
-              variant="outlined"
-              :rules="[rules.requiredCarteira]"
-              :items="carteiras"
-              label="Carteira"
-              placeholder="Select..."
-              class="mb-7 input"
-            />
-
-            <div class="form-group p-0 container d-flex justify-content-between col-12 mt-2 mb-4">
+            <template #actions>
               <v-btn
-                :disabled="loading"
-                :loading="loading"
-                style="background-color: #dc3545; color: #fefefe;;"
-                class=" px-5"
-                @click="revertEdit(); { formEditRevenue = !formEditRevenue }"
+                color="primary"
+                variant="text"
               >
-                Cancelar
+                View More
               </v-btn>
+
               <v-btn
-                :disabled="loading || !validFormEdit || release.valor === '0,00'"
-                :loading="loading"
-                style="background-color: #77d08e;"
-                class="btn btn-light px-5"
-                type="submit"
+                color="primary"
+                variant="text"
               >
-                Salvar
+                See in Map
               </v-btn>
-            </div>
-          </v-form>
-        </div>
-      </div>
-    </div>
-    <!-- ========================================================================= -->
-    <!-- ==================== fim formulario editar receita ====================== -->
-    <!-- ========================================================================= -->
-
-    <div
-      v-if="!formStoreRevenue && !formEditRevenue"
-      class="container-fluid"
-    >
-      <div class="card__container">
-        <Card
-          class="cards"
-          titulo="Receitas"
-          :valor="valueTotalRevenuesMonth"
-        />
-        <Card
-          class="cards"
-          titulo="Pendentes"
-          :valor="valuePending"
-        />
-        <Card
-          class="cards"
-          titulo="Recebidas"
-          :valor="valueReceived"
-        />
-      </div>
-
-      <div class="container__table">
-        <div
-          v-if="revenuesMonth && revenuesMonth.length > 0"
-          class="col-12 col-lg-12"
-        >
-          <div
-            class="row justify-content-center card-header mx-0 py-1"
-            style="background-color: rgba(0, 0, 0, 0.25)"
-          >
-            <div class="d-flex text-center col-2">
-              <button class="btn btn-outline-table text-white p-0 fs-5 bi bi-caret-left">
-                <mdicon
-                  class="mdicon"
-                  name="chevron-left"
-                />
-              </button>
-              <p class="m-0 pt-1 border rounded-pill w-75 text-white">
-                mes
-              </p>
-              <button class="btn btn-outline-table text-white p-0 fs-5 bi bi-caret-right">
-                <mdicon
-                  class="mdicon"
-                  name="chevron-right"
-                />
-              </button>
-            </div>
-          </div>
-          <div class="table-responsive">
-            <!-- <table class="table align-items-center table-flush table-borderless" -->
-            <table
-              class="table"
-              style="background-color: rgba(0, 0, 0, 0.25); color: black;"
-            >
-              <thead>
-                <tr>
-                  <th class="text-white text-center">
-                    Data
-                  </th>
-                  <th class="text-white text-center">
-                    Descrição
-                  </th>
-                  <th class="text-white text-center">
-                    Categoria
-                  </th>
-                  <th class="text-white text-center">
-                    Conta
-                  </th>
-                  <th class="text-white text-center">
-                    Valor
-                  </th>
-                  <th class="text-white text-center">
-                    Ações
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="(revenue, key) in revenuesMonth"
-                  :key="revenue.id"
-                >
-                  <td class="text-white text-center">
-                    {{ revenue.date }}
-                  </td>
-                  <td class="text-white text-center">
-                    {{ revenue.descricao }}
-                  </td>
-                  <td class="text-white text-center">
-                    {{ revenue.categoria }}
-                  </td>
-                  <td class="text-white text-center">
-                    {{ revenue.carteira }}
-                  </td>
-                  <td class="text-white text-center">
-                    R$ {{ formatValue(revenue.valor) }}
-                  </td>
-                  <td class="d-flex py-0 justify-content-center">
-                    <button
-                      style="color: #fefefe;"
-                      class="btn btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 "
-                      :class="{ received: revenue.status === 'RECEBIDA' }"
-                      :disabled="revenue.status === 'RECEBIDA'"
-                      @click="receivedRevenue(revenue)"
-                    >
-                      <mdicon name="check-circle-outline" />
-                    </button>
-                    <!-- <button class="btn btn-outline-table p-0 text-white fs-4 bi bi-paperclip mx-2"
-                                            title="anexar arquivo">
-                                            <mdicon name="paperclip" />
-                                        </button> -->
-                    <button
-                      class="btn btn-outline-table p-0 text-white fs-4 bi bi-pencil mx-2"
-                      title="editar"
-                      @click="displayFormEditRevenue(revenue)"
-                    >
-                      <mdicon name="pencil-outline" />
-                    </button>
-                    <button
-                      type="submit"
-                      class="btn btn-outline-table p-0 text-white fs-4 bi bi-trash3 mx-2"
-                      title="deletar"
-                      @click="deletar(revenue.id)"
-                    >
-                      <mdicon name="trash-can-outline" />
-                    </button>
-                    <!-- <button class="btn btn-outline-table p-0 text-white fs-4 bi bi-three-dots-vertical"
-                                            title="mais opções">
-                                            <mdicon name="dots-vertical" />
-                                        </button> -->
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <h5
-          v-else
-          class="card-title text-white text-center"
-        >
-          Você não possui receitas a serem exibidas
-        </h5>
-      </div>
-    </div>
-  </div>
+            </template>
+          </v-card>
+        </v-container>
+      </v-main>
+    </v-layout>
+  </v-card>
 </template>
+
+
+
+
 
 <script setup lang="ts">
 import Card from "@/components/Card.vue";

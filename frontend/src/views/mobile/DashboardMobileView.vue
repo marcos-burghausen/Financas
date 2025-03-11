@@ -1,146 +1,146 @@
 <template>
-    <div>
-        <MenuLateralMobile
-            :menu-expandido="menuExpandido"
-            @expandirMenu="menuExpandido = !menuExpandido"
-        />
+  <div>
+    <MenuLateralMobile
+      :menu-expandido="menuExpandido"
+      @expandirMenu="menuExpandido = !menuExpandido"
+    />
     
-        <CabecalhoMobile
-            :menu-expandido="menuExpandido"
-            @expandirMenu="menuExpandido = !menuExpandido"
-        />
+    <CabecalhoMobile
+      :menu-expandido="menuExpandido"
+      @expandirMenu="menuExpandido = !menuExpandido"
+    />
         
-        <div class="teste">
-            <span>
-                Saldo de contas
-            </span>
-            <div style="display:flex; align-items: center;">
-                <dir style="background: green; width:5px; height: 45px; margin-inline-end: 10px; margin-top: 5px;"></dir>
-                <span :style="{ color: totalBalance < 0 ? 'red' : 'green' }">
-                    R$ {{ totalBalanceFormatado }}
-                </span>
-            </div>
-        </div>
-
-        <div class="teste2">
-            <span>
-            Gastos de hoje
-            </span>
-            <span style="color: red">
-                R$ {{ totalExpensesDay }}
-            </span>
-        </div>
-
-        <div class="teste3">
-            <span style="text-align: start;">
-            Visão geral do mês
-            </span>
-            <div style="display:flex; align-items: center;">
-                <dir style="border-inline-start: solid 5px green; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
-                    <span>
-                        Receitas
-                    </span>
-                    <span style="color: green">
-                        R$ {{receitas}}
-                    </span>
-                </dir>
-            </div>
-            <div style="display:flex; align-items: center;">
-                <dir style="border-inline-start: solid 5px red; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
-                    <span>
-                        Despesas
-                    </span>
-                    <span style="color: red">
-                        R$ {{ despesas}}
-                    </span>
-                </dir>
-            </div>
-            <div style="display:flex; align-items: center;">
-                <dir style="border-inline-start: solid 5px orange; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
-                    <span>
-                        Despesas no cartão
-                    </span>
-                    <span style="color: orange">
-                        R$ 1.000,00
-                    </span>
-                </dir>
-            </div>
-        </div>
-
-        <div class="teste3">
-            <span style="text-align: start;">
-            Pendências e alertas
-            </span>
-            <div style="display:flex; align-items: center;">
-                <dir style="border-inline-start: solid 5px blue; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
-                    <div class="cards__lancamentos">
-                        <div style="display: flex; flex-direction: column;">
-                            <span>
-                                Receitas pendentes
-                            </span>
-                            <span style="font-size: 12px; font-weight: 100;">
-                                Total desse mês e dos anteriores
-                            </span>
-                        </div>
-                        <span class="valor">
-                            R$ {{ valuePendingRevenues }}
-                        </span>
-                    </div>
-                </dir>
-            </div>
-            <div style="display:flex; align-items: center;">
-                <dir style="border-inline-start: solid 5px orange; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
-                    <div class="cards__lancamentos">
-                        <div style="display: flex; flex-direction: column;">
-                            <span>
-                                Despesas pendentes
-                            </span>
-                            <span style="font-size: 12px; font-weight: 100;">
-                                Total desse mês e dos anteriores
-                            </span>
-                        </div>
-                        <span>
-                            R$ {{ valuePendingExpenses }}
-                        </span>
-                    </div>
-                </dir>
-            </div>
-            <div style="display:flex; align-items: center;">
-                <dir style="border-inline-start: solid 5px yellow; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
-                    <div class="cards__lancamentos">
-                        <div style="display: flex; flex-direction: column;">
-                            <span>
-                                Faturas de cartão
-                            </span>
-                            <span style="font-size: 12px; font-weight: 100;">
-                                Faturas abertas que vencem esse mês
-                            </span>
-                        </div>
-                        <span>
-                            R$ 1.000,00
-                        </span>
-                    </div>
-                </dir>
-            </div>
-            <div style="display:flex; align-items: center;">
-                <dir style="border-inline-start: solid 5px cadetblue; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
-                    <div class="cards__lancamentos">
-                        <div style="display: flex; flex-direction: column;">
-                            <span>
-                                Saldo
-                            </span>
-                            <span style="font-size: 12px; font-weight: 100;">
-                                Total das contas menos despesas pendentes
-                            </span>
-                        </div>
-                        <span>
-                            R$ {{ totalBalance }}
-                        </span>
-                    </div>
-                </dir>
-            </div>
-        </div>
+    <div class="teste">
+      <span>
+        Saldo de contas
+      </span>
+      <div style="display:flex; align-items: center;">
+        <dir style="background: green; width:5px; height: 45px; margin-inline-end: 10px; margin-top: 5px;" />
+        <span :style="{ color: totalBalance < 0 ? 'red' : 'green' }">
+          R$ {{ totalBalanceFormatado }}
+        </span>
+      </div>
     </div>
+
+    <div class="teste2">
+      <span>
+        Gastos de hoje
+      </span>
+      <span style="color: red">
+        R$ {{ totalExpensesDay }}
+      </span>
+    </div>
+
+    <div class="teste3">
+      <span style="text-align: start;">
+        Visão geral do mês
+      </span>
+      <div style="display:flex; align-items: center;">
+        <dir style="border-inline-start: solid 5px green; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
+          <span>
+            Receitas
+          </span>
+          <span style="color: green">
+            R$ {{ receitas }}
+          </span>
+        </dir>
+      </div>
+      <div style="display:flex; align-items: center;">
+        <dir style="border-inline-start: solid 5px red; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
+          <span>
+            Despesas
+          </span>
+          <span style="color: red">
+            R$ {{ despesas }}
+          </span>
+        </dir>
+      </div>
+      <div style="display:flex; align-items: center;">
+        <dir style="border-inline-start: solid 5px orange; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
+          <span>
+            Despesas no cartão
+          </span>
+          <span style="color: orange">
+            R$ 1.000,00
+          </span>
+        </dir>
+      </div>
+    </div>
+
+    <div class="teste3">
+      <span style="text-align: start;">
+        Pendências e alertas
+      </span>
+      <div style="display:flex; align-items: center;">
+        <dir style="border-inline-start: solid 5px blue; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
+          <div class="cards__lancamentos">
+            <div style="display: flex; flex-direction: column;">
+              <span>
+                Receitas pendentes
+              </span>
+              <span style="font-size: 12px; font-weight: 100;">
+                Total desse mês e dos anteriores
+              </span>
+            </div>
+            <span class="valor">
+              R$ {{ valuePendingRevenues }}
+            </span>
+          </div>
+        </dir>
+      </div>
+      <div style="display:flex; align-items: center;">
+        <dir style="border-inline-start: solid 5px orange; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
+          <div class="cards__lancamentos">
+            <div style="display: flex; flex-direction: column;">
+              <span>
+                Despesas pendentes
+              </span>
+              <span style="font-size: 12px; font-weight: 100;">
+                Total desse mês e dos anteriores
+              </span>
+            </div>
+            <span>
+              R$ {{ valuePendingExpenses }}
+            </span>
+          </div>
+        </dir>
+      </div>
+      <div style="display:flex; align-items: center;">
+        <dir style="border-inline-start: solid 5px yellow; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
+          <div class="cards__lancamentos">
+            <div style="display: flex; flex-direction: column;">
+              <span>
+                Faturas de cartão
+              </span>
+              <span style="font-size: 12px; font-weight: 100;">
+                Faturas abertas que vencem esse mês
+              </span>
+            </div>
+            <span>
+              R$ 1.000,00
+            </span>
+          </div>
+        </dir>
+      </div>
+      <div style="display:flex; align-items: center;">
+        <dir style="border-inline-start: solid 5px cadetblue; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
+          <div class="cards__lancamentos">
+            <div style="display: flex; flex-direction: column;">
+              <span>
+                Saldo
+              </span>
+              <span style="font-size: 12px; font-weight: 100;">
+                Total das contas menos despesas pendentes
+              </span>
+            </div>
+            <span>
+              R$ {{ totalBalance }}
+            </span>
+          </div>
+        </dir>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">

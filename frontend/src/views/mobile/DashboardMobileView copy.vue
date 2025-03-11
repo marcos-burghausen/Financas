@@ -16,7 +16,10 @@
     <div class="container__saldo__conta d-flex justify-content-center">
       <div class="me-4 d-flex flex-column align-center justify-content-end">
         <span class="icon__text">
-          <mdicon name="check-circle-outline" size="18" />
+          <mdicon
+            name="check-circle-outline"
+            size="18"
+          />
           Inicial
         </span>
         <div style="display: flex; align-items: center">
@@ -29,14 +32,17 @@
         </div>
       </div>
       <div class="d-flex flex-column align-center justify-content-end">
-        <span class="fs-5" style="color: #757575">
+        <span
+          class="fs-5"
+          style="color: #757575"
+        >
           <mdicon
             :name="
               totalBalance < 0
                 ? 'minus-circle-outline'
                 : totalBalance > 0
-                ? 'heart-circle'
-                : 'circle-outline'
+                  ? 'heart-circle'
+                  : 'circle-outline'
             "
             size="22"
           />
@@ -50,8 +56,8 @@
                 totalBalance < 0
                   ? 'red'
                   : totalBalance > 0
-                  ? 'green'
-                  : '#757575',
+                    ? 'green'
+                    : '#757575',
             }"
             style="font-size: 18px"
           >
@@ -61,7 +67,10 @@
       </div>
       <div class="ms-4 d-flex flex-column align-center justify-content-end">
         <span class="icon__text">
-          <mdicon name="clock-outline" size="20" />
+          <mdicon
+            name="clock-outline"
+            size="20"
+          />
           <!-- <mdicon name="plus-circle-outline" />
                     <mdicon name="minus-circle-outline" />
                     <mdicon name="clock-outline" /> -->
@@ -81,7 +90,11 @@
     <div class="container__visao__geral">
       <div class="header__visao_geral">
         <span style="text-align: start"> Visão geral </span>
-        <mdicon name="dots-vertical" class="mdicon" size="25" />
+        <mdicon
+          name="dots-vertical"
+          class="mdicon"
+          size="25"
+        />
       </div>
       <router-link
         :to="{ name: 'receitas' }"
@@ -265,118 +278,118 @@ const menuExpandido = ref(false);
 let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
 let saldoInicial = ref(useWallets.walletsData?.saldoInicial);
 let valueTotalExpensesMonth = ref(
-  useExpenses.expensesData.expenses?.ValueTotalExpensesMonth
+    useExpenses.expensesData.expenses?.ValueTotalExpensesMonth
 );
 let valueTotalRevenuesMonth = ref(
-  useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth
+    useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth
 );
 let totalBalance = ref(useWallets.walletsData?.wallets[0].saldo);
 let valorPrevisto = ref(
-  saldoInicial.value +
+    saldoInicial.value +
     valueTotalRevenuesMonth.value -
     valueTotalExpensesMonth.value
 );
 let valuePay = ref(useExpenses.expensesData.expenses?.ValuePayExpenses);
 let valueReceived = ref(
-  useRevenues.revenuesData.revenues?.ValueReceivedRevenues
+    useRevenues.revenuesData.revenues?.ValueReceivedRevenues
 );
 // let totalCreditCard = ref(0);
 // let expensesAddTotalValueMonth = ref(useExpenses.expensesData.expenses?.ExpensesAddTotalValueMonth);
 // let revenuesAddTotalValueMonth = ref(useRevenues.revenuesData.revenues?.RevenuesAddTotalValueMonth);
 let totalByCategoryExpenses = ref(
-  useExpenses.expensesData.expenses?.TotalByCategoryExpenses
+    useExpenses.expensesData.expenses?.TotalByCategoryExpenses
 );
 let valuePendingRevenues = ref(
-  useRevenues.revenuesData.revenues?.ValuePendingRevenues
+    useRevenues.revenuesData.revenues?.ValuePendingRevenues
 );
 let valuePendingExpenses = ref(
-  useExpenses.expensesData.expenses?.ValuePendingExpenses
+    useExpenses.expensesData.expenses?.ValuePendingExpenses
 );
 
 const isAllZeros = (arr) => {
-  return arr.every((value) => value === "0,00");
+    return arr.every((value) => value === "0,00");
 };
 
 const mesPorExtenso = computed(() => {
-  if (!mesAnoReferencia.value) return "";
+    if (!mesAnoReferencia.value) return "";
 
-  const [ano, mes] = mesAnoReferencia.value.split("-");
+    const [ano, mes] = mesAnoReferencia.value.split("-");
 
-  const mesesPorExtenso = [
-    "Janeiro",
-    "Fevereiro",
-    "Março",
-    "Abril",
-    "Maio",
-    "Junho",
-    "Julho",
-    "Agosto",
-    "Setembro",
-    "Outubro",
-    "Novembro",
-    "Dezembro",
-  ];
+    const mesesPorExtenso = [
+        "Janeiro",
+        "Fevereiro",
+        "Março",
+        "Abril",
+        "Maio",
+        "Junho",
+        "Julho",
+        "Agosto",
+        "Setembro",
+        "Outubro",
+        "Novembro",
+        "Dezembro",
+    ];
 
-  return mesesPorExtenso[parseInt(mes, 10) - 1];
+    return mesesPorExtenso[parseInt(mes, 10) - 1];
 });
 
 const mesAnterior = () => {
-  const [ano, mes] = mesAnoReferencia.value.split("-");
-  const dataAtual = new Date(ano, mes - 1);
-  dataAtual.setMonth(dataAtual.getMonth() - 1);
-  mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
-    dataAtual.getMonth() + 1
-  ).padStart(2, "0")}`;
-  buscarDadosMes(mesAnoReferencia.value, "anterior");
+    const [ano, mes] = mesAnoReferencia.value.split("-");
+    const dataAtual = new Date(ano, mes - 1);
+    dataAtual.setMonth(dataAtual.getMonth() - 1);
+    mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
+        dataAtual.getMonth() + 1
+    ).padStart(2, "0")}`;
+    buscarDadosMes(mesAnoReferencia.value, "anterior");
 };
 
 const proximoMes = () => {
-  const [ano, mes] = mesAnoReferencia.value.split("-");
-  const dataAtual = new Date(ano, mes - 1);
-  dataAtual.setMonth(dataAtual.getMonth() + 1);
-  mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
-    dataAtual.getMonth() + 1
-  ).padStart(2, "0")}`;
-  buscarDadosMes(mesAnoReferencia.value, "proximo");
+    const [ano, mes] = mesAnoReferencia.value.split("-");
+    const dataAtual = new Date(ano, mes - 1);
+    dataAtual.setMonth(dataAtual.getMonth() + 1);
+    mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
+        dataAtual.getMonth() + 1
+    ).padStart(2, "0")}`;
+    buscarDadosMes(mesAnoReferencia.value, "proximo");
 };
 
 const buscarDadosMes = async (data: string, buscar: string) => {
-  try {
-    const res = await http.post("/buscar-dados-mes", {
-      mes: data,
-      buscar: buscar,
-    });
-    useWallets.setMesReferencia(res.data.walletsData.mes_ano_referencia);
-    useExpenses.setExpensesData(res.data.expensesData);
-    useRevenues.setRevenuesData(res.data.revenuesData);
-    useWallets.setWalletsData(res.data.walletsData);
+    try {
+        const res = await http.post("/buscar-dados-mes", {
+            mes: data,
+            buscar: buscar,
+        });
+        useWallets.setMesReferencia(res.data.walletsData.mes_ano_referencia);
+        useExpenses.setExpensesData(res.data.expensesData);
+        useRevenues.setRevenuesData(res.data.revenuesData);
+        useWallets.setWalletsData(res.data.walletsData);
 
-    mesAnoReferencia.value = res.data.walletsData.mes_ano_referencia;
+        mesAnoReferencia.value = res.data.walletsData.mes_ano_referencia;
 
-    saldoInicial.value = res.data.walletsData.saldoInicial;
-    totalBalance.value = res.data.walletsData.wallets[0].saldo;
+        saldoInicial.value = res.data.walletsData.saldoInicial;
+        totalBalance.value = res.data.walletsData.wallets[0].saldo;
 
-    valueTotalExpensesMonth.value =
+        valueTotalExpensesMonth.value =
       res.data.expensesData.ValueTotalExpensesMonth;
-    valueTotalRevenuesMonth.value =
+        valueTotalRevenuesMonth.value =
       res.data.revenuesData.ValueTotalRevenuesMonth;
 
-    valorPrevisto.value =
+        valorPrevisto.value =
       saldoInicial.value +
       valueTotalRevenuesMonth.value -
       valueTotalExpensesMonth.value;
 
-    valuePay.value = res.data.expensesData.ValuePayExpenses;
-    valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
+        valuePay.value = res.data.expensesData.ValuePayExpenses;
+        valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
 
-    totalByCategoryExpenses.value =
+        totalByCategoryExpenses.value =
       res.data.expensesData.TotalByCategoryExpenses;
 
-    valuePendingRevenues.value = res.data.revenuesData.ValuePendingRevenues;
-    valuePendingExpenses.value = res.data.expensesData.ValuePendingExpenses;
-  } catch (error) {
+        valuePendingRevenues.value = res.data.revenuesData.ValuePendingRevenues;
+        valuePendingExpenses.value = res.data.expensesData.ValuePendingExpenses;
+    } catch (error) {
     //
-  }
+    }
 };
 
 // =============================== grafico de barras inicio =============================== //
