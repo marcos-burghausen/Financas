@@ -1,22 +1,5 @@
 <template>
-  <!-- <div class="d-flex h-100"> -->
-  <!-- <template v-if="useAuth.isAuthenticated">
-      <MenuLateralMobile
-        :menu-expandido="menuExpandido"
-        @expandirMenu="menuExpandido = !menuExpandido"
-      />
-    </template> -->
-
-  <div class="containerApp">
-    <!-- <template class="web" v-if="useAuth.isAuthenticated">
-        <Cabecalho
-          :menu-expandido="menuExpandido"
-          @expandirMenu="menuExpandido = !menuExpandido"
-        />
-      </template> -->
-    <router-view />
-  </div>
-  <!-- </div> -->
+  <router-view />
 </template>
 
 <script setup lang="ts">
@@ -33,22 +16,4 @@ const useAuth = useAuthStore();
 const menuExpandido = ref(false);
 </script>
 
-<style scoped>
-.containerApp {
-  min-height: 100%;
-  width: 100%;
-  /* padding-bottom: 10px; */
-}
-
-@media screen and (min-width: 501px) {
-  .mobile {
-    display: none;
-  }
-}
-
-@media screen and (max-width: 500px) {
-  .web {
-    display: none;
-  }
-}
-</style>
+<style scoped></style>

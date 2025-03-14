@@ -1,17 +1,17 @@
 <template>
   <div>
-    <mdicon
+    <!-- <mdicon
       type="button"
       title="adcionar nova receita"
       name="plus"
       class="mdicon"
       @click="openModal = true"
-    />
+    /> -->
 
-    <div v-if="openModal" class="container__modal">
+    <div class="container__modal">
       <v-form
         v-model="validFormLancamentos"
-        class="form__lançamentos"
+        class="form__lançamentos pt-16"
         @submit.prevent="salvarLancamentos"
       >
         <!-- <div class="header"> -->
@@ -28,17 +28,12 @@
         >
           <mdicon name="close" size="25" />
         </buttom> -->
-        <div class="header__items">
+        <div class="header__items fixed-top py-10 pe-2">
           <buttom
             :disabled="loading"
             :loading="loading"
             class="px-5 close"
-            @click="
-              {
-                openModal = !openModal;
-              }
-              clearInputs();
-            "
+            @click="closeForm"
           >
             <mdicon name="close" size="25" />
           </buttom>
@@ -242,11 +237,10 @@
             <mdicon class="icon__modify" name="scatter-plot" />
           </template>
         </v-autocomplete>
-        <!-- <v-autocomplete
+        <v-autocomplete
           ref="country"
           v-model="releases.subCategoria"
           :items="countries"
-          :rules="[() => !!country || 'This field is required']"
           label="Subcategoria"
           placeholder="Select..."
           required
@@ -254,12 +248,9 @@
           variant="underlined"
         >
           <template #prepend-inner>
-            <mdicon
-              class="icon__modify"
-              name="scatter-plot"
-            />
+            <mdicon class="icon__modify" name="scatter-plot" />
           </template>
-        </v-autocomplete> -->
+        </v-autocomplete>
         <v-autocomplete
           ref="country"
           v-model="releases.carteira"
@@ -275,7 +266,7 @@
             <mdicon class="icon__modify" name="bank" />
           </template>
         </v-autocomplete>
-        <!-- <v-btn
+        <v-btn
           v-if="!informacoes"
           append-icon="mdi-account-circle"
           variant="plain"
@@ -303,10 +294,7 @@
           class="mb-5 imput"
         >
           <template #prepend-inner>
-            <mdicon
-              class="icon__modify"
-              name="calendar-clock"
-            />
+            <mdicon class="icon__modify" name="calendar-clock" />
           </template>
         </v-text-field>
         <v-text-field
@@ -320,10 +308,7 @@
           class="mb-5 imput"
         >
           <template #prepend-inner>
-            <mdicon
-              class="icon__modify"
-              name="calendar-check"
-            />
+            <mdicon class="icon__modify" name="calendar-check" />
           </template>
         </v-text-field>
         <v-text-field
@@ -374,10 +359,7 @@
           @click="toggleStatus"
         >
           <template #prepend-inner>
-            <mdicon
-              class="icon__modify"
-              name="chart-bar"
-            />
+            <mdicon class="icon__modify" name="chart-bar" />
           </template>
           Ignorar em Estatisitcas e Graficos
           <template #append-inner>
@@ -408,10 +390,7 @@
           @click="toggleStatus"
         >
           <template #prepend-inner>
-            <mdicon
-              class="icon__modify"
-              name="circle-multiple-outline"
-            />
+            <mdicon class="icon__modify" name="circle-multiple-outline" />
           </template>
           Ignorar em Economia mensal
           <template #append-inner>
@@ -442,10 +421,7 @@
           @click="toggleStatus"
         >
           <template #prepend-inner>
-            <mdicon
-              class="icon__modify"
-              name="currency-usd-off"
-            />
+            <mdicon class="icon__modify" name="currency-usd-off" />
           </template>
           Ignorar em totais
           <template #append-inner>
@@ -503,7 +479,7 @@
               />
             </div>
           </template>
-        </v-text-field> -->
+        </v-text-field>
 
         <!-- <div class="d-flex justify-content-center"> -->
 
@@ -571,7 +547,7 @@ let valuePending = ref(
   formatValue(useRevenues.revenuesData.revenues?.ValuePendingRevenues)
 );
 let revenuesMonth = ref(useRevenues.revenuesData.revenues?.RevenuesMonth);
-// console.log(revenuesMonth.value);
+console.log(revenuesMonth.value);
 let valueReceived = ref(
   formatValue(useRevenues.revenuesData.revenues?.ValueReceivedRevenues)
 );
@@ -621,7 +597,12 @@ const toggleStatus = () => {
     releases.value.status === "Efetivada" ? "Pendente" : "Efetivada";
 };
 
-const emit = defineEmits(["updateData"]);
+const emit = defineEmits(["updateData", "closeForm"]);
+
+const closeForm = () => {
+  emit("closeForm");
+  clearInputs();
+};
 
 const selecionarTipo = (item: string) => {
   releases.value.tipo = item;
@@ -633,7 +614,7 @@ const selecionarTipo = (item: string) => {
 
 const salvarLancamentos = async () => {
   try {
-    releases.value.status = status.value ? "Efetivada" : "pendente";
+    // releases.value.status = status.value ? "Efetivada" : "pendente";
     const res = await http.post("/save-revenue", releases.value);
     useRevenues.setRevenuesData(res.data.revenuesData);
     valueTotalRevenuesMonth.value =
@@ -641,7 +622,7 @@ const salvarLancamentos = async () => {
     emit("updateData", res.data.revenuesData);
     useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
     useWallets.setWallets(res.data.walletsData.wallets);
-    clearInputs();
+    closeForm();
     openModal.value = false;
   } catch (error) {
     console.log(error.response.data.errors);
@@ -899,14 +880,14 @@ const rules = {
 .btn__concluido {
   border-radius: 20px;
   background-color: #77d08e;
-  /* color: #fefefe; */
 }
 .close:hover {
   background-color: #1c1c1e;
 }
 .header__items {
+  background-color: rgb(15, 15, 15);
   color: #fefefe;
-  margin-bottom: 20px;
+  height: 70px;
 }
 
 .color__despesa {
