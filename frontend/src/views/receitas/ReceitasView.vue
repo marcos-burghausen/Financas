@@ -1,18 +1,27 @@
 <template>
   <v-container class="h-100 p-0">
-    <FormLancamentos
+    <FormReceitas
       v-if="formulario"
+      :releases="releases"
+      :categorias-names="categoriasNames"
+      :contas="contas"
       @updateData="updateData"
       @closeForm="formulario = false"
     />
-    <div v-if="!formulario" class="receitas">
+    <div
+      v-if="!formulario"
+      class="receitas"
+    >
       <div class="header fixed-top">
         <div class="d-flex justify-content-between">
           <router-link
             class="link me-7 d-flex align-items-center opaco"
             :to="{ name: 'dashboard' }"
           >
-            <mdicon name="arrow-left" size="25" />
+            <mdicon
+              name="arrow-left"
+              size="25"
+            />
           </router-link>
           <div class="header__items">
             <div class="d-flex flex-column">
@@ -86,8 +95,8 @@
                     revenue.status === 'Efetivada'
                       ? 'check'
                       : new Date() <= new Date(revenue.date)
-                      ? 'alert'
-                      : 'alert-remove'
+                        ? 'alert'
+                        : 'alert-remove'
                   "
                   class="mdicon__lacamento"
                   :class="{
@@ -112,7 +121,11 @@
                       {{ revenue.date }}
                     </span>
                     <span>
-                      <mdicon name="dots-vertical" class="mdicon" size="25" />
+                      <mdicon
+                        name="dots-vertical"
+                        class="mdicon"
+                        size="25"
+                      />
                       <v-menu
                         activator="parent"
                         location="bottom end"
@@ -184,7 +197,7 @@
 
 <script setup lang="ts">
 import Card from "@/components/Card.vue";
-import FormLancamentos from "@/components/FormLancamentos.vue";
+import FormReceitas from "@/components/FormReceitas.vue";
 import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
 
 import { ref, reactive, computed, onMounted, type Ref } from "vue";
@@ -214,306 +227,320 @@ let loading = ref(false);
 let formulario = ref(false);
 
 let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
-console.log(mesAnoReferencia.value);
 let valueTotalRevenuesMonth = ref(
-  useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth
+    useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth
 );
 let valuePending = ref(
-  formatValue(useRevenues.revenuesData.revenues?.ValuePendingRevenues)
+    formatValue(useRevenues.revenuesData.revenues?.ValuePendingRevenues)
 );
 let revenuesMonth = ref(useRevenues.revenuesData.revenues?.RevenuesMonth);
 // console.log(revenuesMonth.value);
 let valueReceived = ref(
-  formatValue(useRevenues.revenuesData.revenues?.ValueReceivedRevenues)
+    formatValue(useRevenues.revenuesData.revenues?.ValueReceivedRevenues)
 );
 // let categorias = ref(userStore.user.categoriasReceitas);
 
 const categoriasNames = ref([]);
 userStore.user.categoriasReceitas.forEach((categoria) => {
-  categoriasNames.value.push(categoria.name);
+    categoriasNames.value.push(categoria.name);
 });
-let carteiras = ref(useWallets.walletsData.walletsNames);
+let contas = ref(useWallets.walletsData.walletsNames);
+console.log(contas.value);
 let errorsForm = ref({ errors: {} });
 let formStoreRevenue = ref(false);
 let formEditRevenue = ref(false);
-let revenueEdit: Ref<RevenueEdit> = ref({
-  id: 0,
-  user_id: 0,
-  valor: "",
-  date: "",
-  descricao: "",
-  categoria: "",
-  carteira: "",
-  status: "",
-  created_at: "",
-  updated_at: "",
-  mesReferencia: mesAnoReferencia.value,
+// let revenueEdit: Ref<RevenueEdit> = ref({
+//     id: 0,
+//     user_id: 0,
+//     valor: "",
+//     date: "",
+//     descricao: "",
+//     categoria: "",
+//     carteira: "",
+//     status: "",
+//     created_at: "",
+//     updated_at: "",
+//     mesReferencia: mesAnoReferencia.value,
+// });
+// const revenueUnedited: Ref<RevenueEdit> = ref({
+//     valor: "",
+//     date: "",
+//     descricao: "",
+//     categoria: "",
+//     carteira: "",
+//     status: "",
+// });
+let releases: Ref<Lancamentos> = ref({
+    descricao: "",
+    valor: "",
+    tipo: "Não recorente",
+    numParcelas: 0,
+    periodicidade: "",
+    date: new Date().toLocaleDateString("en-CA"),
+    status: "Efetivada",
+    categoria: "Outros",
+    subCategoria: "",
+    conta: "",
+    mesReferencia: mesAnoReferencia.value,
+    dateLancamento: new Date().toLocaleDateString("en-CA"),
+    dateEfetivacao: new Date().toLocaleDateString("en-CA"),
 });
-const revenueUnedited: Ref<RevenueEdit> = ref({
-  valor: "",
-  date: "",
-  descricao: "",
-  categoria: "",
-  carteira: "",
-  status: "",
-});
-let release: Ref<Lancamentos> = ref({
-  valor: "",
-  tipo: "Não recorente",
-  date: "",
-  descricao: "",
-  categoria: "",
-  carteira: "",
-  status: "",
-  mesReferencia: mesAnoReferencia.value,
-});
+// let categorias = reactive(userStore.user.categoriasReceitas);
 
 // onMounted( () => {
 // });
 
 const mesPorExtenso = computed(() => {
-  if (!mesAnoReferencia.value) return "";
+    if (!mesAnoReferencia.value) return "";
 
-  const [ano, mes] = mesAnoReferencia.value.split("-");
-  const anoAtual = new Date().getFullYear();
+    const [ano, mes] = mesAnoReferencia.value.split("-");
+    const anoAtual = new Date().getFullYear();
 
-  const mesesPorExtenso = [
-    "Janeiro",
-    "Fevereiro",
-    "Março",
-    "Abril",
-    "Maio",
-    "Junho",
-    "Julho",
-    "Agosto",
-    "Setembro",
-    "Outubro",
-    "Novembro",
-    "Dezembro",
-  ];
+    const mesesPorExtenso = [
+        "Janeiro",
+        "Fevereiro",
+        "Março",
+        "Abril",
+        "Maio",
+        "Junho",
+        "Julho",
+        "Agosto",
+        "Setembro",
+        "Outubro",
+        "Novembro",
+        "Dezembro",
+    ];
 
-  if (parseInt(ano, 10) === anoAtual) {
-    return mesesPorExtenso[parseInt(mes, 10) - 1];
-  } else {
-    const mesAbreviado = mesesPorExtenso[parseInt(mes, 10) - 1].slice(0, 3);
-    return `${mesAbreviado}./${ano.slice(2)}`;
-  }
+    if (parseInt(ano, 10) === anoAtual) {
+        return mesesPorExtenso[parseInt(mes, 10) - 1];
+    } else {
+        const mesAbreviado = mesesPorExtenso[parseInt(mes, 10) - 1].slice(0, 3);
+        return `${mesAbreviado}./${ano.slice(2)}`;
+    }
 });
 
 const updateData = (novoValor) => {
-  valueTotalRevenuesMonth.value = novoValor.ValueTotalRevenuesMonth;
-  valueReceived.value = novoValor.ValueReceivedRevenues;
-  valuePending.value = novoValor.ValuePendingRevenues;
-  revenuesMonth.value = novoValor.RevenuesMonth;
+    valueTotalRevenuesMonth.value = novoValor.ValueTotalRevenuesMonth;
+    valueReceived.value = novoValor.ValueReceivedRevenues;
+    valuePending.value = novoValor.ValuePendingRevenues;
+    revenuesMonth.value = novoValor.RevenuesMonth;
 };
 
 const mesAnterior = () => {
-  const [ano, mes] = mesAnoReferencia.value.split("-");
-  const dataAtual = new Date(ano, mes - 1);
-  dataAtual.setMonth(dataAtual.getMonth() - 1);
-  mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
-    dataAtual.getMonth() + 1
-  ).padStart(2, "0")}`;
-  buscarDadosMes(mesAnoReferencia.value);
+    const [ano, mes] = mesAnoReferencia.value.split("-");
+    const dataAtual = new Date(ano, mes - 1);
+    dataAtual.setMonth(dataAtual.getMonth() - 1);
+    mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
+        dataAtual.getMonth() + 1
+    ).padStart(2, "0")}`;
+    buscarDadosMes(mesAnoReferencia.value);
 };
 
 const proximoMes = () => {
-  const [ano, mes] = mesAnoReferencia.value.split("-");
-  const dataAtual = new Date(ano, mes - 1);
-  dataAtual.setMonth(dataAtual.getMonth() + 1);
-  mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
-    dataAtual.getMonth() + 1
-  ).padStart(2, "0")}`;
-  buscarDadosMes(mesAnoReferencia.value);
+    const [ano, mes] = mesAnoReferencia.value.split("-");
+    const dataAtual = new Date(ano, mes - 1);
+    dataAtual.setMonth(dataAtual.getMonth() + 1);
+    mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
+        dataAtual.getMonth() + 1
+    ).padStart(2, "0")}`;
+    buscarDadosMes(mesAnoReferencia.value);
 };
 
 const buscarDadosMes = async (data) => {
-  console.log(data);
-  try {
-    const res = await http.post("/buscar-dados-mes", { mes: data });
-    useWallets.setMesReferencia(res.data.walletsData.mes_ano_referencia);
-    useExpenses.setExpensesData(res.data.expensesData);
-    useRevenues.setRevenuesData(res.data.revenuesData);
-    useWallets.setWalletsData(res.data.walletsData);
+    console.log(data);
+    try {
+        const res = await http.post("/buscar-dados-mes", { mes: data });
+        useWallets.setMesReferencia(res.data.walletsData.mes_ano_referencia);
+        useExpenses.setExpensesData(res.data.expensesData);
+        useRevenues.setRevenuesData(res.data.revenuesData);
+        useWallets.setWalletsData(res.data.walletsData);
 
-    mesAnoReferencia.value = res.data.walletsData.mes_ano_referencia;
+        mesAnoReferencia.value = res.data.walletsData.mes_ano_referencia;
 
-    revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
+        revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
 
-    valueTotalRevenuesMonth.value =
+        valueTotalRevenuesMonth.value =
       res.data.revenuesData.ValueTotalRevenuesMonth;
 
-    valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
-  } catch (error) {
+        valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
+    } catch (error) {
     //
-  }
+    }
 };
 
-const formatValueSave = () => {
-  let novoValor = release.value.valor.replace(/[^\d]/g, "");
+// const formatValueSave = () => {
+//     let novoValor = releases.value.valor.replace(/[^\d]/g, "");
 
-  if (novoValor.length > 1) {
-    const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
-    const parteDecimal = novoValor.slice(-2);
-    const parteInteiraFormatada = parteInteira.replace(
-      /\B(?=(\d{3})+(?!\d))/g,
-      "."
-    );
-    release.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
-  } else if (novoValor.length === 1) {
-    release.value.valor = `0,0${novoValor}`;
-  } else {
-    release.value.valor = "0,00";
-  }
-};
-const formatValueEdit = () => {
-  let novoValor = revenueEdit.value.valor.replace(/[^\d]/g, "");
+//     if (novoValor.length > 1) {
+//         const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
+//         const parteDecimal = novoValor.slice(-2);
+//         const parteInteiraFormatada = parteInteira.replace(
+//             /\B(?=(\d{3})+(?!\d))/g,
+//             "."
+//         );
+//         releases.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
+//     } else if (novoValor.length === 1) {
+//         releases.value.valor = `0,0${novoValor}`;
+//     } else {
+//         releases.value.valor = "0,00";
+//     }
+// };
+// const formatValueEdit = () => {
+//     let novoValor = revenueEdit.value.valor.replace(/[^\d]/g, "");
 
-  if (novoValor.length > 1) {
-    const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
-    const parteDecimal = novoValor.slice(-2);
-    const parteInteiraFormatada = parteInteira.replace(
-      /\B(?=(\d{3})+(?!\d))/g,
-      "."
-    );
-    revenueEdit.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
-  } else if (novoValor.length === 1) {
-    revenueEdit.value.valor = `0,0${novoValor}`;
-  } else {
-    revenueEdit.value.valor = "0,00";
-  }
-};
+//     if (novoValor.length > 1) {
+//         const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
+//         const parteDecimal = novoValor.slice(-2);
+//         const parteInteiraFormatada = parteInteira.replace(
+//             /\B(?=(\d{3})+(?!\d))/g,
+//             "."
+//         );
+//         revenueEdit.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
+//     } else if (novoValor.length === 1) {
+//         revenueEdit.value.valor = `0,0${novoValor}`;
+//     } else {
+//         revenueEdit.value.valor = "0,00";
+//     }
+// };
 // formatarValor();
 
 let status = ref(true);
 
 const clearInputs = () => {
-  release.value.valor = "";
-  release.value.date = "";
-  release.value.descricao = "";
-  release.value.categoria = "";
-  release.value.carteira = "";
+    releases.value.descricao = "",
+    releases.value.valor = "",
+    releases.value.tipo = "Não recorente",
+    releases.value.numParcelas = 0,
+    releases.value.periodicidade = "",
+    releases.value.date = new Date().toLocaleDateString("en-CA"),
+    releases.value.status = "",
+    releases.value.categoria = "",
+    releases.value.subCategoria = "",
+    releases.value.conta = "",
+    releases.value.mesReferencia = "",
+    releases.value.dateLancamento = new Date().toLocaleDateString("en-CA"),
+    releases.value.dateEfetivacao = new Date().toLocaleDateString("en-CA"); 
 };
 
-const revertEdit = () => {
-  revenuesMonth.value.forEach((revenue: RevenueEdit, index: number) => {
-    if (revenue.id === revenueEdit.value.id) {
-      revenuesMonth.value[index] = JSON.parse(
-        JSON.stringify(revenueUnedited.value)
-      );
-    }
-  });
-};
+// const revertEdit = () => {
+//     revenuesMonth.value.forEach((revenue: RevenueEdit, index: number) => {
+//         if (revenue.id === revenueEdit.value.id) {
+//             revenuesMonth.value[index] = JSON.parse(
+//                 JSON.stringify(revenueUnedited.value)
+//             );
+//         }
+//     });
+// };
 
-const returnRevenue = () => {
-  formStoreRevenue.value =
-    formStoreRevenue.value === true
-      ? !formStoreRevenue.value
-      : formStoreRevenue.value;
-  formEditRevenue.value =
-    formEditRevenue.value === true
-      ? !formEditRevenue.value
-      : formEditRevenue.value;
-};
+// const returnRevenue = () => {
+//     formStoreRevenue.value =
+//     formStoreRevenue.value === true
+//         ? !formStoreRevenue.value
+//         : formStoreRevenue.value;
+//     formEditRevenue.value =
+//     formEditRevenue.value === true
+//         ? !formEditRevenue.value
+//         : formEditRevenue.value;
+// };
 
 const salvarLancamentos = async () => {
-  try {
-    release.value.status = status.value ? "Efetivada" : "Pendente";
-    const res = await http.post("/save-revenue", release.value);
-    useRevenues.setRevenuesData(res.data.revenuesData);
-    valueTotalRevenuesMonth.value =
+    try {
+        release.value.status = status.value ? "Efetivada" : "Pendente";
+        const res = await http.post("/save-revenue", release.value);
+        useRevenues.setRevenuesData(res.data.revenuesData);
+        valueTotalRevenuesMonth.value =
       res.data.revenuesData.ValueTotalRevenuesMonth;
-    valuePending.value = res.data.revenuesData.ValuePendingRevenues;
-    valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
-    revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
-    useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
-    useWallets.setWallets(res.data.walletsData.wallets);
-    clearInputs();
-    formStoreRevenue.value = false;
-  } catch (error) {
+        valuePending.value = res.data.revenuesData.ValuePendingRevenues;
+        valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
+        revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
+        useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
+        useWallets.setWallets(res.data.walletsData.wallets);
+        clearInputs();
+        formStoreRevenue.value = false;
+    } catch (error) {
     // console.log(error.response.data.errors);
-    errorsForm.value["errors"] = error.response.data["errors"];
-  }
+        errorsForm.value["errors"] = error.response.data["errors"];
+    }
 };
 
 const receivedRevenue = async (revenue: RevenueEdit) => {
-  try {
-    const res = await http.post("/received-revenue", {
-      id: revenue.id,
-      carteira: revenue.carteira,
-      mesReferencia: mesAnoReferencia.value,
-    });
-    useRevenues.setRevenuesData(res.data.revenuesData);
-    valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
-    valuePending.value = res.data.revenuesData.ValuePendingRevenues;
-    // revenue.status = 'PAGA';
-    revenuesMonth.value.forEach((revenues) => {
-      if (revenues.id === revenue.id) {
-        revenues.status = "Efetivada";
-      }
-    });
-    useWallets.setWallets(res.data.walletsData.wallets);
-  } catch (error) {
+    try {
+        const res = await http.post("/received-revenue", {
+            id: revenue.id,
+            carteira: revenue.carteira,
+            mesReferencia: mesAnoReferencia.value,
+        });
+        useRevenues.setRevenuesData(res.data.revenuesData);
+        valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
+        valuePending.value = res.data.revenuesData.ValuePendingRevenues;
+        // revenue.status = 'PAGA';
+        revenuesMonth.value.forEach((revenues) => {
+            if (revenues.id === revenue.id) {
+                revenues.status = "Efetivada";
+            }
+        });
+        useWallets.setWallets(res.data.walletsData.wallets);
+    } catch (error) {
     // console.log(error);
-  }
+    }
 };
 
 function displayFormEditRevenue(revenue: RevenueEdit) {
-  revenueUnedited.value = JSON.parse(JSON.stringify(revenue));
-  revenueEdit.value = revenue;
-  revenueEdit.value.valor = formatValue(revenueEdit.value.valor);
-  formEditRevenue.value = true;
+    revenueUnedited.value = JSON.parse(JSON.stringify(revenue));
+    revenueEdit.value = revenue;
+    revenueEdit.value.valor = formatValue(revenueEdit.value.valor);
+    formEditRevenue.value = true;
 }
 
 const saveEditedRevenue = async () => {
-  try {
-    const res = await http.post("/edit-revenue", revenueEdit.value);
-    useRevenues.setRevenuesData(res.data.revenuesData);
-    useWallets.setWallets(res.data.walletsData.wallets);
-    valueTotalRevenuesMonth.value =
+    try {
+        const res = await http.post("/edit-revenue", revenueEdit.value);
+        useRevenues.setRevenuesData(res.data.revenuesData);
+        useWallets.setWallets(res.data.walletsData.wallets);
+        valueTotalRevenuesMonth.value =
       res.data.revenuesData.ValueTotalRevenuesMonth;
-    valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
-    valuePending.value = res.data.revenuesData.ValuePendingRevenues;
-    revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
-  } catch (error) {
+        valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
+        valuePending.value = res.data.revenuesData.ValuePendingRevenues;
+        revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
+    } catch (error) {
     // console.log(error.response.data.message);
     // if (error.response.data.message === "Token has expired") {
     //     alert("sessão expirada");
     // }
-  }
+    }
 
-  formEditRevenue.value = false;
+    formEditRevenue.value = false;
 };
 
 const deletar = async (id: number) => {
-  try {
-    const res = await http.post("/delete-revenue", {
-      id: id,
-      mesReferencia: mesAnoReferencia.value,
-    });
-    useRevenues.setRevenuesData(res.data.revenuesData);
-    valueTotalRevenuesMonth.value =
+    try {
+        const res = await http.post("/delete-revenue", {
+            id: id,
+            mesReferencia: mesAnoReferencia.value,
+        });
+        useRevenues.setRevenuesData(res.data.revenuesData);
+        valueTotalRevenuesMonth.value =
       res.data.revenuesData.ValueTotalRevenuesMonth;
-    valuePending.value = res.data.revenuesData.ValuePendingRevenues;
-    valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
-    revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
-  } catch (error) {
+        valuePending.value = res.data.revenuesData.ValuePendingRevenues;
+        valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
+        revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
+    } catch (error) {
     // console.log(error);
-  }
+    }
 };
 
 const rules = {
-  requiredValor: (value: string) => !!value || "O campo valor é obrigatório",
-  requiredValorMaiorQue0: (value: string) =>
-    parseFloat(value.replace(",", ".")) > 0 ||
+    requiredValor: (value: string) => !!value || "O campo valor é obrigatório",
+    requiredValorMaiorQue0: (value: string) =>
+        parseFloat(value.replace(",", ".")) > 0 ||
     "O campo valor deve ser maior que zero",
-  requiredData: (value: string) => !!value || "O campo data é obrigatório",
-  requiredDescricao: (value: string) =>
-    !!value || "O campo escriçãp é obrigatório",
-  requiredCatagoria: (value: string) =>
-    !!value || "O campo categoria é obrigatório",
-  requiredCarteira: (value: string) =>
-    !!value || "O campo categoria é obrigatório",
+    requiredData: (value: string) => !!value || "O campo data é obrigatório",
+    requiredDescricao: (value: string) =>
+        !!value || "O campo escriçãp é obrigatório",
+    requiredCatagoria: (value: string) =>
+        !!value || "O campo categoria é obrigatório",
+    requiredCarteira: (value: string) =>
+        !!value || "O campo categoria é obrigatório",
 };
 </script>
 

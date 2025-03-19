@@ -21,6 +21,7 @@ const step = ref(0);
 <style scoped>
 .home__mobile {
   height: 100%;
+  width: 100%;
   display: flex;
   padding-top: 50px;
   align-items: flex-start;

@@ -35,14 +35,17 @@
             class="px-5 close"
             @click="closeForm"
           >
-            <mdicon name="close" size="25" />
+            <mdicon
+              name="close"
+              size="25"
+            />
           </buttom>
           <div class="d-flex flex-column">
             <span class="fs-5"> Nova receitas </span>
           </div>
           <v-btn
             :disabled="
-              loading || !validFormLancamentos || releases.valor === '0,00'
+              loading || !validFormLancamentos || formReleases.valor === '0,00'
             "
             :loading="loading"
             style="background-color: #77d08e"
@@ -54,7 +57,7 @@
         </div>
 
         <v-textarea
-          v-model="releases.descricao"
+          v-model="formReleases.descricao"
           variant="underlined"
           type="text"
           hide-details="auto"
@@ -65,12 +68,15 @@
           rows="1"
         >
           <template #prepend-inner>
-            <mdicon class="icon__modify" name="text-long" />
+            <mdicon
+              class="icon__modify"
+              name="text-long"
+            />
           </template>
         </v-textarea>
 
         <v-text-field
-          v-model="releases.valor"
+          v-model="formReleases.valor"
           variant="underlined"
           placeholder="0,00"
           hide-details="auto"
@@ -81,12 +87,15 @@
           @input="formatValueSave()"
         >
           <template #prepend-inner>
-            <mdicon class="icon__modify" name="currency-usd" />
+            <mdicon
+              class="icon__modify"
+              name="currency-usd"
+            />
           </template>
         </v-text-field>
 
         <v-text-field
-          v-model="releases.tipo"
+          v-model="formReleases.tipo"
           variant="underlined"
           label="Tipo"
           type="text"
@@ -94,11 +103,17 @@
           @click="openTipoLancamento = true"
         >
           <template #prepend-inner>
-            <mdicon class="icon__modify" name="refresh" />
+            <mdicon
+              class="icon__modify"
+              name="refresh"
+            />
           </template>
         </v-text-field>
 
-        <div v-if="openTipoLancamento" class="tipo">
+        <div
+          v-if="openTipoLancamento"
+          class="tipo"
+        >
           <div class="modal__tipo">
             <div
               v-for="(item, index) in tiposLancamento"
@@ -106,11 +121,14 @@
               class="cor__icon"
             >
               <div class="container__tipos">
-                <div class="container__tipo" @click="selecionarTipo(item)">
+                <div
+                  class="container__tipo"
+                  @click="selecionarTipo(item)"
+                >
                   <mdicon
-                    :class="releases.tipo == item ? 'selected' : ''"
+                    :class="formReleases.tipo == item ? 'selected' : ''"
                     :name="
-                      releases.tipo == item
+                      formReleases.tipo == item
                         ? 'radiobox-marked'
                         : 'checkbox-blank-circle-outline'
                     "
@@ -122,28 +140,37 @@
           </div>
         </div>
 
-        <div v-if="openParcelas" class="parcelas">
+        <div
+          v-if="openParcelas"
+          class="parcelas"
+        >
           <div class="container__parcelas pb-5">
             <div class="modal__parcelas">
               <v-text-field
-                v-model="releases.numParcelas"
+                v-model="formReleases.numParcelas"
                 variant="underlined"
                 type="text"
                 class="mb-8 imput"
               >
                 <template #prepend-inner>
-                  <mdicon class="me-2" name="refresh" />
+                  <mdicon
+                    class="me-2"
+                    name="refresh"
+                  />
                   <span class="me-2">Quantidade </span>
                 </template>
               </v-text-field>
               <v-text-field
-                v-model="releases.periodicidade"
+                v-model="formReleases.periodicidade"
                 variant="underlined"
                 type="text"
                 class="mb-8 imput"
               >
                 <template #prepend-inner>
-                  <mdicon class="me-2" name="refresh" />
+                  <mdicon
+                    class="me-2"
+                    name="refresh"
+                  />
                   <span class="me-2">Periodicidade </span>
                 </template>
               </v-text-field>
@@ -155,7 +182,10 @@
               >
                 Cancelar
               </v-btn>
-              <v-btn class="btn__concluido px-5" type="submit">
+              <v-btn
+                class="btn__concluido px-5"
+                type="submit"
+              >
                 Concluido
               </v-btn>
             </div>
@@ -171,7 +201,7 @@
         <!-- <ModalParcelar v-model="ModalParcelar" /> -->
 
         <v-text-field
-          v-model="releases.date"
+          v-model="formReleases.date"
           variant="underlined"
           hide-details="auto"
           label="Data vencimento"
@@ -180,12 +210,15 @@
           class="mb-5 imput"
         >
           <template #prepend-inner>
-            <mdicon class="icon__modify" name="calendar" />
+            <mdicon
+              class="icon__modify"
+              name="calendar"
+            />
           </template>
         </v-text-field>
 
         <v-text-field
-          v-model="releases.status"
+          v-model="formReleases.status"
           variant="underlined"
           hide-details="auto"
           type="text"
@@ -197,7 +230,7 @@
             <mdicon
               class="icon__modify"
               :name="
-                releases.status == 'Efetivada'
+                formReleases.status == 'Efetivada'
                   ? 'check-circle-outline'
                   : 'clock-time-three-outline'
               "
@@ -206,14 +239,14 @@
           <template #append-inner>
             <div
               :class="
-                releases.status == 'Efetivada'
+                formReleases.status == 'Efetivada'
                   ? 'form__check__efetivada'
                   : 'form__check'
               "
             >
               <div
                 :class="
-                  releases.status == 'Efetivada'
+                  formReleases.status == 'Efetivada'
                     ? 'switch__check__efetivada'
                     : 'switch__check'
                 "
@@ -224,8 +257,8 @@
 
         <v-autocomplete
           ref="country"
-          v-model="releases.categoria"
-          :items="categoriasNames"
+          v-model="formReleases.categoria"
+          :items="props.categoriasNames"
           :rules="[rules.requiredCatagoria]"
           label="Categoria"
           placeholder="Select..."
@@ -234,10 +267,13 @@
           variant="underlined"
         >
           <template #prepend-inner>
-            <mdicon class="icon__modify" name="scatter-plot" />
+            <mdicon
+              class="icon__modify"
+              name="scatter-plot"
+            />
           </template>
         </v-autocomplete>
-        <v-autocomplete
+        <!-- <v-autocomplete
           ref="country"
           v-model="releases.subCategoria"
           :items="countries"
@@ -248,13 +284,16 @@
           variant="underlined"
         >
           <template #prepend-inner>
-            <mdicon class="icon__modify" name="scatter-plot" />
+            <mdicon
+              class="icon__modify"
+              name="scatter-plot"
+            />
           </template>
-        </v-autocomplete>
+        </v-autocomplete> -->
         <v-autocomplete
           ref="country"
-          v-model="releases.carteira"
-          :items="carteiras"
+          v-model="formReleases.conta"
+          :items="props.contas"
           :rules="[rules.requiredCarteira]"
           label="Conta"
           placeholder="Select..."
@@ -263,10 +302,13 @@
           variant="underlined"
         >
           <template #prepend-inner>
-            <mdicon class="icon__modify" name="bank" />
+            <mdicon
+              class="icon__modify"
+              name="bank"
+            />
           </template>
         </v-autocomplete>
-        <v-btn
+        <!-- <v-btn
           v-if="!informacoes"
           append-icon="mdi-account-circle"
           variant="plain"
@@ -294,7 +336,10 @@
           class="mb-5 imput"
         >
           <template #prepend-inner>
-            <mdicon class="icon__modify" name="calendar-clock" />
+            <mdicon
+              class="icon__modify"
+              name="calendar-clock"
+            />
           </template>
         </v-text-field>
         <v-text-field
@@ -308,7 +353,10 @@
           class="mb-5 imput"
         >
           <template #prepend-inner>
-            <mdicon class="icon__modify" name="calendar-check" />
+            <mdicon
+              class="icon__modify"
+              name="calendar-check"
+            />
           </template>
         </v-text-field>
         <v-text-field
@@ -359,7 +407,10 @@
           @click="toggleStatus"
         >
           <template #prepend-inner>
-            <mdicon class="icon__modify" name="chart-bar" />
+            <mdicon
+              class="icon__modify"
+              name="chart-bar"
+            />
           </template>
           Ignorar em Estatisitcas e Graficos
           <template #append-inner>
@@ -390,7 +441,10 @@
           @click="toggleStatus"
         >
           <template #prepend-inner>
-            <mdicon class="icon__modify" name="circle-multiple-outline" />
+            <mdicon
+              class="icon__modify"
+              name="circle-multiple-outline"
+            />
           </template>
           Ignorar em Economia mensal
           <template #append-inner>
@@ -421,7 +475,10 @@
           @click="toggleStatus"
         >
           <template #prepend-inner>
-            <mdicon class="icon__modify" name="currency-usd-off" />
+            <mdicon
+              class="icon__modify"
+              name="currency-usd-off"
+            />
           </template>
           Ignorar em totais
           <template #append-inner>
@@ -479,7 +536,7 @@
               />
             </div>
           </template>
-        </v-text-field>
+        </v-text-field> -->
 
         <!-- <div class="d-flex justify-content-center"> -->
 
@@ -519,191 +576,146 @@
   </div>
 </template>
 <script setup lang="ts">
-import { useUserStore } from "@/store/user";
-import { reactive, ref } from "vue";
-import http from "@/services/http";
-import type { Lancamentos } from "@/types/lancamentos";
-import { useWalletsStore } from "@/store/wallets";
-import ModalTipoLancamento from "@/components/ModalTipoLancamento.vue";
-import ModalParcelar from "@/components/ModalParcelar.vue";
-import { useRevenuesStore } from "@/store/revenues";
-import { formatValue } from "@/utils/formatValue";
+import { useUserStore } from "../store/user";
+import { reactive, ref, Ref} from "vue";
+import http from "../services/http";
+import type { Lancamentos } from "../types/lancamentos";
+import type { Category } from "../types/category";
+import { useWalletsStore } from "../store/wallets";
+import ModalTipoLancamento from "../components/ModalTipoLancamento.vue";
+import ModalParcelar from "../components/ModalParcelar.vue";
+import { useRevenuesStore } from "../store/revenues";
+import { formatValue } from "../utils/formatValue";
 
 const userStore = useUserStore();
 const useWallets = useWalletsStore();
 const useRevenues = useRevenuesStore();
 
+const emit = defineEmits(["updateData", "closeForm"]);
+
+const props = defineProps({
+    releases: {
+        type: Object as () => Lancamentos,
+        required: true,
+    },
+    categoriasNames: {
+        type: Array as () => string[],
+        required: true,
+    },
+    contas: {
+        type: Array as () => string[],
+        required: true,
+    },
+});
+const formReleases = ref({...props.releases});
+console.log(props.contas);
+
 let informacoes = ref(false);
-let categorias = reactive(userStore.user.categoriasDespesas);
 let openTipoLancamento = ref(false);
 let openParcelas = ref(false);
 let errorsForm = ref({ errors: {} });
 let parcelar = ref(false);
 let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
 let valueTotalRevenuesMonth = ref(
-  useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth
+    useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth
 );
-let valuePending = ref(
-  formatValue(useRevenues.revenuesData.revenues?.ValuePendingRevenues)
-);
-let revenuesMonth = ref(useRevenues.revenuesData.revenues?.RevenuesMonth);
-console.log(revenuesMonth.value);
-let valueReceived = ref(
-  formatValue(useRevenues.revenuesData.revenues?.ValueReceivedRevenues)
-);
-const selectedColor = ref("");
 const tiposLancamento = ref(["Não recorrente", "Parcelada", "Fixa mensal"]);
 
-const getCurrentDate = () => {
-  const today = new Date();
-  const day = String(today.getDate()).padStart(2, "0");
-  const month = String(today.getMonth() + 1).padStart(2, "0"); // Janeiro é 0!
-  const year = today.getFullYear();
-  return `${year}-${month}-${day}`;
-};
 
-let releases: Ref<Lancamentos> = ref({
-  descricao: "",
-  valor: "",
-  tipo: "Não recorrente",
-  numParcelas: 0,
-  periodicidade: "",
-  date: getCurrentDate(),
-  categoria: "Outros",
-  subCategoria: "Outros",
-  carteira: "Pessoal",
-  status: "Efetivada",
-  mesReferencia: mesAnoReferencia.value,
-});
+// const categoriasNames = ref([]);
+// formCategorias.forEach((categoria) => {
+//     categoriasNames.value.push(categoria.name);
+// });
 
-const categoriasNames = ref([]);
-userStore.user.categoriasReceitas.forEach((categoria) => {
-  categoriasNames.value.push(categoria.name);
-});
-
-let carteiras = ref(useWallets.walletsData.walletsNames);
-const selectedIcon = ref("");
+// let carteiras = ref(useWallets.walletsData.walletsNames);
 const openModal = ref(false);
 let validFormLancamentos = ref(false);
-let status = ref(true);
-const nameCategory = ref("");
-// const props = defineProps({
-//     categoria: {
-//         type: Array,
-//     }
-// });
 const toggleStatus = () => {
-  releases.value.status =
-    releases.value.status === "Efetivada" ? "Pendente" : "Efetivada";
+    formReleases.value.status =
+    formReleases.value.status === "Efetivada" ? "Pendente" : "Efetivada";
 };
 
-const emit = defineEmits(["updateData", "closeForm"]);
+
 
 const closeForm = () => {
-  emit("closeForm");
-  clearInputs();
+    emit("closeForm");
+    clearInputs();
 };
 
 const selecionarTipo = (item: string) => {
-  releases.value.tipo = item;
-  openTipoLancamento.value = false;
-  if (item === "Parcelada") {
-    openParcelas.value = true;
-  }
+    formReleases.value.tipo = item;
+    openTipoLancamento.value = false;
+    if (item === "Parcelada") {
+        openParcelas.value = true;
+    }
 };
 
 const salvarLancamentos = async () => {
-  try {
+    try {
     // releases.value.status = status.value ? "Efetivada" : "pendente";
-    const res = await http.post("/save-revenue", releases.value);
-    useRevenues.setRevenuesData(res.data.revenuesData);
-    valueTotalRevenuesMonth.value =
+        const res = await http.post("/save-revenue", formReleases.value);
+        useRevenues.setRevenuesData(res.data.revenuesData);
+        valueTotalRevenuesMonth.value =
       res.data.revenuesData.ValueTotalRevenuesMonth;
-    emit("updateData", res.data.revenuesData);
-    useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
-    useWallets.setWallets(res.data.walletsData.wallets);
-    closeForm();
-    openModal.value = false;
-  } catch (error) {
-    console.log(error.response.data.errors);
-    errorsForm.value["errors"] = error.response.data["errors"];
-  }
+        emit("updateData", res.data.revenuesData);
+        useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
+        useWallets.setWallets(res.data.walletsData.wallets);
+        closeForm();
+        openModal.value = false;
+    } catch (error) {
+        console.log(error.response.data.errors);
+        errorsForm.value["errors"] = error.response.data["errors"];
+    }
 };
 
-const updateSelectedIcon = (novoValor: string) => {
-  selectedIcon.value = novoValor;
-};
-const updateSelectedColor = (novoValor: string) => {
-  selectedColor.value = novoValor;
-};
 
 const clearInputs = () => {
-  releases.value.valor = "";
-  releases.value.date = "";
-  releases.value.descricao = "";
-  releases.value.categoria = "";
-  releases.value.carteira = "";
+    formReleases.value.descricao = "",
+    formReleases.value.valor = "",
+    formReleases.value.tipo = "Não recorente",
+    formReleases.value.numParcelas = 0,
+    formReleases.value.periodicidade = "",
+    formReleases.value.date = new Date().toLocaleDateString("en-CA"),
+    formReleases.value.status = "",
+    formReleases.value.categoria = "",
+    formReleases.value.subCategoria = "",
+    formReleases.value.conta = "",
+    formReleases.value.mesReferencia = "",
+    formReleases.value.dateLancamento = new Date().toLocaleDateString("en-CA"),
+    formReleases.value.dateEfetivacao = new Date().toLocaleDateString("en-CA"); 
 };
 
-const saveCategory = async () => {
-  const data = ref({
-    name: nameCategory.value,
-    color: selectedColor.value,
-    icon: selectedIcon.value,
-    typeCategory: "",
-    edit: true,
-  });
-  try {
-    data.value.typeCategory =
-      props.color === "color__despesa" ? "despesa" : "receita";
-
-    const res = await http.post("/save-category", data.value);
-    useUser.setUserData(res.data.user);
-    if (res.data.categoriasDespesas) {
-      emit("updateCategoriasDespesas", res.data.categoriasDespesas);
-    }
-    if (res.data.categoriasReceitas) {
-      emit("updateCategoriasReceitas", res.data.categoriasReceitas);
-    }
-    nameCategory.value = "";
-    selectedColor.value = "";
-    selectedIcon.value = "";
-    openModal.value = false;
-  } catch (error) {
-    // console.log(error);
-  }
-};
 
 const formatValueSave = () => {
-  let novoValor = releases.value.valor.replace(/[^\d]/g, "");
+    let novoValor = formReleases.value.valor.replace(/[^\d]/g, "");
 
-  if (novoValor.length > 1) {
-    const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
-    const parteDecimal = novoValor.slice(-2);
-    const parteInteiraFormatada = parteInteira.replace(
-      /\B(?=(\d{3})+(?!\d))/g,
-      "."
-    );
-    releases.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
-  } else if (novoValor.length === 1) {
-    releases.value.valor = `$ 0,0${novoValor}`;
-  } else {
-    releases.value.valor = "$ 0,00";
-  }
+    if (novoValor.length > 1) {
+        const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
+        const parteDecimal = novoValor.slice(-2);
+        const parteInteiraFormatada = parteInteira.replace(
+            /\B(?=(\d{3})+(?!\d))/g,
+            "."
+        );
+        formReleases.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
+    } else if (novoValor.length === 1) {
+        formReleases.value.valor = `$ 0,0${novoValor}`;
+    } else {
+        formReleases.value.valor = "$ 0,00";
+    }
 };
 
 const rules = {
-  requiredValor: (value: string) => !!value || "O campo valor é obrigatório",
-  requiredValorMaiorQue0: (value: string) =>
-    parseFloat(value.replace(",", ".")) > 0 ||
+    requiredValor: (value: string) => !!value || "O campo valor é obrigatório",
+    requiredValorMaiorQue0: (value: string) =>
+        parseFloat(value.replace(",", ".")) > 0 ||
     "O campo valor deve ser maior que zero",
-  requiredData: (value: string) => !!value || "O campo data é obrigatório",
-  requiredDescricao: (value: string) =>
-    !!value || "O campo descriçãp é obrigatório",
-  requiredCatagoria: (value: string) =>
-    !!value || "O campo categoria é obrigatório",
-  requiredCarteira: (value: string) =>
-    !!value || "O campo categoria é obrigatório",
+    requiredData: (value: string) => !!value || "O campo data é obrigatório",
+    requiredDescricao: (value: string) =>
+        !!value || "O campo descriçãp é obrigatório",
+    requiredCatagoria: (value: string) =>
+        !!value || "O campo categoria é obrigatório",
+    requiredCarteira: (value: string) =>
+        !!value || "O campo categoria é obrigatório",
 };
 </script>
 

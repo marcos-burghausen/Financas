@@ -1,12 +1,19 @@
 export interface Lancamentos {
     // id: number;
     // user_id: number;
-    valor: string;
-    date: string;
     descricao: string;
-    categoria: string;
-    carteira: string;
+    valor: string;
+    tipo: string;
+    numParcelas:number;
+    periodicidade: string;
+    date: string;
     status: string;
+    categoria: string;
+    subCategoria: string;
+    conta: string;
+    mesReferencia: string;
+    dateLancamento: string;
+    dateEfetivacao: string;
     // created_at: string;
     // updated_at: string;
 }

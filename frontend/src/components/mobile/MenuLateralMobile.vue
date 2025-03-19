@@ -1,17 +1,28 @@
 <template>
-  <div class="fundo__menu" :class="{ displayNone: !props.menuExpandido }">
+  <div
+    class="fundo__menu"
+    :class="{ displayNone: !props.menuExpandido }"
+  >
     <nav class="menu-lateral">
       <div class="container__logo">
         <figure class="avatar">
-          <img src="@/assets/img/profile-img.jpg" alt="logo" />
+          <img
+            src="@/assets/img/profile-img.jpg"
+            alt="logo"
+          >
         </figure>
         <!-- prepend-avatar="https://randomuser.me/api/portraits/women/85.jpg" -->
         <v-list-item
           :subtitle="useUser.user.email"
           :title="name"
           class="white"
-        ></v-list-item>
-        <button class="close" @click="$emit('expandirMenu')">X</button>
+        />
+        <button
+          class="close"
+          @click="$emit('expandirMenu')"
+        >
+          X
+        </button>
       </div>
       <ul>
         <li
@@ -27,8 +38,7 @@
             <span
               class="txt__link"
               :class="{ displayNone: !props.menuExpandido }"
-              >{{ item.name }}</span
-            >
+            >{{ item.name }}</span>
           </router-link>
         </li>
       </ul>
@@ -50,91 +60,91 @@ let elementoAtivoSideBar = ref();
 let name = ref(useUser.user.name.split(" ")[0]);
 
 watch(route, (value) => {
-  switch (value.name) {
+    switch (value.name) {
     case "dashboard":
-      elementoAtivoSideBar.value = 0;
-      break;
+        elementoAtivoSideBar.value = 0;
+        break;
     case "contas":
-      elementoAtivoSideBar.value = 1;
-      break;
+        elementoAtivoSideBar.value = 1;
+        break;
     case "receitas":
-      elementoAtivoSideBar.value = 2;
-      break;
+        elementoAtivoSideBar.value = 2;
+        break;
     case "despesas":
-      elementoAtivoSideBar.value = 3;
-      break;
+        elementoAtivoSideBar.value = 3;
+        break;
     case "categorias":
-      elementoAtivoSideBar.value = 4;
-      break;
-  }
+        elementoAtivoSideBar.value = 4;
+        break;
+    }
 });
 
 const props = defineProps({
-  menuExpandido: Boolean,
+    menuExpandido: Boolean,
 });
 
 const itensSideBar = ref([
-  // {
-  //   name: "Admin",
-  //   icon: "view-dashboard",
-  //   route: "dashAdmim",
-  //   adminOnly: true,
-  // },
-  // { name: "Trader", icon: "chart-line", route: "dashAdmim", traderOnly: true },
-  // {
-  //   name: "Dashboard",
-  //   icon: "view-dashboard",
-  //   route: "dashboard",
-  //   adminOnly: false,
-  //   traderOnly: false,
-  // },
-  {
-    name: "Contas",
-    icon: "bank-outline",
-    route: "contas",
-    adminOnly: false,
-    traderOnly: false,
-  },
-  {
-    name: "Receitas",
-    icon: "arrow-top-right-bold-outline",
-    route: "receitas",
-    adminOnly: false,
-    traderOnly: false,
-  },
-  {
-    name: "Despesas",
-    icon: "arrow-bottom-right-bold-outline",
-    route: "despesas",
-    adminOnly: false,
-    traderOnly: false,
-  },
-  {
-    name: "Categorias",
-    icon: "bookmark-minus-outline",
-    route: "categorias",
-    adminOnly: false,
-    traderOnly: false,
-  },
-  // { name: "Mais Opçõs", icon: "dots-horizontal", route: "dashboard" },
+    // {
+    //   name: "Admin",
+    //   icon: "view-dashboard",
+    //   route: "dashAdmim",
+    //   adminOnly: true,
+    // },
+    // { name: "Trader", icon: "chart-line", route: "dashAdmim", traderOnly: true },
+    // {
+    //   name: "Dashboard",
+    //   icon: "view-dashboard",
+    //   route: "dashboard",
+    //   adminOnly: false,
+    //   traderOnly: false,
+    // },
+    {
+        name: "Contas",
+        icon: "bank-outline",
+        route: "contas",
+        adminOnly: false,
+        traderOnly: false,
+    },
+    {
+        name: "Receitas",
+        icon: "arrow-top-right-bold-outline",
+        route: "receitas",
+        adminOnly: false,
+        traderOnly: false,
+    },
+    {
+        name: "Despesas",
+        icon: "arrow-bottom-right-bold-outline",
+        route: "despesas",
+        adminOnly: false,
+        traderOnly: false,
+    },
+    {
+        name: "Categorias",
+        icon: "bookmark-minus-outline",
+        route: "categorias",
+        adminOnly: false,
+        traderOnly: false,
+    },
+    // { name: "Mais Opçõs", icon: "dots-horizontal", route: "dashboard" },
 ]);
 
 // Computed para filtrar os itens com base no user_tipe
 const filteredItensSideBar = computed(() => {
-  return itensSideBar.value.filter((item) => {
-    if (item.adminOnly) {
-      return (
-        useUser.user.user_tipe === "ADMIM" || useUser.user.user_tipe === "FULL"
-      );
-    } else if (item.traderOnly) {
-      return (
-        useUser.user.user_tipe === "TRADER" ||
+    return itensSideBar.value.filter((item) => {
+        if (item.adminOnly) {
+            return (
+                useUser.user.user_tipe === "ADMIM" || useUser.user.user_tipe === "FULL"
+            );
+        } else if (item.traderOnly) {
+            return (
+                useUser.user.user_tipe === "TRADER" ||
         useUser.user.user_tipe === "USER_TRADER" ||
         useUser.user.user_tipe === "FULL"
-      );
-    }
-    return true; // Exibe os outros itens normalmente
-  });
+            );
+        }
+        return true; // Exibe os outros itens normalmente
+    });
 });
 </script>
 
