@@ -1,0 +1,124 @@
+version: '3.9'
+
+x-coolify:  # Esta é uma extensão YAML para configurações do Coolify (deve estar no nível raiz)
+  domain: mr.burghausen.com.br
+  services:
+    node:
+      domain: mr.burghausen.com.br
+      port: 5173
+    php:
+      domain: api.mr.burghausen.com.br
+      port: 80
+
+services:
+
+  #php+apache
+  php:
+    image: marcosrafaelburghausen/php8.3-apache2.4
+    container_name: Mr_backend
+    working_dir: /var/www/html/
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - network
+    ports:
+      - "4080:80"
+    volumes:
+      - "./backend:/var/www/html"
+    environment:
+      FRONTEND_HOST: node:5173
+      MYSQL_HOST: mysql
+      MYSQL_PASSWORD: user
+      MYSQL_USER: user
+      MYSQL_DATABASE: Mr_database
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: senha
+    # command: php artisan queue:work
+
+  #node
+  node:
+    image: marcosrafaelburghausen/node-19
+    container_name: Mr_frontend
+    working_dir: /home/node/app
+    stdin_open: true
+    tty: true
+    command: bash -c "npm i && npm run dev -- --host 0.0.0.0"
+    networks:
+      - network
+    ports:
+      - "5173:5173"
+    volumes:
+      - "./frontend:/home/node/app"
+    environment:
+      VITE_BACK_HOST: "http://api.mrfinancas.burghausen.com.br"
+      # BACK_HOST: php:4081/api
+      CHOKIDAR_USEPOLLING: 'true'
+
+  #mysql
+  mysql:
+    image: mysql:8.0
+    container_name: Mr_database
+    networks:
+      - network
+    ports:
+      - "3306:3306"
+    volumes:
+      - "./db:/home/bkp"
+      - "mysql_db:/var/lib/mysql"
+    environment:
+      MYSQL_ROOT_HOST: '0.0.0.0'
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: user
+      MYSQL_USER: user
+      MYSQL_DATABASE: Mr_database
+
+  #phpmyadmin
+  dbadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: "no"
+    container_name: phpmyadmin
+    networks:
+      - network
+    ports:
+      - "4033:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+
+  #redis
+  redis:
+    image: redis:7.0
+    container_name: Mr_session_database
+    command: bash -c "redis-server --requirepass senha"
+    networks:
+      - network
+    ports:
+      - "6379:6379"
+    volumes:
+      - "redis_db:/data"
+
+  #redis-commander
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-commander
+    restart: always
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=senha
+    ports:
+      - "8082:8081"
+    networks:
+      - network
+
+volumes:
+  mysql_db:
+    driver: "local"
+  redis_db:
+    driver: "local"
+
+networks:
+  network:
+    driver: bridge
