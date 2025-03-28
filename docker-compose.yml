@@ -26,6 +26,7 @@ services:
       - "4080:80"
     volumes:
       - "./backend:/var/www/html"
+      - "/data/coolify/source/financas/backend:/var/www/html:cached"
     environment:
       FRONTEND_HOST: node:4081
       MYSQL_HOST: mysql
@@ -51,6 +52,7 @@ services:
       - "4081:5173"
     volumes:
       - "./frontend:/home/node/app"
+      - "/data/coolify/source/financas/frontend:/home/node/app:cached"
     environment:
       # VITE_BACK_HOST: "http://api.mrfinancas.burghausen.com.br"
       BACK_HOST: php:4081/api
@@ -74,19 +76,6 @@ services:
       MYSQL_USER: user
       MYSQL_DATABASE: Mr_database
 
-  #phpmyadmin
-  dbadmin:
-    image: phpmyadmin/phpmyadmin
-    restart: "no"
-    container_name: phpmyadmin
-    networks:
-      - network
-    ports:
-      - "4033:80"
-    environment:
-      PMA_HOST: mysql
-      PMA_PORT: 3306
-
   #redis
   redis:
     image: redis:7.0
@@ -99,19 +88,6 @@ services:
     volumes:
       - "redis_db:/data"
 
-  #redis-commander
-  redis-commander:
-    image: rediscommander/redis-commander:latest
-    container_name: redis-commander
-    restart: always
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=senha
-    ports:
-      - "8082:8081"
-    networks:
-      - network
 
 volumes:
   mysql_db:
