@@ -1,15 +1,5 @@
 version: '3.9'
 
-x-coolify:  # Esta é uma extensão YAML para configurações do Coolify (deve estar no nível raiz)
-  domain: mr.burghausen.com.br
-  services:
-    node:
-      domain: mr.burghausen.com.br
-      port: 5173
-    php:
-      domain: api.mr.burghausen.com.br
-      port: 80
-
 services:
 
   #php+apache
@@ -27,7 +17,7 @@ services:
     volumes:
       - "./backend:/var/www/html"
     environment:
-      FRONTEND_HOST: node:5173
+      FRONTEND_HOST: node:4080
       MYSQL_HOST: mysql
       MYSQL_PASSWORD: user
       MYSQL_USER: user
@@ -44,16 +34,15 @@ services:
     working_dir: /home/node/app
     stdin_open: true
     tty: true
-    command: bash -c "npm i && npm run dev -- --host 0.0.0.0"
+    command: bash -c "npm i && npm run dev -- --host"
     networks:
       - network
     ports:
-      - "5173:5173"
+      - "4081:5173"
     volumes:
       - "./frontend:/home/node/app"
     environment:
-      VITE_BACK_HOST: "http://api.mrfinancas.burghausen.com.br"
-      # BACK_HOST: php:4081/api
+      BACK_HOST: php:4081/api
       CHOKIDAR_USEPOLLING: 'true'
 
   #mysql
