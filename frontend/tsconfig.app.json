@@ -12,6 +12,8 @@
   ],
   "compilerOptions": {
     "composite": true,
+    "strict": false,
+    "noEmitOnError": false,
     "allowJs": true,
     "skipLibCheck": true,
     "baseUrl": ".",
