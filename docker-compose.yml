@@ -1,42 +1,26 @@
 version: '3.9'
 
-x-coolify:  # Esta é uma extensão YAML para configurações do Coolify (deve estar no nível raiz)
-  domain: mrfinancas.burghausen.com.br
-  services:
-    node:
-      domain: mrfinancas.burghausen.com.br
-      port: 4081
-    php:
-      domain: api.mrfinancas.burghausen.com.br
-      port: 4080
-
 services:
-
   #php+apache
   php:
     image: marcosrafaelburghausen/php8.3-apache2.4
     container_name: Mr_backend
     working_dir: /var/www/html/
-    depends_on:
-      - mysql
-      - redis
     networks:
       - network
     ports:
       - "4080:80"
     volumes:
       - "./backend:/var/www/html"
-      - "/data/coolify/source/financas/backend:/var/www/html:cached"
     environment:
       FRONTEND_HOST: node:4081
-      MYSQL_HOST: mysql
-      MYSQL_PASSWORD: user
-      MYSQL_USER: user
-      MYSQL_DATABASE: Mr_database
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: senha
-    # command: php artisan queue:work
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
 
   #node
   node:
@@ -52,48 +36,9 @@ services:
       - "4081:5173"
     volumes:
       - "./frontend:/home/node/app"
-      - "/data/coolify/source/financas/frontend:/home/node/app:cached"
     environment:
-      # VITE_BACK_HOST: "http://api.mrfinancas.burghausen.com.br"
       BACK_HOST: php:4081/api
       CHOKIDAR_USEPOLLING: 'true'
-
-  #mysql
-  mysql:
-    image: mysql:8.0
-    container_name: Mr_database
-    networks:
-      - network
-    ports:
-      - "3306:3306"
-    volumes:
-      - "./db:/home/bkp"
-      - "mysql_db:/var/lib/mysql"
-    environment:
-      MYSQL_ROOT_HOST: '0.0.0.0'
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_PASSWORD: user
-      MYSQL_USER: user
-      MYSQL_DATABASE: Mr_database
-
-  #redis
-  redis:
-    image: redis:7.0
-    container_name: Mr_session_database
-    command: bash -c "redis-server --requirepass senha"
-    networks:
-      - network
-    ports:
-      - "6379:6379"
-    volumes:
-      - "redis_db:/data"
-
-
-volumes:
-  mysql_db:
-    driver: "local"
-  redis_db:
-    driver: "local"
 
 networks:
   network:
