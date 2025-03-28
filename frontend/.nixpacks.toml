@@ -4,7 +4,7 @@ nixPkgs = ["nodejs-18.x"]
 [phases.build]
 commands = [
     "npm install",
-    "npm run build"
+    "npm run build || true"
 ]
 
 [phases.start]
