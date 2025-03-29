@@ -1,71 +1,38 @@
-# version: '3.9'
-
-# services:
-#   #php+apache
-#   php:
-#     image: marcosrafaelburghausen/php8.3-apache2.4
-#     container_name: Mr_backend
-#     working_dir: /var/www/html/
-#     networks:
-#       - network
-#     ports:
-#       - "4090:80"
-#     volumes:
-#       - "./backend:/var/www/html"
-#     environment:
-#       FRONTEND_HOST: node:4081
-#       MYSQL_HOST: ${MYSQL_HOST}
-#       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-#       MYSQL_USER: ${MYSQL_USER}
-#       MYSQL_DATABASE: ${MYSQL_DATABASE}
-#       REDIS_HOST: ${REDIS_HOST}
-#       REDIS_PORT: ${REDIS_PORT}
-#       REDIS_PASSWORD: ${REDIS_PASSWORD}
-
-#   #node
-#   node:
-#     image: marcosrafaelburghausen/node-19
-#     container_name: Mr_frontend
-#     working_dir: /home/node/app
-#     stdin_open: true
-#     tty: true
-#     command: bash -c "npm i && npm run dev -- --host"
-#     networks:
-#       - network
-#     ports:
-#       - "4081:5173"
-#     volumes:
-#       - "./frontend:/home/node/app"
-#     environment:
-#       BACK_HOST: php:4081/api
-#       CHOKIDAR_USEPOLLING: 'true'
-
-# networks:
-#   network:
-#     driver: bridge
-
-
-
 version: '3.9'
 
 services:
+  frontend:
+    image: node:18
+    container_name: financas-frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_API_URL: ${BACKEND_URL:-http://localhost:4080/api}
+      NODE_ENV: production
+    command: >
+      sh -c "npm install && 
+      npm run build && 
+      npm install -g http-server && 
+      http-server dist -p 3000 --host 0.0.0.0"
+    restart: unless-stopped
+    networks:
+      - coolify-network
 
-  #php+apache
-  php:
+  backend:
     image: marcosrafaelburghausen/php8.3-apache2.4
-    container_name: Mr_backend
-    working_dir: /var/www/html/
+    container_name: financas-backend
+    working_dir: /var/www/html
     depends_on:
       - mysql
       - redis
-    networks:
-      - network
     ports:
       - "4080:80"
     volumes:
-      - "./backend:/var/www/html"
+      - ./backend:/var/www/html
     environment:
-      FRONTEND_HOST: node:4080
       MYSQL_HOST: mysql
       MYSQL_PASSWORD: user
       MYSQL_USER: user
@@ -73,89 +40,39 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: senha
-    # command: php artisan queue:work
-
-  #node
-  node:
-    image: marcosrafaelburghausen/node-19
-    container_name: Mr_frontend
-    working_dir: /home/node/app
-    stdin_open: true
-    tty: true
-    command: bash -c "npm i && npm run dev -- --host"
     networks:
-      - network
-    ports:
-      - "4081:5173"
-    volumes:
-      - "./frontend:/home/node/app"
-    environment:
-      BACK_HOST: php:4081/api
-      CHOKIDAR_USEPOLLING: 'true'
+      - coolify-network
 
-  #mysql
   mysql:
     image: mysql:8.0
-    container_name: Mr_database
-    networks:
-      - network
+    container_name: financas-mysql
     ports:
       - "3306:3306"
     volumes:
-      - "./db:/home/bkp"
-      - "mysql_db:/var/lib/mysql"
+      - mysql_data:/var/lib/mysql
     environment:
-      MYSQL_ROOT_HOST: '0.0.0.0'
       MYSQL_ROOT_PASSWORD: root
       MYSQL_PASSWORD: user
       MYSQL_USER: user
       MYSQL_DATABASE: Mr_database
-
-  #phpmyadmin
-  dbadmin:
-    image: phpmyadmin/phpmyadmin
-    restart: "no"
-    container_name: phpmyadmin
     networks:
-      - network
-    ports:
-      - "4033:80"
-    environment:
-      PMA_HOST: mysql
-      PMA_PORT: 3306
+      - coolify-network
 
-  #redis
   redis:
     image: redis:7.0
-    container_name: Mr_session_database
-    command: bash -c "redis-server --requirepass senha"
-    networks:
-      - network
+    container_name: financas-redis
+    command: redis-server --requirepass senha
     ports:
       - "6379:6379"
     volumes:
-      - "redis_db:/data"
-
-  #redis-commander
-  redis-commander:
-    image: rediscommander/redis-commander:latest
-    container_name: redis-commander
-    restart: always
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=senha
-    ports:
-      - "8082:8081"
+      - redis_data:/data
     networks:
-      - network
+      - coolify-network
 
 volumes:
-  mysql_db:
-    driver: "local"
-  redis_db:
-    driver: "local"
+  mysql_data:
+  redis_data:
 
 networks:
-  network:
+  coolify-network:
     driver: bridge

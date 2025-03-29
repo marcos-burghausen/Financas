@@ -5,10 +5,10 @@
   "scripts": {
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
-    "preview": "vite preview",
+    "preview": "vite preview --port 3000 --host 0.0.0.0",
+    "serve": "vite preview --port 3000 --host 0.0.0.0",
     "build-only": "vite build",
     "prebuild": "npm install terser && npm install",
-    "server": "npm run dev",
     "type-check": "vue-tsc --noEmit -p tsconfig.app.json --composite false",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
