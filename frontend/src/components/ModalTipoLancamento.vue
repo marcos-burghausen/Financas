@@ -20,15 +20,21 @@
     </template> -->
   </v-text-field>
 
-  <div v-if="openModal" class="container__modal">
+  <div
+    v-if="openModal"
+    class="container__modal"
+  >
     <div class="modal">
       <div
-        v-for="(item, index) in tipoLancamento"
+        v-for="(item, index) in tiposLancamento"
         :key="index"
         class="cor__icon"
       >
         <div class="container__tipos">
-          <div class="container__tipo" @click="selecionarTipo(item)">
+          <div
+            class="container__tipo"
+            @click="selecionarTipo(item)"
+          >
             <mdicon
               :class="tipo == item ? 'selected' : ''"
               :name="
@@ -59,56 +65,56 @@ const selectedIcon = ref("");
 const openModal = ref(false);
 const nameCategory = ref("");
 const props = defineProps({
-  color: {
-    type: String,
-  },
+    color: {
+        type: String,
+    },
 });
 const tipo = ref("Não recorrente");
 const tiposLancamento = ref(["Não recorrente", "Parcelar", "Fixa mensal"]);
 
 const emit = defineEmits([
-  "updateCategoriasDespesas",
-  "updateCategoriasReceitas",
+    "updateCategoriasDespesas",
+    "updateCategoriasReceitas",
 ]);
 
 const selecionarTipo = (item: string) => {
-  tipo.value = item;
-  openModal.value = false;
+    tipo.value = item;
+    openModal.value = false;
 };
 
 const updateSelectedIcon = (novoValor: string) => {
-  selectedIcon.value = novoValor;
+    selectedIcon.value = novoValor;
 };
 const updateSelectedColor = (novoValor: string) => {
-  selectedColor.value = novoValor;
+    selectedColor.value = novoValor;
 };
 const saveCategory = async () => {
-  const data = ref({
-    name: nameCategory.value,
-    color: selectedColor.value,
-    icon: selectedIcon.value,
-    typeCategory: "",
-    edit: true,
-  });
-  try {
-    data.value.typeCategory =
+    const data = ref({
+        name: nameCategory.value,
+        color: selectedColor.value,
+        icon: selectedIcon.value,
+        typeCategory: "",
+        edit: true,
+    });
+    try {
+        data.value.typeCategory =
       props.color === "color__despesa" ? "despesa" : "receita";
 
-    const res = await http.post("/save-category", data.value);
-    useUser.setUserData(res.data.user);
-    if (res.data.categoriasDespesas) {
-      emit("updateCategoriasDespesas", res.data.categoriasDespesas);
-    }
-    if (res.data.categoriasReceitas) {
-      emit("updateCategoriasReceitas", res.data.categoriasReceitas);
-    }
-    nameCategory.value = "";
-    selectedColor.value = "";
-    selectedIcon.value = "";
-    openModal.value = false;
-  } catch (error) {
+        const res = await http.post("/save-category", data.value);
+        useUser.setUserData(res.data.user);
+        if (res.data.categoriasDespesas) {
+            emit("updateCategoriasDespesas", res.data.categoriasDespesas);
+        }
+        if (res.data.categoriasReceitas) {
+            emit("updateCategoriasReceitas", res.data.categoriasReceitas);
+        }
+        nameCategory.value = "";
+        selectedColor.value = "";
+        selectedIcon.value = "";
+        openModal.value = false;
+    } catch (error) {
     // console.log(error);
-  }
+    }
 };
 </script>
 

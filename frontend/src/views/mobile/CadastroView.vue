@@ -12,15 +12,25 @@
     </div> -->
     <div class="container__dados">
       <figure class="figure">
-        <img src="@/assets/img/2.png" style="width: 200px" alt="logo" />
+        <img
+          src="@/assets/img/2.png"
+          style="width: 200px"
+          alt="logo"
+        >
       </figure>
-      <h2 class="title">Criar Uma Conta</h2>
+      <h2 class="title">
+        Criar Uma Conta
+      </h2>
 
       <ErrorMessage />
 
       <ErrorsForm />
 
-      <v-form v-model="validForm" class="form" @submit.prevent="create">
+      <v-form
+        v-model="validForm"
+        class="form"
+        @submit.prevent="create"
+      >
         <v-text-field
           v-model="user.name"
           variant="outlined"
@@ -33,7 +43,10 @@
           autocomplete="on"
         >
           <template #prepend-inner>
-            <mdicon class="icon__modify" name="account-outline" />
+            <mdicon
+              class="icon__modify"
+              name="account-outline"
+            />
           </template>
         </v-text-field>
 
@@ -48,7 +61,10 @@
           autocomplete="on"
         >
           <template #prepend-inner>
-            <mdicon class="icon__modify" name="email-outline" />
+            <mdicon
+              class="icon__modify"
+              name="email-outline"
+            />
           </template>
         </v-text-field>
 
@@ -63,7 +79,10 @@
           hint="A senha deve ter pelo menos 8 caracteres sendo uma letra maiúcula, uma minúscula, um número e um caracter especial exeto aspas simples e duplas"
         >
           <template #prepend-inner>
-            <mdicon class="icon__modify" name="lock" />
+            <mdicon
+              class="icon__modify"
+              name="lock"
+            />
           </template>
           <template #append-inner>
             <mdicon
@@ -75,7 +94,11 @@
         </v-text-field>
 
         <div class="y">
-          <a class="btn__register" href="#" @click.prevent="emits('nextStep')">
+          <a
+            class="btn__register"
+            href="#"
+            @click.prevent="emits('nextStep')"
+          >
             <span>já tem uma conta </span>conecte-se.
           </a>
         </div>
@@ -100,17 +123,18 @@ import { useErrorStore } from "@/store/error";
 import http from "@/services/http";
 
 import { ref } from "vue";
+import type { AxiosError } from "axios";
 import type { FormCadastro } from "@/types/formCadastro";
 
 const emits = defineEmits(["nextStep"]);
 const errorStore = useErrorStore();
-const user: FormCadastro = ref({
-  name: "Marcos Rafael Burghausen",
-  email: "rafaelburghausen@gmail.com",
-  password: "Teste123@",
-  // name: "",
-  // email: "",
-  // password: "",
+const user = ref<FormCadastro>({
+    name: "Marcos Rafael Burghausen",
+    email: "rafaelburghausen@gmail.com",
+    password: "Teste123@",
+    // name: "",
+    // email: "",
+    // password: "",
 });
 
 let validForm = ref(false);
@@ -118,25 +142,37 @@ let mostrarSenha = ref(true);
 let loading = ref(false);
 
 async function create() {
-  loading.value = true;
-  try {
-    await http.post("/create", user.value);
-    emits("nextStep");
-  } catch (error: unknown) {
-    if (error.response.data.errors) {
-      errorStore.setErrorFromForm(error);
-    } else {
-      errorStore.setErrorFromResponse(error);
+    loading.value = true;
+    try {
+        await http.post("/create", user.value);
+        emits("nextStep");
+    } catch (error: unknown) {
+        if (isAxiosErrorWithData(error)) {
+            // Agora o TypeScript sabe que error.response.data existe
+            if (error.response.data.errors) {
+                errorStore.setErrorFromForm(error);
+            } else {
+                errorStore.setErrorFromResponse(error);
+            }
+        } else {
+            console.error("Erro desconhecido:", error);
+            // Tratar outros tipos de erro aqui
+        }
+    } finally {
+        loading.value = false;
     }
-  } finally {
-    loading.value = false;
-  }
+}
+
+function isAxiosErrorWithData(error: unknown): error is AxiosError<{ errors?: any }> {
+    const axiosError = error as AxiosError;
+    return axiosError.isAxiosError === true && 
+           axiosError.response?.data !== undefined;
 }
 
 const rules = {
-  requiredName: (value: string) => !!value || "O campo nome é obrigatório",
-  requiredEmail: (value: string) => !!value || "O campo email é obrigatório",
-  requiredSenha: (value: string) => !!value || "O campo senha é obrigatório",
+    requiredName: (value: string) => !!value || "O campo nome é obrigatório",
+    requiredEmail: (value: string) => !!value || "O campo email é obrigatório",
+    requiredSenha: (value: string) => !!value || "O campo senha é obrigatório",
 };
 </script>
 <style scoped>

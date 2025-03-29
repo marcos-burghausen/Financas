@@ -5,7 +5,10 @@
         class="link me-7 d-flex align-items-center opaco"
         :to="{ name: 'dashboard' }"
       >
-        <mdicon name="arrow-left" size="25" />
+        <mdicon
+          name="arrow-left"
+          size="25"
+        />
       </router-link>
       <div class="header__items">
         <div class="d-flex flex-column">
@@ -53,14 +56,21 @@
       class="btn__nova__despesa"
       @click="formStoreExpense = !formStoreExpense"
     >
-      <mdicon name="plus" class="mdicon" size="30" />
+      <mdicon
+        name="plus"
+        class="mdicon"
+        size="30"
+      />
     </button>
 
     <!-- <FormLancamentos /> -->
     <!-- ========================================================================= -->
     <!-- ================ inicio formulario lançamentos despesas ================= -->
     <!-- ========================================================================= -->
-    <div v-if="formStoreExpense" class="container-fluid">
+    <div
+      v-if="formStoreExpense"
+      class="container-fluid"
+    >
       <div class="container d-flex justify-content-center">
         <div class="cadastro">
           <!-- <form class="form" @submit.prevent="salvarLancamentos"> -->
@@ -91,10 +101,11 @@
                 class="form-check-input mb-5"
                 type="checkbox"
                 checked
-              />
-              <label class="form-check-label" for="flexSwitchCheckChecked"
-                >Paga</label
               >
+              <label
+                class="form-check-label"
+                for="flexSwitchCheckChecked"
+              >Paga</label>
             </div>
 
             <v-text-field
@@ -181,7 +192,10 @@
     <!-- ========================================================================= -->
     <!-- ================== inicio formulario editar despesa =================== -->
     <!-- ========================================================================= -->
-    <div v-if="formEditExpense" class="container-fluid">
+    <div
+      v-if="formEditExpense"
+      class="container-fluid"
+    >
       <div class="container d-flex justify-content-center">
         <div class="cadastro">
           <v-form
@@ -295,11 +309,14 @@
     <!-- ========================================================================= -->
 
     <div v-if="expensesMonth && expensesMonth.length > 0">
-      <div v-if="!formStoreExpense && !formEditExpense" class="container-fluid">
+      <div
+        v-if="!formStoreExpense && !formEditExpense"
+        class="container-fluid"
+      >
         <div
-          class="container__table"
           v-for="(expense, key) in expensesMonth"
           :key="expense.id"
+          class="container__table"
         >
           <div class="card__lancamento">
             <!-- :class="{ recebida: revenue.status === 'RECEBIDA' }" -->
@@ -313,8 +330,8 @@
                   expense.status === 'PAGA'
                     ? 'check'
                     : new Date() <= new Date(expense.date)
-                    ? 'alert'
-                    : 'alert-remove'
+                      ? 'alert'
+                      : 'alert-remove'
                 "
                 class="mdicon__lacamento"
                 :class="{
@@ -339,7 +356,11 @@
                     {{ expense.date }}
                   </span>
                   <span>
-                    <mdicon name="dots-vertical" class="mdicon" size="25" />
+                    <mdicon
+                      name="dots-vertical"
+                      class="mdicon"
+                      size="25"
+                    />
                     <v-menu
                       activator="parent"
                       location="bottom end"
@@ -358,12 +379,12 @@
                           title="Editar"
                           link
                           @click="displayFormEditExpense(expense)"
-                        ></v-list-item>
+                        />
                         <v-list-item
                           title="Excluir"
                           link
                           @click="deletar(expense.id)"
-                        ></v-list-item>
+                        />
                       </v-list>
                     </v-menu>
                   </span>
@@ -398,7 +419,7 @@
 import Card from "@/components/Card.vue";
 import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
 
-import { ref, reactive, type Ref } from "vue";
+import { ref, type Ref } from "vue";
 
 import type { Lancamentos } from "@/types/lancamentos";
 
@@ -424,281 +445,280 @@ let loading = ref(false);
 
 let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
 let valueTotalExpensesMonth = ref(
-  useExpenses.expensesData.expenses?.ValueTotalExpensesMonth
+    useExpenses.expensesData.expenses?.ValueTotalExpensesMonth
 );
 let valuePending = ref(useExpenses.expensesData.expenses?.ValuePendingExpenses);
 let expensesMonth = ref(useExpenses.expensesData.expenses?.ExpensesMonth);
 let valuePay = ref(
-  formatValue(useExpenses.expensesData.expenses?.ValuePayExpenses)
+    formatValue(useExpenses.expensesData.expenses?.ValuePayExpenses)
 );
-let categorias = ref(userStore.user.categoriasDespesas);
+// let categorias = ref(userStore.user.categoriasDespesas);
 const categoriasNames = ref([]);
 userStore.user.categoriasDespesas.forEach((categoria) => {
-  categoriasNames.value.push(categoria.name);
+    categoriasNames.value.push(categoria.name);
 });
 // let carteiras = ref(useWallets.walletsData.wallets.map((wallet) => wallet.name));
 let carteiras = ref(useWallets.walletsData.walletsNames);
 let errorsForm = ref({ errors: {} });
 let formStoreExpense = ref(false);
 let formEditExpense = ref(false);
-let expenseEdit: Ref<RevenueEdit> = ref({
-  id: 0,
-  user_id: 0,
-  valor: "",
-  date: "",
-  descricao: "",
-  categoria: "",
-  carteira: "",
-  status: "",
-  created_at: "",
-  updated_at: "",
-  mesReferencia: mesAnoReferencia.value,
+let expenseEdit = ref<RevenueEdit>({
+    user_id: 0,
+    valor: "",
+    date: "",
+    descricao: "",
+    categoria: "",
+    carteira: "",
+    status: "",
+    created_at: "",
+    updated_at: "",
+    mesReferencia: mesAnoReferencia.value,
 });
-const expenseUnedited: Ref<RevenueEdit> = ref({
-  valor: "",
-  date: "",
-  descricao: "",
-  categoria: "",
-  carteira: "",
-  status: "",
+let expenseUnedited = ref<RevenueEdit>({
+    valor: "",
+    date: "",
+    descricao: "",
+    categoria: "",
+    carteira: "",
+    status: "",
 });
-let release = ref({
-  valor: "",
-  date: "",
-  status: "",
-  descricao: "",
-  categoria: "",
-  carteira: "",
-  mesReferencia: mesAnoReferencia.value,
+let release = ref<Lancamentos>({
+    valor: "",
+    date: "",
+    status: "",
+    descricao: "",
+    categoria: "",
+    carteira: "",
+    mesReferencia: mesAnoReferencia.value,
 });
 
 const mesPorExtenso = computed(() => {
-  if (!mesAnoReferencia.value) return "";
+    if (!mesAnoReferencia.value) return "";
 
-  const [ano, mes] = mesAnoReferencia.value.split("-");
+    const  mes = mesAnoReferencia.value.split("-");
 
-  const mesesPorExtenso = [
-    "Janeiro",
-    "Fevereiro",
-    "Março",
-    "Abril",
-    "Maio",
-    "Junho",
-    "Julho",
-    "Agosto",
-    "Setembro",
-    "Outubro",
-    "Novembro",
-    "Dezembro",
-  ];
+    const mesesPorExtenso = [
+        "Janeiro",
+        "Fevereiro",
+        "Março",
+        "Abril",
+        "Maio",
+        "Junho",
+        "Julho",
+        "Agosto",
+        "Setembro",
+        "Outubro",
+        "Novembro",
+        "Dezembro",
+    ];
 
-  return mesesPorExtenso[parseInt(mes, 10) - 1];
+    return mesesPorExtenso[parseInt(mes, 10) - 1];
 });
 
 const mesAnterior = () => {
-  const [ano, mes] = mesAnoReferencia.value.split("-");
-  const dataAtual = new Date(ano, mes - 1);
-  dataAtual.setMonth(dataAtual.getMonth() - 1);
-  mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
-    dataAtual.getMonth() + 1
-  ).padStart(2, "0")}`;
-  buscarDadosMes(mesAnoReferencia.value);
+    const [ano, mes] = mesAnoReferencia.value.split("-");
+    const dataAtual = new Date(ano, mes - 1);
+    dataAtual.setMonth(dataAtual.getMonth() - 1);
+    mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
+        dataAtual.getMonth() + 1
+    ).padStart(2, "0")}`;
+    buscarDadosMes(mesAnoReferencia.value);
 };
 
 const proximoMes = () => {
-  const [ano, mes] = mesAnoReferencia.value.split("-");
-  const dataAtual = new Date(ano, mes - 1);
-  dataAtual.setMonth(dataAtual.getMonth() + 1);
-  mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
-    dataAtual.getMonth() + 1
-  ).padStart(2, "0")}`;
-  buscarDadosMes(mesAnoReferencia.value);
+    const [ano, mes] = mesAnoReferencia.value.split("-");
+    const dataAtual = new Date(ano, mes - 1);
+    dataAtual.setMonth(dataAtual.getMonth() + 1);
+    mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
+        dataAtual.getMonth() + 1
+    ).padStart(2, "0")}`;
+    buscarDadosMes(mesAnoReferencia.value);
 };
 
 const buscarDadosMes = async (data) => {
-  try {
-    const res = await http.post("/buscar-dados-mes", { mes: data });
-    useWallets.setMesReferencia(res.data.walletsData.mes_ano_referencia);
-    useExpenses.setExpensesData(res.data.expensesData);
-    useRevenues.setRevenuesData(res.data.revenuesData);
-    useWallets.setWalletsData(res.data.walletsData);
+    try {
+        const res = await http.post("/buscar-dados-mes", { mes: data });
+        useWallets.setMesReferencia(res.data.walletsData.mes_ano_referencia);
+        useExpenses.setExpensesData(res.data.expensesData);
+        useRevenues.setRevenuesData(res.data.revenuesData);
+        useWallets.setWalletsData(res.data.walletsData);
 
-    mesAnoReferencia.value = res.data.walletsData.mes_ano_referencia;
+        mesAnoReferencia.value = res.data.walletsData.mes_ano_referencia;
 
-    expensesMonth.value = res.data.expensesData.ExpensesMonth;
+        expensesMonth.value = res.data.expensesData.ExpensesMonth;
 
-    valueTotalExpensesMonth.value =
+        valueTotalExpensesMonth.value =
       res.data.expensesData.ValueTotalExpensesMonth;
 
-    valuePay.value = res.data.expensesData.ValuePayExpenses;
-  } catch (error) {
+        valuePay.value = res.data.expensesData.ValuePayExpenses;
+    } catch (error) {
     //
-  }
+    }
 };
 
 const formatValueSave = () => {
-  let novoValor = release.value.valor.replace(/[^\d]/g, "");
+    let novoValor = release.value.valor.replace(/[^\d]/g, "");
 
-  if (novoValor.length > 1) {
-    const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
-    const parteDecimal = novoValor.slice(-2);
-    const parteInteiraFormatada = parteInteira.replace(
-      /\B(?=(\d{3})+(?!\d))/g,
-      "."
-    );
-    release.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
-  } else if (novoValor.length === 1) {
-    release.value.valor = `0,0${novoValor}`;
-  } else {
-    release.value.valor = "0,00";
-  }
+    if (novoValor.length > 1) {
+        const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
+        const parteDecimal = novoValor.slice(-2);
+        const parteInteiraFormatada = parteInteira.replace(
+            /\B(?=(\d{3})+(?!\d))/g,
+            "."
+        );
+        release.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
+    } else if (novoValor.length === 1) {
+        release.value.valor = `0,0${novoValor}`;
+    } else {
+        release.value.valor = "0,00";
+    }
 };
 
 const formatValueEdit = () => {
-  let novoValor = expenseEdit.value.valor.replace(/[^\d]/g, "");
+    let novoValor = expenseEdit.value.valor.replace(/[^\d]/g, "");
 
-  if (novoValor.length > 1) {
-    const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
-    const parteDecimal = novoValor.slice(-2);
-    const parteInteiraFormatada = parteInteira.replace(
-      /\B(?=(\d{3})+(?!\d))/g,
-      "."
-    );
-    expenseEdit.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
-  } else if (novoValor.length === 1) {
-    expenseEdit.value.valor = `0,0${novoValor}`;
-  } else {
-    expenseEdit.value.valor = "0,00";
-  }
+    if (novoValor.length > 1) {
+        const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
+        const parteDecimal = novoValor.slice(-2);
+        const parteInteiraFormatada = parteInteira.replace(
+            /\B(?=(\d{3})+(?!\d))/g,
+            "."
+        );
+        expenseEdit.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
+    } else if (novoValor.length === 1) {
+        expenseEdit.value.valor = `0,0${novoValor}`;
+    } else {
+        expenseEdit.value.valor = "0,00";
+    }
 };
 
 let status = ref(true);
 
 const clearInputs = () => {
-  release.value.valor = "";
-  release.value.date = "";
-  release.value.descricao = "";
-  release.value.categoria = "";
-  release.value.carteira = "";
+    release.value.valor = "";
+    release.value.date = "";
+    release.value.descricao = "";
+    release.value.categoria = "";
+    release.value.carteira = "";
 };
 
 const revertEdit = () => {
-  expensesMonth.value.forEach((revenue: RevenueEdit, index: number) => {
-    if (revenue.id === expenseEdit.value.id) {
-      console.log(expensesMonth.value);
-      expensesMonth.value[index] = JSON.parse(
-        JSON.stringify(expenseUnedited.value)
-      );
-      console.log(expensesMonth.value);
-    }
-  });
+    expensesMonth.value.forEach((revenue: RevenueEdit, index: number) => {
+        if (revenue.id === expenseEdit.value.id) {
+            console.log(expensesMonth.value);
+            expensesMonth.value[index] = JSON.parse(
+                JSON.stringify(expenseUnedited)
+            );
+            console.log(expensesMonth.value);
+        }
+    });
 };
 
 const returnExpense = () => {
-  formStoreExpense.value =
+    formStoreExpense.value =
     formStoreExpense.value === true
-      ? !formStoreExpense.value
-      : formStoreExpense.value;
-  formEditExpense.value =
+        ? !formStoreExpense.value
+        : formStoreExpense.value;
+    formEditExpense.value =
     formEditExpense.value === true
-      ? !formEditExpense.value
-      : formEditExpense.value;
+        ? !formEditExpense.value
+        : formEditExpense.value;
 };
 
 const salvarLancamentos = async () => {
-  try {
-    release.value.status = status.value ? "PAGA" : "AGUARDANDO";
-    const res = await http.post("/save-expense", release.value);
-    useExpenses.setExpensesData(res.data.expensesData);
-    valueTotalExpensesMonth.value =
+    try {
+        release.value.status = status.value ? "PAGA" : "AGUARDANDO";
+        const res = await http.post("/save-expense", release.value);
+        useExpenses.setExpensesData(res.data.expensesData);
+        valueTotalExpensesMonth.value =
       res.data.expensesData.ValueTotalExpensesMonth;
-    valuePay.value = res.data.expensesData.ValuePayExpenses;
-    valuePending.value = res.data.expensesData.ValuePendingExpenses;
-    expensesMonth.value = res.data.expensesData.ExpensesMonth;
-    useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
-    useWallets.setWallets(res.data.walletsData.wallets);
-    clearInputs();
-    formStoreExpense.value = false;
-  } catch (error) {
+        valuePay.value = res.data.expensesData.ValuePayExpenses;
+        valuePending.value = res.data.expensesData.ValuePendingExpenses;
+        expensesMonth.value = res.data.expensesData.ExpensesMonth;
+        useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
+        useWallets.setWallets(res.data.walletsData.wallets);
+        clearInputs();
+        formStoreExpense.value = false;
+    } catch (error) {
     // console.log(error);
-    errorsForm.value["errors"] = error.response.data.errors;
-  }
+        errorsForm.value["errors"] = error.response.data.errors;
+    }
 };
 
 const payExpense = async (expense: Lancamentos) => {
-  try {
-    const res = await http.post("/pay-expense", {
-      id: expense.id,
-      mesReferencia: mesAnoReferencia.value,
-    });
-    useExpenses.setExpensesData(res.data.expensesData);
-    valuePending.value = res.data.expensesData.ValuePendingExpenses;
-    valuePay.value = res.data.expensesData.ValuePayExpenses;
-    // expense.status = 'PAGA';
-    expensesMonth.value.forEach((expenses) => {
-      if (expenses.id === expense.id) {
-        expense.status = "PAGA";
-      }
-    });
-    useWallets.setWallets(res.data.walletsData.wallets);
-  } catch (error) {
+    try {
+        const res = await http.post("/pay-expense", {
+            id: expense.id,
+            mesReferencia: mesAnoReferencia.value,
+        });
+        useExpenses.setExpensesData(res.data.expensesData);
+        valuePending.value = res.data.expensesData.ValuePendingExpenses;
+        valuePay.value = res.data.expensesData.ValuePayExpenses;
+        // expense.status = 'PAGA';
+        expensesMonth.value.forEach((expenses) => {
+            if (expenses.id === expense.id) {
+                expense.status = "PAGA";
+            }
+        });
+        useWallets.setWallets(res.data.walletsData.wallets);
+    } catch (error) {
     // console.log(error);
-  }
+    }
 };
 
 function displayFormEditExpense(expense: RevenueEdit) {
-  expenseUnedited.value = JSON.parse(JSON.stringify(expense));
-  expenseEdit.value = expense;
-  expenseEdit.value.valor = formatValue(expenseEdit.value.valor);
-  formEditExpense.value = true;
+    expenseUnedited = JSON.parse(JSON.stringify(expense));
+    expenseEdit.value = expense;
+    expenseEdit.value.valor = formatValue(Number(expenseEdit.value.valor));
+    formEditExpense.value = true;
 }
 
 const saveEditedExpense = async () => {
-  try {
-    const res = await http.post("/edit-expense", expenseEdit.value);
-    useExpenses.setExpensesData(res.data.expensesData);
-    useWallets.setWallets(res.data.walletsData.wallets);
-    valueTotalExpensesMonth.value =
+    try {
+        const res = await http.post("/edit-expense", expenseEdit);
+        useExpenses.setExpensesData(res.data.expensesData);
+        useWallets.setWallets(res.data.walletsData.wallets);
+        valueTotalExpensesMonth.value =
       res.data.expensesData.ValueTotalExpensesMonth;
-    valuePending.value = res.data.expensesData.ValuePendingExpenses;
-    valuePay.value = res.data.expensesData.ValuePayExpenses;
-    expensesMonth.value = res.data.expensesData.ExpensesMonth;
-  } catch (error) {
+        valuePending.value = res.data.expensesData.ValuePendingExpenses;
+        valuePay.value = res.data.expensesData.ValuePayExpenses;
+        expensesMonth.value = res.data.expensesData.ExpensesMonth;
+    } catch (error) {
     // console.log(error);
-  }
+    }
 
-  formEditExpense.value = false;
+    formEditExpense.value = false;
 };
 
 const deletar = async (id: number) => {
-  try {
-    const res = await http.post("/delete-expense", {
-      id: id,
-      mesReferencia: mesAnoReferencia.value,
-    });
-    useExpenses.setExpensesData(res.data.expensesData);
-    valueTotalExpensesMonth.value =
+    try {
+        const res = await http.post("/delete-expense", {
+            id: id,
+            mesReferencia: mesAnoReferencia.value,
+        });
+        useExpenses.setExpensesData(res.data.expensesData);
+        valueTotalExpensesMonth.value =
       res.data.expensesData.ValueTotalExpensesMonth;
-    valuePending.value = res.data.expensesData.ValuePendingExpenses;
-    valuePay.value = res.data.expensesData.ValuePayExpenses;
-    expensesMonth.value = res.data.expensesData.ExpensesMonth;
-  } catch (error) {
+        valuePending.value = res.data.expensesData.ValuePendingExpenses;
+        valuePay.value = res.data.expensesData.ValuePayExpenses;
+        expensesMonth.value = res.data.expensesData.ExpensesMonth;
+    } catch (error) {
     // console.log(error);
-  }
+    }
 };
 
 const rules = {
-  requiredValor: (value: string) => !!value || "O campo valor é obrigatório",
-  requiredValorMaiorQue0: (value: string) =>
-    parseFloat(value.replace(",", ".")) > 0 ||
+    requiredValor: (value: string) => !!value || "O campo valor é obrigatório",
+    requiredValorMaiorQue0: (value: string) =>
+        parseFloat(value.replace(",", ".")) > 0 ||
     "O campo valor deve ser maior que zero",
-  requiredData: (value: string) => !!value || "O campo data é obrigatório",
-  requiredDescricao: (value: string) =>
-    !!value || "O campo escriçãp é obrigatório",
-  requiredCatagoria: (value: string) =>
-    !!value || "O campo categoria é obrigatório",
-  requiredCarteira: (value: string) =>
-    !!value || "O campo categoria é obrigatório",
+    requiredData: (value: string) => !!value || "O campo data é obrigatório",
+    requiredDescricao: (value: string) =>
+        !!value || "O campo escriçãp é obrigatório",
+    requiredCatagoria: (value: string) =>
+        !!value || "O campo categoria é obrigatório",
+    requiredCarteira: (value: string) =>
+        !!value || "O campo categoria é obrigatório",
 };
 </script>
 

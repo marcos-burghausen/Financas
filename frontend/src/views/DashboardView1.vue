@@ -19,7 +19,7 @@
 </template>
   
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, computed } from "vue";
   
 const data = {
     labels: ["casa", "transporte", "lazer", "outros"],
@@ -30,19 +30,26 @@ const data = {
 const tooltipX = ref(0);
 const tooltipY = ref(0);
 const showTooltip = ref(false);
-let tooltipText = "";
+const tooltipText = ref("");
+const canvasRef = ref<HTMLCanvasElement | null>(null);
   
-onMounted(() => {
-    const canvas = document.getElementById("chart");
-    const ctx = canvas.getContext("2d");
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const radius = Math.min(canvas.width, canvas.height) / 2;
-    
+const drawPieChart = () => {
+    if (!canvasRef.value) return;
+  
+    const ctx = canvasRef.value.getContext("2d");
+    if (!ctx) return;
+
+    const centerX = canvasRef.value.width / 2;
+    const centerY = canvasRef.value.height / 2;
+    const radius = Math.min(canvasRef.value.width, canvasRef.value.height) / 2;
+  
     let startAngle = -Math.PI / 2;
-    
-    let totalValues = data.values.reduce((acc, cur) => acc + cur, 0);
-    
+    const totalValues = data.values.reduce((acc, cur) => acc + cur, 0);
+
+    // Limpa o canvas antes de redesenhar
+    ctx.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height);
+
+    // Desenha cada fatia do gráfico
     for (let i = 0; i < data.values.length; i++) {
         const sliceAngle = (2 * Math.PI * data.values[i]) / totalValues;
         ctx.beginPath();
@@ -54,24 +61,27 @@ onMounted(() => {
         startAngle += sliceAngle;
         ctx.closePath();
     }
-});
-  
+};
+
+// Manipula o movimento do mouse para mostrar o tooltip
 const handleMouseMove = (event: MouseEvent) => {
-    const canvas = document.getElementById("chart");
-    const rect = canvas.getBoundingClientRect();
+    if (!canvasRef.value) return;
+  
+    const rect = canvasRef.value.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
+    const centerX = canvasRef.value.width / 2;
+    const centerY = canvasRef.value.height / 2;
     const distanceFromCenter = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
-    
-    if (distanceFromCenter <= canvas.width / 2) {
+  
+    if (distanceFromCenter <= radius.value) {
         const angle = Math.atan2(y - centerY, x - centerX);
         let sliceIndex = Math.floor((angle + Math.PI / 2) / (2 * Math.PI / data.values.length));
-        if (sliceIndex < 0) {
-            sliceIndex += data.values.length;
-        }
-        tooltipText = `${data.labels[sliceIndex]}: ${data.values[sliceIndex]}%`;
+    
+        if (sliceIndex < 0) sliceIndex += data.values.length;
+        if (sliceIndex >= data.values.length) sliceIndex = 0;
+    
+        tooltipText.value = `${data.labels[sliceIndex]}: ${data.values[sliceIndex]}%`;
         tooltipX.value = event.clientX;
         tooltipY.value = event.clientY;
         showTooltip.value = true;
@@ -79,10 +89,20 @@ const handleMouseMove = (event: MouseEvent) => {
         hideTooltip();
     }
 };
-  
+
+// Esconde o tooltip
 const hideTooltip = () => {
     showTooltip.value = false;
 };
+
+// Variável computada para o raio
+const radius = computed(() => {
+    if (!canvasRef.value) return 0;
+    return Math.min(canvasRef.value.width, canvasRef.value.height) / 2;
+});
+
+// Inicializa o gráfico quando o componente é montado
+onMounted(drawPieChart);
 </script>
   
   <style scoped>

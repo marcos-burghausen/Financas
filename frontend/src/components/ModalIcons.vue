@@ -15,7 +15,7 @@
       <li
         v-for="(item, index) in items"
         :key="index"
-        @click="selectItem(item.icon)"
+        @click.stop="selectItem(item.icon)"
       >
         <mdicon :name="item.icon" />
       </li>
@@ -24,16 +24,26 @@
 </template>
 <script setup lang="ts">
 import { ref } from "vue";
+import type { PropType } from "vue";
+
+interface IconItem {
+  icon: string;
+}
 
 const openModal = ref(false);
 const props = defineProps({
-    items: {}
+    items: {
+        type: Array as PropType<IconItem[]>,
+        required: true,
+        default: () => []
+    }
 });
 const emit = defineEmits(["atualizarVariavel"]);
 const items = ref(props.items);
 
 const selectItem = (value: string) => {
     emit("atualizarVariavel", value);
+    openModal.value = false; // Fecha o modal após selecionar
 };
 
 </script>

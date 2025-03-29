@@ -88,8 +88,8 @@
                 color="transparent"
                 class="mdicon__card"
                 :disabled="revenue.status === 'Efetivada'"
-                @click="receivedRevenue(revenue)"
               >
+                <!-- @click="receivedRevenue(revenue)" -->
                 <mdicon
                   :name="
                     revenue.status === 'Efetivada'
@@ -143,8 +143,8 @@
                           <v-list-item
                             title="Editar"
                             link
-                            @click="displayFormEditRevenue(revenue)"
                           />
+                          <!-- @click="displayFormEditRevenue(revenue)" -->
                           <v-list-item
                             title="Excluir"
                             link
@@ -196,34 +196,28 @@
 </template>
 
 <script setup lang="ts">
-import Card from "@/components/Card.vue";
-import FormReceitas from "@/components/FormReceitas.vue";
-import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
+import Card from "../../components/Card.vue";
+import FormReceitas from "../../components/FormReceitas.vue";
+import NoDataComponent from "../../components/mobile/NoDataComponent.vue";
 
-import { ref, reactive, computed, onMounted, type Ref } from "vue";
+import { ref, computed } from "vue";
+import type { Ref } from "vue";
 
-import type { Lancamentos } from "@/types/lancamentos";
+import type { Lancamentos } from "../../types/lancamentos";
 
-import { useRevenuesStore } from "@/store/revenues";
-import { useUserStore } from "@/store/user";
-import { formatValue } from "@/utils/formatValue";
+import { useRevenuesStore } from "../../store/revenues";
+import { useUserStore } from "../../store/user";
+import { formatValue } from "../../utils/formatValue";
 
-import http from "@/services/http";
-import type { RevenueEdit } from "@/types/revenueEdit";
-import { useAuthStore } from "@/store/auth";
-import { useWalletsStore } from "@/store/wallets";
-import { useExpensesStore } from "@/store/expenses";
+import http from "../../services/http";
+// import type { RevenueEdit } from "../../types/revenueEdit";
+import { useWalletsStore } from "../../store/wallets";
+import { useExpensesStore } from "../../store/expenses";
 
 const useExpenses = useExpensesStore();
 const useRevenues = useRevenuesStore();
 const userStore = useUserStore();
 const useWallets = useWalletsStore();
-
-const useAuth = useAuthStore();
-
-let validFormLancamentos = ref(false);
-let validFormEdit = ref(false);
-let loading = ref(false);
 let formulario = ref(false);
 
 let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
@@ -246,9 +240,9 @@ userStore.user.categoriasReceitas.forEach((categoria) => {
 });
 let contas = ref(useWallets.walletsData.walletsNames);
 console.log(contas.value);
-let errorsForm = ref({ errors: {} });
-let formStoreRevenue = ref(false);
-let formEditRevenue = ref(false);
+// let errorsForm = ref({ errors: {} });
+// let formStoreRevenue = ref(false);
+// let formEditRevenue = ref(false);
 // let revenueEdit: Ref<RevenueEdit> = ref({
 //     id: 0,
 //     user_id: 0,
@@ -270,7 +264,8 @@ let formEditRevenue = ref(false);
 //     carteira: "",
 //     status: "",
 // });
-let releases: Ref<Lancamentos> = ref({
+let releases = ref<Lancamentos>({
+    id: null,
     descricao: "",
     valor: "",
     tipo: "Não recorente",
@@ -279,6 +274,7 @@ let releases: Ref<Lancamentos> = ref({
     date: new Date().toLocaleDateString("en-CA"),
     status: "Efetivada",
     categoria: "Outros",
+    carteira: "Outros",
     subCategoria: "",
     conta: "",
     mesReferencia: mesAnoReferencia.value,
@@ -404,23 +400,23 @@ const buscarDadosMes = async (data) => {
 // };
 // formatarValor();
 
-let status = ref(true);
+// let status = ref(true);
 
-const clearInputs = () => {
-    releases.value.descricao = "",
-    releases.value.valor = "",
-    releases.value.tipo = "Não recorente",
-    releases.value.numParcelas = 0,
-    releases.value.periodicidade = "",
-    releases.value.date = new Date().toLocaleDateString("en-CA"),
-    releases.value.status = "",
-    releases.value.categoria = "",
-    releases.value.subCategoria = "",
-    releases.value.conta = "",
-    releases.value.mesReferencia = "",
-    releases.value.dateLancamento = new Date().toLocaleDateString("en-CA"),
-    releases.value.dateEfetivacao = new Date().toLocaleDateString("en-CA"); 
-};
+// const clearInputs = () => {
+//     releases.value.descricao = "",
+//     releases.value.valor = "",
+//     releases.value.tipo = "Não recorente",
+//     releases.value.numParcelas = 0,
+//     releases.value.periodicidade = "",
+//     releases.value.date = new Date().toLocaleDateString("en-CA"),
+//     releases.value.status = "",
+//     releases.value.categoria = "",
+//     releases.value.subCategoria = "",
+//     releases.value.conta = "",
+//     releases.value.mesReferencia = "",
+//     releases.value.dateLancamento = new Date().toLocaleDateString("en-CA"),
+//     releases.value.dateEfetivacao = new Date().toLocaleDateString("en-CA"); 
+// };
 
 // const revertEdit = () => {
 //     revenuesMonth.value.forEach((revenue: RevenueEdit, index: number) => {
@@ -443,74 +439,74 @@ const clearInputs = () => {
 //         : formEditRevenue.value;
 // };
 
-const salvarLancamentos = async () => {
-    try {
-        release.value.status = status.value ? "Efetivada" : "Pendente";
-        const res = await http.post("/save-revenue", release.value);
-        useRevenues.setRevenuesData(res.data.revenuesData);
-        valueTotalRevenuesMonth.value =
-      res.data.revenuesData.ValueTotalRevenuesMonth;
-        valuePending.value = res.data.revenuesData.ValuePendingRevenues;
-        valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
-        revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
-        useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
-        useWallets.setWallets(res.data.walletsData.wallets);
-        clearInputs();
-        formStoreRevenue.value = false;
-    } catch (error) {
-    // console.log(error.response.data.errors);
-        errorsForm.value["errors"] = error.response.data["errors"];
-    }
-};
+// const salvarLancamentos = async () => {
+//     try {
+//         release.value.status = status.value ? "Efetivada" : "Pendente";
+//         const res = await http.post("/save-revenue", release.value);
+//         useRevenues.setRevenuesData(res.data.revenuesData);
+//         valueTotalRevenuesMonth.value =
+//       res.data.revenuesData.ValueTotalRevenuesMonth;
+//         valuePending.value = res.data.revenuesData.ValuePendingRevenues;
+//         valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
+//         revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
+//         useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
+//         useWallets.setWallets(res.data.walletsData.wallets);
+//         clearInputs();
+//         formStoreRevenue.value = false;
+//     } catch (error) {
+//     // console.log(error.response.data.errors);
+//         errorsForm.value["errors"] = error.response.data["errors"];
+//     }
+// };
 
-const receivedRevenue = async (revenue: RevenueEdit) => {
-    try {
-        const res = await http.post("/received-revenue", {
-            id: revenue.id,
-            carteira: revenue.carteira,
-            mesReferencia: mesAnoReferencia.value,
-        });
-        useRevenues.setRevenuesData(res.data.revenuesData);
-        valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
-        valuePending.value = res.data.revenuesData.ValuePendingRevenues;
-        // revenue.status = 'PAGA';
-        revenuesMonth.value.forEach((revenues) => {
-            if (revenues.id === revenue.id) {
-                revenues.status = "Efetivada";
-            }
-        });
-        useWallets.setWallets(res.data.walletsData.wallets);
-    } catch (error) {
-    // console.log(error);
-    }
-};
+// const receivedRevenue = async (revenue: RevenueEdit) => {
+//     try {
+//         const res = await http.post("/received-revenue", {
+//             id: revenue.id,
+//             carteira: revenue.carteira,
+//             mesReferencia: mesAnoReferencia.value,
+//         });
+//         useRevenues.setRevenuesData(res.data.revenuesData);
+//         valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
+//         valuePending.value = res.data.revenuesData.ValuePendingRevenues;
+//         // revenue.status = 'PAGA';
+//         revenuesMonth.value.forEach((revenues) => {
+//             if (revenues.id === revenue.id) {
+//                 revenues.status = "Efetivada";
+//             }
+//         });
+//         useWallets.setWallets(res.data.walletsData.wallets);
+//     } catch (error) {
+//     // console.log(error);
+//     }
+// };
 
-function displayFormEditRevenue(revenue: RevenueEdit) {
-    revenueUnedited.value = JSON.parse(JSON.stringify(revenue));
-    revenueEdit.value = revenue;
-    revenueEdit.value.valor = formatValue(revenueEdit.value.valor);
-    formEditRevenue.value = true;
-}
+// function displayFormEditRevenue(revenue: RevenueEdit) {
+//     revenueUnedited.value = JSON.parse(JSON.stringify(revenue));
+//     revenueEdit.value = revenue;
+//     revenueEdit.value.valor = formatValue(revenueEdit.value.valor);
+//     formEditRevenue.value = true;
+// }
 
-const saveEditedRevenue = async () => {
-    try {
-        const res = await http.post("/edit-revenue", revenueEdit.value);
-        useRevenues.setRevenuesData(res.data.revenuesData);
-        useWallets.setWallets(res.data.walletsData.wallets);
-        valueTotalRevenuesMonth.value =
-      res.data.revenuesData.ValueTotalRevenuesMonth;
-        valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
-        valuePending.value = res.data.revenuesData.ValuePendingRevenues;
-        revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
-    } catch (error) {
-    // console.log(error.response.data.message);
-    // if (error.response.data.message === "Token has expired") {
-    //     alert("sessão expirada");
-    // }
-    }
+// const saveEditedRevenue = async () => {
+//     try {
+//         const res = await http.post("/edit-revenue", revenueEdit.value);
+//         useRevenues.setRevenuesData(res.data.revenuesData);
+//         useWallets.setWallets(res.data.walletsData.wallets);
+//         valueTotalRevenuesMonth.value =
+//       res.data.revenuesData.ValueTotalRevenuesMonth;
+//         valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
+//         valuePending.value = res.data.revenuesData.ValuePendingRevenues;
+//         revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
+//     } catch (error) {
+//     // console.log(error.response.data.message);
+//     // if (error.response.data.message === "Token has expired") {
+//     //     alert("sessão expirada");
+//     // }
+//     }
 
-    formEditRevenue.value = false;
-};
+//     formEditRevenue.value = false;
+// };
 
 const deletar = async (id: number) => {
     try {
@@ -529,19 +525,19 @@ const deletar = async (id: number) => {
     }
 };
 
-const rules = {
-    requiredValor: (value: string) => !!value || "O campo valor é obrigatório",
-    requiredValorMaiorQue0: (value: string) =>
-        parseFloat(value.replace(",", ".")) > 0 ||
-    "O campo valor deve ser maior que zero",
-    requiredData: (value: string) => !!value || "O campo data é obrigatório",
-    requiredDescricao: (value: string) =>
-        !!value || "O campo escriçãp é obrigatório",
-    requiredCatagoria: (value: string) =>
-        !!value || "O campo categoria é obrigatório",
-    requiredCarteira: (value: string) =>
-        !!value || "O campo categoria é obrigatório",
-};
+// const rules = {
+//     requiredValor: (value: string) => !!value || "O campo valor é obrigatório",
+//     requiredValorMaiorQue0: (value: string) =>
+//         parseFloat(value.replace(",", ".")) > 0 ||
+//     "O campo valor deve ser maior que zero",
+//     requiredData: (value: string) => !!value || "O campo data é obrigatório",
+//     requiredDescricao: (value: string) =>
+//         !!value || "O campo escriçãp é obrigatório",
+//     requiredCatagoria: (value: string) =>
+//         !!value || "O campo categoria é obrigatório",
+//     requiredCarteira: (value: string) =>
+//         !!value || "O campo categoria é obrigatório",
+// };
 </script>
 
 <style>

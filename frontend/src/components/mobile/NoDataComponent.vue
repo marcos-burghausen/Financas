@@ -4,14 +4,16 @@
       src="../../assets/img/nadaAqui.svg"
       alt="No Data"
       class="no-data-image"
-    />
-    <p class="no-data-text">Nenhum dado disponível no momento.</p>
+    >
+    <p class="no-data-text">
+      Nenhum dado disponível no momento.
+    </p>
   </div>
 </template>
 
 <script>
 export default {
-  name: "NoDataComponent",
+    name: "NoDataComponent",
 };
 </script>
 

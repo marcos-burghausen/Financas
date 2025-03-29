@@ -5,7 +5,10 @@
         class="link me-7 d-flex align-items-center opaco"
         :to="{ name: 'dashboard' }"
       >
-        <mdicon name="arrow-left" size="25" />
+        <mdicon
+          name="arrow-left"
+          size="25"
+        />
       </router-link>
       <div class="header__items">
         <div class="d-flex flex-column">
@@ -45,23 +48,39 @@
           <span class="valor">R$ 130,00</span>
         </div>
       </div>
-      <div v-for="(wallet, index) in wallets" :key="index" class="carteira">
+      <div
+        v-for="(wallet, index) in wallets"
+        :key="index"
+        class="carteira"
+      >
         <div class="header__carteira">
           <div class="container__detalhes">
             <span class="icon">
-              <mdicon :name="wallet.icon" size="50" />
+              <mdicon
+                :name="wallet.icon"
+                size="50"
+              />
             </span>
             {{ wallet.name }}
           </div>
           <button class="btn__opcoes">
-            <mdicon name="dots-vertical" size="25" />
+            <mdicon
+              name="dots-vertical"
+              size="25"
+            />
           </button>
         </div>
         <div class="body__carteira">
           <div class="saldo">
             <span class="saldo__atual">saldo atual</span>
-            <span v-if="wallet.saldo == null" class="valor"> R$ 0,00 </span>
-            <span v-else class="valor">
+            <span
+              v-if="wallet.saldo == null"
+              class="valor"
+            > R$ 0,00 </span>
+            <span
+              v-else
+              class="valor"
+            >
               R$ {{ formatValue(wallet.saldo) }}
             </span>
           </div>
@@ -73,9 +92,13 @@
       </div>
       <button
         class="btn__nova__conta"
-        @click="formStoreRevenue = !formStoreRevenue"
       >
-        <mdicon name="plus" class="mdicon" size="30" />
+        <!-- @click="formStoreRevenue = !formStoreRevenue" -->
+        <mdicon
+          name="plus"
+          class="mdicon"
+          size="30"
+        />
       </button>
     </div>
 
@@ -144,30 +167,30 @@ let wallets = ref(useWallets.walletsData.wallets);
 let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
 
 const updateContas = (novoValor) => {
-  wallets.value = novoValor;
+    wallets.value = novoValor;
 };
 
 const mesPorExtenso = computed(() => {
-  if (!mesAnoReferencia.value) return "";
+    if (!mesAnoReferencia.value) return "";
 
-  const [ano, mes] = mesAnoReferencia.value.split("-");
+    const [ano, mes] = mesAnoReferencia.value.split("-");
 
-  const mesesPorExtenso = [
-    "Janeiro",
-    "Fevereiro",
-    "Março",
-    "Abril",
-    "Maio",
-    "Junho",
-    "Julho",
-    "Agosto",
-    "Setembro",
-    "Outubro",
-    "Novembro",
-    "Dezembro",
-  ];
+    const mesesPorExtenso = [
+        "Janeiro",
+        "Fevereiro",
+        "Março",
+        "Abril",
+        "Maio",
+        "Junho",
+        "Julho",
+        "Agosto",
+        "Setembro",
+        "Outubro",
+        "Novembro",
+        "Dezembro",
+    ];
 
-  return mesesPorExtenso[parseInt(mes, 10) - 1];
+    return mesesPorExtenso[parseInt(mes, 10) - 1];
 });
 </script>
 

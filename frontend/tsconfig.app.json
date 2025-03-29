@@ -12,6 +12,7 @@
   ],
   "compilerOptions": {
     "composite": true,
+    "verbatimModuleSyntax": true,
     "strict": false,
     "noEmitOnError": false,
     "allowJs": true,

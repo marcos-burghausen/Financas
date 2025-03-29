@@ -576,50 +576,38 @@
   </div>
 </template>
 <script setup lang="ts">
-import { useUserStore } from "../store/user";
-import { reactive, ref, Ref} from "vue";
+import { ref} from "vue";
 import http from "../services/http";
 import type { Lancamentos } from "../types/lancamentos";
-import type { Category } from "../types/category";
 import { useWalletsStore } from "../store/wallets";
 import ModalTipoLancamento from "../components/ModalTipoLancamento.vue";
 import ModalParcelar from "../components/ModalParcelar.vue";
 import { useRevenuesStore } from "../store/revenues";
-import { formatValue } from "../utils/formatValue";
 
-const userStore = useUserStore();
 const useWallets = useWalletsStore();
 const useRevenues = useRevenuesStore();
 
 const emit = defineEmits(["updateData", "closeForm"]);
 
-const props = defineProps({
-    releases: {
-        type: Object as () => Lancamentos,
-        required: true,
-    },
-    categoriasNames: {
-        type: Array as () => string[],
-        required: true,
-    },
-    contas: {
-        type: Array as () => string[],
-        required: true,
-    },
-});
-const formReleases = ref({...props.releases});
-console.log(props.contas);
+const props = defineProps<{
+    releases: Lancamentos;
+    contas: string[];
+    categoriasNames: string[];
+}>();
 
-let informacoes = ref(false);
+const loading = ref(false);
+const formReleases = ref<Lancamentos>({
+    ...props.releases
+});
+
 let openTipoLancamento = ref(false);
 let openParcelas = ref(false);
 let errorsForm = ref({ errors: {} });
-let parcelar = ref(false);
-let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
 let valueTotalRevenuesMonth = ref(
     useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth
 );
 const tiposLancamento = ref(["Não recorrente", "Parcelada", "Fixa mensal"]);
+
 
 
 // const categoriasNames = ref([]);

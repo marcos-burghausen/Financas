@@ -66,6 +66,7 @@
             :key="index"
             :value="item.route"
             :class="{ efeitoClick: elementoAtivoSideBar === index }"
+            @click="setItemAtivo(index)"
           >
             <router-link
               :to="{ name: item.route }"
@@ -231,8 +232,14 @@
 import { useAuthStore } from "@/store/auth";
 import { useRouter } from "vue-router";
 import http from "@/services/http";
-import { ref, watch } from "vue";
+import { watch } from "vue";
 import { useUserStore } from "@/store/user";
+
+const elementoAtivoSideBar = ref<number | null>(null);
+
+const setItemAtivo = (index: number) => {
+    elementoAtivoSideBar.value = index;
+};
 
 const itensSideBar = ref([
     // {

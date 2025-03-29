@@ -495,13 +495,14 @@
 </template>
 
 <script setup lang="ts">
-import { useAuthStore } from "@/store/auth";
+import { useAuthStore } from "../../store/auth";
 import { useRouter } from "vue-router";
-import http from "@/services/http";
+import http from "../../services/http";
 import { ref, watch, shallowRef } from "vue";
-import { useUserStore } from "@/store/user";
+import { useUserStore } from "../../store/user";
 import { useRoute } from "vue-router";
-import Receitas from "@/views/receitas/ReceitasView.vue";
+import type { ShallowRef, Component } from 'vue';
+import Receitas from "../../views/receitas/ReceitasView.vue";
 
 const currentPage: ShallowRef<Component> = shallowRef(Receitas);
 
@@ -622,7 +623,7 @@ async function logout() {
 import CabecalhoMobile from "@/components/mobile/CabecalhoMobile.vue";
 import MenuLateralMobile from "@/components/mobile/MenuLateralMobile.vue";
 
-import { computed, ref } from "vue";
+import { computed} from "vue";
 
 import { useExpensesStore } from "@/store/expenses";
 import { useRevenuesStore } from "@/store/revenues";

@@ -2,16 +2,35 @@
   <div class="box">
     <div class="container__decription">
       <figure class="figure">
-        <img src="@/assets/img/MrFinancasDarck.png" style="width: 200px" alt="logo" />
-        <h2 class="title__2 mt-5 me-2">Bem vindo</h2>
+        <img
+          src="@/assets/img/MrFinancasDarck.png"
+          style="width: 200px"
+          alt="logo"
+        >
+        <h2 class="title__2 mt-5 me-2">
+          Bem vindo
+        </h2>
       </figure>
-      <h4 class="sub__title__2">Ao seu gerenciador de finaças!</h4>
-      <p class="sub__title__2 mt-5">Insira seus dados pessoais</p>
-      <p class="sub__title__2">e comece a jornada conosco</p>
-      <button class="btn btn__link" @click="emits('nextStep')">entrar</button>
+      <h4 class="sub__title__2">
+        Ao seu gerenciador de finaças!
+      </h4>
+      <p class="sub__title__2 mt-5">
+        Insira seus dados pessoais
+      </p>
+      <p class="sub__title__2">
+        e comece a jornada conosco
+      </p>
+      <button
+        class="btn btn__link"
+        @click="emits('nextStep')"
+      >
+        entrar
+      </button>
     </div>
     <div class="container__dados">
-      <h2 class="title">Criar Uma Conta</h2>
+      <h2 class="title">
+        Criar Uma Conta
+      </h2>
       <!-- <div class="social__media">
         <ul class="list__social__media">
           <a
@@ -57,7 +76,11 @@
 
       <ErrorsForm />
 
-      <v-form v-model="validForm" class="form" @submit.prevent="create">
+      <v-form
+        v-model="validForm"
+        class="form"
+        @submit.prevent="create"
+      >
         <v-text-field
           v-model="user.name"
           variant="outlined"
@@ -69,7 +92,10 @@
           autofocus
         >
           <template #prepend-inner>
-            <mdicon class="icon__modify" name="account-outline" />
+            <mdicon
+              class="icon__modify"
+              name="account-outline"
+            />
           </template>
         </v-text-field>
 
@@ -83,7 +109,10 @@
           class="mb-7 input"
         >
           <template #prepend-inner>
-            <mdicon class="icon__modify" name="email-outline" />
+            <mdicon
+              class="icon__modify"
+              name="email-outline"
+            />
           </template>
         </v-text-field>
 
@@ -98,7 +127,10 @@
           hint="A senha deve ter pelo menos 8 caracteres sendo uma letra maiúcula, uma minúscula, um número e um caracter especial exeto aspas simples e duplas"
         >
           <template #prepend-inner>
-            <mdicon class="icon__modify" name="lock" />
+            <mdicon
+              class="icon__modify"
+              name="lock"
+            />
           </template>
           <template #append-inner>
             <mdicon
@@ -110,7 +142,11 @@
         </v-text-field>
 
         <div class="container__button">
-          <a class="btn__register" href="#" @click.prevent="emits('nextStep')">
+          <a
+            class="btn__register"
+            href="#"
+            @click.prevent="emits('nextStep')"
+          >
             <span>já tem uma conta </span>conecte-se.
           </a>
         </div>
@@ -128,24 +164,25 @@
 </template>
 
 <script setup lang="ts">
-import ErrorMessage from "@/components/ErrorMessage.vue";
-import ErrorsForm from "@/components/ModalErrorsForm.vue";
+import ErrorMessage from "../../components/ErrorMessage.vue";
+import ErrorsForm from "../../components/ModalErrorsForm.vue";
 
-import { useErrorStore } from "@/store/error";
-import http from "@/services/http";
+import { useErrorStore } from "../../store/error";
+import http from "../../services/http";
 
 import { ref } from "vue";
-import type { FormCadastro } from "@/types/formCadastro";
+import type { AxiosError } from "axios";
+import type { FormCadastro } from "../../types/formCadastro";
 
 const emits = defineEmits(["nextStep"]);
 const errorStore = useErrorStore();
-const user: FormCadastro = ref({
-  // name: "Marcos Rafael Burghausen",
-  name: "",
-  // email: "rafaelburghausen@gmail.com",
-  email: "",
-  // password: "Teste123@",
-  password: "",
+const user = ref<FormCadastro>({
+    // name: "Marcos Rafael Burghausen",
+    name: "",
+    // email: "rafaelburghausen@gmail.com",
+    email: "",
+    // password: "Teste123@",
+    password: "",
 });
 
 let validForm = ref(false);
@@ -153,25 +190,37 @@ let mostrarSenha = ref(true);
 let loading = ref(false);
 
 async function create() {
-  loading.value = true;
-  try {
-    await http.post("/create", user.value);
-    emits("nextStep");
-  } catch (error: unknown) {
-    if (error.response.data.errors) {
-      errorStore.setErrorFromForm(error);
-    } else {
-      errorStore.setErrorFromResponse(error);
+    loading.value = true;
+    try {
+        await http.post("/create", user.value);
+        emits("nextStep");
+    } catch (error: unknown) {
+        if (isAxiosErrorWithData(error)) {
+            // Agora o TypeScript sabe que error.response.data existe
+            if (error.response.data.errors) {
+                errorStore.setErrorFromForm(error);
+            } else {
+                errorStore.setErrorFromResponse(error);
+            }
+        } else {
+            console.error("Erro desconhecido:", error);
+            // Tratar outros tipos de erro aqui
+        }
+    } finally {
+        loading.value = false;
     }
-  } finally {
-    loading.value = false;
-  }
+}
+
+function isAxiosErrorWithData(error: unknown): error is AxiosError<{ errors?: any }> {
+    const axiosError = error as AxiosError;
+    return axiosError.isAxiosError === true && 
+           axiosError.response?.data !== undefined;
 }
 
 const rules = {
-  requiredName: (value: string) => !!value || "O campo nome é obrigatório",
-  requiredEmail: (value: string) => !!value || "O campo email é obrigatório",
-  requiredSenha: (value: string) => !!value || "O campo senha é obrigatório",
+    requiredName: (value: string) => !!value || "O campo nome é obrigatório",
+    requiredEmail: (value: string) => !!value || "O campo email é obrigatório",
+    requiredSenha: (value: string) => !!value || "O campo senha é obrigatório",
 };
 </script>
 <style scoped>

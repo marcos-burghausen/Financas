@@ -16,7 +16,10 @@
     />
   </div>
 
-  <div v-if="openModal" class="container__modal">
+  <div
+    v-if="openModal"
+    class="container__modal"
+  >
     <div class="modal">
       <header class="header__modal">
         <span class="title">Nova Conta</span>
@@ -30,7 +33,11 @@
           "
         />
       </header>
-      <v-form v-model="validForm" class="form" @submit.prevent="salvarConta">
+      <v-form
+        v-model="validForm"
+        class="form"
+        @submit.prevent="salvarConta"
+      >
         <ErrorMessage />
         <SuccessMessage />
         <v-text-field
@@ -100,76 +107,82 @@ import SuccessMessage from "@/components/SuccessMessage.vue";
 import { useWalletsStore } from "@/store/wallets";
 import { useErrorStore } from "@/store/error";
 import { useUserStore } from "@/store/user";
+import type { Wallets } from "@/types/wallets";
+import type { Category } from "@/types/category";
 
 const useWallets = useWalletsStore();
 const errorStore = useErrorStore();
 const useUser = useUserStore();
-const emit = defineEmits(["updateContas"]);
+const emit = defineEmits<{
+  (e: "updateContas", wallets: Wallets): void
+  (e: "updateCategoriasReceitas", categorias: Category): void
+  (e: "updateCategoriasDespesas", categorias: Category): void
+}>();
 
 let validForm = ref(false);
 let loading = ref(false);
 
 let conta = ref({
-  user_id: "",
-  valor: "",
-  instituicaoFinanceira: "",
-  descricao: "",
-  tipoConta: "",
+    user_id: "",
+    valor: "",
+    instituicaoFinanceira: "",
+    descricao: "",
+    tipoConta: "",
 });
 
 const salvarConta = async () => {
-  conta.value.user_id = useUser.user.id;
-  try {
-    const res = await http.post("/save-wallet", conta.value);
-    useWallets.setWalletsData(res.data.wallets);
-    if (res.data.wallets) {
-      emit("updateContas", res.data.wallets);
+    conta.value.user_id = useUser.user.id;
+    try {
+        const res = await http.post("/save-wallet", conta.value);
+        useWallets.setWalletsData(res.data.wallets);
+        if (res.data.wallets) {
+            emit("updateContas", res.data.wallets);
+        }
+        errorStore.setSuccessFromResponse(res.data.success);
+        clearInputs();
+        openModal.value = false;
+    } catch (error) {
+        if (error.response.data.errors) {
+            errorStore.setErrorFromForm(error);
+        } else {
+            errorStore.setErrorFromResponse(error);
+        }
+    } finally {
+        loading.value = false;
     }
-    errorStore.setSuccessFromResponse(res.data.success);
-    clearInputs();
-    openModal.value = false;
-  } catch (error) {
-    if (error.response.data.errors) {
-      errorStore.setErrorFromForm(error);
-    } else {
-      errorStore.setErrorFromResponse(error);
-    }
-  } finally {
-    loading.value = false;
-  }
 };
 
 const clearInputs = () => {
-  conta.value.user_id = "";
-  conta.value.valor = "";
-  conta.value.instituicaoFinanceira = "";
-  conta.value.descricao = "";
-  conta.value.tipoConta = "";
+    conta.value.user_id = "";
+    conta.value.valor = "";
+    conta.value.instituicaoFinanceira = "";
+    conta.value.descricao = "";
+    conta.value.tipoConta = "";
 };
 
 const formatValueSave = () => {
-  let novoValor = conta.value.valor.replace(/[^\d]/g, "");
+    let novoValor = conta.value.valor.replace(/[^\d]/g, "");
 
-  if (novoValor.length > 1) {
-    const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
-    const parteDecimal = novoValor.slice(-2);
-    const parteInteiraFormatada = parteInteira.replace(
-      /\B(?=(\d{3})+(?!\d))/g,
-      "."
-    );
-    conta.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
-  } else if (novoValor.length === 1) {
-    conta.value.valor = `0,0${novoValor}`;
-  } else {
-    conta.value.valor = "0,00";
-  }
+    if (novoValor.length > 1) {
+        const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
+        const parteDecimal = novoValor.slice(-2);
+        const parteInteiraFormatada = parteInteira.replace(
+            /\B(?=(\d{3})+(?!\d))/g,
+            "."
+        );
+        conta.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
+    } else if (novoValor.length === 1) {
+        conta.value.valor = `0,0${novoValor}`;
+    } else {
+        conta.value.valor = "0,00";
+    }
 };
 
 const rules = {
-  requiredInstituicaoFinanceira: (value: string) =>
-    !!value || "O campo instituição financeira é obrigatório",
-  requiredTipoConta: (value: string) =>
-    !!value || "O campo tipo de conta é obrigatório",
+    requiredInstituicaoFinanceira: (value: string) =>
+        !!value || "O campo instituição financeira é obrigatório",
+    requiredTipoConta: (value: string) =>
+        !!value || "O campo tipo de conta é obrigatório",
 };
 
 import ModalColors from "@/components/ModalColors.vue";
@@ -183,44 +196,44 @@ const selectedIcon = ref("");
 const openModal = ref(false);
 const nameCategory = ref("");
 const props = defineProps({
-  color: {
-    type: String,
-  },
+    color: {
+        type: String,
+    },
 });
 
 const updateSelectedIcon = (novoValor: string) => {
-  selectedIcon.value = novoValor;
+    selectedIcon.value = novoValor;
 };
 const updateSelectedColor = (novoValor: string) => {
-  selectedColor.value = novoValor;
+    selectedColor.value = novoValor;
 };
 const saveCategory = async () => {
-  const data = ref({
-    name: nameCategory.value,
-    color: selectedColor.value,
-    icon: selectedIcon.value,
-    typeCategory: "",
-    edit: true,
-  });
-  try {
-    data.value.typeCategory =
+    const data = ref({
+        name: nameCategory.value,
+        color: selectedColor.value,
+        icon: selectedIcon.value,
+        typeCategory: "",
+        edit: true,
+    });
+    try {
+        data.value.typeCategory =
       props.color === "color__despesa" ? "despesa" : "receita";
 
-    const res = await http.post("/save-category", data.value);
-    useUser.setUserData(res.data.user);
-    if (res.data.categoriasDespesas) {
-      emit("updateCategoriasDespesas", res.data.categoriasDespesas);
-    }
-    if (res.data.categoriasReceitas) {
-      emit("updateCategoriasReceitas", res.data.categoriasReceitas);
-    }
-    nameCategory.value = "";
-    selectedColor.value = "";
-    selectedIcon.value = "";
-    openModal.value = false;
-  } catch (error) {
+        const res = await http.post("/save-category", data.value);
+        useUser.setUserData(res.data.user);
+        if (res.data.categoriasDespesas) {
+            emit("updateCategoriasDespesas", res.data.categoriasDespesas);
+        }
+        if (res.data.categoriasReceitas) {
+            emit("updateCategoriasReceitas", res.data.categoriasReceitas);
+        }
+        nameCategory.value = "";
+        selectedColor.value = "";
+        selectedIcon.value = "";
+        openModal.value = false;
+    } catch (error) {
     // console.log(error);
-  }
+    }
 };
 </script>
 

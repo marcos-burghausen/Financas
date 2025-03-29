@@ -1,11 +1,11 @@
 <template>
-    <div>
-        <!-- class="mobile" -->
+  <div>
+    <!-- class="mobile" -->
     <DashboardMobile
-        :totalBalance="totalBalance"
-        :totalExpensesDay="totalExpensesDay"
-        :receitas="valueTotalRevenuesMonth"
-        :despesas="valueTotalExpensesMonth"
+      :total-balance="totalBalance"
+      :total-expenses-day="totalExpensesDay"
+      :receitas="valueTotalRevenuesMonth"
+      :despesas="valueTotalExpensesMonth"
     />
 
   <!-- <div class="dashboard web">
@@ -29,9 +29,9 @@
         :valor="valueTotalExpensesMonth"
         rota="despesas"
       /> -->
-      <!-- <Card class="card col-12 col-md-6 col-lg-6 col-xl-3" titulo="Cartão de crédito" :valor="totalCreditCard"
+    <!-- <Card class="card col-12 col-md-6 col-lg-6 col-xl-3" titulo="Cartão de crédito" :valor="totalCreditCard"
                     rota="cartao" /> -->
-      <!-- <Card class="cards" titulo="Saldo atual" :valor="totalBalance" rota="" />
+    <!-- <Card class="cards" titulo="Saldo atual" :valor="totalBalance" rota="" />
     </div>
     <div class="chart__container">
       <div
@@ -65,7 +65,7 @@
       </h5>
     </div>
   </div> -->
-    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -87,99 +87,99 @@ const useRevenues = useRevenuesStore();
 // };
 
 let valueTotalExpensesMonth = ref(
-  formatValue(useExpenses.expensesData.expenses?.ValueTotalExpensesMonth)
+    formatValue(useExpenses.expensesData.expenses?.ValueTotalExpensesMonth)
 );
 let totalExpensesDay = ref(
-  formatValue(useExpenses.expensesData.expenses?.totalExpensesDay)
+    formatValue(useExpenses.expensesData.expenses?.totalExpensesDay)
 );
 let valueTotalRevenuesMonth = ref(
-  formatValue(useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth)
+    formatValue(useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth)
 );
 let valuePay = ref(useExpenses.expensesData.expenses?.ValuePayExpenses);
 let valueReceived = ref(
-  useRevenues.revenuesData.revenues?.ValueReceivedRevenues
+    useRevenues.revenuesData.revenues?.ValueReceivedRevenues
 );
 // let totalBalance = ref(parseFloat(valueReceived.value.replace(",", ".")) - parseFloat(valuePay.value.replace(",", ".")));
 let totalBalance = ref(formatValue(valueReceived.value - valuePay.value));
 // let totalCreditCard = ref(0);
 let expensesAddTotalValueMonth = ref(
-  useExpenses.expensesData.expenses?.ExpensesAddTotalValueMonth
+    useExpenses.expensesData.expenses?.ExpensesAddTotalValueMonth
 );
 let revenuesAddTotalValueMonth = ref(
-  useRevenues.revenuesData.revenues?.RevenuesAddTotalValueMonth
+    useRevenues.revenuesData.revenues?.RevenuesAddTotalValueMonth
 );
 let totalByCategoryExpenses = ref(
-  useExpenses.expensesData.expenses?.TotalByCategoryExpenses
+    useExpenses.expensesData.expenses?.TotalByCategoryExpenses
 );
 
 const isAllZeros = (arr) => {
-  return arr.every((value) => value === "0,00");
+    return arr.every((value) => value === "0,00");
 };
 
 // =============================== grafico de barras inicio =============================== //
 
 let totalYearValueExpenses = ref(
-  Object.values(expensesAddTotalValueMonth.value)
+    Object.values(expensesAddTotalValueMonth.value)
 );
 let totalYearValueRevenues = ref(
-  Object.values(revenuesAddTotalValueMonth.value)
+    Object.values(revenuesAddTotalValueMonth.value)
 );
 
 const options = {
-  chart: {
-    id: "vuechart-example",
-    foreColor: "#fefefe",
-  },
-  title: {
-    text: "receitas & despesas",
-    align: "left",
-    style: {
-      color: "#fefefe",
+    chart: {
+        id: "vuechart-example",
+        foreColor: "#fefefe",
     },
-  },
-  dataLabels: {
-    enabled: false,
-  },
-  labels: {
-    style: {
-      color: "#fefefe",
+    title: {
+        text: "receitas & despesas",
+        align: "left",
+        style: {
+            color: "#fefefe",
+        },
     },
-  },
-  colors: ["#fb0404", "#77d08e"],
-  xaxis: {
-    categories: [
-      "janeiro",
-      "fevereiro",
-      "março",
-      "abril",
-      "maio",
-      "junho",
-      "julho",
-      "agosto",
-      "setembro",
-      "outubro",
-      "novembro",
-      "dezembro",
-    ],
-  },
-  tooltip: {
-    y: {
-      formatter: function (val) {
-        return "R$ " + val;
-      },
+    dataLabels: {
+        enabled: false,
     },
-    theme: "dark",
-  },
+    labels: {
+        style: {
+            color: "#fefefe",
+        },
+    },
+    colors: ["#fb0404", "#77d08e"],
+    xaxis: {
+        categories: [
+            "janeiro",
+            "fevereiro",
+            "março",
+            "abril",
+            "maio",
+            "junho",
+            "julho",
+            "agosto",
+            "setembro",
+            "outubro",
+            "novembro",
+            "dezembro",
+        ],
+    },
+    tooltip: {
+        y: {
+            formatter: function (val) {
+                return "R$ " + val;
+            },
+        },
+        theme: "dark",
+    },
 };
 const series = [
-  {
-    name: "despesas",
-    data: totalYearValueExpenses.value,
-  },
-  {
-    name: "receitas",
-    data: totalYearValueRevenues.value,
-  },
+    {
+        name: "despesas",
+        data: totalYearValueExpenses.value,
+    },
+    {
+        name: "receitas",
+        data: totalYearValueRevenues.value,
+    },
 ];
 // =============================== grafico de barras fim =============================== //
 
@@ -188,21 +188,21 @@ let category = ref(Object.keys(totalByCategoryExpenses.value));
 let valuesCategory = ref(Object.values(totalByCategoryExpenses.value));
 
 const options1 = {
-  chart: {
-    id: "vuechart-example",
-    foreColor: "#fefefe",
-  },
-  title: {
-    text: "despesas por categoria",
-    align: "center",
-    style: {
-      color: "#fefefe",
+    chart: {
+        id: "vuechart-example",
+        foreColor: "#fefefe",
     },
-  },
-  legend: {
-    position: "bottom",
-  },
-  labels: category.value,
+    title: {
+        text: "despesas por categoria",
+        align: "center",
+        style: {
+            color: "#fefefe",
+        },
+    },
+    legend: {
+        position: "bottom",
+    },
+    labels: category.value,
 };
 const series1 = valuesCategory.value;
 // =============================== grafico de pizza fim =============================== //
