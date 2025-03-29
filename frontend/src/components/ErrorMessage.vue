@@ -1,6 +1,12 @@
 <template>
-  <div v-show="errorStore.errorMessage" class="container__error">
-    <div class="erro" role="alert">
+  <div
+    v-show="errorStore.errorMessage"
+    class="container__error"
+  >
+    <div
+      class="erro"
+      role="alert"
+    >
       <header class="header__erro">
         <mdicon
           class="mdicon__close"
@@ -10,7 +16,9 @@
         />
       </header>
       <div class="error mb-2">
-        <h2 class="titulo__error">Ops, algo deu errado</h2>
+        <h2 class="titulo__error">
+          Ops, algo deu errado
+        </h2>
         <span class="error__message">{{ errorStore.errorMessage }}</span>
       </div>
     </div>
@@ -23,7 +31,7 @@ import { onMounted } from "vue";
 const errorStore = useErrorStore();
 
 onMounted(() => {
-  errorStore.unsetError();
+    errorStore.unsetError();
 });
 </script>
 
