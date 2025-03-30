@@ -10,7 +10,9 @@ nixPkgs = [
     "mariadb",
     "python311Packages.supervisor",
     "nodejs-18_x",
-    "python311Packages.supervisor"
+    "python311Packages.supervisor",
+    "nginx"
+    "supervisor"
 ]
 
 [phases.build]
