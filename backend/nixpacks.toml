@@ -1,17 +1,5 @@
 [phases.setup]
-nixPkgs = [
-    "php82",
-    "php82Packages.composer",  # Corrigido: mudado de Extensions para Packages
-    "php82Extensions.curl",
-    "php82Extensions.mbstring",
-    "php82Extensions.xml",
-    "php82Extensions.openssl",
-    "php82Extensions.pdo_mysql",
-    "mariadb",
-    "python311Packages.supervisor",
-    "nodejs-18_x",
-    "nginx"  # Adicionado nginx explicitamente
-]
+nixPkgs = ["...", "python311Packages.supervisor"]
 
 [phases.build]
 cmds = [
@@ -21,19 +9,17 @@ cmds = [
     "mkdir -p /etc/supervisor/conf.d/",
     "cp /assets/worker-*.conf /etc/supervisor/conf.d/",
     "cp /assets/supervisord.conf /etc/supervisord.conf",
-    "cp /assets/nginx.conf /etc/nginx/nginx.conf",  # Adicionado cópia do nginx.conf
     "chmod +x /assets/start.sh",
     "chown -R www-data:www-data /var/log /app/storage /app/bootstrap/cache",
-    "composer install --no-dev --optimize-autoloader",
-    "npm install && npm run production"
+    "..."
 ]
 
 [phases.postbuild]
 cmds = [
-    "php artisan optimize:clear",
+    "php artisan migrate --force",
+    "npm run build",
     "php artisan config:cache",
-    "php artisan route:cache",
-    "php artisan view:cache"
+    "php artisan route:cache"
 ]
 
 [start]
@@ -42,7 +28,11 @@ cmd = "/assets/start.sh"
 [staticAssets]
 "start.sh" = '''
 #!/bin/bash
-# Start services
+
+# Transform the nginx configuration
+node /assets/scripts/prestart.mjs /assets/nginx.template.conf /etc/nginx.conf
+
+# Start supervisor
 /usr/bin/supervisord -c /etc/supervisord.conf -n
 '''
 
@@ -58,54 +48,126 @@ loglevel=info
 pidfile=/tmp/supervisord.pid
 nodaemon=false
 silent=false
+minfds=1024
+minprocs=200
 
-[program:php-fpm]
-command=/usr/bin/php-fpm -F
-autostart=true
-autorestart=true
+[rpcinterface:supervisor]
+supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
 
-[program:nginx]
-command=/usr/bin/nginx -g "daemon off;"
-autostart=true
-autorestart=true
+[supervisorctl]
+serverurl=unix:///tmp/supervisor.sock
 
-[program:laravel-worker]
-command=/usr/bin/php /app/artisan queue:work
-autostart=true
-autorestart=true
+[include]
+files = /etc/supervisor/conf.d/*.conf
 '''
 
-"nginx.conf" = '''
-user www-data;
-worker_processes auto;
-error_log /var/log/nginx/error.log;
-pid /var/run/nginx.pid;
+"worker-nginx.conf" = '''
+[program:worker-nginx]
+process_name=%(program_name)s_%(process_num)02d
+command=/usr/sbin/nginx -c /etc/nginx.conf
+autostart=true
+autorestart=true
+stdout_logfile=/var/log/worker-nginx.log
+stderr_logfile=/var/log/worker-nginx.log
+'''
+
+"worker-phpfpm.conf" = '''
+[program:worker-phpfpm]
+process_name=%(program_name)s_%(process_num)02d
+command=/usr/sbin/php-fpm -y /assets/php-fpm.conf -F
+autostart=true
+autorestart=true
+stdout_logfile=/var/log/worker-phpfpm.log
+stderr_logfile=/var/log/worker-phpfpm.log
+'''
+
+"worker-laravel.conf" = '''
+[program:worker-laravel]
+process_name=%(program_name)s_%(process_num)02d
+command=/bin/bash -c 'exec /usr/bin/php /app/artisan queue:work --sleep=3 --tries=3 --max-time=3600'
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+numprocs=1
+startsecs=0
+stopwaitsecs=3600
+stdout_logfile=/var/log/worker-laravel.log
+stderr_logfile=/var/log/worker-laravel.log
+'''
+
+"php-fpm.conf" = '''
+[www]
+listen = 127.0.0.1:9000
+user = www-data
+group = www-data
+listen.owner = www-data
+listen.group = www-data
+pm = dynamic
+pm.max_children = 50
+pm.min_spare_servers = 4
+pm.max_spare_servers = 32
+pm.start_servers = 18
+clear_env = no
+'''
+
+"nginx.template.conf" = '''
+user www-data www-data;
+worker_processes 5;
+daemon off;
+
+worker_rlimit_nofile 8192;
 
 events {
-    worker_connections 1024;
+  worker_connections  4096;
 }
 
 http {
-    include /etc/nginx/mime.types;
+    include    /etc/nginx/mime.types;
+    index    index.html index.htm index.php;
+
     default_type application/octet-stream;
+    log_format   main '$remote_addr - $remote_user [$time_local]  $status '
+        '"$request" $body_bytes_sent "$http_referer" '
+        '"$http_user_agent" "$http_x_forwarded_for"';
+    access_log /var/log/nginx-access.log;
+    error_log /var/log/nginx-error.log;
+    sendfile     on;
+    tcp_nopush   on;
+    server_names_hash_bucket_size 128;
 
     server {
-        listen 80;
+        listen ${PORT};
+        listen [::]:${PORT};
+        server_name localhost;
+
         root /app/public;
-        index index.php index.html index.htm;
+
+        add_header X-Content-Type-Options "nosniff";
+
+        client_max_body_size 35M;
+
+        index index.php;
+
+        charset utf-8;
 
         location / {
             try_files $uri $uri/ /index.php?$query_string;
         }
 
+        location = /favicon.ico { access_log off; log_not_found off; }
+        location = /robots.txt  { access_log off; log_not_found off; }
+
         location ~ \.php$ {
             fastcgi_pass 127.0.0.1:9000;
+            fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
             include fastcgi_params;
-            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-            fastcgi_param PATH_INFO $fastcgi_path_info;
+            include fastcgi.conf;
+
+            fastcgi_param PHP_VALUE "upload_max_filesize=30M \n post_max_size=35M";
         }
 
-        location ~ /\.ht {
+        location ~ /\.(?!well-known).* {
             deny all;
         }
     }
