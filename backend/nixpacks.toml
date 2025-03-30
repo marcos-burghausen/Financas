@@ -168,6 +168,9 @@ http {
         charset utf-8;
 
         location / {
+            add_header 'Access-Control-Allow-Origin' 'https://mrfinancas.burghausen.com.br';
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+            add_header 'Access-Control-Allow-Headers' 'Content-Type, Authorization';
             try_files $uri $uri/ /index.php?$query_string;
         }
 
