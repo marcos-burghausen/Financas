@@ -3,6 +3,7 @@ nixPkgs = ["...", "python311Packages.supervisor"]
 
 [phases.build]
 cmds = [
+    "composer install",
     "mkdir -p /var/log",
     "mkdir -p /app/storage/framework/{views,cache,sessions}",
     "mkdir -p /app/bootstrap/cache",
