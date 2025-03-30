@@ -157,24 +157,21 @@ http {
 
     server {
         listen ${PORT};
-        server_name api-mrfinancas.burghausen.com.br;
+        server_name _;
 
-        # CORS ESSENCIAIS (PRÉ-FLIGHT)
+        # Tratamento explícito para CORS
         if ($request_method = OPTIONS) {
-            add_header 'Access-Control-Allow-Origin' 'https://mrfinancas.burghausen.com.br';
-            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS';
-            add_header 'Access-Control-Allow-Headers' 'Content-Type, Authorization, X-Requested-With';
+            add_header 'Access-Control-Allow-Origin' '$http_origin' always;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
+            add_header 'Access-Control-Allow-Headers' 'Content-Type,Authorization,X-Requested-With' always;
             add_header 'Access-Control-Max-Age' 1728000;
-            add_header 'Content-Type' 'text/plain; charset=UTF-8';
             add_header 'Content-Length' 0;
             return 204;
         }
 
-        # CORS PARA REQUISIÇÕES NORMAIS
-        add_header 'Access-Control-Allow-Origin' 'https://mrfinancas.burghausen.com.br' always;
+        add_header 'Access-Control-Allow-Origin' '$http_origin' always;
         add_header 'Access-Control-Allow-Credentials' 'true' always;
         add_header 'Access-Control-Allow-Methods' 'GET,POST,PUT,DELETE,OPTIONS' always;
-        add_header 'Access-Control-Allow-Headers' 'Content-Type,Authorization,X-Requested-With' always;
 
         root /app/public;
         index index.php;
@@ -186,7 +183,6 @@ http {
         location ~ \.php$ {
             include fastcgi_params;
             fastcgi_pass 127.0.0.1:9000;
-            fastcgi_index index.php;
             fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         }
     }
