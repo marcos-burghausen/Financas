@@ -21,6 +21,8 @@ cmds = [
     "mkdir -p /app/storage/framework/{views,cache,sessions}",
     "mkdir -p /app/bootstrap/cache",
     "mkdir -p /etc/supervisor/conf.d/",
+    "chmod -R 777 storage bootstrap/cache",
+    "cp /assets/nginx.template.conf /etc/nginx/nginx.conf",
     "cp /assets/worker-*.conf /etc/supervisor/conf.d/",
     "cp /assets/supervisord.conf /etc/supervisord.conf",
     "chmod +x /assets/start.sh",
@@ -36,7 +38,8 @@ cmds = [
 ]
 
 [start]
-cmd = "sh -c 'php-fpm & nginx -g \"daemon off;\"'"
+#cmd = "sh -c 'php-fpm & nginx -g \"daemon off;\"'"
+cmd = "sh -c 'nginx -t && php-fpm & nginx -g \"daemon off;\"'"
 
 #[start]
 #cmd = "/assets/start.sh"
@@ -154,70 +157,37 @@ http {
 
     server {
         listen ${PORT};
-        listen [::]:${PORT};
-        server_name localhost;
+        server_name api-mrfinancas.burghausen.com.br;
 
-        root /app/public;
-
-        add_header X-Content-Type-Options "nosniff";
-
-        client_max_body_size 35M;
-
-        index index.php;
-
-        charset utf-8;
-
-        # Bloco específico para rotas da API
-        location /api/ {
-            if ($request_method = 'OPTIONS') {
-                add_header 'Access-Control-Allow-Origin' 'https://mrfinancas.burghausen.com.br';
-                add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS';
-                add_header 'Access-Control-Allow-Headers' 'Content-Type, Authorization, X-Requested-With';
-                add_header 'Access-Control-Max-Age' 1728000;
-                add_header 'Content-Type' 'text/plain; charset=utf-8';
-                add_header 'Content-Length' 0;
-                return 204;
-            }
-
+        # CORS ESSENCIAIS (PRÉ-FLIGHT)
+        if ($request_method = OPTIONS) {
             add_header 'Access-Control-Allow-Origin' 'https://mrfinancas.burghausen.com.br';
             add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS';
             add_header 'Access-Control-Allow-Headers' 'Content-Type, Authorization, X-Requested-With';
-            
-            try_files $uri $uri/ /index.php?$query_string;
+            add_header 'Access-Control-Max-Age' 1728000;
+            add_header 'Content-Type' 'text/plain; charset=UTF-8';
+            add_header 'Content-Length' 0;
+            return 204;
         }
 
-        # Bloco geral para outras rotas
+        # CORS PARA REQUISIÇÕES NORMAIS
+        add_header 'Access-Control-Allow-Origin' 'https://mrfinancas.burghausen.com.br' always;
+        add_header 'Access-Control-Allow-Credentials' 'true' always;
+        add_header 'Access-Control-Allow-Methods' 'GET,POST,PUT,DELETE,OPTIONS' always;
+        add_header 'Access-Control-Allow-Headers' 'Content-Type,Authorization,X-Requested-With' always;
+
+        root /app/public;
+        index index.php;
+
         location / {
-            if ($request_method = 'OPTIONS') {
-                add_header 'Access-Control-Allow-Origin' 'https://mrfinancas.burghausen.com.br';
-                add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
-                add_header 'Access-Control-Allow-Headers' 'Content-Type, Authorization';
-                add_header 'Access-Control-Max-Age' 1728000;
-                add_header 'Content-Type' 'text/plain; charset=utf-8';
-                add_header 'Content-Length' 0;
-                return 204;
-            }
-
-            add_header 'Access-Control-Allow-Origin' 'https://mrfinancas.burghausen.com.br';
-            add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
-            add_header 'Access-Control-Allow-Headers' 'Content-Type, Authorization';
             try_files $uri $uri/ /index.php?$query_string;
         }
-
-        location = /favicon.ico { access_log off; log_not_found off; }
-        location = /robots.txt  { access_log off; log_not_found off; }
 
         location ~ \.php$ {
-            fastcgi_pass 127.0.0.1:9000;
-            fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
             include fastcgi_params;
-            include fastcgi.conf;
-
-            fastcgi_param PHP_VALUE "upload_max_filesize=30M \n post_max_size=35M";
-        }
-
-        location ~ /\.(?!well-known).* {
-            deny all;
+            fastcgi_pass 127.0.0.1:9000;
+            fastcgi_index index.php;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         }
     }
 }
