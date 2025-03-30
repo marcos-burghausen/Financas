@@ -23,7 +23,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if ($this->app->environment('production')) {
-            URL::forceRootUrl(config('app.url'));
+            URL::forceRootUrl(config('https://mrfinancas.burghausen.com.br'));
         }
         // Event::listen(function (\SocialiteProviders\Manager\SocialiteWasCalled $event) {
         //     $event->extendSocialite('facebook', \SocialiteProviders\Facebook\Provider::class);
