@@ -34,8 +34,8 @@ cmds = [
     "php artisan route:cache"
 ]
 
-[start]
-cmd = "/assets/start.sh"
+#[start]
+#cmd = "/assets/start.sh"
 
 [staticAssets]
 "start.sh" = '''
