@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Tymon\JWTAuth\Providers\Auth\AuthInterface;
 use App\Providers\JWTAuthAdapter;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,6 +22,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if ($this->app->environment('production')) {
+            URL::forceRootUrl(config('app.url'));
+        }
         // Event::listen(function (\SocialiteProviders\Manager\SocialiteWasCalled $event) {
         //     $event->extendSocialite('facebook', \SocialiteProviders\Facebook\Provider::class);
         // });
