@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://localhost:4081'],
+    'allowed_origins' => ['https://mrfinancas.burghausen.com.br'],
 
     'allowed_origins_patterns' => [],
 
