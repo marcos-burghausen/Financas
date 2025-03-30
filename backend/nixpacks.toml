@@ -10,9 +10,8 @@ nixPkgs = [
     "mariadb",
     "python311Packages.supervisor",
     "nodejs-18_x",
-    "python311Packages.supervisor",
-    "nginx"
-    "supervisor"
+    "nginx",
+    "python311Packages.supervisor"
 ]
 
 [phases.build]
@@ -35,6 +34,9 @@ cmds = [
     "php artisan config:cache",
     "php artisan route:cache"
 ]
+
+[start]
+cmd = "sh -c 'php-fpm & nginx -g \"daemon off;\"'"
 
 #[start]
 #cmd = "/assets/start.sh"
