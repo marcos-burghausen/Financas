@@ -4,7 +4,7 @@
       <figure class="figure">
         <img src="@/assets/img/2.png" class="img" alt="logo" />
       </figure>
-      <h2 class="title">Bem vido ao M Finanças</h2>
+      <h2 class="title">Bem vido ao Mr Finanças</h2>
       <div class="social__media">
         <ul class="list__social__media">
           <a
