@@ -2,15 +2,9 @@
   <div class="box">
     <div class="container__dados">
       <figure class="figure">
-        <img
-          src="@/assets/img/2.png"
-          class="img"
-          alt="logo"
-        >
+        <img src="@/assets/img/2.png" class="img" alt="logo" />
       </figure>
-      <h2 class="title">
-        Bem vido ao Mr Finanças
-      </h2>
+      <h2 class="title">Bem vido ao M Finanças</h2>
       <div class="social__media">
         <ul class="list__social__media">
           <a
@@ -19,10 +13,7 @@
             @click="initiateFacebookLogin()"
           >
             <li class="item__social__media">
-              <mdicon
-                class="icon__modify"
-                name="facebook"
-              />
+              <mdicon class="icon__modify" name="facebook" />
             </li>
           </a>
           <!-- <a class="link__social__media" href="#">
@@ -39,11 +30,7 @@
       </div>
       <!-- <p class="sub__title">ou use sua conta de e-mail:</p> -->
       <ErrorMessage />
-      <v-form
-        v-model="validForm"
-        class="form"
-        @submit.prevent="login"
-      >
+      <v-form v-model="validForm" class="form" @submit.prevent="login">
         <v-text-field
           v-model="user.email"
           variant="outlined"
@@ -56,10 +43,7 @@
           autocomplete="on"
         >
           <template #prepend-inner>
-            <mdicon
-              class="icon__modify"
-              name="email-outline"
-            />
+            <mdicon class="icon__modify" name="email-outline" />
           </template>
         </v-text-field>
 
@@ -73,10 +57,7 @@
           class="mb-5 input"
         >
           <template #prepend-inner>
-            <mdicon
-              class="icon__modify"
-              name="lock"
-            />
+            <mdicon class="icon__modify" name="lock" />
           </template>
           <template #append-inner>
             <mdicon
@@ -88,15 +69,8 @@
         </v-text-field>
 
         <div class="container__button">
-          <a
-            class="link"
-            href="#"
-          >esqueceu sua senha?</a>
-          <a
-            class="btn__register"
-            href="#"
-            @click.prevent="emits('nextStep')"
-          >
+          <a class="link" href="#">esqueceu sua senha?</a>
+          <a class="btn__register" href="#" @click.prevent="emits('nextStep')">
             cadastre-se.
           </a>
         </div>
@@ -139,10 +113,10 @@ const useWallets = useWalletsStore();
 const useUser = useUserStore();
 const errorStore = useErrorStore();
 const user: Ref<FormLogin> = ref({
-    // email: "rafaelburghausen@gmail.com",
-    // password: "Teste123@",
-    email: "",
-    password: "",
+  // email: "rafaelburghausen@gmail.com",
+  // password: "Teste123@",
+  email: "",
+  password: "",
 });
 const router = useRouter();
 const data = userData();
@@ -153,47 +127,47 @@ let mostrarSenha = ref(true);
 let loading = ref(false);
 
 async function initiateFacebookLogin() {
-    // errorStore.unsetError();
-    try {
-        loading.value = true;
-        const response = await http.get("/auth/redirect");
-        window.location.href = response.data.redirect_url;
-    } catch (error) {
-        console.error("Erro ao iniciar login do Facebook", error);
-    }
+  // errorStore.unsetError();
+  try {
+    loading.value = true;
+    const response = await http.get("/auth/redirect");
+    window.location.href = response.data.redirect_url;
+  } catch (error) {
+    console.error("Erro ao iniciar login do Facebook", error);
+  }
 }
 
 async function login() {
-    errorStore.unsetError();
-    try {
-        loading.value = true;
-        const response = await http.post("/auth", user.value);
-        console.log(response);
-        useAuth.setToken(response.data.token);
-        useUser.setUserData(response.data.user);
-        useExpenses.setExpensesData(response.data.userData.expensesData);
-        useRevenues.setRevenuesData(response.data.userData.revenuesData);
-        useWallets.setWalletsData(response.data.userData.walletsData);
-        // useUser.setMesAno(response.data.userData.mes_ano_referencia);
-        // useWallets.setSaldoInicial(response.data.userData.walletsData.saldoInicial);
-        // data.setTotalCreditCard(response.data.userData.totalCreditCard);
-        // data.setTotalBalance(response.data.userData.totalBalance);
+  errorStore.unsetError();
+  try {
+    loading.value = true;
+    const response = await http.post("/auth", user.value);
+    console.log(response);
+    useAuth.setToken(response.data.token);
+    useUser.setUserData(response.data.user);
+    useExpenses.setExpensesData(response.data.userData.expensesData);
+    useRevenues.setRevenuesData(response.data.userData.revenuesData);
+    useWallets.setWalletsData(response.data.userData.walletsData);
+    // useUser.setMesAno(response.data.userData.mes_ano_referencia);
+    // useWallets.setSaldoInicial(response.data.userData.walletsData.saldoInicial);
+    // data.setTotalCreditCard(response.data.userData.totalCreditCard);
+    // data.setTotalBalance(response.data.userData.totalBalance);
 
-        router.push({ name: "dashboard" });
-    } catch (error) {
-        if (error.response.data.errors) {
-            errorStore.setErrorFromForm(error);
-        } else {
-            errorStore.setErrorFromResponse(error);
-        }
-    } finally {
-        loading.value = false;
+    router.push({ name: "dashboard" });
+  } catch (error) {
+    if (error.response.data.errors) {
+      errorStore.setErrorFromForm(error);
+    } else {
+      errorStore.setErrorFromResponse(error);
     }
+  } finally {
+    loading.value = false;
+  }
 }
 
 const rules = {
-    requiredEmail: (value: string) => !!value || "O campo email é obrigatório",
-    requiredSenha: (value: string) => !!value || "O campo senha é obrigatório",
+  requiredEmail: (value: string) => !!value || "O campo email é obrigatório",
+  requiredSenha: (value: string) => !!value || "O campo senha é obrigatório",
 };
 </script>
 <style scoped>
