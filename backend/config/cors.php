@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [env('APP_URL')],
+    'allowed_origins' => [env('APP_URL', 'https://mrfinancas.burghausen.com.br')],
 
     'allowed_origins_patterns' => [],
 
