@@ -18,6 +18,11 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/test-env', function () {
+    info(env('APP_URL'));
+});
+    
+
 // Route::get('/auth/redirect', [AuthController::class, 'redirect'])->name('auth.redirect');
  
 // Route::get('/auth/callback', [AuthController::class, 'callback'])->name('auth.callback');
