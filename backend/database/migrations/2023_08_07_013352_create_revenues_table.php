@@ -19,11 +19,11 @@ return new class extends Migration
             $table->integer('valor');
             $table->enum('tipo', ['Não recorrente', 'Parcelada', 'Fixa']);
             $table->integer('numParcelas')->nullable();
-            $table->enum('periodicidade', ['Mensal', 'Diario', 'Semanal', 'Quinzenal', 'Trimenstral', 'Anual']);
+            $table->enum('periodicidade', ['Mensal', 'Diario', 'Semanal', 'Quinzenal', 'Trimenstral', 'Anual'])->nullable();
             $table->date('date');
             $table->enum('status', ['Efetivada', 'Pendente'])->default('Efetivada');
             $table->string('categoria', 30);
-            $table->string('carteira', 30);
+            $table->string('conta', 30);
             $table->timestamps();
         });
     }

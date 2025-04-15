@@ -19,7 +19,7 @@ return new class extends Migration
             $table->date('date');
             $table->string('descricao', 255);
             $table->string('categoria', 255);
-            $table->string('carteira', 255);
+            $table->string('conta', 255);
             $table->string('status', 10)->default('AGUARDANDO');
             $table->timestamps();
         });

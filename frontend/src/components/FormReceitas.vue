@@ -640,7 +640,8 @@ const selecionarTipo = (item: string) => {
 
 const salvarLancamentos = async () => {
     try {
-    // releases.value.status = status.value ? "Efetivada" : "pendente";
+        console.log(formReleases.value);
+        // releases.value.status = status.value ? "Efetivada" : "pendente";
         const res = await http.post("/save-revenue", formReleases.value);
         useRevenues.setRevenuesData(res.data.revenuesData);
         valueTotalRevenuesMonth.value =

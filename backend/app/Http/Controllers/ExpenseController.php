@@ -25,7 +25,7 @@ class ExpenseController extends Controller
                 'date'      => 'required|date',
                 'descricao' => 'required|string',
                 'categoria' => 'required|string',
-                'carteira'  => 'required|string',
+                'conta'  => 'required|string',
                 'status'    => 'string'
             ],
             [
@@ -33,7 +33,7 @@ class ExpenseController extends Controller
                 'date.required'      => 'O campo data é obrigatório',
                 'descricao.unique'   => 'O campo descricao é obrigatório',
                 'categoria.required' => 'O campo categoria é obrigatório',
-                'carteira.required'  => 'O campo carteira senha é obrigatório',
+                'conta.required'  => 'O campo conta senha é obrigatório',
             ]
         );
 
@@ -46,13 +46,13 @@ class ExpenseController extends Controller
         $expense->date      = $data['date'];
         $expense->descricao = $data['descricao'];
         $expense->categoria = $data['categoria'];
-        $expense->carteira  = $data['carteira'];
+        $expense->conta  = $data['conta'];
         $expense->status    = $data['status'];
         $saved = $expense->save();
 
         if ($data['status'] === 'PAGA') {
             $conta = Conta::where('user_id', auth()->user()->id)
-                ->where('name', $data['carteira'])
+                ->where('name', $data['conta'])
                 ->first();
 
             if ($conta) {
@@ -94,13 +94,13 @@ class ExpenseController extends Controller
             return Errors::ERROR_PAY_EXPENSE->response();
         }
 
-        $carteira = Conta::where("user_id", auth()->user()->id)
-            ->where("name", $request->carteira)
+        $conta = Conta::where("user_id", auth()->user()->id)
+            ->where("name", $request->conta)
             ->first();
 
-        if ($carteira) {
-            $carteira->saldo += str_replace([',', '.'], '', $expense->valor);
-            $carteira->save();
+        if ($conta) {
+            $conta->saldo += str_replace([',', '.'], '', $expense->valor);
+            $conta->save();
         }
 
         DB::commit();
@@ -141,26 +141,26 @@ class ExpenseController extends Controller
         $expense->date = $request->date;
         $expense->descricao = $request->descricao;
         $expense->categoria = $request->categoria;
-        $expense->carteira = $request->carteira;
+        $expense->conta = $request->conta;
         $expense->status = $request->status;
         $saved = $expense->save();
 
         if (!$saved) return response()->json(Errors::ERROR_UPDATING_EXPENSE->response());
 
-        $carteira = Conta::where("user_id", auth()->user()->id)
-            ->where("name", $request->carteira)
+        $conta = Conta::where("user_id", auth()->user()->id)
+            ->where("name", $request->conta)
             ->first();
-        info($carteira);
+        info($conta);
 
-        if ($carteira && $add) {
-            $carteira->saldo += $expense->valor;
+        if ($conta && $add) {
+            $conta->saldo += $expense->valor;
         }
 
-        if ($carteira && $sub) {
-            $carteira->saldo -= $expense->valor;
+        if ($conta && $sub) {
+            $conta->saldo -= $expense->valor;
         }
 
-        $carteira->save();
+        $conta->save();
 
         DB::commit();
 

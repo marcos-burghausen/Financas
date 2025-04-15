@@ -209,13 +209,13 @@ trait ReleasesMonthTrait
         foreach ($contas as $conta) {
             if ($conta->incluir_em_soma_inicial) {
                 $despesas = $user->expenses()
-                    ->where('carteira', $conta->name)
+                    ->where('conta', $conta->name)
                     ->where('status', 'PAGA')
                     ->where('date', '<=', $dataLimite)
                     ->sum('valor');
                 // ->get();
                 $receitas = $user->revenues()
-                    ->where('carteira', $conta->name)
+                    ->where('conta', $conta->name)
                     ->where('status', 'RECEBIDA')
                     ->where('date', '<=', $dataLimite)
                     ->sum('valor');
@@ -234,13 +234,13 @@ trait ReleasesMonthTrait
         foreach ($contas as $conta) {
             if ($conta->incluir_em_soma_inicial) {
                 $despesas = $user->expenses()
-                    ->where('carteira', $conta->name)
+                    ->where('conta', $conta->name)
                     ->where('status', 'PAGA')
                     ->where('date', '<=', "$mes-31")
                     ->sum('valor');
 
                 $receitas = $user->revenues()
-                    ->where('carteira', $conta->name)
+                    ->where('conta', $conta->name)
                     ->where('status', 'RECEBIDA')
                     ->where('date', '<=', "$mes-31")
                     ->sum('valor');

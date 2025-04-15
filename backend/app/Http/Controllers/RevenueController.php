@@ -24,7 +24,7 @@ class RevenueController extends Controller
                 'date'          => 'required|date',
                 'descricao'     => 'required|string',
                 'categoria'     => 'required|string',
-                'carteira'      => 'required|string',
+                'conta'         => 'required|string',
                 'status'        => 'string',
                 'mesReferencia' => 'string',
                 'numParcelas'   => 'nullable|int',
@@ -37,7 +37,7 @@ class RevenueController extends Controller
                 'date.required'      => 'O campo data é obrigatório',
                 'descricao.unique'   => 'O campo descricao é obrigatório',
                 'categoria.required' => 'O campo categoria é obrigatório',
-                'carteira.required'  => 'O campo carteira é obrigatório',
+                'conta.required'  => 'O campo conta é obrigatório',
             ]
         );
 
@@ -50,13 +50,13 @@ class RevenueController extends Controller
         $revenue->date      = $data['date'];
         $revenue->descricao = $data['descricao'];
         $revenue->categoria = $data['categoria'];
-        $revenue->carteira  = $data['carteira'];
+        $revenue->conta  = $data['conta'];
         $revenue->status    = $data['status'];
         $saved = $revenue->save();
 
         if ($data['status'] === 'Efetivada') {
             $conta = Conta::where('user_id', auth()->user()->id)
-                ->where('name', $data['carteira'])
+                ->where('name', $data['conta'])
                 ->first();
 
             if ($conta) {
@@ -99,13 +99,13 @@ class RevenueController extends Controller
             return Errors::ERROR_PAY_REVENUE->response();
         }
 
-        $carteira = Conta::where("user_id", auth()->user()->id)
-            ->where("name", $request->carteira)
+        $conta = Conta::where("user_id", auth()->user()->id)
+            ->where("name", $request->conta)
             ->first();
 
-        if ($carteira) {
-            $carteira->saldo += str_replace([',', '.'], '', $revenue->valor);
-            $carteira->save();
+        if ($conta) {
+            $conta->saldo += str_replace([',', '.'], '', $revenue->valor);
+            $conta->save();
         }
 
         DB::commit();
@@ -145,26 +145,26 @@ class RevenueController extends Controller
         $revenue->date = $request->date;
         $revenue->descricao = $request->descricao;
         $revenue->categoria = $request->categoria;
-        $revenue->carteira = $request->carteira;
+        $revenue->conta = $request->conta;
         $revenue->status = $request->status;
         $saved = $revenue->save();
 
         if (!$saved) return response()->json(Errors::ERROR_UPDATING_REVENUE->response());
 
-        $carteira = Conta::where("user_id", auth()->user()->id)
-            ->where("name", $request->carteira)
+        $conta = Conta::where("user_id", auth()->user()->id)
+            ->where("name", $request->conta)
             ->first();
-        info($carteira);
+        info($conta);
 
-        if ($carteira && $add) {
-            $carteira->saldo += $revenue->valor;
+        if ($conta && $add) {
+            $conta->saldo += $revenue->valor;
         }
 
-        if ($carteira && $sub) {
-            $carteira->saldo -= $revenue->valor;
+        if ($conta && $sub) {
+            $conta->saldo -= $revenue->valor;
         }
 
-        $carteira->save();
+        $conta->save();
 
         DB::commit();
 

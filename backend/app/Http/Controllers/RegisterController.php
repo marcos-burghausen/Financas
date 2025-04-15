@@ -64,15 +64,15 @@ class RegisterController extends Controller
 
             $lastUser = User::latest('id')->first();
 
-            $carteira                          = new Conta;
-            $carteira->user_id                 = $lastUser->id;
-            $carteira->name                    = "Pessoal";
-            $carteira->icon                    = "cash";
-            $carteira->saldo_inicial           = 0;
-            $carteira->incluir_em_soma_inicial = true;
-            $carteira->descricao               = "Carteira de uso pessoal";
-            $carteira->tipo                    = "Pessoal";
-            $saved                             = $carteira->save();
+            $conta                          = new Conta;
+            $conta->user_id                 = $lastUser->id;
+            $conta->name                    = "Pessoal";
+            $conta->icon                    = "cash";
+            $conta->saldo_inicial           = 0;
+            $conta->incluir_em_soma_inicial = true;
+            $conta->descricao               = "Conta de uso pessoal";
+            $conta->tipo                    = "Pessoal";
+            $saved                          = $conta->save();
             DB::commit();
         } catch (\Throwable $e) {
             info($e);
