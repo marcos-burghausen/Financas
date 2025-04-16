@@ -3,8 +3,6 @@
     <FormLancamentos
       v-if="formulario"
       :releases="selectedRelease"
-      :contas="contas"
-      :categorias-names="categoriasNames"
       rota="revenue"
       :mes-referencia="mesAnoReferencia"
       transaction-type="receitas"
