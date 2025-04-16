@@ -18,63 +18,46 @@ class RevenueController extends Controller
 
     public function saveRevenue(Request $request)
     {
-        $data = $request->validate(
-            [
-                'valor'         => 'required',
-                'date'          => 'required|date',
-                'descricao'     => 'required|string',
-                'categoria'     => 'required|string',
-                'conta'         => 'required|string',
-                'status'        => 'string',
-                'mesReferencia' => 'string',
-                'numParcelas'   => 'nullable|int',
-                'periodicidade' => 'nullable|string',
-                'status'        => 'nullable|string',
-                'tipo'          => 'string'
-            ],
-            [
-                'valor.required'     => 'O campo valor é obrigatório',
-                'date.required'      => 'O campo data é obrigatório',
-                'descricao.unique'   => 'O campo descricao é obrigatório',
-                'categoria.required' => 'O campo categoria é obrigatório',
-                'conta.required'  => 'O campo conta é obrigatório',
-            ]
-        );
+        $data = $this->validateRevenue($request);
 
         $user = auth()->user();
 
         DB::beginTransaction();
         $revenue = new Revenue;
-        $revenue->user_id   = $user->id;
-        $revenue->valor     = str_replace([',', '.'], '', $data['valor']);
-        $revenue->date      = $data['date'];
-        $revenue->descricao = $data['descricao'];
-        $revenue->categoria = $data['categoria'];
-        $revenue->conta  = $data['conta'];
-        $revenue->status    = $data['status'];
+        $revenue->user_id      = $user->id;
+        $revenue->valor        = $data['valor'] * 100;
+        $revenue->date         = $data['date'];
+        $revenue->descricao    = $data['descricao'];
+        $revenue->categoria    = $data['categoria'];
+        $revenue->conta        = $data['conta'];
+        $revenue->status       = $data['status'] ?? 'Pendente';
+        $revenue->tipo         = $data['tipo'] ?? 'Não recorrente';
+        $revenue->num_parcelas = $data['numParcelas'] ?? 0;
+        $revenue->periodicidade = $data['periodicidade'] ?? null;
         $saved = $revenue->save();
 
         if ($data['status'] === 'Efetivada') {
-            $conta = Conta::where('user_id', auth()->user()->id)
+            $conta = Conta::where('user_id', $user->id)
                 ->where('name', $data['conta'])
                 ->first();
 
             if ($conta) {
-                $conta->saldo += str_replace([',', '.'], '', $data['valor']);
+                $conta->saldo += $revenue->valor;
                 $conta->save();
             }
         }
 
         if (!$saved) {
-            return response()->json(Errors::ERROR_REGISTERING_REVENUE->response());
+            DB::rollBack();
+            return response()->json(Errors::ERROR_REGISTERING_REVENUE->response(), 422);
         }
 
         DB::commit();
 
-        $revenuesData = $this->classifiesReleases(auth()->user()->revenues()->get(), 'Revenues', $request->mesReferencia);
+        $revenuesData = $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data['mesReferencia'] ?? date('Y-m'));
         $walletsData = [
-            'wallets' => auth()->user()->contas()->get(),
-            'saldoInicial' => $this->obterSaldoInicial($user, $request->mesReferencia),
+            'wallets' => $user->contas()->get(),
+            'saldoInicial' => $this->obterSaldoInicial($user, $data['mesReferencia'] ?? date('Y-m')),
         ];
 
         Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Receita', $revenue->descricao));
@@ -83,143 +66,220 @@ class RevenueController extends Controller
             'success' => 'Receita cadastrada com sucesso',
             'revenuesData' => $revenuesData,
             'walletsData' => $walletsData,
-        ], 200);
+        ], 201);
     }
 
-    public function receivedRevenue(Request $request)
+    public function editRevenue(Request $request, $id)
     {
+        $data = $this->validateRevenue($request);
+
+        $user = auth()->user();
 
         DB::beginTransaction();
-        $revenue = Revenue::find($request->id);
-        $revenue->status = 'Efetivada';
-        // $revenue->valor = str_replace([',','.'], '', $revenue->valor);
+
+        $revenue = Revenue::where('id', $id)->where('user_id', $user->id)->first();
+        if (!$revenue) {
+            DB::rollBack();
+            return response()->json(['error' => 'Receita não encontrada'], 404);
+        }
+
+        $oldStatus = $revenue->status;
+        $oldValor = $revenue->valor;
+        $oldConta = $revenue->conta;
+
+        $revenue->valor        = $data['valor'] * 100;
+        $revenue->date         = $data['date'];
+        $revenue->descricao    = $data['descricao'];
+        $revenue->categoria    = $data['categoria'];
+        $revenue->conta        = $data['conta'];
+        $revenue->status       = $data['status'] ?? 'Pendente';
+        $revenue->tipo         = $data['tipo'] ?? 'Não recorrente';
+        $revenue->num_parcelas = $data['numParcelas'] ?? 0;
+        $revenue->periodicidade = $data['periodicidade'] ?? null;
         $saved = $revenue->save();
 
         if (!$saved) {
-            return Errors::ERROR_PAY_REVENUE->response();
+            DB::rollBack();
+            return response()->json(Errors::ERROR_UPDATING_REVENUE->response(), 422);
         }
 
-        $conta = Conta::where("user_id", auth()->user()->id)
-            ->where("name", $request->conta)
+        $conta = Conta::where('user_id', $user->id)
+            ->where('name', $data['conta'])
             ->first();
 
-        if ($conta) {
-            $conta->saldo += str_replace([',', '.'], '', $revenue->valor);
-            $conta->save();
+        $oldContaModel = $oldConta === $data['conta'] ? $conta : Conta::where('user_id', $user->id)
+            ->where('name', $oldConta)
+            ->first();
+
+        if ($oldStatus === 'Efetivada' && $data['status'] !== 'Efetivada') {
+            if ($oldContaModel) {
+                $oldContaModel->saldo -= $oldValor;
+                $oldContaModel->save();
+            }
+        } elseif ($oldStatus !== 'Efetivada' && $data['status'] === 'Efetivada') {
+            if ($conta) {
+                $conta->saldo += $revenue->valor;
+                $conta->save();
+            }
+        } elseif ($oldStatus === 'Efetivada' && $data['status'] === 'Efetivada') {
+            if ($oldContaModel && $oldConta !== $data['conta']) {
+                $oldContaModel->saldo -= $oldValor;
+                $oldContaModel->save();
+            }
+            if ($conta) {
+                $conta->saldo += $revenue->valor - ($oldConta === $data['conta'] ? $oldValor : 0);
+                $conta->save();
+            }
         }
 
         DB::commit();
 
-        $user = auth()->user();
-        $revenuesData = $this->classifiesReleases(auth()->user()->revenues()->get(), 'Revenues', $request->mesReferencia);
-        $wallets = [
-            'wallets' => auth()->user()->contas()->get(),
-            'saldoInicial' => $this->obterSaldoInicial($user, $request->mesReferencia),
+        $revenuesData = $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data['mesReferencia'] ?? date('Y-m'));
+        $walletsData = [
+            'wallets' => $user->contas()->get(),
+            'saldoInicial' => $this->obterSaldoInicial($user, $data['mesReferencia'] ?? date('Y-m')),
         ];
 
-        Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Receita', $revenue->descricao));
-
-        return response()->json([
-            'success' => 'Receita recebida com sucesso',
-            'revenuesData' => $revenuesData,
-            'walletsData' => $wallets,
-        ], 200);
-    }
-
-    public function editRevenue(Request $request)
-    {
-        DB::beginTransaction();
-
-        $add = false;
-        $sub = false;
-        $revenue = Revenue::find($request->id);
-        if ($request->status === 'Efetivada' && $revenue->status === 'Pendente') {
-            $add = true;
-        }
-
-        if ($request->status === 'Pendente' && $revenue->status === 'Efetivada' || $request->valor < $revenue->valor) {
-            $sub = true;
-        }
-
-        $revenue->valor = str_replace([',', '.'], '', $request->valor);
-        $revenue->date = $request->date;
-        $revenue->descricao = $request->descricao;
-        $revenue->categoria = $request->categoria;
-        $revenue->conta = $request->conta;
-        $revenue->status = $request->status;
-        $saved = $revenue->save();
-
-        if (!$saved) return response()->json(Errors::ERROR_UPDATING_REVENUE->response());
-
-        $conta = Conta::where("user_id", auth()->user()->id)
-            ->where("name", $request->conta)
-            ->first();
-        info($conta);
-
-        if ($conta && $add) {
-            $conta->saldo += $revenue->valor;
-        }
-
-        if ($conta && $sub) {
-            $conta->saldo -= $revenue->valor;
-        }
-
-        $conta->save();
-
-        DB::commit();
-
-        $user = auth()->user();
-        $revenuesData = $this->classifiesReleases(auth()->user()->revenues()->get(), 'Revenues', $request->mesReferencia);
-        $wallets = [
-            'wallets' => auth()->user()->contas()->get(),
-            'saldoInicial' => $this->obterSaldoInicial($user, $request->mesReferencia),
-        ];
-
-
-        Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Receita', $revenue->descricao));
+        Mail::to($user->email)->queue(new NotificationMail($user, 'Edição', 'Receita', $revenue->descricao));
 
         return response()->json([
             'msg' => 'Receita editada com sucesso',
-            'revenuesData' => $revenuesData,
-            'walletsData' => $wallets,
-        ], 200);
-    }
-
-    public function deleteRevenue(Request $request)
-    {
-        DB::beginTransaction();
-        $revenue = Revenue::find($request->id);
-
-        $deleted = Revenue::destroy($request->id);
-        if (!$deleted) {
-            return response()->json(Errors::ERROR_DELETING_REVENUE->response());
-        }
-        DB::commit();
-
-        $user = auth()->user();
-        $revenuesData = $this->classifiesReleases(auth()->user()->revenues()->get(), 'Revenues', $request->mesReferencia);
-        $walletsData = [
-            'wallets' => auth()->user()->contas()->get(),
-            'saldoInicial' => $this->obterSaldoInicial($user, $request->mesReferencia),
-        ];
-
-
-        Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Receita', $revenue->descricao));
-
-        return response()->json([
-            'msg' => 'Receita alterada com sucesso',
             'revenuesData' => $revenuesData,
             'walletsData' => $walletsData,
         ], 200);
     }
 
-
-    public function getExpense()
+    public function receivedRevenue(Request $request, $id)
     {
-        if ($revenues = auth()->user()->revenues()->get()) {
-            return response()->json(['expenses' => $revenues]);
+        $data = $request->validate([
+            'conta'         => 'required|string|max:100',
+            'mesReferencia' => 'nullable|string|regex:/^\d{4}-\d{2}$/',
+        ]);
+
+        $user = auth()->user();
+
+        DB::beginTransaction();
+        $revenue = Revenue::where('id', $id)->where('user_id', $user->id)->first();
+        if (!$revenue) {
+            DB::rollBack();
+            return response()->json(['error' => 'Receita não encontrada'], 404);
         }
 
-        return response()->json(Errors::ERROR_FETCHING_EXPENSE->response());
+        $revenue->status = 'Efetivada';
+        $saved = $revenue->save();
+
+        if (!$saved) {
+            DB::rollBack();
+            return response()->json(Errors::ERROR_PAY_REVENUE->response(), 422);
+        }
+
+        $conta = Conta::where('user_id', $user->id)
+            ->where('name', $data['conta'])
+            ->first();
+
+        if ($conta) {
+            $conta->saldo += $revenue->valor;
+            $conta->save();
+        }
+
+        DB::commit();
+
+        $revenuesData = $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data['mesReferencia'] ?? date('Y-m'));
+        $walletsData = [
+            'wallets' => $user->contas()->get(),
+            'saldoInicial' => $this->obterSaldoInicial($user, $data['mesReferencia'] ?? date('Y-m')),
+        ];
+
+        Mail::to($user->email)->queue(new NotificationMail($user, 'Recebimento', 'Receita', $revenue->descricao));
+
+        return response()->json([
+            'success' => 'Receita recebida com sucesso',
+            'revenuesData' => $revenuesData,
+            'walletsData' => $walletsData,
+        ], 200);
+    }
+
+    public function deleteRevenue(Request $request, $id)
+    {
+        $data = $request->validate([
+            'mesReferencia' => 'nullable|string|regex:/^\d{4}-\d{2}$/',
+        ]);
+
+        $user = auth()->user();
+
+        DB::beginTransaction();
+        $revenue = Revenue::where('id', $id)->where('user_id', $user->id)->first();
+        if (!$revenue) {
+            DB::rollBack();
+            return response()->json(['error' => 'Receita não encontrada'], 404);
+        }
+
+        if ($revenue->status === 'Efetivada') {
+            $conta = Conta::where('user_id', $user->id)
+                ->where('name', $revenue->conta)
+                ->first();
+            if ($conta) {
+                $conta->saldo -= $revenue->valor;
+                $conta->save();
+            }
+        }
+
+        $deleted = $revenue->delete();
+        if (!$deleted) {
+            DB::rollBack();
+            return response()->json(Errors::ERROR_DELETING_REVENUE->response(), 422);
+        }
+
+        DB::commit();
+
+        $revenuesData = $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data['mesReferencia'] ?? date('Y-m'));
+        $walletsData = [
+            'wallets' => $user->contas()->get(),
+            'saldoInicial' => $this->obterSaldoInicial($user, $data['mesReferencia'] ?? date('Y-m')),
+        ];
+
+        Mail::to($user->email)->queue(new NotificationMail($user, 'Exclusão', 'Receita', $revenue->descricao));
+
+        return response()->json([
+            'msg' => 'Receita excluída com sucesso',
+            'revenuesData' => $revenuesData,
+            'walletsData' => $walletsData,
+        ], 200);
+    }
+
+    public function getRevenue()
+    {
+        $revenues = auth()->user()->revenues()->get();
+        return response()->json(['revenues' => $revenues], 200);
+    }
+
+    protected function validateRevenue(Request $request)
+    {
+        return $request->validate(
+            [
+                'valor'         => 'required|numeric|min:0.01',
+                'date'          => 'required|date',
+                'descricao'     => 'required|string|max:255',
+                'categoria'     => 'required|string|max:100',
+                'conta'         => 'required|string|max:100',
+                'status'        => 'nullable|string|in:Pendente,Efetivada',
+                'mesReferencia' => 'nullable|string|regex:/^\d{4}-\d{2}$/',
+                'numParcelas'   => 'nullable|integer|min:0',
+                'periodicidade' => 'nullable|string|in:Mensal,Diario,Semanal,Quinzenal,Trimestral,Anual',
+                'tipo'          => 'nullable|string|in:Não recorrente,Parcelada,Fixa mensal',
+            ],
+            [
+                'valor.required'     => 'O campo valor é obrigatório',
+                'valor.numeric'      => 'O valor deve ser um número',
+                'valor.min'          => 'O valor deve ser maior que zero',
+                'date.required'      => 'O campo data é obrigatório',
+                'descricao.required' => 'O campo descrição é obrigatório',
+                'categoria.required' => 'O campo categoria é obrigatório',
+                'conta.required'     => 'O campo conta é obrigatório',
+                'mesReferencia.regex' => 'O campo mesReferencia deve estar no formato YYYY-MM (ex: 2025-04)',
+                'periodicidade.in'   => 'O campo periodicidade deve ser um dos seguintes: Mensal, Diario, Semanal, Quinzenal, Trimestral, Anual',
+                'tipo.in'           => 'O campo tipo deve ser um dos seguintes: Não recorrente, Parcelada, Fixa mensal',
+            ]
+        );
     }
 }

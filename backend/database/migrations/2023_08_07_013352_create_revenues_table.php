@@ -18,8 +18,8 @@ return new class extends Migration
             $table->string('descricao', 20);
             $table->integer('valor');
             $table->enum('tipo', ['Não recorrente', 'Parcelada', 'Fixa']);
-            $table->integer('numParcelas')->nullable();
-            $table->enum('periodicidade', ['Mensal', 'Diario', 'Semanal', 'Quinzenal', 'Trimenstral', 'Anual'])->nullable();
+            $table->integer('num_parcelas')->nullable();
+            $table->enum('periodicidade', ['Mensal', 'Diario', 'Semanal', 'Quinzenal', 'Trimenstral', 'Anual'])->nullable()->default(null);
             $table->date('date');
             $table->enum('status', ['Efetivada', 'Pendente'])->default('Efetivada');
             $table->string('categoria', 30);
