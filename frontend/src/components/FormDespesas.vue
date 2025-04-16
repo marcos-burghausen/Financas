@@ -147,7 +147,7 @@
           <div class="container__parcelas pb-5">
             <div class="modal__parcelas">
               <v-text-field
-                v-model="formReleases.numParcelas"
+                v-model="formReleases.num_parcelas"
                 variant="underlined"
                 type="text"
                 class="mb-8 imput"
@@ -593,6 +593,7 @@ const props = defineProps<{
     releases: Lancamentos;
     contas: string[];
     categoriasNames: string[];
+    rota: string;
 }>();
 
 const loading = ref(false);
@@ -623,8 +624,6 @@ const toggleStatus = () => {
     formReleases.value.status === "Efetivada" ? "Pendente" : "Efetivada";
 };
 
-
-
 const closeForm = () => {
     emit("closeForm");
     clearInputs();
@@ -640,8 +639,9 @@ const selecionarTipo = (item: string) => {
 
 const salvarLancamentos = async () => {
     try {
-    // releases.value.status = status.value ? "Efetivada" : "pendente";
-        const res = await http.post("/save-revenue", formReleases.value);
+        console.log(formReleases.value);
+        // releases.value.status = status.value ? "Efetivada" : "pendente";
+        const res = await http.post(`/${props.rota}`, formReleases.value);
         useRevenues.setRevenuesData(res.data.revenuesData);
         valueTotalRevenuesMonth.value =
       res.data.revenuesData.ValueTotalRevenuesMonth;
@@ -661,7 +661,7 @@ const clearInputs = () => {
     formReleases.value.descricao = "",
     formReleases.value.valor = "",
     formReleases.value.tipo = "Não recorente",
-    formReleases.value.numParcelas = 0,
+    formReleases.value.num_parcelas = 0,
     formReleases.value.periodicidade = "",
     formReleases.value.date = new Date().toLocaleDateString("en-CA"),
     formReleases.value.status = "",

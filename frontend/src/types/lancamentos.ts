@@ -1,10 +1,10 @@
 export interface Lancamentos {
-    id?: number;
+    id?: number | null;
     // user_id: number;
     descricao?: string;
     valor?: string;
     tipo?: string;
-    numParcelas?:number;
+    num_parcelas?:number;
     periodicidade?: string;
     date?: string;
     status?: string;

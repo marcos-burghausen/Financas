@@ -5,7 +5,7 @@
       :releases="selectedRelease"
       :contas="contas"
       :categorias-names="categoriasNames"
-      rota="save-revenue"
+      rota="revenue"
       :mes-referencia="mesAnoReferencia"
       transaction-type="receitas"
       @updateData="updateData"

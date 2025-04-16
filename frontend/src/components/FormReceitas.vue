@@ -147,7 +147,7 @@
           <div class="container__parcelas pb-5">
             <div class="modal__parcelas">
               <v-text-field
-                v-model="formReleases.numParcelas"
+                v-model="formReleases.num_parcelas"
                 variant="underlined"
                 type="text"
                 class="mb-8 imput"
@@ -661,7 +661,7 @@ const clearInputs = () => {
     formReleases.value.descricao = "",
     formReleases.value.valor = "",
     formReleases.value.tipo = "Não recorente",
-    formReleases.value.numParcelas = 0,
+    formReleases.value.num_parcelas = 0,
     formReleases.value.periodicidade = "",
     formReleases.value.date = new Date().toLocaleDateString("en-CA"),
     formReleases.value.status = "",

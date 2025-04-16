@@ -9,13 +9,17 @@
       @updateData="updateData"
       @closeForm="formulario = false"
     /> -->
-    <FormReceitas
+    <!-- <FormLancamentos
       v-if="formulario"
+      :releases="selectedRelease"
       :contas="contas"
       :categorias-names="categoriasNames"
-      rota="save-revenue"
+      rota="revenue"
+      :mes-referencia="mesAnoReferencia"
       transaction-type="receitas"
-    />
+      @updateData="updateData"
+      @closeForm="closeForm"
+    /> -->
     <div
       v-if="!formulario"
       class="receitas"
@@ -277,7 +281,7 @@ let releases = ref<Lancamentos>({
     descricao: "",
     valor: "",
     tipo: "Não recorente",
-    numParcelas: 0,
+    num_parcelas: 0,
     periodicidade: "",
     date: new Date().toLocaleDateString("en-CA"),
     status: "Efetivada",
@@ -413,7 +417,7 @@ const buscarDadosMes = async (data) => {
 //     releases.value.descricao = "",
 //     releases.value.valor = "",
 //     releases.value.tipo = "Não recorente",
-//     releases.value.numParcelas = 0,
+//     releases.value.num_parcelas = 0,
 //     releases.value.periodicidade = "",
 //     releases.value.date = new Date().toLocaleDateString("en-CA"),
 //     releases.value.status = "",

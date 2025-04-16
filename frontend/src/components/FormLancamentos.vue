@@ -135,7 +135,7 @@
         <div class="container__parcelas pb-5">
           <div class="modal__parcelas">
             <v-text-field
-              v-model="formReleases.numParcelas"
+              v-model="formReleases.num_parcelas"
               variant="underlined"
               type="number"
               class="mb-8 imput"
@@ -315,11 +315,11 @@ const errorsForm = ref<{ [key: string]: string[] }>({});
 const tiposLancamento = ref(["Não recorrente", "Parcelada", "Fixa mensal"]);
 
 const formReleases = ref<Lancamentos>({
-    id: props.releases?.id || "",
+    id: props.releases?.id || null,
     descricao: props.releases?.descricao || "",
     valor: props.releases?.valor || "0,00",
     tipo: props.releases?.tipo || "Não recorrente",
-    numParcelas: props.releases?.numParcelas || 0,
+    num_parcelas: props.releases?.num_parcelas || 0,
     periodicidade: props.releases?.periodicidade || null,
     date: props.releases?.date || new Date().toISOString().split("T")[0],
     status: props.releases?.status || "Pendente",
@@ -350,7 +350,7 @@ const selecionarTipo = (item: string) => {
     if (item === "Parcelada") {
         openParcelas.value = true;
     } else {
-        formReleases.value.numParcelas = 0;
+        formReleases.value.num_parcelas = 0;
         formReleases.value.periodicidade = "";
     }
 };
@@ -372,7 +372,7 @@ const salvarLancamentos = async () => {
             conta: formReleases.value.conta,
             status: formReleases.value.status,
             mesReferencia: formReleases.value.mesReferencia,
-            numParcelas: formReleases.value.numParcelas,
+            num_parcelas: formReleases.value.num_parcelas,
             periodicidade: formReleases.value.periodicidade,
             tipo: formReleases.value.tipo,
             tipoTransacao: props.transactionType,
@@ -398,11 +398,11 @@ const salvarLancamentos = async () => {
 
 const clearInputs = () => {
     formReleases.value = {
-        id: "",
+        id: null,
         descricao: "",
         valor: "0,00",
         tipo: "Não recorrente",
-        numParcelas: 0,
+        num_parcelas: 0,
         periodicidade: null,
         date: new Date().toISOString().split("T")[0],
         status: "Pendente",
