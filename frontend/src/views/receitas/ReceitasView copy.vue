@@ -209,7 +209,7 @@
 
 <script setup lang="ts">
 import Card from "../../components/Card.vue";
-import FormReceitas from "../../components/FormLancamentos.vue";
+import FormReceitas from "../../components/FormLancamentos.txt";
 import NoDataComponent from "../../components/mobile/NoDataComponent.vue";
 
 import { ref, computed } from "vue";

@@ -146,7 +146,7 @@ width: 100%"
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import FormLancamentos from "../../components/FormLancamentos.vue";
+import FormLancamentos from "../../components/FormLancamentos.txt";
 import NoDataComponent from "../../components/mobile/NoDataComponent.vue";
 import type { Lancamentos } from "../../types/lancamentos";
 import { useRevenuesStore } from "../../store/revenues";
