@@ -72,7 +72,7 @@ class RegisterController extends Controller
             $conta->incluir_em_soma_inicial = true;
             $conta->descricao               = "Conta de uso pessoal";
             $conta->tipo                    = "Pessoal";
-            $saved                          = $conta->save();
+            $conta->save();
             DB::commit();
         } catch (\Throwable $e) {
             info($e);

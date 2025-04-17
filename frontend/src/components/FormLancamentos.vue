@@ -128,7 +128,7 @@
         </div>
       </div>
 
-      <div
+      <!--   <div
         v-if="openParcelas"
         class="parcelas"
       >
@@ -175,6 +175,153 @@
             <v-btn
               class="btn__concluido px-5"
               @click="openParcelas = false"
+            >
+              Concluído
+            </v-btn>
+          </div>
+        </div>
+      </div> -->
+
+      <div
+        v-if="openParcelas"
+        class="parcelas"
+      >
+        <div class="container__parcelas">
+          <div class="modal__parcelas">
+            <h2 class="mb-4 text-center">
+              Configurar parcelas
+            </h2>
+            
+            <div class="parcela-item">
+              <div class="item-content">
+                <div class="item-icon">
+                  <mdicon
+                    name="arrow-right"
+                    size="24"
+                  />
+                </div>
+                <div class="item-label">
+                  Parcela inicial
+                </div>
+                <div class="item-value">
+                  <div class="number-stepper">
+                    <v-btn
+                      class="stepper-btn"
+                      :disabled="tempParcelaInicial <= 1"
+                      @click="decrementParcelaInicial"
+                    >
+                      <mdicon
+                        name="chevron-down"
+                        size="18"
+                      />
+                    </v-btn>
+                    <input 
+                      v-model="tempParcelaInicial" 
+                      type="number" 
+                      class="stepper-input"
+                      min="1"
+                    >
+                    <v-btn
+                      class="stepper-btn"
+                      @click="incrementParcelaInicial"
+                    >
+                      <mdicon
+                        name="chevron-up"
+                        size="18"
+                      />
+                    </v-btn>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="divider" />
+            
+            <div class="parcela-item">
+              <div class="item-content">
+                <div class="item-icon">
+                  <mdicon
+                    name="plus-circle-outline"
+                    size="24"
+                  />
+                </div>
+                <div class="item-label">
+                  Quantidade
+                </div>
+                <div class="item-value">
+                  <div class="number-stepper">
+                    <v-btn
+                      class="stepper-btn"
+                      :disabled="tempNumParcelas <= 2"
+                      @click="decrementQuantidade"
+                    >
+                      <mdicon
+                        name="chevron-down"
+                        size="18"
+                      />
+                    </v-btn>
+                    <input 
+                      v-model="tempNumParcelas" 
+                      type="number" 
+                      class="stepper-input"
+                      min="2"
+                    >
+                    <v-btn
+                      class="stepper-btn"
+                      @click="incrementQuantidade"
+                    >
+                      <mdicon
+                        name="chevron-up"
+                        size="18"
+                      />
+                    </v-btn>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="divider" />
+            
+            <div class="parcela-item">
+              <div class="item-content">
+                <div class="item-icon">
+                  <mdicon
+                    name="calendar-blank"
+                    size="24"
+                  />
+                </div>
+                <div class="item-label">
+                  Periodicidade
+                </div>
+                <div class="item-value">
+                  <v-select
+                    v-model="tempPeriodicidade"
+                    :items="['Mensal', 'Semanal', 'Quinzenal', 'Bimestral']"
+                    variant="plain"
+                    hide-details
+                    class="select-dark"
+                  />
+                </div>
+                <div class="item-arrow">
+                  <mdicon
+                    name="chevron-down"
+                    size="24"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="botoes__parcelas">
+            <v-btn
+              class="btn-cancelar"
+              @click="cancelarConfiguracaoRepeticao"
+            >
+              Cancelar
+            </v-btn>
+            <v-btn
+              class="btn-concluido"
+              @click="concluirParcelas"
             >
               Concluído
             </v-btn>
@@ -310,6 +457,10 @@ const props = defineProps<{
   transactionType: "receitas" | "despesas";
 }>();
 
+const parcelaInicial = ref(1);
+const tempParcelaInicial = ref(1);
+const tempNumParcelas = ref(2);
+const tempPeriodicidade = ref("Mensal");
 const loading = ref(false);
 const validFormLancamentos = ref(false);
 const openTipoLancamento = ref(false);
@@ -323,6 +474,8 @@ const categoriasNames = ref(props.transactionType === "receitas" ? useUser.user.
 const contas = ref(useWallets.walletsData.wallets.map(conta => conta.name));
 console.log(contas.value);
 
+const isEditMode = computed(() => !!props.releases?.id);
+
 const formReleases = ref<Lancamentos>({
     id: props.releases?.id || null,
     descricao: props.releases?.descricao || "",
@@ -332,7 +485,7 @@ const formReleases = ref<Lancamentos>({
     periodicidade: props.releases?.periodicidade || null,
     date: props.releases?.date || new Date().toISOString().split("T")[0],
     status: props.releases?.status || "Pendente",
-    categoria: props.releases?.categoria || categoriasNames.value[0],
+    categoria: props.releases?.categoria || "Outros",
     subCategoria: props.releases?.subCategoria || "",
     conta: props.releases?.conta || contas,
     mesReferencia: props.releases?.mesReferencia || props.mesReferencia,
@@ -340,7 +493,52 @@ const formReleases = ref<Lancamentos>({
     dateEfetivacao: props.releases?.dateEfetivacao || new Date().toISOString().split("T")[0],
 });
 
-const isEditMode = computed(() => !!props.releases?.id);
+const incrementParcelaInicial = () => {
+    tempParcelaInicial.value++;
+};
+
+const decrementParcelaInicial = () => {
+    if (tempParcelaInicial.value > 1) {
+        tempParcelaInicial.value--;
+    }
+};
+
+// Funções para incrementar e decrementar quantidade de parcelas
+const incrementQuantidade = () => {
+    tempNumParcelas.value++;
+};
+
+const decrementQuantidade = () => {
+    if (tempNumParcelas.value > 2) {
+        tempNumParcelas.value--;
+    }
+};
+
+const inicializarValoresTemporarios = () => {
+    tempParcelaInicial.value = 1;
+    tempNumParcelas.value = 2;
+    tempPeriodicidade.value = "Mensal";
+};
+
+const cancelarConfiguracaoRepeticao = () => {
+    // Retorna tipo para "Não recorrente"
+    formReleases.value.tipo = "Não recorrente";
+    formReleases.value.num_parcelas = 0;
+    formReleases.value.periodicidade = "";
+  
+    // Fecha o modal
+    openParcelas.value = false;
+};
+
+const concluirParcelas = () => {
+    // Salva os valores temporários nos valores finais
+    parcelaInicial.value = tempParcelaInicial.value;
+    formReleases.value.num_parcelas = tempNumParcelas.value;
+    formReleases.value.periodicidade = tempPeriodicidade.value;
+  
+    // Fecha o modal
+    openParcelas.value = false;
+};
 
 const toggleStatus = () => {
     formReleases.value.status = formReleases.value.status === "Efetivada" ? "Pendente" : "Efetivada";
@@ -354,9 +552,24 @@ const closeForm = () => {
 const selecionarTipo = (item: string) => {
     formReleases.value.tipo = item;
     openTipoLancamento.value = false;
+  
     if (item === "Parcelada") {
+    // Inicializa valores para parcelamento
+        inicializarValoresTemporarios();
+    
+        // Se já existirem valores salvos, usa-os como valores temporários
+        if (formReleases.value.num_parcelas > 0) {
+            tempNumParcelas.value = formReleases.value.num_parcelas;
+        }
+    
+        if (formReleases.value.periodicidade) {
+            tempPeriodicidade.value = formReleases.value.periodicidade;
+        }
+    
+        // Abre o modal
         openParcelas.value = true;
     } else {
+    // Para outros tipos, limpa os valores de parcelamento
         formReleases.value.num_parcelas = 0;
         formReleases.value.periodicidade = "";
     }
@@ -548,25 +761,31 @@ const rules = {
   justify-content: end;
   margin-top: 20px;
 }
-.container__parcelas {
+/*.container__parcelas {
   background: #2c2c2e;
   color: #fefefe;
   width: 90%;
-  /* height: 200px; */
   margin: 15px auto;
   border-radius: 20px;
-  /* padding: 15px; */
+}*/
+.container__parcelas {
+  background: #1e1e1e;
+  width: 100%;
+  max-width: 500px;
+  border-radius: 15px;
+  overflow: hidden;
+  color: #fefefe;
 }
 .modal__parcelas {
   /* background: #2c2c2e; */
-  color: #fefefe;
-  width: 90%;
+  /* color: #fefefe; */
+  /* width: 90%; */
   /* height: 200px; */
-  margin: 15px auto;
+  /* margin: 15px auto; */
   /* border-radius: 20px; */
-  /* padding: 15px; */
+  padding: 20px;
 }
-.parcelas {
+/*.parcelas {
   position: absolute;
   top: 0;
   left: 0;
@@ -577,12 +796,146 @@ const rules = {
   display: flex;
   justify-content: center;
   align-items: end;
+}*/
+.parcelas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .selected {
   color: #77d08e;
 }
+.parcela-item {
+  padding: 15px 0;
+}
+.item-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 10px;
+}
+.item-icon {
+  width: 40px;
+  color: #999;
+}
+.item-label {
+  flex-grow: 1;
+  font-size: 18px;
+  font-weight: 400;
+}
+.item-value {
+  margin-right: 20px;
+  font-size: 18px;
+  font-weight: 500;
+}
+.item-arrow {
+  width: 24px;
+  color: #999;
+}
+.divider {
+  height: 1px;
+  background-color: #333;
+  margin: 5px 0;
+}
+.select-dark {
+  color: white;
+  width: 120px;
+  text-align: right;
+}
+.number-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 120px;
+}
+.stepper-input {
+  width: 50px;
+  background-color: transparent;
+  border: none;
+  color: white;
+  text-align: center;
+  font-size: 18px;
+  -moz-appearance: textfield; /* Firefox */
+}
+.stepper-input::-webkit-outer-spin-button,
+.stepper-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.stepper-btn {
+  background-color: transparent;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  padding: 0px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.stepper-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
 
+.stepper-btn:hover:not(:disabled) {
+  color: #77a7ff;
+}
+.v-btn--size-default {
+    --v-btn-size: 0rem;
+    --v-btn-height: 0px;
+    font-size: var(--v-btn-size);
+    min-width: 0px;
+}
+
+
+
+
+
+
+
+
+.botoes__parcelas {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+  background-color: #1e1e1e;
+}
+.btn-cancelar {
+  color: #77a7ff;
+  background-color: transparent;
+  border-radius: 25px;
+  font-size: 16px;
+  padding: 0 30px;
+  height: 45px;
+}
+.btn-concluido {
+  background-color: #77a7ff;
+  color: white;
+  border-radius: 25px;
+  font-size: 16px;
+  padding: 0 30px;
+  height: 45px;
+}
+/* Sobrescreve estilos do Vuetify para que os selects fiquem com aparência correta */
+:deep(.v-select .v-field) {
+  border: none;
+  background-color: transparent !important;
+}
+:deep(.v-select .v-field__input) {
+  padding: 0;
+  color: white;
+}
+:deep(.v-field__append-inner) {
+  padding: 0;
+}
 
 
 
@@ -697,7 +1050,12 @@ const rules = {
 .title {
   text-align: center;
 }
-
+h2 {
+  font-size: 28px;
+  font-weight: 500;
+  color: white;
+  margin-bottom: 30px;
+}
 .mdicon__close {
   cursor: pointer;
   color: rgba(255, 255, 255, 0.3);
