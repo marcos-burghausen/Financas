@@ -250,7 +250,7 @@
                 </div>
                 <div class="item-value">
                   <div class="number-stepper">
-                    <v-btn
+                    <button
                       class="stepper-btn"
                       :disabled="tempNumParcelas <= 2"
                       @click="decrementQuantidade"
@@ -259,14 +259,14 @@
                         name="chevron-down"
                         size="18"
                       />
-                    </v-btn>
+                    </button>
                     <input 
                       v-model="tempNumParcelas" 
                       type="number" 
                       class="stepper-input"
                       min="2"
                     >
-                    <v-btn
+                    <button
                       class="stepper-btn"
                       @click="incrementQuantidade"
                     >
@@ -274,7 +274,7 @@
                         name="chevron-up"
                         size="18"
                       />
-                    </v-btn>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -329,7 +329,7 @@
         </div>
       </div>
 
-      <v-text-field
+      <!-- <v-text-field
         v-model="formReleases.date"
         variant="underlined"
         hide-details="auto"
@@ -352,7 +352,60 @@
             {{ errorsForm.date[0] }}
           </div>
         </template>
-      </v-text-field>
+      </v-text-field> -->
+
+      <div class="text-center">
+        <v-menu>
+          <template #activator="{ props: activatorProps }">
+            <v-text-field
+              v-model="data1"
+              variant="underlined"
+              hide-details="auto"
+              label="Data de Vencimento"
+              :rules="[rules.requiredData]"
+              class="mb-8 imput"
+              readonly
+              v-bind="activatorProps"
+              @click="handleDateClick"
+            >
+              <template #prepend-inner>
+                <mdicon
+                  class="icon__modify"
+                  name="calendar"
+                />
+              </template>
+              <template #append-inner>
+                <span
+                  v-if="isToday"
+                  class="today-label"
+                >Hoje</span>
+              </template>
+              <template #message>
+                <div
+                  v-if="errorsForm.date"
+                  class="error__message"
+                >
+                  {{ errorsForm.date[0] }}
+                </div>
+              </template>
+            </v-text-field>
+          </template>
+
+          <v-date-picker
+            v-model="data"
+            color="primary"
+            :style="{ backgroundColor: '#f0f4ff' }"
+            @update:modelValue="dateMenu = false"
+          />
+        </v-menu>
+      </div>
+
+      <!-- <v-container>
+        <v-row justify="space-around">
+          <v-date-picker show-adjacent-months />
+        </v-row>
+      </v-container> -->
+
 
       <v-text-field
         v-model="formReleases.status"
@@ -456,6 +509,14 @@ const props = defineProps<{
   mesReferencia: string;
   transactionType: "receitas" | "despesas";
 }>();
+
+function onClick () {
+    // Perform an action
+}
+
+let data = ref();
+let data1 = ref(data.value);
+console.log(data.value);
 
 const parcelaInicial = ref(1);
 const tempParcelaInicial = ref(1);
@@ -889,10 +950,11 @@ const rules = {
   color: #77a7ff;
 }
 .v-btn--size-default {
-    --v-btn-size: 0rem;
-    --v-btn-height: 0px;
+      --v-btn-size: 0.875rem;
+    --v-btn-height: 36px;
     font-size: var(--v-btn-size);
-    min-width: 0px;
+    min-width: 64px;
+    padding: 0 16px;
 }
 
 

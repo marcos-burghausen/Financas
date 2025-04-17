@@ -7,6 +7,7 @@ export interface Lancamentos {
     num_parcelas?:number;
     periodicidade?: string;
     date?: string;
+    data?: Date;
     status?: string;
     categoria?: string;
     carteira?: string;
