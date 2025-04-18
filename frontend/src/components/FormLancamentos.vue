@@ -1,3 +1,4 @@
+<!--
 <template>
   <div class="container__modal">
     <v-form
@@ -128,59 +129,6 @@
         </div>
       </div>
 
-      <!--   <div
-        v-if="openParcelas"
-        class="parcelas"
-      >
-        <div class="container__parcelas pb-5">
-          <div class="modal__parcelas">
-            <v-text-field
-              v-model="formReleases.num_parcelas"
-              variant="underlined"
-              type="number"
-              class="mb-8 imput"
-              label="Quantidade de Parcelas"
-            >
-              <template #prepend-inner>
-                <mdicon
-                  class="me-2"
-                  name="refresh"
-                />
-                <span class="me-2">Quantidade</span>
-              </template>
-            </v-text-field>
-            <v-text-field
-              v-model="formReleases.periodicidade"
-              variant="underlined"
-              type="text"
-              class="mb-8 imput"
-              label="Periodicidade"
-            >
-              <template #prepend-inner>
-                <mdicon
-                  class="me-2"
-                  name="refresh"
-                />
-                <span class="me-2">Periodicidade</span>
-              </template>
-            </v-text-field>
-          </div>
-          <div class="botoes__parcelas mx-5">
-            <v-btn
-              class="px-5 me-5 cancelar"
-              @click="openParcelas = false"
-            >
-              Cancelar
-            </v-btn>
-            <v-btn
-              class="btn__concluido px-5"
-              @click="openParcelas = false"
-            >
-              Concluído
-            </v-btn>
-          </div>
-        </div>
-      </div> -->
 
       <div
         v-if="openParcelas"
@@ -329,20 +277,25 @@
         </div>
       </div>
 
-      <!-- <v-text-field
+      
+
+
+      <v-date-input
         v-model="formReleases.date"
         variant="underlined"
         hide-details="auto"
         label="Data de Vencimento"
-        type="date"
         :rules="[rules.requiredData]"
         class="mb-8 imput"
+        prepend-inner-icon="mdi-calendar"
+        :style="{ backgroundColor: '#f0f4ff' }"
+        show-adjacent-months
       >
-        <template #prepend-inner>
-          <mdicon
-            class="icon__modify"
-            name="calendar"
-          />
+        <template #append-inner>
+          <span
+            v-if="isToday"
+            class="today-label"
+          >Hoje</span>
         </template>
         <template #message>
           <div
@@ -352,60 +305,413 @@
             {{ errorsForm.date[0] }}
           </div>
         </template>
-      </v-text-field> -->
-
-      <div class="text-center">
-        <v-menu>
-          <template #activator="{ props: activatorProps }">
-            <v-text-field
-              v-model="data1"
-              variant="underlined"
-              hide-details="auto"
-              label="Data de Vencimento"
-              :rules="[rules.requiredData]"
-              class="mb-8 imput"
-              readonly
-              v-bind="activatorProps"
-              @click="handleDateClick"
-            >
-              <template #prepend-inner>
-                <mdicon
-                  class="icon__modify"
-                  name="calendar"
-                />
-              </template>
-              <template #append-inner>
-                <span
-                  v-if="isToday"
-                  class="today-label"
-                >Hoje</span>
-              </template>
-              <template #message>
-                <div
-                  v-if="errorsForm.date"
-                  class="error__message"
-                >
-                  {{ errorsForm.date[0] }}
-                </div>
-              </template>
-            </v-text-field>
-          </template>
-
-          <v-date-picker
-            v-model="data"
-            color="primary"
-            :style="{ backgroundColor: '#f0f4ff' }"
-            @update:modelValue="dateMenu = false"
+        <template #actions>
+          <v-btn
+            class="btn-cancelar"
+            @click="$emit('cancel')"
+          >
+            Cancelar
+          </v-btn>
+          <v-btn
+            class="btn-concluido"
+            @click="$emit('update')"
+          >
+            OK
+          </v-btn>
+        </template>
+      </v-date-input>
+      <v-text-field
+        v-model="formReleases.status"
+        variant="underlined"
+        hide-details="auto"
+        label="Status"
+        type="text"
+        class="mb-8 imput cursor__pointer"
+        readonly
+        @click="toggleStatus"
+      >
+        <template #prepend-inner>
+          <mdicon
+            class="icon__modify"
+            :name="formReleases.status === 'Efetivada' ? 'check-circle-outline' : 'clock-time-three-outline'"
           />
-        </v-menu>
+        </template>
+        <template #append-inner>
+          <div
+            :class="formReleases.status === 'Efetivada' ? 'form__check__efetivada' : 'form__check'"
+          >
+            <div
+              :class="formReleases.status === 'Efetivada' ? 'switch__check__efetivada' : 'switch__check'"
+            />
+          </div>
+        </template>
+      </v-text-field>
+
+      <v-autocomplete
+        v-model="formReleases.categoria"
+        :items="categoriasNames"
+        :rules="[rules.requiredCatagoria]"
+        label="Categoria"
+        placeholder="Selecione..."
+        required
+        variant="underlined"
+        class="mb-8 imput"
+      >
+        <template #prepend-inner>
+          <mdicon
+            class="icon__modify"
+            name="scatter-plot"
+          />
+        </template>
+        <template #message>
+          <div
+            v-if="errorsForm.categoria"
+            class="error-message"
+          >
+            {{ errorsForm.categoria[0] }}
+          </div>
+        </template>
+      </v-autocomplete>
+
+      <v-autocomplete
+        v-model="formReleases.conta"
+        :items="contas"
+        :rules="[rules.requiredCarteira]"
+        label="Conta"
+        placeholder="Selecione..."
+        required
+        variant="underlined"
+        class="mb-5 imput"
+      >
+        <template #prepend-inner>
+          <mdicon
+            class="icon__modify"
+            name="bank"
+          />
+        </template>
+        <template #message>
+          <div
+            v-if="errorsForm.conta"
+            class="error-message"
+          >
+            {{ errorsForm.conta[0] }}
+          </div>
+        </template>
+      </v-autocomplete>
+    </v-form>
+  </div>
+</template> -->
+
+<template>
+  <div class="container__modal">
+    <v-form
+      v-model="validFormLancamentos"
+      class="form__lancamentos pt-16 w-100"
+      @submit.prevent="salvarLancamentos"
+    >
+      <div class="header__items d-flex justify-content-between fixed-top py-10 pe-2">
+        <v-btn
+          :disabled="loading"
+          :loading="loading"
+          class="close"
+          @click="closeForm"
+        >
+          <mdicon
+            name="close"
+            size="30"
+          />
+        </v-btn>
+        <div class="d-flex flex-column">
+          <span class="fs-5">{{ isEditMode ? 'Editar' : 'Nova' }} {{ transactionType === 'receitas' ? 'Receita' : 'Despesa' }}</span>
+        </div>
+        <v-btn
+          :disabled="loading || !validFormLancamentos || formReleases.valor === '0,00'"
+          :loading="loading"
+          style="background-color: #77d08e"
+          class="salvar px-5 me-2"
+          type="submit"
+        >
+          Salvar
+        </v-btn>
       </div>
 
-      <!-- <v-container>
-        <v-row justify="space-around">
-          <v-date-picker show-adjacent-months />
-        </v-row>
-      </v-container> -->
+      <v-textarea
+        v-model="formReleases.descricao"
+        variant="underlined"
+        type="text"
+        hide-details="auto"
+        label="Descrição"
+        required
+        class="mb-8 imput"
+        :rules="[rules.requiredDescricao]"
+        rows="1"
+      >
+        <template #prepend-inner>
+          <mdicon
+            class="icon__modify"
+            name="text-long"
+          />
+        </template>
+        <template #message>
+          <div
+            v-if="errorsForm.descricao"
+            class="error-message"
+          >
+            {{ errorsForm.descricao[0] }}
+          </div>
+        </template>
+      </v-textarea>
 
+      <v-text-field
+        v-model="formReleases.valor"
+        variant="underlined"
+        placeholder="0,00"
+        hide-details="auto"
+        label="Valor"
+        type="tel"
+        class="mb-8 imput"
+        :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
+        @input="formatValueSave"
+      >
+        <template #prepend-inner>
+          <mdicon
+            class="icon__modify"
+            name="currency-usd"
+          />
+        </template>
+        <template #message>
+          <div
+            v-if="errorsForm.valor"
+            class="error-message"
+          >
+            {{ errorsForm.valor[0] }}
+          </div>
+        </template>
+      </v-text-field>
+
+      <v-text-field
+        v-model="formReleases.tipo"
+        variant="underlined"
+        label="Tipo"
+        type="text"
+        class="mb-8 imput"
+        readonly
+        @click="openTipoLancamento = true"
+      >
+        <template #prepend-inner>
+          <mdicon
+            class="icon__modify"
+            name="refresh"
+          />
+        </template>
+      </v-text-field>
+
+      <div
+        v-if="openTipoLancamento"
+        class="tipo"
+      >
+        <div class="modal__tipo">
+          <div
+            v-for="(item, index) in tiposLancamento"
+            :key="index"
+            class="cor__icon"
+          >
+            <div class="container__tipos">
+              <div
+                class="container__tipo"
+                @click="selecionarTipo(item)"
+              >
+                <mdicon
+                  :class="formReleases.tipo === item ? 'selected' : ''"
+                  :name="formReleases.tipo === item ? 'radiobox-marked' : 'checkbox-blank-circle-outline'"
+                />
+                <span class="ms-3">{{ item }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        v-if="openParcelas"
+        class="parcelas"
+      >
+        <div class="container__parcelas">
+          <div class="modal__parcelas">
+            <h2 class="mb-4 text-center">
+              Configurar parcelas
+            </h2>
+            
+            <div class="parcela-item">
+              <div class="item-content">
+                <div class="item-icon">
+                  <mdicon
+                    name="arrow-right"
+                    size="24"
+                  />
+                </div>
+                <div class="item-label">
+                  Parcela inicial
+                </div>
+                <div class="item-value">
+                  <div class="number-stepper">
+                    <v-btn
+                      class="stepper-btn"
+                      :disabled="tempParcelaInicial <= 1"
+                      @click="decrementParcelaInicial"
+                    >
+                      <mdicon
+                        name="chevron-down"
+                        size="18"
+                      />
+                    </v-btn>
+                    <input 
+                      v-model="tempParcelaInicial" 
+                      type="number" 
+                      class="stepper-input"
+                      min="1"
+                    >
+                    <v-btn
+                      class="stepper-btn"
+                      @click="incrementParcelaInicial"
+                    >
+                      <mdicon
+                        name="chevron-up"
+                        size="18"
+                      />
+                    </v-btn>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="divider" />
+            
+            <div class="parcela-item">
+              <div class="item-content">
+                <div class="item-icon">
+                  <mdicon
+                    name="plus-circle-outline"
+                    size="24"
+                  />
+                </div>
+                <div class="item-label">
+                  Quantidade
+                </div>
+                <div class="item-value">
+                  <div class="number-stepper">
+                    <v-btn
+                      class="stepper-btn"
+                      :disabled="tempNumParcelas <= 2"
+                      @click="decrementQuantidade"
+                    >
+                      <mdicon
+                        name="chevron-down"
+                        size="18"
+                      />
+                    </v-btn>
+                    <input 
+                      v-model="tempNumParcelas" 
+                      type="number" 
+                      class="stepper-input"
+                      min="2"
+                    >
+                    <v-btn
+                      class="stepper-btn"
+                      @click="incrementQuantidade"
+                    >
+                      <mdicon
+                        name="chevron-up"
+                        size="18"
+                      />
+                    </v-btn>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="divider" />
+            
+            <div class="parcela-item">
+              <div class="item-content">
+                <div class="item-icon">
+                  <mdicon
+                    name="calendar-blank"
+                    size="24"
+                  />
+                </div>
+                <div class="item-label">
+                  Periodicidade
+                </div>
+                <div class="item-value">
+                  <v-select
+                    v-model="tempPeriodicidade"
+                    :items="['Mensal', 'Semanal', 'Quinzenal', 'Bimestral']"
+                    variant="plain"
+                    hide-details
+                    class="select-dark"
+                  />
+                </div>
+                <div class="item-arrow">
+                  <mdicon
+                    name="chevron-down"
+                    size="24"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="botoes__parcelas">
+            <v-btn
+              class="btn-cancelar"
+              @click="cancelarConfiguracaoRepeticao"
+            >
+              Cancelar
+            </v-btn>
+            <v-btn
+              class="btn-concluido"
+              @click="concluirParcelas"
+            >
+              Concluído
+            </v-btn>
+          </div>
+        </div>
+      </div>
+
+      <!-- Campo de Data com v-date-input -->
+      <v-date-input
+        v-model="formReleases.date"
+        variant="underlined"
+        hide-details="auto"
+        label="Data de Vencimento"
+        :rules="[rules.requiredData]"
+        class="mb-8 imput"
+        show-adjacent-months
+        prepend-icon=""
+        color="prymary"
+      >
+        <template #prepend-inner>
+          <mdicon
+            class="icon__modify"
+            name="calendar"
+          />
+        </template>
+        <template #append-inner>
+          <span
+            v-if="isToday"
+            class="today-label"
+          >Hoje</span>
+        </template>
+        <template #message>
+          <div
+            v-if="errorsForm.date"
+            class="error__message"
+          >
+            {{ errorsForm.date[0] }}
+          </div>
+        </template>
+      </v-date-input>
 
       <v-text-field
         v-model="formReleases.status"
@@ -489,6 +795,7 @@
   </div>
 </template>
 
+
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import http from "../services/http";
@@ -510,13 +817,15 @@ const props = defineProps<{
   transactionType: "receitas" | "despesas";
 }>();
 
-function onClick () {
-    // Perform an action
-}
-
-let data = ref();
-let data1 = ref(data.value);
-console.log(data.value);
+const validateDate = (date: string | undefined): string => {
+    if (!date) return new Date().toISOString().split("T")[0];
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate.getTime())) {
+        console.warn("Data inválida recebida, usando data atual:", date);
+        return new Date().toISOString().split("T")[0];
+    }
+    return parsedDate.toISOString().split("T")[0];
+};
 
 const parcelaInicial = ref(1);
 const tempParcelaInicial = ref(1);
@@ -531,11 +840,16 @@ const tiposLancamento = ref(["Não recorrente", "Parcelada", "Fixa mensal"]);
 
 const categoriasNames = ref(props.transactionType === "receitas" ? useUser.user.categoriasReceitas.map(categoria => categoria.name) : useUser.user.categoriasDespesas.map(categoria => categoria.name)); 
 
-// const contas = ref(useWallets.walletsData.walllets.map(conta => conta.name));
 const contas = ref(useWallets.walletsData.wallets.map(conta => conta.name));
-console.log(contas.value);
 
 const isEditMode = computed(() => !!props.releases?.id);
+
+const isToday = computed(() => {
+    const today = new Date().toISOString().split("T")[0];
+    return formReleases.value.date === today;
+});
+
+
 
 const formReleases = ref<Lancamentos>({
     id: props.releases?.id || null,
@@ -544,7 +858,8 @@ const formReleases = ref<Lancamentos>({
     tipo: props.releases?.tipo || "Não recorrente",
     num_parcelas: props.releases?.num_parcelas || 0,
     periodicidade: props.releases?.periodicidade || null,
-    date: props.releases?.date || new Date().toISOString().split("T")[0],
+    // date: props.releases?.date || new Date().toISOString().split("T")[0],
+    date: validateDate(props.releases?.date),
     status: props.releases?.status || "Pendente",
     categoria: props.releases?.categoria || "Outros",
     subCategoria: props.releases?.subCategoria || "",
@@ -724,8 +1039,14 @@ const rules = {
     requiredCarteira: (value: string) => !!value || "O campo conta é obrigatório",
 };
 </script>
-
+         
 <style scoped>
+.today-label {
+  font-size: 14px;
+  color: #1976d2;
+  font-weight: 500;
+  margin-right: 8px;
+}
 .container__modal {
   /* position: absolute;
   top: 0;

@@ -1,19 +1,19 @@
 <template>
   <div class="home__mobile">
-    <EntrarMobile v-if="step === 0" @next-step="step = 1" />
-    <CadastroMobile v-if="step === 1" @next-step="step = 0" />
+    <EntrarMobile
+      v-if="step === 0"
+      @next-step="step = 1"
+    />
+    <CadastroMobile
+      v-if="step === 1"
+      @next-step="step = 0"
+    />
   </div>
-  <!-- <div class="home__web">
-    <EntrarWeb v-if="step === 0" @next-step="step = 1" />
-    <CadastroWeb v-if="step === 1" @next-step="step = 0" />
-  </div> -->
 </template>
 
 <script setup lang="ts">
-import EntrarMobile from "@/views/mobile/EntrarMobileView.vue";
-import EntrarWeb from "@/views/web/EntrarView.vue";
-import CadastroMobile from "@/views/mobile/CadastroView.vue";
-import CadastroWeb from "@/views/web/CadastroView.vue";
+import EntrarMobile from "../views/mobile/EntrarMobileView.vue";
+import CadastroMobile from "../views/mobile/CadastroView.vue";
 import { ref } from "vue";
 
 const step = ref(0);

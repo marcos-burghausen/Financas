@@ -92,7 +92,7 @@
         type="text"
         class="mb-8 imput"
         readonly
-        @click="handleTipoClick"
+        @click="openTipoLancamento = true"
       >
         <template #prepend-inner>
           <mdicon
@@ -242,7 +242,7 @@
                 <div class="item-value">
                   <v-select
                     v-model="tempPeriodicidade"
-                    :items="['Mensal', 'Diario', 'Semanal', 'Quinzenal', 'Trimenstral', 'Anual']"
+                    :items="['Mensal', 'Semanal', 'Quinzenal', 'Bimestral']"
                     variant="plain"
                     hide-details
                     class="select-dark"
@@ -275,52 +275,47 @@
         </div>
       </div>
 
-      <!-- Campo de Data com v-date-picker -->
-      <v-menu
-        v-model="dateMenu"
-        :close-on-content-click="false"
-        transition="scale-transition"
+      <!-- Campo de Data com v-date-input -->
+      <v-date-input
+        v-model="formReleases.date"
+        variant="underlined"
+        hide-details="auto"
+        label="Data de Vencimento"
+        :rules="[rules.requiredData]"
+        class="mb-8 imput"
+        prepend-inner-icon="mdi-calendar"
+        :style="{ backgroundColor: '#f0f4ff' }"
+        show-adjacent-months
       >
-        <template #activator="{ props: activatorProps }">
-          <v-text-field
-            v-model="formReleases.date"
-            variant="underlined"
-            hide-details="auto"
-            label="Data de Vencimento"
-            :rules="[rules.requiredData]"
-            class="mb-8 imput"
-            readonly
-            v-bind="activatorProps"
-          >
-            <template #prepend-inner>
-              <mdicon
-                class="icon__modify"
-                name="calendar"
-              />
-            </template>
-            <template #append-inner>
-              <span
-                v-if="isToday"
-                class="today-label"
-              >Hoje</span>
-            </template>
-            <template #message>
-              <div
-                v-if="errorsForm.date"
-                class="error__message"
-              >
-                {{ errorsForm.date[0] }}
-              </div>
-            </template>
-          </v-text-field>
+        <template #append-inner>
+          <span
+            v-if="isToday"
+            class="today-label"
+          >Hoje</span>
         </template>
-        <v-date-picker
-          v-model="formReleases.date"
-          color="primary"
-          :style="{ backgroundColor: '#f0f4ff' }"
-          @update:modelValue="dateMenu = false"
-        />
-      </v-menu>
+        <template #message>
+          <div
+            v-if="errorsForm.date"
+            class="error__message"
+          >
+            {{ errorsForm.date[0] }}
+          </div>
+        </template>
+        <template #actions>
+          <v-btn
+            class="btn-cancelar"
+            @click="$emit('cancel')"
+          >
+            Cancelar
+          </v-btn>
+          <v-btn
+            class="btn-concluido"
+            @click="$emit('update')"
+          >
+            OK
+          </v-btn>
+        </template>
+      </v-date-input>
 
       <v-text-field
         v-model="formReleases.status"
@@ -330,7 +325,7 @@
         type="text"
         class="mb-8 imput cursor__pointer"
         readonly
-        @click="handleStatusClick"
+        @click="toggleStatus"
       >
         <template #prepend-inner>
           <mdicon
@@ -444,13 +439,16 @@ const loading = ref(false);
 const validFormLancamentos = ref(false);
 const openTipoLancamento = ref(false);
 const openParcelas = ref(false);
-const dateMenu = ref(false);
 const errorsForm = ref<{ [key: string]: string[] }>({});
 const tiposLancamento = ref(["Não recorrente", "Parcelada", "Fixa mensal"]);
 
-const categoriasNames = ref(props.transactionType === "receitas" ? useUser.user.categoriasReceitas.map(categoria => categoria.name) : useUser.user.categoriasDespesas.map(categoria => categoria.name));
+const categoriasNames = ref(
+    props.transactionType === "receitas"
+        ? useUser.user.categoriasReceitas.map((categoria) => categoria.name)
+        : useUser.user.categoriasDespesas.map((categoria) => categoria.name)
+);
 
-const contas = ref(useWallets.walletsData.wallets.map(conta => conta.name));
+const contas = ref(useWallets.walletsData.wallets.map((conta) => conta.name));
 
 const isEditMode = computed(() => !!props.releases?.id);
 
@@ -471,22 +469,11 @@ const formReleases = ref<Lancamentos>({
     status: props.releases?.status || "Pendente",
     categoria: props.releases?.categoria || "Outros",
     subCategoria: props.releases?.subCategoria || "",
-    conta: props.releases?.conta || contas,
+    conta: props.releases?.conta || "",
     mesReferencia: props.releases?.mesReferencia || props.mesReferencia,
     dateLancamento: props.releases?.dateLancamento || new Date().toISOString().split("T")[0],
     dateEfetivacao: props.releases?.dateEfetivacao || new Date().toISOString().split("T")[0],
 });
-
-// Depuração para cliques
-const handleTipoClick = () => {
-    console.log("Clique no campo tipo");
-    openTipoLancamento.value = true;
-};
-
-const handleStatusClick = () => {
-    console.log("Clique no campo status");
-    formReleases.value.status = formReleases.value.status === "Efetivada" ? "Pendente" : "Efetivada";
-};
 
 const incrementParcelaInicial = () => {
     tempParcelaInicial.value++;
@@ -528,6 +515,10 @@ const concluirParcelas = () => {
     openParcelas.value = false;
 };
 
+const toggleStatus = () => {
+    formReleases.value.status = formReleases.value.status === "Efetivada" ? "Pendente" : "Efetivada";
+};
+
 const closeForm = () => {
     emit("closeForm");
     clearInputs();
@@ -536,7 +527,6 @@ const closeForm = () => {
 const selecionarTipo = (item: string) => {
     formReleases.value.tipo = item;
     openTipoLancamento.value = false;
-  
     if (item === "Parcelada") {
         inicializarValoresTemporarios();
         if (formReleases.value.num_parcelas > 0) {
@@ -642,15 +632,250 @@ const rules = {
 </script>
 
 <style scoped>
+.container__modal {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  background: rgb(15, 15, 15);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+}
+.form__lancamentos {
+  padding: 0 10px;
+}
+.header__items {
+  background-color: rgb(15, 15, 15);
+  color: #fefefe;
+  height: 70px;
+}
+.salvar {
+  border-radius: 20px;
+}
 .imput {
-  pointer-events: auto !important;
-  cursor: pointer !important;
+  height: 40px;
+  color: #ccc;
+  width: 100%;
 }
-
-.cursor__pointer {
-  cursor: pointer !important;
+.tipo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
-
+.modal__tipo {
+  background: #2c2c2e;
+  width: 50%;
+  max-width: 450px;
+  height: 200px;
+  border-radius: 20px;
+  padding: 15px;
+}
+.container__tipos {
+  width: 100%;
+  display: flex;
+}
+.container__tipo {
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  margin-block: 10px;
+}
+.error__message {
+  color: red;
+  font-size: 12px;
+  margin-top: 4px;
+}
+.mdicon {
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 50px;
+  position: absolute;
+  right: 30px;
+  bottom: 30px;
+  background-color: #77d08e;
+  color: #fefefe;
+}
+.botoes__parcelas {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+  background-color: #1e1e1e;
+}
+.container__parcelas {
+  background: #1e1e1e;
+  width: 100%;
+  max-width: 500px;
+  border-radius: 15px;
+  overflow: hidden;
+  color: #fefefe;
+}
+.modal__parcelas {
+  padding: 20px;
+}
+.parcelas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.selected {
+  color: #77d08e;
+}
+.parcela-item {
+  padding: 15px 0;
+}
+.item-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 10px;
+}
+.item-icon {
+  width: 40px;
+  color: #999;
+}
+.item-label {
+  flex-grow: 1;
+  font-size: 18px;
+  font-weight: 400;
+}
+.item-value {
+  margin-right: 20px;
+  font-size: 18px;
+  font-weight: 500;
+}
+.item-arrow {
+  width: 24px;
+  color: #999;
+}
+.divider {
+  height: 1px;
+  background-color: #333;
+  margin: 5px 0;
+}
+.select-dark {
+  color: white;
+  width: 120px;
+  text-align: right;
+}
+.number-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 120px;
+}
+.stepper-input {
+  width: 50px;
+  background-color: transparent;
+  border: none;
+  color: white;
+  text-align: center;
+  font-size: 18px;
+  -moz-appearance: textfield;
+}
+.stepper-input::-webkit-outer-spin-button,
+.stepper-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.stepper-btn {
+  background-color: transparent;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  padding: 0px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.stepper-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.stepper-btn:hover:not(:disabled) {
+  color: #77a7ff;
+}
+.btn-cancelar {
+  color: #77a7ff;
+  background-color: transparent;
+  border-radius: 25px;
+  font-size: 16px;
+  padding: 0 30px;
+  height: 45px;
+}
+.btn-concluido {
+  background-color: #77a7ff;
+  color: white;
+  border-radius: 25px;
+  font-size: 16px;
+  padding: 0 30px;
+  height: 45px;
+}
+:deep(.v-select .v-field) {
+  border: none;
+  background-color: transparent !important;
+}
+:deep(.v-select .v-field__input) {
+  padding: 0;
+  color: white;
+}
+:deep(.v-field__append-inner) {
+  padding: 0;
+}
+.form__check {
+  width: 40px;
+  height: 20px;
+  border-radius: 15px;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+.form__check__efetivada {
+  width: 40px;
+  height: 20px;
+  border-radius: 15px;
+  background-color: rgba(119, 208, 142, 0.4);
+  display: flex;
+  justify-content: flex-end;
+}
+.switch__check {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #fefefe;
+}
+.switch__check__efetivada {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #77d08e;
+}
+.close {
+  cursor: pointer;
+  border-radius: 50%;
+  height: 40px;
+  width: 40px;
+  background-color: transparent;
+  color: #fefefe;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.close:hover {
+  background-color: #1c1c1e;
+}
 .today-label {
   font-size: 14px;
   color: #1976d2;
