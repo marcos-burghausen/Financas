@@ -1,23 +1,18 @@
-<!--
 <template>
   <div class="container__modal">
     <v-form
       v-model="validFormLancamentos"
-      class="form__lancamentos pt-16 w-100"
+      class="px-3 pt-16 w-100"
       @submit.prevent="salvarLancamentos"
     >
       <div class="header__items d-flex justify-content-between fixed-top py-10 pe-2">
         <v-btn
           :disabled="loading"
           :loading="loading"
-          class="close"
+          class="close fs-5 ms-3"
+          prepend-icon="mdi-close"
           @click="closeForm"
-        >
-          <mdicon
-            name="close"
-            size="30"
-          />
-        </v-btn>
+        />
         <div class="d-flex flex-column">
           <span class="fs-5">{{ isEditMode ? 'Editar' : 'Nova' }} {{ transactionType === 'receitas' ? 'Receita' : 'Despesa' }}</span>
         </div>
@@ -25,8 +20,9 @@
           :disabled="loading || !validFormLancamentos || formReleases.valor === '0,00'"
           :loading="loading"
           style="background-color: #77d08e"
-          class="salvar px-5 me-2"
+          class=" px-3 me-2"
           type="submit"
+          rounded="xl"
         >
           Salvar
         </v-btn>
@@ -42,13 +38,8 @@
         class="mb-8 imput"
         :rules="[rules.requiredDescricao]"
         rows="1"
+        prepend-inner-icon="mdi-text-long"
       >
-        <template #prepend-inner>
-          <mdicon
-            class="icon__modify"
-            name="text-long"
-          />
-        </template>
         <template #message>
           <div
             v-if="errorsForm.descricao"
@@ -68,14 +59,9 @@
         type="tel"
         class="mb-8 imput"
         :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
+        prepend-inner-icon="mdi-currency-usd"
         @input="formatValueSave"
       >
-        <template #prepend-inner>
-          <mdicon
-            class="icon__modify"
-            name="currency-usd"
-          />
-        </template>
         <template #message>
           <div
             v-if="errorsForm.valor"
@@ -93,76 +79,62 @@
         type="text"
         class="mb-8 imput"
         readonly
+        prepend-inner-icon="mdi-refresh"
         @click="openTipoLancamento = true"
-      >
-        <template #prepend-inner>
-          <mdicon
-            class="icon__modify"
-            name="refresh"
-          />
-        </template>
-      </v-text-field>
+      />
 
       <div
         v-if="openTipoLancamento"
         class="tipo"
       >
-        <div class="modal__tipo">
-          <div
+        <div
+          class="d-flex flex-column align-start justify-space-around modal__tipo"
+        >
+          <v-btn
             v-for="(item, index) in tiposLancamento"
             :key="index"
-            class="cor__icon"
+            :disabled="loading"
+            :loading="loading"
+            :class="formReleases.tipo === item ? 'selected' : ''"
+            flat
+            :prepend-icon="formReleases.tipo === item ? 'mdi-radiobox-marked' : 'mdi-checkbox-blank-circle-outline'"
+            @click="selecionarTipo(item)"
           >
-            <div class="container__tipos">
-              <div
-                class="container__tipo"
-                @click="selecionarTipo(item)"
-              >
-                <mdicon
-                  :class="formReleases.tipo === item ? 'selected' : ''"
-                  :name="formReleases.tipo === item ? 'radiobox-marked' : 'checkbox-blank-circle-outline'"
-                />
-                <span class="ms-3">{{ item }}</span>
-              </div>
-            </div>
-          </div>
+            <span>{{ item }}</span>
+          </v-btn>
         </div>
       </div>
-
 
       <div
         v-if="openParcelas"
         class="parcelas"
       >
         <div class="container__parcelas">
-          <div class="modal__parcelas">
+          <div class="p-3">
             <h2 class="mb-4 text-center">
               Configurar parcelas
             </h2>
             
-            <div class="parcela-item">
-              <div class="item-content">
-                <div class="item-icon">
-                  <mdicon
-                    name="arrow-right"
-                    size="24"
-                  />
-                </div>
-                <div class="item-label">
+            <div class="py-2">
+              <div class="d-flex align-center justify-space-between">
+                <v-icon
+                  class="pe-3"
+                  icon="mdi-arrow-right"
+                  size="24"
+                />
+                <span class="item-label">
                   Parcela inicial
-                </div>
+                </span>
                 <div class="item-value">
                   <div class="number-stepper">
                     <v-btn
-                      class="stepper-btn"
                       :disabled="tempParcelaInicial <= 1"
+                      prepend-icon="mdi-chevron-down"
+                      flat
+                      variant="text"
+                      class="stepper-btn"
                       @click="decrementParcelaInicial"
-                    >
-                      <mdicon
-                        name="chevron-down"
-                        size="18"
-                      />
-                    </v-btn>
+                    />
                     <input 
                       v-model="tempParcelaInicial" 
                       type="number" 
@@ -170,14 +142,11 @@
                       min="1"
                     >
                     <v-btn
+                      prepend-icon="mdi-chevron-up"
+                      flat
                       class="stepper-btn"
                       @click="incrementParcelaInicial"
-                    >
-                      <mdicon
-                        name="chevron-up"
-                        size="18"
-                      />
-                    </v-btn>
+                    />
                   </div>
                 </div>
               </div>
@@ -185,44 +154,38 @@
             
             <div class="divider" />
             
-            <div class="parcela-item">
-              <div class="item-content">
-                <div class="item-icon">
-                  <mdicon
-                    name="plus-circle-outline"
-                    size="24"
-                  />
-                </div>
+            <div class="">
+              <div class="d-flex align-center justify-space-between">
+                <v-icon
+                  icon="mdi-plus-circle-outline"
+                  name="plus-circle-outline"
+                  size="24"
+                  class="pe-3"
+                />
                 <div class="item-label">
                   Quantidade
                 </div>
                 <div class="item-value">
                   <div class="number-stepper">
-                    <button
+                    <v-btn
                       class="stepper-btn"
                       :disabled="tempNumParcelas <= 2"
+                      prepend-icon="mdi-chevron-down"
+                      variant="text"
                       @click="decrementQuantidade"
-                    >
-                      <mdicon
-                        name="chevron-down"
-                        size="18"
-                      />
-                    </button>
+                    />
                     <input 
                       v-model="tempNumParcelas" 
                       type="number" 
                       class="stepper-input"
                       min="2"
                     >
-                    <button
+                    <v-btn
                       class="stepper-btn"
+                      prepend-icon="mdi-chevron-up"
+                      variant="text"
                       @click="incrementQuantidade"
-                    >
-                      <mdicon
-                        name="chevron-up"
-                        size="18"
-                      />
-                    </button>
+                    />
                   </div>
                 </div>
               </div>
@@ -230,18 +193,17 @@
             
             <div class="divider" />
             
-            <div class="parcela-item">
-              <div class="item-content">
-                <div class="item-icon">
-                  <mdicon
-                    name="calendar-blank"
-                    size="24"
-                  />
-                </div>
+            <div class="">
+              <div class="d-flex align-center justify-space-between">
+                <v-icon
+                  icon="mdi-calendar-blank"
+                  size="24"
+                  class="pe-3"
+                />
                 <div class="item-label">
                   Periodicidade
                 </div>
-                <div class="item-value">
+                <div class="item-value pb-2">
                   <v-select
                     v-model="tempPeriodicidade"
                     :items="['Mensal', 'Semanal', 'Quinzenal', 'Bimestral']"
@@ -250,17 +212,11 @@
                     class="select-dark"
                   />
                 </div>
-                <div class="item-arrow">
-                  <mdicon
-                    name="chevron-down"
-                    size="24"
-                  />
-                </div>
               </div>
             </div>
           </div>
           
-          <div class="botoes__parcelas">
+          <div class="d-flex justify-space-between align-center  p-3">
             <v-btn
               class="btn-cancelar"
               @click="cancelarConfiguracaoRepeticao"
@@ -277,409 +233,6 @@
         </div>
       </div>
 
-      
-
-
-      <v-date-input
-        v-model="formReleases.date"
-        variant="underlined"
-        hide-details="auto"
-        label="Data de Vencimento"
-        :rules="[rules.requiredData]"
-        class="mb-8 imput"
-        prepend-inner-icon="mdi-calendar"
-        :style="{ backgroundColor: '#f0f4ff' }"
-        show-adjacent-months
-      >
-        <template #append-inner>
-          <span
-            v-if="isToday"
-            class="today-label"
-          >Hoje</span>
-        </template>
-        <template #message>
-          <div
-            v-if="errorsForm.date"
-            class="error__message"
-          >
-            {{ errorsForm.date[0] }}
-          </div>
-        </template>
-        <template #actions>
-          <v-btn
-            class="btn-cancelar"
-            @click="$emit('cancel')"
-          >
-            Cancelar
-          </v-btn>
-          <v-btn
-            class="btn-concluido"
-            @click="$emit('update')"
-          >
-            OK
-          </v-btn>
-        </template>
-      </v-date-input>
-      <v-text-field
-        v-model="formReleases.status"
-        variant="underlined"
-        hide-details="auto"
-        label="Status"
-        type="text"
-        class="mb-8 imput cursor__pointer"
-        readonly
-        @click="toggleStatus"
-      >
-        <template #prepend-inner>
-          <mdicon
-            class="icon__modify"
-            :name="formReleases.status === 'Efetivada' ? 'check-circle-outline' : 'clock-time-three-outline'"
-          />
-        </template>
-        <template #append-inner>
-          <div
-            :class="formReleases.status === 'Efetivada' ? 'form__check__efetivada' : 'form__check'"
-          >
-            <div
-              :class="formReleases.status === 'Efetivada' ? 'switch__check__efetivada' : 'switch__check'"
-            />
-          </div>
-        </template>
-      </v-text-field>
-
-      <v-autocomplete
-        v-model="formReleases.categoria"
-        :items="categoriasNames"
-        :rules="[rules.requiredCatagoria]"
-        label="Categoria"
-        placeholder="Selecione..."
-        required
-        variant="underlined"
-        class="mb-8 imput"
-      >
-        <template #prepend-inner>
-          <mdicon
-            class="icon__modify"
-            name="scatter-plot"
-          />
-        </template>
-        <template #message>
-          <div
-            v-if="errorsForm.categoria"
-            class="error-message"
-          >
-            {{ errorsForm.categoria[0] }}
-          </div>
-        </template>
-      </v-autocomplete>
-
-      <v-autocomplete
-        v-model="formReleases.conta"
-        :items="contas"
-        :rules="[rules.requiredCarteira]"
-        label="Conta"
-        placeholder="Selecione..."
-        required
-        variant="underlined"
-        class="mb-5 imput"
-      >
-        <template #prepend-inner>
-          <mdicon
-            class="icon__modify"
-            name="bank"
-          />
-        </template>
-        <template #message>
-          <div
-            v-if="errorsForm.conta"
-            class="error-message"
-          >
-            {{ errorsForm.conta[0] }}
-          </div>
-        </template>
-      </v-autocomplete>
-    </v-form>
-  </div>
-</template> -->
-
-<template>
-  <div class="container__modal">
-    <v-form
-      v-model="validFormLancamentos"
-      class="form__lancamentos pt-16 w-100"
-      @submit.prevent="salvarLancamentos"
-    >
-      <div class="header__items d-flex justify-content-between fixed-top py-10 pe-2">
-        <v-btn
-          :disabled="loading"
-          :loading="loading"
-          class="close"
-          @click="closeForm"
-        >
-          <mdicon
-            name="close"
-            size="30"
-          />
-        </v-btn>
-        <div class="d-flex flex-column">
-          <span class="fs-5">{{ isEditMode ? 'Editar' : 'Nova' }} {{ transactionType === 'receitas' ? 'Receita' : 'Despesa' }}</span>
-        </div>
-        <v-btn
-          :disabled="loading || !validFormLancamentos || formReleases.valor === '0,00'"
-          :loading="loading"
-          style="background-color: #77d08e"
-          class="salvar px-5 me-2"
-          type="submit"
-        >
-          Salvar
-        </v-btn>
-      </div>
-
-      <v-textarea
-        v-model="formReleases.descricao"
-        variant="underlined"
-        type="text"
-        hide-details="auto"
-        label="Descrição"
-        required
-        class="mb-8 imput"
-        :rules="[rules.requiredDescricao]"
-        rows="1"
-      >
-        <template #prepend-inner>
-          <mdicon
-            class="icon__modify"
-            name="text-long"
-          />
-        </template>
-        <template #message>
-          <div
-            v-if="errorsForm.descricao"
-            class="error-message"
-          >
-            {{ errorsForm.descricao[0] }}
-          </div>
-        </template>
-      </v-textarea>
-
-      <v-text-field
-        v-model="formReleases.valor"
-        variant="underlined"
-        placeholder="0,00"
-        hide-details="auto"
-        label="Valor"
-        type="tel"
-        class="mb-8 imput"
-        :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
-        @input="formatValueSave"
-      >
-        <template #prepend-inner>
-          <mdicon
-            class="icon__modify"
-            name="currency-usd"
-          />
-        </template>
-        <template #message>
-          <div
-            v-if="errorsForm.valor"
-            class="error-message"
-          >
-            {{ errorsForm.valor[0] }}
-          </div>
-        </template>
-      </v-text-field>
-
-      <v-text-field
-        v-model="formReleases.tipo"
-        variant="underlined"
-        label="Tipo"
-        type="text"
-        class="mb-8 imput"
-        readonly
-        @click="openTipoLancamento = true"
-      >
-        <template #prepend-inner>
-          <mdicon
-            class="icon__modify"
-            name="refresh"
-          />
-        </template>
-      </v-text-field>
-
-      <div
-        v-if="openTipoLancamento"
-        class="tipo"
-      >
-        <div class="modal__tipo">
-          <div
-            v-for="(item, index) in tiposLancamento"
-            :key="index"
-            class="cor__icon"
-          >
-            <div class="container__tipos">
-              <div
-                class="container__tipo"
-                @click="selecionarTipo(item)"
-              >
-                <mdicon
-                  :class="formReleases.tipo === item ? 'selected' : ''"
-                  :name="formReleases.tipo === item ? 'radiobox-marked' : 'checkbox-blank-circle-outline'"
-                />
-                <span class="ms-3">{{ item }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div
-        v-if="openParcelas"
-        class="parcelas"
-      >
-        <div class="container__parcelas">
-          <div class="modal__parcelas">
-            <h2 class="mb-4 text-center">
-              Configurar parcelas
-            </h2>
-            
-            <div class="parcela-item">
-              <div class="item-content">
-                <div class="item-icon">
-                  <mdicon
-                    name="arrow-right"
-                    size="24"
-                  />
-                </div>
-                <div class="item-label">
-                  Parcela inicial
-                </div>
-                <div class="item-value">
-                  <div class="number-stepper">
-                    <v-btn
-                      class="stepper-btn"
-                      :disabled="tempParcelaInicial <= 1"
-                      @click="decrementParcelaInicial"
-                    >
-                      <mdicon
-                        name="chevron-down"
-                        size="18"
-                      />
-                    </v-btn>
-                    <input 
-                      v-model="tempParcelaInicial" 
-                      type="number" 
-                      class="stepper-input"
-                      min="1"
-                    >
-                    <v-btn
-                      class="stepper-btn"
-                      @click="incrementParcelaInicial"
-                    >
-                      <mdicon
-                        name="chevron-up"
-                        size="18"
-                      />
-                    </v-btn>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="divider" />
-            
-            <div class="parcela-item">
-              <div class="item-content">
-                <div class="item-icon">
-                  <mdicon
-                    name="plus-circle-outline"
-                    size="24"
-                  />
-                </div>
-                <div class="item-label">
-                  Quantidade
-                </div>
-                <div class="item-value">
-                  <div class="number-stepper">
-                    <v-btn
-                      class="stepper-btn"
-                      :disabled="tempNumParcelas <= 2"
-                      @click="decrementQuantidade"
-                    >
-                      <mdicon
-                        name="chevron-down"
-                        size="18"
-                      />
-                    </v-btn>
-                    <input 
-                      v-model="tempNumParcelas" 
-                      type="number" 
-                      class="stepper-input"
-                      min="2"
-                    >
-                    <v-btn
-                      class="stepper-btn"
-                      @click="incrementQuantidade"
-                    >
-                      <mdicon
-                        name="chevron-up"
-                        size="18"
-                      />
-                    </v-btn>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="divider" />
-            
-            <div class="parcela-item">
-              <div class="item-content">
-                <div class="item-icon">
-                  <mdicon
-                    name="calendar-blank"
-                    size="24"
-                  />
-                </div>
-                <div class="item-label">
-                  Periodicidade
-                </div>
-                <div class="item-value">
-                  <v-select
-                    v-model="tempPeriodicidade"
-                    :items="['Mensal', 'Semanal', 'Quinzenal', 'Bimestral']"
-                    variant="plain"
-                    hide-details
-                    class="select-dark"
-                  />
-                </div>
-                <div class="item-arrow">
-                  <mdicon
-                    name="chevron-down"
-                    size="24"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="botoes__parcelas">
-            <v-btn
-              class="btn-cancelar"
-              @click="cancelarConfiguracaoRepeticao"
-            >
-              Cancelar
-            </v-btn>
-            <v-btn
-              class="btn-concluido"
-              @click="concluirParcelas"
-            >
-              Concluído
-            </v-btn>
-          </div>
-        </div>
-      </div>
-
-      <!-- Campo de Data com v-date-input -->
       <v-date-input
         v-model="formReleases.date"
         variant="underlined"
@@ -688,19 +241,14 @@
         :rules="[rules.requiredData]"
         class="mb-8 imput"
         show-adjacent-months
+        color="#77d08e"
         prepend-icon=""
-        color="prymary"
+        prepend-inner-icon="$calendar"
       >
-        <template #prepend-inner>
-          <mdicon
-            class="icon__modify"
-            name="calendar"
-          />
-        </template>
         <template #append-inner>
           <span
             v-if="isToday"
-            class="today-label"
+            class="today__label"
           >Hoje</span>
         </template>
         <template #message>
@@ -719,16 +267,11 @@
         hide-details="auto"
         label="Status"
         type="text"
-        class="mb-8 imput cursor__pointer"
+        class="mb-8 imput"
         readonly
+        :prepend-inner-icon="formReleases.status === 'Efetivada' ? 'mdi-check-circle-outline' : 'mdi-clock-time-three-outline'"
         @click="toggleStatus"
       >
-        <template #prepend-inner>
-          <mdicon
-            class="icon__modify"
-            :name="formReleases.status === 'Efetivada' ? 'check-circle-outline' : 'clock-time-three-outline'"
-          />
-        </template>
         <template #append-inner>
           <div
             :class="formReleases.status === 'Efetivada' ? 'form__check__efetivada' : 'form__check'"
@@ -749,13 +292,8 @@
         required
         variant="underlined"
         class="mb-8 imput"
+        prepend-inner-icon="mdi-scatter-plot"
       >
-        <template #prepend-inner>
-          <mdicon
-            class="icon__modify"
-            name="scatter-plot"
-          />
-        </template>
         <template #message>
           <div
             v-if="errorsForm.categoria"
@@ -775,13 +313,8 @@
         required
         variant="underlined"
         class="mb-5 imput"
+        prepend-inner-icon="mdi-bank"
       >
-        <template #prepend-inner>
-          <mdicon
-            class="icon__modify"
-            name="bank"
-          />
-        </template>
         <template #message>
           <div
             v-if="errorsForm.conta"
@@ -1041,45 +574,41 @@ const rules = {
 </script>
          
 <style scoped>
-.today-label {
-  font-size: 14px;
-  color: #1976d2;
-  font-weight: 500;
-  margin-right: 8px;
+.v-btn {
+  background-color: transparent;
+  cursor: pointer;
 }
+
 .container__modal {
-  /* position: absolute;
-  top: 0;
-  left: 0; */
   width: 100%;
   height: 100%;
   min-height: 100%;
-  /* background: rgba(0, 0, 0, 0.5); */
   background: rgb(15, 15, 15);
   display: flex;
   justify-content: center;
   align-items: center;
-  /* overflow: auto; */
   padding: 10px;
-}
-.form__lancamentos {
-  /* width: 100%; */
-  padding: 0 10px;
 }
 .header__items {
   background-color: rgb(15, 15, 15);
   color: #fefefe;
   height: 70px;
 }
-
-.salvar {
-  border-radius: 20px;
+.close {
+  cursor: pointer;
+  border-radius: 50%;
+  height: 40px;
+  width: 40px;
+  background-color: transparent;
+  color: #fefefe;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .imput {
   height: 40px;
   color: #ccc;
   width: 100%;
-  /* border: none; */
 }
 .tipo {
   position: absolute;
@@ -1095,90 +624,14 @@ const rules = {
 }
 .modal__tipo {
   background: #2c2c2e;
-  /* position: relative; */
   color: #fefefe;
-  /* z-index: 999; */
-  /* top: 20%; */
-  /* left: 50%; */
-  width: 50%;
-  max-width: 450px;
   height: 200px;
-  /* margin-left: 2.5%; */
   border-radius: 20px;
   padding: 15px;
 }
-.container__tipos {
-  width: 100%;
-  display: flex;
-  /* flex-direction: column; */
-  /* align-items: center; */
+.selected {
+  color: #77d08e;
 }
-
-.container__tipo {
-  cursor: pointer;
-  width: 100%;
-  display: flex;
-  /* justify-content: center; */
-  margin-block: 10px;
-}
-.error__message {
-  color: red;
-  font-size: 12px;
-  margin-top: 4px;
-}
-.mdicon {
-  cursor: pointer;
-  padding: 10px;
-  /* box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23; */
-  border-radius: 50px;
-  position: absolute;
-  right: 30px;
-  bottom: 30px;
-  background-color: #77d08e;
-  color: #fefefe;
-}
-
-.botoes__parcelas {
-  display: flex;
-  justify-content: end;
-  margin-top: 20px;
-}
-/*.container__parcelas {
-  background: #2c2c2e;
-  color: #fefefe;
-  width: 90%;
-  margin: 15px auto;
-  border-radius: 20px;
-}*/
-.container__parcelas {
-  background: #1e1e1e;
-  width: 100%;
-  max-width: 500px;
-  border-radius: 15px;
-  overflow: hidden;
-  color: #fefefe;
-}
-.modal__parcelas {
-  /* background: #2c2c2e; */
-  /* color: #fefefe; */
-  /* width: 90%; */
-  /* height: 200px; */
-  /* margin: 15px auto; */
-  /* border-radius: 20px; */
-  padding: 20px;
-}
-/*.parcelas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  z-index: 999;
-  display: flex;
-  justify-content: center;
-  align-items: end;
-}*/
 .parcelas {
   position: fixed;
   top: 0;
@@ -1191,22 +644,13 @@ const rules = {
   justify-content: center;
   align-items: center;
 }
-
-.selected {
-  color: #77d08e;
-}
-.parcela-item {
-  padding: 15px 0;
-}
-.item-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 5px 10px;
-}
-.item-icon {
-  width: 40px;
-  color: #999;
+.container__parcelas {
+  background: #1e1e1e;
+  width: 100%;
+  max-width: 500px;
+  border-radius: 15px;
+  overflow: hidden;
+  color: #fefefe;
 }
 .item-label {
   flex-grow: 1;
@@ -1218,25 +662,25 @@ const rules = {
   font-size: 18px;
   font-weight: 500;
 }
-.item-arrow {
-  width: 24px;
-  color: #999;
-}
-.divider {
-  height: 1px;
-  background-color: #333;
-  margin: 5px 0;
-}
-.select-dark {
-  color: white;
-  width: 120px;
-  text-align: right;
-}
 .number-stepper {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   width: 120px;
+}
+.stepper-btn {
+  background-color: transparent;
+  border: none;
+  width: 30px;
+  color: #999;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stepper-btn:hover:not(:disabled) {
+  color: #77d08e;
 }
 .stepper-input {
   width: 50px;
@@ -1252,47 +696,18 @@ const rules = {
   -webkit-appearance: none;
   margin: 0;
 }
-.stepper-btn {
-  background-color: transparent;
-  border: none;
-  color: #999;
-  cursor: pointer;
-  padding: 0px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.divider {
+  height: 1px;
+  background-color: #333;
+  margin: 5px 0;
 }
-.stepper-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.stepper-btn:hover:not(:disabled) {
-  color: #77a7ff;
-}
-.v-btn--size-default {
-      --v-btn-size: 0.875rem;
-    --v-btn-height: 36px;
-    font-size: var(--v-btn-size);
-    min-width: 64px;
-    padding: 0 16px;
-}
-
-
-
-
-
-
-
-
-.botoes__parcelas {
-  display: flex;
-  justify-content: space-between;
-  padding: 20px;
-  background-color: #1e1e1e;
+.select-dark {
+  color: white;
+  width: 120px;
+  text-align: right;
 }
 .btn-cancelar {
-  color: #77a7ff;
+  color: #77d08e;
   background-color: transparent;
   border-radius: 25px;
   font-size: 16px;
@@ -1300,46 +715,18 @@ const rules = {
   height: 45px;
 }
 .btn-concluido {
-  background-color: #77a7ff;
+  background-color: #77d08e;
   color: white;
   border-radius: 25px;
   font-size: 16px;
   padding: 0 30px;
   height: 45px;
 }
-/* Sobrescreve estilos do Vuetify para que os selects fiquem com aparência correta */
-:deep(.v-select .v-field) {
-  border: none;
-  background-color: transparent !important;
-}
-:deep(.v-select .v-field__input) {
-  padding: 0;
-  color: white;
-}
-:deep(.v-field__append-inner) {
-  padding: 0;
-}
-
-
-
-
-/* .container__tipo {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-} */
-
-.form__check {
-  width: 40px;
-  height: 20px;
-  border-radius: 15px;
-  background-color: rgba(255, 255, 255, 0.3);
+.today__label {
+  font-size: 16px;
+  color: #77d08e;
+  font-weight: 500;
+  margin-right: 8px;
 }
 .form__check__efetivada {
   width: 40px;
@@ -1349,12 +736,11 @@ const rules = {
   display: flex;
   justify-content: flex-end;
 }
-
-.switch__check {
-  width: 20px;
+.form__check {
+  width: 40px;
   height: 20px;
-  border-radius: 50%;
-  background-color: #fefefe;
+  border-radius: 15px;
+  background-color: rgba(255, 255, 255, 0.3);
 }
 .switch__check__efetivada {
   width: 20px;
@@ -1362,180 +748,21 @@ const rules = {
   border-radius: 50%;
   background-color: #77d08e;
 }
-
-.form__lançamentos {
-  width: 100%;
-  padding: 0 10px;
-}
-.v-field__prefix.custom-prefix {
-  color: red !important;
-}
-.close {
-  cursor: pointer;
+.switch__check {
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  height: 40px;
-  width: 40px;
-  background-color: transparent;
-  color: #fefefe;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background-color: #fefefe;
 }
-.cancelar {
-  border-radius: 20px;
-  background-color: transparent;
-  color: #77d08e;
-}
-.btn__concluido {
-  border-radius: 20px;
-  background-color: #77d08e;
-}
-.close:hover {
-  background-color: #1c1c1e;
-}
-
-
-.color__despesa {
-  color: rgb(255, 82, 82);
-}
-
-.color__despesa:hover {
-  color: rgb(204, 0, 0);
-}
-
-.color__receita {
-  color: #00c853;
-}
-
-.color__receita:hover {
-  color: green;
-}
-
-.modal {
-  background: #2c2c2e;
-  position: fixed;
-  color: #fefefe;
-  z-index: 999;
-  top: 20%;
-  left: 50%;
-  width: 450px;
-  height: auto;
-  margin-left: -200px;
-  border-radius: 20px;
-  padding: 15px;
-}
-
-.header__modal {
-  display: flex;
-  justify-content: space-between;
-}
-
-.title {
-  text-align: center;
+.error__message {
+  color: red;
+  font-size: 12px;
+  margin-top: 4px;
 }
 h2 {
   font-size: 28px;
   font-weight: 500;
   color: white;
   margin-bottom: 30px;
-}
-.mdicon__close {
-  cursor: pointer;
-  color: rgba(255, 255, 255, 0.3);
-}
-
-.mdicon__close:hover {
-  color: #fefefe;
-}
-
-.inputSimples {
-  background-color: transparent;
-  border: solid 1px rgba(255, 255, 255, 0.4);
-  height: 55px;
-  margin: 20px 0 0 0;
-  display: flex;
-  align-items: center;
-  padding-left: 5px;
-  position: relative;
-  border-radius: 3px;
-}
-
-
-
-.input:internal-autofill-selected {
-  background-color: transparent;
-}
-
-.label {
-  color: #ccc;
-  position: absolute;
-  left: 10px;
-  top: 8px;
-  opacity: 0.4;
-  cursor: text;
-  transition: 0.5s ease-in-out;
-}
-
-.input:focus ~ label,
-.input:valid ~ label {
-  transform: translateY(-30px);
-  opacity: 0.9;
-}
-
-.error {
-  height: 20px;
-}
-
-.span__error {
-  color: rgb(194, 4, 4);
-  position: relative;
-  top: 0;
-  left: 0;
-}
-
-.cor__icon {
-  display: flex;
-}
-
-.container__cor__categoria {
-  width: 50%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.cor__categoria {
-  width: 100%;
-  display: flex;
-  justify-content: space-around;
-  margin-block: 10px;
-}
-
-.cor__forma {
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-}
-
-.icon__categoria {
-  width: 100%;
-  display: flex;
-  justify-content: space-around;
-  margin-block: 10px;
-}
-
-.footer__modal {
-  margin-top: 20px;
-  display: flex;
-  justify-content: end;
-}
-
-.btn__modal {
-  border: none;
-  border-radius: 20px;
-  padding-block: 5px;
-  padding-inline: 20px;
-  color: rgba(255, 255, 255, 0.3);
-  background-color: rgba(255, 255, 255, 0.12);
 }
 </style>

@@ -10,6 +10,8 @@ import mdiVue from "mdi-vue/v3";
 import { createPinia } from "pinia";
 import { createApp } from "vue";
 import VueApexCharts from "vue3-apexcharts";
+import "@mdi/font/css/materialdesignicons.css";
+import { aliases, mdi } from "vuetify/iconsets/mdi";
 import App from "./App.vue";
 import router from "./router";
 
@@ -21,6 +23,13 @@ const vuetify = createVuetify({
         VDateInput,
     },
     directives,
+    icons: {
+        defaultSet: "mdi",
+        aliases,
+        sets: {
+            mdi,
+        },
+    },
     locale: {
         locale: "pt-BR", // Set to Portuguese (Brazil)
         fallback: "en", // Fallback to English if needed
