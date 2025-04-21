@@ -23,8 +23,6 @@ class User extends Authenticatable implements JWTSubject
         'email',
         'password',
         'categorias',
-        'categoriasDespesas',
-        'categoriasReceitas',
         'facebook_id',
         'google_id',
         'linkedin_id',
@@ -48,55 +46,164 @@ class User extends Authenticatable implements JWTSubject
     protected $casts = [
         'email_verified_at'  => 'datetime',
         'password'           => 'hashed',
-        'categoriasDespesas' => 'array',
-        'categoriasReceitas' => 'array',
     ];
 
     protected static function boot()
     {
         parent::boot();
 
-        static::creating(function ($user) {
-            // Preenche categorias padrão se estiverem vazias
-            if (is_null($user->categoriasDespesas)) {
-                $user->categoriasDespesas = null;
-            }
-            if (is_null($user->categoriasReceitas)) {
-                $user->categoriasReceitas = null;
+        static::created(function ($user) {
+            // Default categories and subcategories
+            $defaultCategories = [
+                [
+                    'name' => 'Casa',
+                    'color' => 'cor__1',
+                    'icon' => 'home-outline',
+                    'type_category' => 'despesa',
+                    'edit' => false,
+                    'subcategories' => [
+                        ['name' => 'Aluguel', 'edit' => false],
+                        ['name' => 'Contas de Luz', 'edit' => false],
+                        ['name' => 'Contas de Água', 'edit' => false],
+                    ],
+                ],
+                [
+                    'name' => 'Transporte',
+                    'color' => 'cor__2',
+                    'icon' => 'car-estate',
+                    'edit' => false,
+                    'type_category' => 'despesa',
+                    'subcategories' => [
+                        ['name' => 'Combustível', 'edit' => false],
+                        ['name' => 'Manutenção', 'edit' => false],
+                        ['name' => 'Transporte Público', 'edit' => false],
+                    ],
+                ],
+                [
+                    'name' => 'Educação',
+                    'color' => 'cor__3',
+                    'icon' => 'account-school-outline',
+                    'edit' => false,
+                    'type_category' => 'despesa',
+                    'subcategories' => [
+                        ['name' => 'Mensalidade Escolar', 'edit' => false],
+                        ['name' => 'Materiais Didáticos', 'edit' => false],
+                    ],
+                ],
+                [
+                    'name' => 'Lazer',
+                    'color' => 'cor__4',
+                    'icon' => 'umbrella-beach-outline',
+                    'edit' => false,
+                    'type_category' => 'despesa',
+                    'subcategories' => [
+                        ['name' => 'Cinema', 'edit' => false],
+                        ['name' => 'Restaurantes', 'edit' => false],
+                    ],
+                ],
+                [
+                    'name' => 'Vestuário',
+                    'color' => 'cor__5',
+                    'icon' => 'tshirt-crew-outline',
+                    'edit' => false,
+                    'type_category' => 'despesa',
+                    'subcategories' => [
+                        ['name' => 'Roupas', 'edit' => false],
+                        ['name' => 'Calçados', 'edit' => false],
+                    ],
+                ],
+                [
+                    'name' => 'Viagem',
+                    'color' => 'cor__6',
+                    'icon' => 'airplane',
+                    'edit' => false,
+                    'type_category' => 'despesa',
+                    'subcategories' => [
+                        ['name' => 'Passagens', 'edit' => false],
+                        ['name' => 'Hospedagem', 'edit' => false],
+                    ],
+                ],
+                [
+                    'name' => 'Saúde',
+                    'color' => 'cor__7',
+                    'icon' => 'medical-bag',
+                    'edit' => false,
+                    'type_category' => 'despesa',
+                    'subcategories' => [
+                        ['name' => 'Medicamentos', 'edit' => false],
+                        ['name' => 'Consultas', 'edit' => false],
+                    ],
+                ],
+                [
+                    'name' => 'Outros',
+                    'color' => 'cor__8',
+                    'icon' => 'dots-horizontal',
+                    'edit' => false,
+                    'type_category' => 'despesa',
+                    'subcategories' => [],
+                ],
+                [
+                    'name' => 'Salário',
+                    'color' => 'cor__12',
+                    'icon' => 'currency-usd',
+                    'edit' => false,
+                    'type_category' => 'receita',
+                    'subcategories' => [
+                        ['name' => 'Salário Mensal', 'edit' => false],
+                        ['name' => 'Bônus', 'edit' => false],
+                    ],
+                ],
+                [
+                    'name' => 'Investimentos',
+                    'color' => 'cor__11',
+                    'icon' => 'finance',
+                    'edit' => false,
+                    'type_category' => 'receita',
+                    'subcategories' => [
+                        ['name' => 'Dividendos', 'edit' => false],
+                        ['name' => 'Juros', 'edit' => false],
+                    ],
+                ],
+                [
+                    'name' => 'Outros',
+                    'color' => 'cor__7',
+                    'icon' => 'dots-horizontal',
+                    'edit' => false,
+                    'type_category' => 'receita',
+                    'subcategories' => [],
+                ],
+            ];
+
+            foreach ($defaultCategories as $categoryData) {
+                $category = $user->categories()->create([
+                    'name' => $categoryData['name'],
+                    'color' => $categoryData['color'],
+                    'icon' => $categoryData['icon'],
+                    'type_category' => $categoryData['type_category'],
+                    'edit' => $categoryData['edit'],
+                ]);
+
+                foreach ($categoryData['subcategories'] as $subcategoryData) {
+                    $category->subcategories()->create([
+                        'user_id' => $user->id,
+                        'name' => $subcategoryData['name'],
+                        'edit' => $subcategoryData['edit'],
+                    ]);
+                }
             }
         });
     }
 
-    protected function setCategoriasDespesasAttribute($value)
+    public function categories()
     {
-        if (empty($value)) {
-            $this->attributes['categoriasDespesas'] = json_encode([
-                ['name' => 'Casa',       'color' => 'cor__1', 'icon' => 'home-outline',           'edit' => false, 'typeCategory' => 'despesa'],
-                ['name' => 'Transporte', 'color' => 'cor__2', 'icon' => 'car-estate',             'edit' => false, 'typeCategory' => 'despesa'],
-                ['name' => 'Educação',   'color' => 'cor__3', 'icon' => 'account-school-outline', 'edit' => false, 'typeCategory' => 'despesa'],
-                ['name' => 'Lazer',      'color' => 'cor__4', 'icon' => 'umbrella-beach-outline', 'edit' => false, 'typeCategory' => 'despesa'],
-                ['name' => 'Vestuario',  'color' => 'cor__5', 'icon' => 'tshirt-crew-outline',    'edit' => false, 'typeCategory' => 'despesa'],
-                ['name' => 'Viagem',     'color' => 'cor__6', 'icon' => 'airplane',               'edit' => false, 'typeCategory' => 'despesa'],
-                ['name' => 'Saúde',      'color' => 'cor__7', 'icon' => 'medical-bag',            'edit' => false, 'typeCategory' => 'despesa'],
-                ['name' => 'Outros',     'color' => 'cor__8', 'icon' => 'dots-horizontal',        'edit' => false, 'typeCategory' => 'despesa'],
-            ]);
-        } else {
-            $this->attributes['categoriasDespesas'] = is_array($value) ? json_encode($value) : $value;
-        }
+        return $this->hasMany(Category::class);
     }
 
-    protected function setCategoriasReceitasAttribute($value)
+    public function subcategories()
     {
-        if (empty($value)) {
-            $this->attributes['categoriasReceitas'] = json_encode([
-                ['name' => 'Salario',       'color' => 'cor__12', 'icon' => 'currency-usd',    'edit' => false, 'typeCategory' => 'receita'],
-                ['name' => 'Investimentos', 'color' => 'cor__11', 'icon' => 'finance',         'edit' => false, 'typeCategory' => 'receita'],
-                ['name' => 'Outros',        'color' => 'cor__7',  'icon' => 'dots-horizontal', 'edit' => false, 'typeCategory' => 'receita'],
-            ]);
-        } else {
-            $this->attributes['categoriasReceitas'] = is_array($value) ? json_encode($value) : $value;
-        }
+        return $this->hasMany(Subcategory::class);
     }
+
 
     public function expenses()
     {

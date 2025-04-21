@@ -1,736 +1,957 @@
 <template>
-  <v-container class="h-100 p-0">
-    <!-- <FormReceitas
-      v-if="formulario"
-      :releases="releases"
-      :contas="contas"
-      :categorias-names="categoriasNames"
-      rota="save-revenue"
-      @updateData="updateData"
-      @closeForm="formulario = false"
+  <div>
+    <!-- <mdicon
+      type="button"
+      title="adcionar nova receita"
+      name="plus"
+      class="mdicon"
+      @click="openModal = true"
     /> -->
-    <!-- <FormLancamentos
-      v-if="formulario"
-      :releases="selectedRelease"
-      :contas="contas"
-      :categorias-names="categoriasNames"
-      rota="revenue"
-      :mes-referencia="mesAnoReferencia"
-      transaction-type="receitas"
-      @updateData="updateData"
-      @closeForm="closeForm"
-    /> -->
-    <div
-      v-if="!formulario"
-      class="receitas"
-    >
-      <div class="header fixed-top">
-        <div class="d-flex justify-content-between">
-          <router-link
-            class="link me-7 d-flex align-items-center opaco"
-            :to="{ name: 'dashboard' }"
+
+    <div class="container__modal">
+      <v-form
+        v-model="validFormLancamentos"
+        class="form__lançamentos pt-16"
+        @submit.prevent="salvarLancamentos"
+      >
+        <!-- <div class="header"> -->
+        <!-- <buttom
+          :disabled="loading"
+          :loading="loading"
+          class="px-5 close"
+          @click="
+            {
+              openModal = !openModal;
+            }
+            clearInputs();
+          "
+        >
+          <mdicon name="close" size="25" />
+        </buttom> -->
+        <div class="header__items fixed-top py-10 pe-2">
+          <buttom
+            :disabled="loading"
+            :loading="loading"
+            class="px-5 close"
+            @click="closeForm"
           >
             <mdicon
-              name="arrow-left"
+              name="close"
               size="25"
             />
-          </router-link>
-          <div class="header__items">
-            <div class="d-flex flex-column">
-              <span class="fs-5"> Receitas </span>
-              <span class="valor">
-                R$ {{ formatValue(valueTotalRevenuesMonth) }}
-              </span>
-            </div>
-            <!-- <div>
-                    <mdicon
-                        name="magnify"
-                        class="mdicon me-3"
-                        size="25"
-                    />
-                    <mdicon
-                        name="clipboard-text"
-                        class="mdicon me-2"
-                        size="25"
-                    />
-                    <mdicon
-                        name="dots-vertical"
-                        class="mdicon"
-                        size="25"
-                    />
-                </div> -->
+          </buttom>
+          <div class="d-flex flex-column">
+            <span class="fs-5"> Nova receitas </span>
           </div>
-        </div>
-
-        <div class="container__mes">
-          <mdicon
-            name="chevron-left"
-            class="mdicon"
-            size="30"
-            @click="mesAnterior()"
-          />
-          <span class="mes"> {{ mesPorExtenso }} </span>
-          <mdicon
-            name="chevron-right"
-            class="mdicon"
-            size="30"
-            @click="proximoMes()"
-          />
-        </div>
-      </div>
-      <!-- <button
-        v-if="!formStoreRevenue && !formEditRevenue"
-        class="btn__nova__receita"
-        @click="formStoreRevenue = !formStoreRevenue"
-      >
-        <mdicon name="plus" class="mdicon" size="30" />
-      </button> -->
-
-      <div v-if="revenuesMonth && revenuesMonth.length > 0">
-        <!-- v-if="!formStoreRevenue && !formEditRevenue" -->
-        <div class="container-fluid pt-15 mt-15 pb-8 mb-8">
-          <div
-            v-for="(revenue, key) in revenuesMonth"
-            :key="revenue.id"
-            class="container__table"
+          <v-btn
+            :disabled="
+              loading || !validFormLancamentos || formReleases.valor === '0,00'
+            "
+            :loading="loading"
+            style="background-color: #77d08e"
+            class="salvar px-5"
+            type="submit"
           >
-            <div class="card__lancamento">
-              <!-- :class="{ Efetivada: revenue.status === 'Efetivada' }" -->
-              <v-card
-                color="transparent"
-                class="mdicon__card"
-                :disabled="revenue.status === 'Efetivada'"
-              >
-                <!-- @click="receivedRevenue(revenue)" -->
-                <mdicon
-                  :name="
-                    revenue.status === 'Efetivada'
-                      ? 'check'
-                      : new Date() <= new Date(revenue.date)
-                        ? 'alert'
-                        : 'alert-remove'
-                  "
-                  class="mdicon__lacamento"
-                  :class="{
-                    paga: revenue.status === 'Efetivada',
-                    atrasada:
-                      new Date() > new Date(revenue.date) &&
-                      revenue.status === 'Pendente',
-                    Pendente:
-                      new Date() <= new Date(revenue.date) &&
-                      revenue.status === 'Pendente',
-                  }"
-                  size="30"
-                />
-              </v-card>
-              <div style="width: 100%">
-                <div class="header__visao_geral">
-                  <span style="text-align: start">
-                    {{ revenue.carteira }}
-                  </span>
-                  <div>
-                    <span>
-                      {{ revenue.date }}
-                    </span>
-                    <span>
-                      <mdicon
-                        name="dots-vertical"
-                        class="mdicon"
-                        size="25"
-                      />
-                      <v-menu
-                        activator="parent"
-                        location="bottom end"
-                        transition="fade-transition"
-                      >
-                        <!-- style="background-color: rgb(15, 15, 15); box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;" -->
-                        <v-list
-                          class="color"
-                          style="background-color: rgb(15, 15, 15)"
-                          density="compact"
-                          min-width="250"
-                          rounded="lg"
-                          slim
-                        >
-                          <v-list-item
-                            title="Editar"
-                            link
-                          />
-                          <!-- @click="displayFormEditRevenue(revenue)" -->
-                          <v-list-item
-                            title="Excluir"
-                            link
-                            @click="deletar(revenue.id)"
-                          />
-                        </v-list>
-                      </v-menu>
-                    </span>
-                  </div>
-                </div>
-                <div style="display: flex; justify-content: space-between">
-                  <span class="categoria">
-                    {{ revenue.descricao }}
-                  </span>
-                  <span class="categoria">
-                    R$ {{ formatValue(revenue.valor) }}
-                  </span>
-                </div>
-                <div>
-                  <span class="sub__categoria">
-                    {{ revenue.categoria }}
-                  </span>
-                  <span class="sub__categoria">
-                    {{ revenue.categoria }}
-                  </span>
+            Salvar
+          </v-btn>
+        </div>
+
+        <v-textarea
+          v-model="formReleases.descricao"
+          variant="underlined"
+          type="text"
+          hide-details="auto"
+          label="Descricao"
+          required
+          class="mb-8 imput"
+          :rules="[rules.requiredDescricao]"
+          rows="1"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="text-long"
+            />
+          </template>
+        </v-textarea>
+
+        <v-text-field
+          v-model="formReleases.valor"
+          variant="underlined"
+          placeholder="0,00"
+          hide-details="auto"
+          label="Valor"
+          type="tel"
+          class="mb-8 imput"
+          :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
+          @input="formatValueSave()"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="currency-usd"
+            />
+          </template>
+        </v-text-field>
+
+        <v-text-field
+          v-model="formReleases.tipo"
+          variant="underlined"
+          label="Tipo"
+          type="text"
+          class="mb-8 imput"
+          @click="openTipoLancamento = true"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="refresh"
+            />
+          </template>
+        </v-text-field>
+
+        <div
+          v-if="openTipoLancamento"
+          class="tipo"
+        >
+          <div class="modal__tipo">
+            <div
+              v-for="(item, index) in tiposLancamento"
+              :key="index"
+              class="cor__icon"
+            >
+              <div class="container__tipos">
+                <div
+                  class="container__tipo"
+                  @click="selecionarTipo(item)"
+                >
+                  <mdicon
+                    :class="formReleases.tipo == item ? 'selected' : ''"
+                    :name="
+                      formReleases.tipo == item
+                        ? 'radiobox-marked'
+                        : 'checkbox-blank-circle-outline'
+                    "
+                  />
+                  <span class="ms-3">{{ item }}</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <!-- <v-footer></v-footer> -->
-      <NoDataComponent v-else />
+
+        <div
+          v-if="openParcelas"
+          class="parcelas"
+        >
+          <div class="container__parcelas pb-5">
+            <div class="modal__parcelas">
+              <v-text-field
+                v-model="formReleases.numParcelas"
+                variant="underlined"
+                type="text"
+                class="mb-8 imput"
+              >
+                <template #prepend-inner>
+                  <mdicon
+                    class="me-2"
+                    name="refresh"
+                  />
+                  <span class="me-2">Quantidade </span>
+                </template>
+              </v-text-field>
+              <v-text-field
+                v-model="formReleases.periodicidade"
+                variant="underlined"
+                type="text"
+                class="mb-8 imput"
+              >
+                <template #prepend-inner>
+                  <mdicon
+                    class="me-2"
+                    name="refresh"
+                  />
+                  <span class="me-2">Periodicidade </span>
+                </template>
+              </v-text-field>
+            </div>
+            <div class="botoes__parcelas mx-5">
+              <v-btn
+                class="px-5 me-5 cancelar"
+                @click="openParcelas = !openParcelas"
+              >
+                Cancelar
+              </v-btn>
+              <v-btn
+                class="btn__concluido px-5"
+                type="submit"
+              >
+                Concluido
+              </v-btn>
+            </div>
+          </div>
+        </div>
+
+        <!-- <ModalTipoLancamento
+        v-model="openModal"
+        :items="items"
+        @updateSelectedIcon="updateSelectedIcon"
+      /> -->
+
+        <!-- <ModalParcelar v-model="ModalParcelar" /> -->
+
+        <v-text-field
+          v-model="formReleases.date"
+          variant="underlined"
+          hide-details="auto"
+          label="Data vencimento"
+          type="date"
+          :rules="[rules.requiredData]"
+          class="mb-5 imput"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="calendar"
+            />
+          </template>
+        </v-text-field>
+
+        <v-text-field
+          v-model="formReleases.status"
+          variant="underlined"
+          hide-details="auto"
+          type="text"
+          class="mb-5 imput cursor__pointer"
+          style="cursor: pointer !important"
+          @click="toggleStatus"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              :name="
+                formReleases.status == 'Efetivada'
+                  ? 'check-circle-outline'
+                  : 'clock-time-three-outline'
+              "
+            />
+          </template>
+          <template #append-inner>
+            <div
+              :class="
+                formReleases.status == 'Efetivada'
+                  ? 'form__check__efetivada'
+                  : 'form__check'
+              "
+            >
+              <div
+                :class="
+                  formReleases.status == 'Efetivada'
+                    ? 'switch__check__efetivada'
+                    : 'switch__check'
+                "
+              />
+            </div>
+          </template>
+        </v-text-field>
+
+        <v-autocomplete
+          ref="country"
+          v-model="formReleases.categoria"
+          :items="props.categoriasNames"
+          :rules="[rules.requiredCatagoria]"
+          label="Categoria"
+          placeholder="Select..."
+          required
+          style="color: #ccc"
+          variant="underlined"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="scatter-plot"
+            />
+          </template>
+        </v-autocomplete>
+        <!-- <v-autocomplete
+          ref="country"
+          v-model="releases.subCategoria"
+          :items="countries"
+          label="Subcategoria"
+          placeholder="Select..."
+          required
+          style="color: #ccc"
+          variant="underlined"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="scatter-plot"
+            />
+          </template>
+        </v-autocomplete> -->
+        <v-autocomplete
+          ref="country"
+          v-model="formReleases.conta"
+          :items="props.contas"
+          :rules="[rules.requiredCarteira]"
+          label="Conta"
+          placeholder="Select..."
+          required
+          style="color: #ccc"
+          variant="underlined"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="bank"
+            />
+          </template>
+        </v-autocomplete>
+        <!-- <v-btn
+          v-if="!informacoes"
+          append-icon="mdi-account-circle"
+          variant="plain"
+          size="x-small"
+          style="color: #77d08e"
+          block
+          @click="informacoes = !informacoes"
+        >
+          Mais informações
+          <template #append>
+            <mdicon
+              :name="informacoes ? 'chevron-up' : 'chevron-down'"
+              class="pb-2 fs-3"
+            />
+          </template>
+        </v-btn>
+        <v-text-field
+          v-if="informacoes"
+          v-model="releases.date"
+          variant="underlined"
+          hide-details="auto"
+          label="Data lançamento"
+          type="date"
+          :rules="[rules.requiredData]"
+          class="mb-5 imput"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="calendar-clock"
+            />
+          </template>
+        </v-text-field>
+        <v-text-field
+          v-if="informacoes"
+          v-model="releases.date"
+          variant="underlined"
+          hide-details="auto"
+          label="Data efetivação"
+          type="date"
+          :rules="[rules.requiredData]"
+          class="mb-5 imput"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="calendar-check"
+            />
+          </template>
+        </v-text-field>
+        <v-text-field
+          v-if="informacoes"
+          variant="underlined"
+          hide-details="auto"
+          type="text"
+          class="mb-5 imput cursor__pointer"
+          style="cursor: pointer !important"
+          @click="toggleStatus"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              :name="
+                releases.status == 'Efetivada'
+                  ? 'check-circle-outline'
+                  : 'clock-time-three-outline'
+              "
+            />
+          </template>
+          Não efetivar automaticamente
+          <template #append-inner>
+            <div
+              :class="
+                releases.status == 'Efetivada'
+                  ? 'form__check__efetivada'
+                  : 'form__check'
+              "
+            >
+              <div
+                :class="
+                  releases.status == 'Efetivada'
+                    ? 'switch__check__efetivada'
+                    : 'switch__check'
+                "
+              />
+            </div>
+          </template>
+        </v-text-field>
+        <v-text-field
+          v-if="informacoes"
+          variant="underlined"
+          hide-details="auto"
+          type="text"
+          class="mb-5 imput cursor__pointer"
+          style="cursor: pointer !important"
+          @click="toggleStatus"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="chart-bar"
+            />
+          </template>
+          Ignorar em Estatisitcas e Graficos
+          <template #append-inner>
+            <div
+              :class="
+                releases.status == 'Efetivada'
+                  ? 'form__check__efetivada'
+                  : 'form__check'
+              "
+            >
+              <div
+                :class="
+                  releases.status == 'Efetivada'
+                    ? 'switch__check__efetivada'
+                    : 'switch__check'
+                "
+              />
+            </div>
+          </template>
+        </v-text-field>
+        <v-text-field
+          v-if="informacoes"
+          variant="underlined"
+          hide-details="auto"
+          type="text"
+          class="mb-5 imput cursor__pointer"
+          style="cursor: pointer !important"
+          @click="toggleStatus"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="circle-multiple-outline"
+            />
+          </template>
+          Ignorar em Economia mensal
+          <template #append-inner>
+            <div
+              :class="
+                releases.status == 'Efetivada'
+                  ? 'form__check__efetivada'
+                  : 'form__check'
+              "
+            >
+              <div
+                :class="
+                  releases.status == 'Efetivada'
+                    ? 'switch__check__efetivada'
+                    : 'switch__check'
+                "
+              />
+            </div>
+          </template>
+        </v-text-field>
+        <v-text-field
+          v-if="informacoes"
+          variant="underlined"
+          hide-details="auto"
+          type="text"
+          class="mb-5 imput cursor__pointer"
+          style="cursor: pointer !important"
+          @click="toggleStatus"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              name="currency-usd-off"
+            />
+          </template>
+          Ignorar em totais
+          <template #append-inner>
+            <div
+              :class="
+                releases.status == 'Efetivada'
+                  ? 'form__check__efetivada'
+                  : 'form__check'
+              "
+            >
+              <div
+                :class="
+                  releases.status == 'Efetivada'
+                    ? 'switch__check__efetivada'
+                    : 'switch__check'
+                "
+              />
+            </div>
+          </template>
+        </v-text-field>
+        <v-text-field
+          v-if="informacoes"
+          variant="underlined"
+          hide-details="auto"
+          type="text"
+          class="mb-5 imput cursor__pointer"
+          style="cursor: pointer !important"
+          @click="toggleStatus"
+        >
+          <template #prepend-inner>
+            <mdicon
+              class="icon__modify"
+              :name="
+                releases.status == 'Efetivada'
+                  ? 'check-circle-outline'
+                  : 'clock-time-three-outline'
+              "
+            />
+          </template>
+          Não efetivar automaticamente
+          <template #append-inner>
+            <div
+              :class="
+                releases.status == 'Efetivada'
+                  ? 'form__check__efetivada'
+                  : 'form__check'
+              "
+            >
+              <div
+                :class="
+                  releases.status == 'Efetivada'
+                    ? 'switch__check__efetivada'
+                    : 'switch__check'
+                "
+              />
+            </div>
+          </template>
+        </v-text-field> -->
+
+        <!-- <div class="d-flex justify-content-center"> -->
+
+        <!-- </div> -->
+
+        <!-- <div
+        class="form-group p-0 container d-flex justify-content-between col-12 mt-2 mb-4"
+      >
+        <v-btn
+          :disabled="loading"
+          :loading="loading"
+          style="background-color: #dc3545; color: #fefefe"
+          class="px-5"
+          @click="
+            {
+              openModal = !openModal;
+            }
+            clearInputs();
+          "
+        >
+          <mdicon name="close" size="25" />
+        </v-btn>
+        <v-btn
+          :disabled="
+            loading || !validFormLancamentos || releases.valor === '0,00'
+          "
+          :loading="loading"
+          style="background-color: #77d08e"
+          class="btn-light px-5"
+          type="submit"
+        >
+          Salvar
+        </v-btn>
+      </div> -->
+      </v-form>
     </div>
-    <div
-      v-if="!formulario"
-      class="fixed-bottom d-flex justify-end pe-5 pb-5"
-      color=""
-    >
-      <mdicon
-        type="button"
-        title="adcionar nova receita"
-        name="plus"
-        class="mdicon__add"
-        @click="formulario = true"
-      />
-    </div>
-  </v-container>
+  </div>
 </template>
-
 <script setup lang="ts">
-import Card from "../../components/Card.vue";
-import FormReceitas from "../../components/FormLancamentos.txt";
-import NoDataComponent from "../../components/mobile/NoDataComponent.vue";
+import { ref} from "vue";
+import http from "../services/http";
+import type { Lancamentos } from "../types/lancamentos";
+import { useWalletsStore } from "../store/wallets";
+import ModalTipoLancamento from "../components/ModalTipoLancamento.vue";
+import ModalParcelar from "../components/ModalParcelar.vue";
+import { useRevenuesStore } from "../store/revenues";
 
-import { ref, computed } from "vue";
-import type { Ref } from "vue";
-
-import type { Lancamentos } from "../../types/lancamentos";
-
-import { useRevenuesStore } from "../../store/revenues";
-import { useUserStore } from "../../store/user";
-import { formatValue } from "../../utils/formatValue";
-
-import http from "../../services/http";
-// import type { RevenueEdit } from "../../types/revenueEdit";
-import { useWalletsStore } from "../../store/wallets";
-import { useExpensesStore } from "../../store/expenses";
-
-const useExpenses = useExpensesStore();
-const useRevenues = useRevenuesStore();
-const userStore = useUserStore();
 const useWallets = useWalletsStore();
-let formulario = ref(false);
+const useRevenues = useRevenuesStore();
 
-let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
+const emit = defineEmits(["updateData", "closeForm"]);
+
+const props = defineProps<{
+    releases: Lancamentos;
+    contas: string[];
+    categoriasNames: string[];
+}>();
+
+const loading = ref(false);
+const formReleases = ref<Lancamentos>({
+    ...props.releases
+});
+
+let openTipoLancamento = ref(false);
+let openParcelas = ref(false);
+let errorsForm = ref({ errors: {} });
 let valueTotalRevenuesMonth = ref(
     useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth
 );
-let valuePending = ref(
-    formatValue(useRevenues.revenuesData.revenues?.ValuePendingRevenues)
-);
-let revenuesMonth = ref(useRevenues.revenuesData.revenues?.RevenuesMonth);
-// console.log(revenuesMonth.value);
-let valueReceived = ref(
-    formatValue(useRevenues.revenuesData.revenues?.ValueReceivedRevenues)
-);
-// let categorias = ref(userStore.user.categoriasReceitas);
+const tiposLancamento = ref(["Não recorrente", "Parcelada", "Fixa mensal"]);
 
-const categoriasNames = ref([]);
-userStore.user.categoriasReceitas.forEach((categoria) => {
-    categoriasNames.value.push(categoria.name);
-});
-let contas = ref(useWallets.walletsData.walletsNames);
-console.log(contas.value);
-// let errorsForm = ref({ errors: {} });
-// let formStoreRevenue = ref(false);
-// let formEditRevenue = ref(false);
-// let revenueEdit: Ref<RevenueEdit> = ref({
-//     id: 0,
-//     user_id: 0,
-//     valor: "",
-//     date: "",
-//     descricao: "",
-//     categoria: "",
-//     carteira: "",
-//     status: "",
-//     created_at: "",
-//     updated_at: "",
-//     mesReferencia: mesAnoReferencia.value,
-// });
-// const revenueUnedited: Ref<RevenueEdit> = ref({
-//     valor: "",
-//     date: "",
-//     descricao: "",
-//     categoria: "",
-//     carteira: "",
-//     status: "",
-// });
-let releases = ref<Lancamentos>({
-    id: null,
-    descricao: "",
-    valor: "",
-    tipo: "Não recorente",
-    num_parcelas: 0,
-    periodicidade: "",
-    date: new Date().toLocaleDateString("en-CA"),
-    status: "Efetivada",
-    categoria: "Outros",
-    conta: "Outros",
-    subCategoria: "",
-    mesReferencia: mesAnoReferencia.value,
-    dateLancamento: new Date().toLocaleDateString("en-CA"),
-    dateEfetivacao: new Date().toLocaleDateString("en-CA"),
-});
-// let categorias = reactive(userStore.user.categoriasReceitas);
 
-// onMounted( () => {
+
+// const categoriasNames = ref([]);
+// formCategorias.forEach((categoria) => {
+//     categoriasNames.value.push(categoria.name);
 // });
 
-const mesPorExtenso = computed(() => {
-    if (!mesAnoReferencia.value) return "";
+// let carteiras = ref(useWallets.walletsData.walletsNames);
+const openModal = ref(false);
+let validFormLancamentos = ref(false);
+const toggleStatus = () => {
+    formReleases.value.status =
+    formReleases.value.status === "Efetivada" ? "Pendente" : "Efetivada";
+};
 
-    const [ano, mes] = mesAnoReferencia.value.split("-");
-    const anoAtual = new Date().getFullYear();
 
-    const mesesPorExtenso = [
-        "Janeiro",
-        "Fevereiro",
-        "Março",
-        "Abril",
-        "Maio",
-        "Junho",
-        "Julho",
-        "Agosto",
-        "Setembro",
-        "Outubro",
-        "Novembro",
-        "Dezembro",
-    ];
 
-    if (parseInt(ano, 10) === anoAtual) {
-        return mesesPorExtenso[parseInt(mes, 10) - 1];
+const closeForm = () => {
+    emit("closeForm");
+    clearInputs();
+};
+
+const selecionarTipo = (item: string) => {
+    formReleases.value.tipo = item;
+    openTipoLancamento.value = false;
+    if (item === "Parcelada") {
+        openParcelas.value = true;
+    }
+};
+
+const salvarLancamentos = async () => {
+    try {
+    // releases.value.status = status.value ? "Efetivada" : "pendente";
+        const res = await http.post("/save-revenue", formReleases.value);
+        useRevenues.setRevenuesData(res.data.revenuesData);
+        valueTotalRevenuesMonth.value =
+      res.data.revenuesData.ValueTotalRevenuesMonth;
+        emit("updateData", res.data.revenuesData);
+        useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
+        useWallets.setWallets(res.data.walletsData.wallets);
+        closeForm();
+        openModal.value = false;
+    } catch (error) {
+        console.log(error.response.data.errors);
+        errorsForm.value["errors"] = error.response.data["errors"];
+    }
+};
+
+
+const clearInputs = () => {
+    formReleases.value.descricao = "",
+    formReleases.value.valor = "",
+    formReleases.value.tipo = "Não recorente",
+    formReleases.value.numParcelas = 0,
+    formReleases.value.periodicidade = "",
+    formReleases.value.date = new Date().toLocaleDateString("en-CA"),
+    formReleases.value.status = "",
+    formReleases.value.categoria = "",
+    formReleases.value.subCategoria = "",
+    formReleases.value.conta = "",
+    formReleases.value.mesReferencia = "",
+    formReleases.value.dateLancamento = new Date().toLocaleDateString("en-CA"),
+    formReleases.value.dateEfetivacao = new Date().toLocaleDateString("en-CA"); 
+};
+
+
+const formatValueSave = () => {
+    let novoValor = formReleases.value.valor.replace(/[^\d]/g, "");
+
+    if (novoValor.length > 1) {
+        const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
+        const parteDecimal = novoValor.slice(-2);
+        const parteInteiraFormatada = parteInteira.replace(
+            /\B(?=(\d{3})+(?!\d))/g,
+            "."
+        );
+        formReleases.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
+    } else if (novoValor.length === 1) {
+        formReleases.value.valor = `$ 0,0${novoValor}`;
     } else {
-        const mesAbreviado = mesesPorExtenso[parseInt(mes, 10) - 1].slice(0, 3);
-        return `${mesAbreviado}./${ano.slice(2)}`;
-    }
-});
-
-const updateData = (novoValor) => {
-    valueTotalRevenuesMonth.value = novoValor.ValueTotalRevenuesMonth;
-    valueReceived.value = novoValor.ValueReceivedRevenues;
-    valuePending.value = novoValor.ValuePendingRevenues;
-    revenuesMonth.value = novoValor.RevenuesMonth;
-};
-
-const mesAnterior = () => {
-    const [ano, mes] = mesAnoReferencia.value.split("-");
-    const dataAtual = new Date(ano, mes - 1);
-    dataAtual.setMonth(dataAtual.getMonth() - 1);
-    mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
-        dataAtual.getMonth() + 1
-    ).padStart(2, "0")}`;
-    buscarDadosMes(mesAnoReferencia.value);
-};
-
-const proximoMes = () => {
-    const [ano, mes] = mesAnoReferencia.value.split("-");
-    const dataAtual = new Date(ano, mes - 1);
-    dataAtual.setMonth(dataAtual.getMonth() + 1);
-    mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
-        dataAtual.getMonth() + 1
-    ).padStart(2, "0")}`;
-    buscarDadosMes(mesAnoReferencia.value);
-};
-
-const buscarDadosMes = async (data) => {
-    console.log(data);
-    try {
-        const res = await http.post("/buscar-dados-mes", { mes: data });
-        useWallets.setMesReferencia(res.data.walletsData.mes_ano_referencia);
-        useExpenses.setExpensesData(res.data.expensesData);
-        useRevenues.setRevenuesData(res.data.revenuesData);
-        useWallets.setWalletsData(res.data.walletsData);
-
-        mesAnoReferencia.value = res.data.walletsData.mes_ano_referencia;
-
-        revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
-
-        valueTotalRevenuesMonth.value =
-      res.data.revenuesData.ValueTotalRevenuesMonth;
-
-        valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
-    } catch (error) {
-    //
+        formReleases.value.valor = "$ 0,00";
     }
 };
 
-// const formatValueSave = () => {
-//     let novoValor = releases.value.valor.replace(/[^\d]/g, "");
-
-//     if (novoValor.length > 1) {
-//         const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
-//         const parteDecimal = novoValor.slice(-2);
-//         const parteInteiraFormatada = parteInteira.replace(
-//             /\B(?=(\d{3})+(?!\d))/g,
-//             "."
-//         );
-//         releases.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
-//     } else if (novoValor.length === 1) {
-//         releases.value.valor = `0,0${novoValor}`;
-//     } else {
-//         releases.value.valor = "0,00";
-//     }
-// };
-// const formatValueEdit = () => {
-//     let novoValor = revenueEdit.value.valor.replace(/[^\d]/g, "");
-
-//     if (novoValor.length > 1) {
-//         const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
-//         const parteDecimal = novoValor.slice(-2);
-//         const parteInteiraFormatada = parteInteira.replace(
-//             /\B(?=(\d{3})+(?!\d))/g,
-//             "."
-//         );
-//         revenueEdit.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
-//     } else if (novoValor.length === 1) {
-//         revenueEdit.value.valor = `0,0${novoValor}`;
-//     } else {
-//         revenueEdit.value.valor = "0,00";
-//     }
-// };
-// formatarValor();
-
-// let status = ref(true);
-
-// const clearInputs = () => {
-//     releases.value.descricao = "",
-//     releases.value.valor = "",
-//     releases.value.tipo = "Não recorente",
-//     releases.value.num_parcelas = 0,
-//     releases.value.periodicidade = "",
-//     releases.value.date = new Date().toLocaleDateString("en-CA"),
-//     releases.value.status = "",
-//     releases.value.categoria = "",
-//     releases.value.subCategoria = "",
-//     releases.value.conta = "",
-//     releases.value.mesReferencia = "",
-//     releases.value.dateLancamento = new Date().toLocaleDateString("en-CA"),
-//     releases.value.dateEfetivacao = new Date().toLocaleDateString("en-CA"); 
-// };
-
-// const revertEdit = () => {
-//     revenuesMonth.value.forEach((revenue: RevenueEdit, index: number) => {
-//         if (revenue.id === revenueEdit.value.id) {
-//             revenuesMonth.value[index] = JSON.parse(
-//                 JSON.stringify(revenueUnedited.value)
-//             );
-//         }
-//     });
-// };
-
-// const returnRevenue = () => {
-//     formStoreRevenue.value =
-//     formStoreRevenue.value === true
-//         ? !formStoreRevenue.value
-//         : formStoreRevenue.value;
-//     formEditRevenue.value =
-//     formEditRevenue.value === true
-//         ? !formEditRevenue.value
-//         : formEditRevenue.value;
-// };
-
-// const salvarLancamentos = async () => {
-//     try {
-//         release.value.status = status.value ? "Efetivada" : "Pendente";
-//         const res = await http.post("/save-revenue", release.value);
-//         useRevenues.setRevenuesData(res.data.revenuesData);
-//         valueTotalRevenuesMonth.value =
-//       res.data.revenuesData.ValueTotalRevenuesMonth;
-//         valuePending.value = res.data.revenuesData.ValuePendingRevenues;
-//         valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
-//         revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
-//         useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
-//         useWallets.setWallets(res.data.walletsData.wallets);
-//         clearInputs();
-//         formStoreRevenue.value = false;
-//     } catch (error) {
-//     // console.log(error.response.data.errors);
-//         errorsForm.value["errors"] = error.response.data["errors"];
-//     }
-// };
-
-// const receivedRevenue = async (revenue: RevenueEdit) => {
-//     try {
-//         const res = await http.post("/received-revenue", {
-//             id: revenue.id,
-//             carteira: revenue.carteira,
-//             mesReferencia: mesAnoReferencia.value,
-//         });
-//         useRevenues.setRevenuesData(res.data.revenuesData);
-//         valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
-//         valuePending.value = res.data.revenuesData.ValuePendingRevenues;
-//         // revenue.status = 'PAGA';
-//         revenuesMonth.value.forEach((revenues) => {
-//             if (revenues.id === revenue.id) {
-//                 revenues.status = "Efetivada";
-//             }
-//         });
-//         useWallets.setWallets(res.data.walletsData.wallets);
-//     } catch (error) {
-//     // console.log(error);
-//     }
-// };
-
-// function displayFormEditRevenue(revenue: RevenueEdit) {
-//     revenueUnedited.value = JSON.parse(JSON.stringify(revenue));
-//     revenueEdit.value = revenue;
-//     revenueEdit.value.valor = formatValue(revenueEdit.value.valor);
-//     formEditRevenue.value = true;
-// }
-
-// const saveEditedRevenue = async () => {
-//     try {
-//         const res = await http.post("/edit-revenue", revenueEdit.value);
-//         useRevenues.setRevenuesData(res.data.revenuesData);
-//         useWallets.setWallets(res.data.walletsData.wallets);
-//         valueTotalRevenuesMonth.value =
-//       res.data.revenuesData.ValueTotalRevenuesMonth;
-//         valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
-//         valuePending.value = res.data.revenuesData.ValuePendingRevenues;
-//         revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
-//     } catch (error) {
-//     // console.log(error.response.data.message);
-//     // if (error.response.data.message === "Token has expired") {
-//     //     alert("sessão expirada");
-//     // }
-//     }
-
-//     formEditRevenue.value = false;
-// };
-
-const deletar = async (id: number) => {
-    try {
-        const res = await http.post("/delete-revenue", {
-            id: id,
-            mesReferencia: mesAnoReferencia.value,
-        });
-        useRevenues.setRevenuesData(res.data.revenuesData);
-        valueTotalRevenuesMonth.value =
-      res.data.revenuesData.ValueTotalRevenuesMonth;
-        valuePending.value = res.data.revenuesData.ValuePendingRevenues;
-        valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
-        revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
-    } catch (error) {
-    // console.log(error);
-    }
+const rules = {
+    requiredValor: (value: string) => !!value || "O campo valor é obrigatório",
+    requiredValorMaiorQue0: (value: string) =>
+        parseFloat(value.replace(",", ".")) > 0 ||
+    "O campo valor deve ser maior que zero",
+    requiredData: (value: string) => !!value || "O campo data é obrigatório",
+    requiredDescricao: (value: string) =>
+        !!value || "O campo descriçãp é obrigatório",
+    requiredCatagoria: (value: string) =>
+        !!value || "O campo categoria é obrigatório",
+    requiredCarteira: (value: string) =>
+        !!value || "O campo categoria é obrigatório",
 };
-
-// const rules = {
-//     requiredValor: (value: string) => !!value || "O campo valor é obrigatório",
-//     requiredValorMaiorQue0: (value: string) =>
-//         parseFloat(value.replace(",", ".")) > 0 ||
-//     "O campo valor deve ser maior que zero",
-//     requiredData: (value: string) => !!value || "O campo data é obrigatório",
-//     requiredDescricao: (value: string) =>
-//         !!value || "O campo escriçãp é obrigatório",
-//     requiredCatagoria: (value: string) =>
-//         !!value || "O campo categoria é obrigatório",
-//     requiredCarteira: (value: string) =>
-//         !!value || "O campo categoria é obrigatório",
-// };
 </script>
 
-<style>
-.receitas {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 100%;
-  overflow: auto;
-  padding-bottom: 10px;
-}
-.header {
-  display: flex;
-  flex-direction: column;
-  padding: 10px;
-  color: #bdbdbd;
-  background-color: rgb(15, 15, 15);
-}
-.link {
-  text-decoration: none;
-  color: #fefefe;
-}
-.opaco {
-  color: #757575 !important;
-}
-.header__items {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-.valor {
-  font-size: 13px;
-}
-.container__mes {
-  width: 100%;
-  display: flex;
-  justify-content: space-around;
-  padding-top: 15px;
-}
+<style scoped>
 .mdicon {
-  color: #757575;
-  cursor: pointer;
-}
-.mdicon__add {
-  height: 45px;
-  width: 45px;
   cursor: pointer;
   padding: 10px;
   /* box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23; */
   border-radius: 50px;
-  /* position: absolute; */
-  /* left: calc(50% + 110px); */
-  /* bottom: 30px; */
+  position: absolute;
+  right: 30px;
+  bottom: 30px;
   background-color: #77d08e;
   color: #fefefe;
 }
-.mes {
-  font-size: 25px;
-  color: #bdbdbd;
-}
-.btn__nova__receita {
-  position: fixed;
-  right: 15px;
-  bottom: 15px;
-  background-color: #1dbb01;
-  border: none;
-  border-radius: 50%;
+.container__modal {
+  /* position: absolute;
+  top: 0;
+  left: 0; */
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  /* background: rgba(0, 0, 0, 0.5); */
+  background: rgb(15, 15, 15);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* overflow: auto; */
   padding: 10px;
+}
+.botoes__parcelas {
+  display: flex;
+  justify-content: end;
+  margin-top: 20px;
+}
+.container__parcelas {
+  background: #2c2c2e;
   color: #fefefe;
+  width: 90%;
+  /* height: 200px; */
+  margin: 15px auto;
+  border-radius: 20px;
+  /* padding: 15px; */
 }
-.container__table {
-  margin-top: 15px;
+.modal__parcelas {
+  /* background: #2c2c2e; */
+  color: #fefefe;
+  width: 90%;
+  /* height: 200px; */
+  margin: 15px auto;
+  /* border-radius: 20px; */
+  /* padding: 15px; */
 }
-.card__lancamento {
-  border-bottom: solid 1px #757575;
+.parcelas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 999;
   display: flex;
-}
-.mdicon__card {
-  padding-right: 10px;
-  display: flex;
+  justify-content: center;
   align-items: end;
 }
-.mdicon__lacamento {
+.tipo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.selected {
+  color: #77d08e;
+}
+
+.container__tipos {
+  width: 100%;
+  display: flex;
+  /* flex-direction: column; */
+  /* align-items: center; */
+}
+
+.container__tipo {
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  /* justify-content: center; */
+  margin-block: 10px;
+}
+
+.modal__tipo {
+  background: #2c2c2e;
+  /* position: relative; */
+  color: #fefefe;
+  /* z-index: 999; */
+  /* top: 20%; */
+  /* left: 50%; */
+  width: 50%;
+  max-width: 450px;
+  height: 200px;
+  /* margin-left: 2.5%; */
+  border-radius: 20px;
+  padding: 15px;
+}
+
+/* .container__tipo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+} */
+
+.form__check {
+  width: 40px;
+  height: 20px;
+  border-radius: 15px;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+.form__check__efetivada {
+  width: 40px;
+  height: 20px;
+  border-radius: 15px;
+  background-color: rgba(119, 208, 142, 0.4);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.switch__check {
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  padding: 5px;
-  margin-bottom: 5px;
+  background-color: #fefefe;
 }
-.paga {
-  color: #1dbb01 !important;
-  background: #24cc0728 !important;
+.switch__check__efetivada {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #77d08e;
 }
-.atrasada {
-  color: #ff0000 !important;
-  background: #ff000021 !important;
+
+.form__lançamentos {
+  width: 100%;
+  padding: 0 10px;
 }
-.Pendente {
-  color: #e5ff00 !important;
-  background: #e5ff0021 !important;
+.v-field__prefix.custom-prefix {
+  color: red !important;
 }
-.header__visao_geral {
+.close {
+  cursor: pointer;
+  border-radius: 50%;
+  height: 35px;
+  width: 35px;
+  color: #fefefe;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.cancelar {
+  border-radius: 20px;
+  background-color: transparent;
+  color: #77d08e;
+}
+.btn__concluido {
+  border-radius: 20px;
+  background-color: #77d08e;
+}
+.close:hover {
+  background-color: #1c1c1e;
+}
+.header__items {
+  background-color: rgb(15, 15, 15);
+  color: #fefefe;
+  height: 70px;
+}
+
+.color__despesa {
+  color: rgb(255, 82, 82);
+}
+
+.color__despesa:hover {
+  color: rgb(204, 0, 0);
+}
+
+.color__receita {
+  color: #00c853;
+}
+
+.color__receita:hover {
+  color: green;
+}
+
+.modal {
+  background: #2c2c2e;
+  position: fixed;
+  color: #fefefe;
+  z-index: 999;
+  top: 20%;
+  left: 50%;
+  width: 450px;
+  height: auto;
+  margin-left: -200px;
+  border-radius: 20px;
+  padding: 15px;
+}
+
+.header__modal {
   display: flex;
   justify-content: space-between;
-  color: #757575;
-}
-.color {
-  color: #bdbdbd;
-}
-.categoria {
-  font-size: 20px;
-  color: #bdbdbd;
-  padding-right: 27px;
-}
-.sub__categoria {
-  font-size: 15px;
-  background: #1dbb01;
-  margin-right: 5px;
-  padding-inline: 5px;
-  border-radius: 15px;
 }
 
-.conta__lancamento {
-  display: flex;
-  flex-direction: column;
+.title {
+  text-align: center;
 }
 
-.form {
-  display: flex;
-  flex-direction: column;
-  width: 100% !important;
-  padding: 10px;
+.mdicon__close {
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.3);
 }
 
-.cadastro {
-  box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
-  padding-top: 15px;
-  width: 400px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.mdicon__close:hover {
+  color: #fefefe;
 }
 
 .inputSimples {
-  background-color: #1e1e1e;
+  background-color: transparent;
+  border: solid 1px rgba(255, 255, 255, 0.4);
+  height: 55px;
   margin: 20px 0 0 0;
   display: flex;
   align-items: center;
   padding-left: 5px;
   position: relative;
-  border-radius: 5px;
+  border-radius: 3px;
 }
 
-input[type="date"]::-webkit-calendar-picker-indicator {
-  background: transparent;
-  bottom: 0;
-  color: transparent;
-  cursor: pointer;
-  height: auto;
-  left: 0;
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: auto;
-}
-
-.error {
-  height: 20px;
-}
-
-.span-error {
-  color: rgb(194, 4, 4);
-  position: relative;
-  top: 0;
-  left: 0;
-}
-
-.options {
-  background-color: #292d32;
-}
-
-.input {
-  background-color: #1e1e1e !important;
+.imput {
+  /* background-color: #1e1e1e !important; */
   height: 40px;
   color: #ccc;
   width: 100%;
@@ -745,38 +966,72 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   color: #ccc;
   position: absolute;
   left: 10px;
-  top: -25px;
+  top: 8px;
   opacity: 0.4;
   cursor: text;
   transition: 0.5s ease-in-out;
 }
 
-.card__container {
+.input:focus ~ label,
+.input:valid ~ label {
+  transform: translateY(-30px);
+  opacity: 0.9;
+}
+
+.error {
+  height: 20px;
+}
+
+.span__error {
+  color: rgb(194, 4, 4);
+  position: relative;
+  top: 0;
+  left: 0;
+}
+
+.cor__icon {
   display: flex;
 }
 
-.cards {
-  width: 33.33%;
-  color: #ccc;
-  font-size: 30px;
-  background-color: rgba(0, 0, 0, 0.1);
+.container__cor__categoria {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.btn {
-  height: 40px;
-  /* margin-top: 15px; */
+.cor__categoria {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  margin-block: 10px;
 }
 
-.table {
-  background-color: rgba(0, 0, 0, 0.1);
+.cor__forma {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
 }
 
-@media screen and (max-width: 600px) {
-  .card__container {
-    flex-direction: column;
-  }
-  .cards {
-    width: 100%;
-  }
+.icon__categoria {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  margin-block: 10px;
+}
+
+.footer__modal {
+  margin-top: 20px;
+  display: flex;
+  justify-content: end;
+}
+
+.btn__modal {
+  border: none;
+  border-radius: 20px;
+  padding-block: 5px;
+  padding-inline: 20px;
+  color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.12);
 }
 </style>

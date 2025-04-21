@@ -12,8 +12,8 @@
 </template>
 
 <script setup lang="ts">
-import EntrarMobile from "../views/mobile/EntrarMobileView.vue";
-import CadastroMobile from "../views/mobile/CadastroView.vue";
+import EntrarMobile from "./acesso/EntrarMobileView.vue";
+import CadastroMobile from "./acesso/CadastroView.vue";
 import { ref } from "vue";
 
 const step = ref(0);

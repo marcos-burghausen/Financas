@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('contas', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('user_id')->references('id')->on('users')->constrained()->onDelete('cascade');
             $table->string('name', 20);
             $table->string('icon', 20)->default('');
             $table->integer('saldo')->default(0);

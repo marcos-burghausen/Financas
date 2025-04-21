@@ -17,8 +17,6 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->nullable();
-            $table->json('categoriasDespesas')->nullable();
-            $table->json('categoriasReceitas')->nullable();
             $table->enum('user_tipe', ['USER', 'TRADER', 'USER_TRADER', 'ADMIM', 'FULL'])->default('USER');
             $table->string('facebook_id')->nullable();
             $table->string('google_id')->nullable();

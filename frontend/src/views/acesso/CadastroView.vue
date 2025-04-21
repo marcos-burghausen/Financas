@@ -1,111 +1,77 @@
 <template>
   <div class="box">
-    <!-- <div class="container__decription">
-      <figure class="figure">
-        <img src="@/assets/img/2.png" style="width: 200px" alt="logo" />
-        <h2 class="title__2 mt-5 me-2">Bem vindo</h2>
-      </figure>
-      <h4 class="sub__title__2">Ao seu gerenciador de finaças!</h4>
-      <p class="sub__title__2 mt-5">Insira seus dados pessoais</p>
-      <p class="sub__title__2">e comece a jornada conosco</p>
-      <button class="btn btn__link" @click="emits('nextStep')">entrar</button>
-    </div> -->
     <div class="container__dados">
       <figure class="figure">
-        <img
-          src="@/assets/img/2.png"
-          style="width: 200px"
-          alt="logo"
-        >
+        <img src="@/assets/img/2.png" style="width: 200px" alt="logo" />
       </figure>
-      <h2 class="title">
-        Criar Uma Conta
-      </h2>
+      <h2 class="title">Criar Uma Conta</h2>
 
       <ErrorMessage />
 
       <ErrorsForm />
 
-      <v-form
-        v-model="validForm"
-        class="form"
-        @submit.prevent="create"
-      >
+      <v-form v-model="validForm" class="form" @submit.prevent="create">
         <v-text-field
           v-model="user.name"
-          variant="outlined"
+          variant="underlined"
           type="text"
           hide-details="auto"
           label="Nome"
           :rules="[rules.requiredName]"
-          class="mb-7 input"
+          class="mb-8 imput"
           autofocus
           autocomplete="on"
-        >
-          <template #prepend-inner>
-            <mdicon
-              class="icon__modify"
-              name="account-outline"
-            />
-          </template>
-        </v-text-field>
+          prepend-inner-icon="mdi-account-outline"
+        />
 
         <v-text-field
           v-model="user.email"
-          variant="outlined"
+          variant="underlined"
           type="email"
           hide-details="auto"
           label="Email"
-          :rules="[rules.requiredEmail]"
-          class="mb-7 input"
+          :rules="[rules.requiredEmail, rules.emailFormat]"
+          class="mb-8 imput"
           autocomplete="on"
-        >
-          <template #prepend-inner>
-            <mdicon
-              class="icon__modify"
-              name="email-outline"
-            />
-          </template>
-        </v-text-field>
+          prepend-inner-icon="mdi-email-outline"
+        />
 
         <v-text-field
           v-model="user.password"
-          variant="outlined"
+          variant="underlined"
           :type="mostrarSenha ? 'password' : 'text'"
           hide-details="auto"
           label="Senha"
-          :rules="[rules.requiredSenha]"
-          class="mb-7 input"
+          :rules="[rules.requiredSenha, rules.passwordFormat]"
+          class="mb-8 imput"
+          prepend-inner-icon="mdi-lock-outline"
+          :append-inner-icon="mostrarSenha ? 'mdi-eye' : 'mdi-eye-off'"
           hint="A senha deve ter pelo menos 8 caracteres sendo uma letra maiúcula, uma minúscula, um número e um caracter especial exeto aspas simples e duplas"
-        >
-          <template #prepend-inner>
-            <mdicon
-              class="icon__modify"
-              name="lock"
-            />
-          </template>
-          <template #append-inner>
-            <mdicon
-              class="icon__modify"
-              :name="mostrarSenha ? 'eye' : 'eye-off'"
-              @click="mostrarSenha = !mostrarSenha"
-            />
-          </template>
-        </v-text-field>
+          @click="mostrarSenha = !mostrarSenha"
+        />
+
+        <v-text-field
+          v-model="user.confirmPassword"
+          variant="underlined"
+          :type="mostrarSenha ? 'password' : 'text'"
+          hide-details="auto"
+          label="Confirmar senha"
+          :rules="[rules.requiredConfirmarSenha, rules.passwordsMatch]"
+          class="mb-8 imput"
+          prepend-inner-icon="mdi-lock-outline"
+        />
 
         <div class="y">
-          <a
-            class="btn__register"
-            href="#"
-            @click.prevent="emits('nextStep')"
-          >
+          <a class="btn__register" href="#" @click.prevent="emits('nextStep')">
             <span>já tem uma conta </span>conecte-se.
           </a>
         </div>
         <v-btn
           :disabled="loading || !validForm"
           :loading="loading"
-          class="btn btn__submit"
+          class="btn mt-5 btn__submit"
+          block
+          size="large"
           type="submit"
         >
           cadastrar
@@ -129,50 +95,67 @@ import type { FormCadastro } from "@/types/formCadastro";
 const emits = defineEmits(["nextStep"]);
 const errorStore = useErrorStore();
 const user = ref<FormCadastro>({
-    name: "Marcos Rafael Burghausen",
-    email: "rafaelburghausen@gmail.com",
-    password: "Teste123@",
-    // name: "",
-    // email: "",
-    // password: "",
+  name: "Marcos Rafael Burghausen",
+  email: "rafaelburghausen@gmail.com",
+  password: "Teste123@",
+  confirmPassword: "Teste123@",
+  // name: "",
+  // email: "",
+  // password: "",
+  // confirmPassword: "",
 });
 
 let validForm = ref(false);
-let mostrarSenha = ref(true);
+let mostrarSenha = ref(false);
 let loading = ref(false);
 
 async function create() {
-    loading.value = true;
-    try {
-        await http.post("/create", user.value);
-        emits("nextStep");
-    } catch (error: unknown) {
-        if (isAxiosErrorWithData(error)) {
-            // Agora o TypeScript sabe que error.response.data existe
-            if (error.response.data.errors) {
-                errorStore.setErrorFromForm(error);
-            } else {
-                errorStore.setErrorFromResponse(error);
-            }
-        } else {
-            console.error("Erro desconhecido:", error);
-            // Tratar outros tipos de erro aqui
-        }
-    } finally {
-        loading.value = false;
+  loading.value = true;
+  try {
+    await http.post("/create", user.value);
+    emits("nextStep");
+  } catch (error: unknown) {
+    if (isAxiosErrorWithData(error)) {
+      if (error.response.data.errors) {
+        errorStore.setErrorFromForm(error);
+      } else {
+        errorStore.setErrorFromResponse(error);
+      }
+    } else {
+      console.error("Erro desconhecido:", error);
     }
+  } finally {
+    loading.value = false;
+  }
 }
 
-function isAxiosErrorWithData(error: unknown): error is AxiosError<{ errors?: any }> {
-    const axiosError = error as AxiosError;
-    return axiosError.isAxiosError === true && 
-           axiosError.response?.data !== undefined;
+function isAxiosErrorWithData(
+  error: unknown
+): error is AxiosError<{ errors?: any }> {
+  const axiosError = error as AxiosError;
+  return (
+    axiosError.isAxiosError === true && axiosError.response?.data !== undefined
+  );
 }
 
 const rules = {
-    requiredName: (value: string) => !!value || "O campo nome é obrigatório",
-    requiredEmail: (value: string) => !!value || "O campo email é obrigatório",
-    requiredSenha: (value: string) => !!value || "O campo senha é obrigatório",
+  requiredName: (value: string) => !!value || "O campo nome é obrigatório",
+  requiredEmail: (value: string) => !!value || "O campo email é obrigatório",
+  emailFormat: (value: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) || "Formato de email inválido",
+  requiredSenha: (value: string) => !!value || "O campo senha é obrigatório",
+  passwordFormat: (value: string) => {
+    const regex =
+      /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>[\]\\/-])[A-Za-z\d!@#$%^&*(),.?":{}|<>[\]\\/-]{8,}$/;
+    return (
+      regex.test(value) ||
+      "A senha deve ter pelo menos 8 caracteres, incluindo uma letra maiúscula, uma minúscula, um número e um caractere especial (exceto aspas)"
+    );
+  },
+  requiredConfirmarSenha: (value: string) =>
+    !!value || "O campo confirmar senha é obrigatório",
+  passwordsMatch: (value: string) =>
+    value === user.value.password || "As senhas não são iguais",
 };
 </script>
 <style scoped>
@@ -180,9 +163,8 @@ const rules = {
   display: flex;
   /* box-shadow: 1px 1px 10px 5px #77d08e; */
   /* border-radius: 10px; */
-  padding: 0;
   width: 90%;
-  max-width: 1000px;
+  max-width: 500px;
 }
 
 .container__dados {
@@ -277,19 +259,17 @@ const rules = {
   border-radius: 5px;
 }
 
-.container__input input {
+/* .container__input input {
   height: 55px;
   color: #ccc;
   width: 100%;
   border: none;
   background-color: transparent;
-}
-.input {
-  height: 55px;
+} */
+.imput {
+  /* height: 40px; */
   color: #ccc;
   width: 100%;
-  border: none;
-  background-color: #1e1e1e !important;
 }
 
 .container__input input:focus {
@@ -362,14 +342,11 @@ const rules = {
 }
 
 .btn {
-  border-radius: 15px;
   text-transform: uppercase;
   color: #fff;
   font-size: 10px;
-  padding: 5px;
   cursor: pointer;
   font-weight: bold;
-  width: 200px;
   align-self: center;
   border: none;
   margin-top: 1rem;

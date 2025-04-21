@@ -8,4 +8,15 @@
       "path": "./tsconfig.app.json"
     },
   ],
+  "compilerOptions": {
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "src/shims-vue.d.ts"
+  ]
 }

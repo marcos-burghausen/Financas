@@ -58,8 +58,6 @@ class RegisterController extends Controller
             $user->name               = $data['name'];
             $user->email              = $data['email'];
             $user->password           = Hash::make($data['password']);
-            $user->categoriasDespesas = [];
-            $user->categoriasReceitas = [];
             $user->save();
 
             $lastUser = User::latest('id')->first();

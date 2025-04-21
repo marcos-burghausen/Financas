@@ -1,46 +1,42 @@
 <template>
-  <v-container class="h-100 p-0">
+  <v-container class="h-100 p-0 d-flex justify-content-center">
     <FormLancamentos
       v-if="formulario"
       :releases="selectedRelease"
       rota="revenue"
       :mes-referencia="mesAnoReferencia"
       transaction-type="receitas"
-      @updateData="updateData"
-      @closeForm="closeForm"
+      @update-data="updateData"
+      @close-form="closeForm"
     />
-    <div
-      v-if="!formulario"
-      class="receitas"
-    >
+    <div v-if="!formulario" class="receitas">
       <div class="header fixed-top">
         <div class="d-flex justify-content-between">
           <router-link
             class="link me-7 d-flex align-items-center opaco"
             :to="{ name: 'dashboard' }"
           >
-            <mdicon
-              name="arrow-left"
-              size="25"
-            />
+            <v-icon icon="mdi-arrow-left" size="25" />
           </router-link>
           <div class="header__items">
             <div class="d-flex flex-column">
               <span class="fs-5">Receitas</span>
-              <span class="valor">R$ {{ formatValue(valueTotalRevenuesMonth) }}</span>
+              <span class="valor"
+                >R$ {{ formatValue(valueTotalRevenuesMonth) }}</span
+              >
             </div>
           </div>
         </div>
         <div class="container__mes">
-          <mdicon
-            name="chevron-left"
+          <v-icon
+            icon="mdi-chevron-left"
             class="mdicon"
             size="30"
             @click="mesAnterior"
           />
           <span class="mes">{{ mesPorExtenso }}</span>
-          <mdicon
-            name="chevron-right"
+          <v-icon
+            icon="mdi-chevron-right"
             class="mdicon"
             size="30"
             @click="proximoMes"
@@ -62,32 +58,34 @@
               class="mdicon__card"
               :disabled="revenue.status === 'Efetivada'"
             >
-              <mdicon
-                :name="revenue.status === 'Efetivada' ? 'check' : new Date() <= new Date(revenue.date) ? 'alert' : 'alert-remove'"
+              <v-icon
+                :icon="
+                  revenue.status === 'Efetivada'
+                    ? 'mdi-check'
+                    : new Date() <= new Date(revenue.date)
+                    ? 'mdi-alert'
+                    : 'mdi-alert-remove'
+                "
                 class="mdicon__lacamento"
                 :class="{
                   paga: revenue.status === 'Efetivada',
-                  atrasada: new Date() > new Date(revenue.date) && revenue.status === 'Pendente',
-                  Pendente: new Date() <= new Date(revenue.date) && revenue.status === 'Pendente',
+                  atrasada:
+                    new Date() > new Date(revenue.date) &&
+                    revenue.status === 'Pendente',
+                  Pendente:
+                    new Date() <= new Date(revenue.date) &&
+                    revenue.status === 'Pendente',
                 }"
                 size="30"
               />
             </v-card>
-            <div
-              style="
-
-width: 100%"
-            >
+            <div style="width: 100%">
               <div class="header__visao_geral">
                 <span style="text-align: start">{{ revenue.conta }}</span>
                 <div>
                   <span>{{ revenue.date }}</span>
                   <span>
-                    <mdicon
-                      name="dots-vertical"
-                      class="mdicon"
-                      size="25"
-                    />
+                    <mdicon name="dots-vertical" class="mdicon" size="25" />
                     <v-menu
                       activator="parent"
                       location="bottom end"
@@ -118,7 +116,9 @@ width: 100%"
               </div>
               <div style="display: flex; justify-content: space-between">
                 <span class="categoria">{{ revenue.descricao }}</span>
-                <span class="categoria">R$ {{ formatValue(revenue.valor) }}</span>
+                <span class="categoria"
+                  >R$ {{ formatValue(revenue.valor) }}</span
+                >
               </div>
               <div>
                 <span class="sub__categoria">{{ revenue.categoria }}</span>
@@ -129,14 +129,11 @@ width: 100%"
       </div>
       <NoDataComponent v-else />
     </div>
-    <div
-      v-if="!formulario"
-      class="fixed-bottom d-flex justify-end pe-5 pb-5"
-    >
-      <mdicon
+    <div v-if="!formulario" class="fixed-bottom d-flex justify-end pe-5 pb-5">
+      <v-icon
         type="button"
         title="Adicionar nova receita"
-        name="plus"
+        icon="mdi-plus"
         class="mdicon__add"
         @click="openCreateForm"
       />
@@ -146,9 +143,9 @@ width: 100%"
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import FormLancamentos from "../../components/FormLancamentos.vue";
-import NoDataComponent from "../../components/mobile/NoDataComponent.vue";
-import type { Lancamentos } from "../../types/lancamentos";
+import FormLancamentos from "@/components/FormLancamentos.vue";
+import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
+import type { Lancamentos } from "@/types/lancamentos";
 import { useRevenuesStore } from "../../store/revenues";
 import { useUserStore } from "../../store/user";
 import { useWalletsStore } from "../../store/wallets";
@@ -164,123 +161,140 @@ const useExpenses = useExpensesStore();
 const formulario = ref(false);
 const selectedRelease = ref<Lancamentos | null>(null);
 const mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
-const valueTotalRevenuesMonth = ref(useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth);
+const valueTotalRevenuesMonth = ref(
+  useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth
+);
 const revenuesMonth = ref(useRevenues.revenuesData.revenues?.RevenuesMonth);
-const categoriasNames = ref(useUser.user.categoriasReceitas.map(categoria => categoria.name));
-const contas = ref(useWallets.walletsData.walletsNames);
-
 
 const mesPorExtenso = computed(() => {
-    if (!mesAnoReferencia.value) return "";
-    const [ano, mes] = mesAnoReferencia.value.split("-");
-    const anoAtual = new Date().getFullYear();
-    const mesesPorExtenso = [
-        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-    ];
-    if (parseInt(ano, 10) === anoAtual) {
-        return mesesPorExtenso[parseInt(mes, 10) - 1];
-    }
-    const mesAbreviado = mesesPorExtenso[parseInt(mes, 10) - 1].slice(0, 3);
-    return `${mesAbreviado}./${ano.slice(2)}`;
+  if (!mesAnoReferencia.value) return "";
+  const [ano, mes] = mesAnoReferencia.value.split("-");
+  const anoAtual = new Date().getFullYear();
+  const mesesPorExtenso = [
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
+  ];
+  if (parseInt(ano, 10) === anoAtual) {
+    return mesesPorExtenso[parseInt(mes, 10) - 1];
+  }
+  const mesAbreviado = mesesPorExtenso[parseInt(mes, 10) - 1].slice(0, 3);
+  return `${mesAbreviado}./${ano.slice(2)}`;
 });
 
 const openCreateForm = () => {
-    selectedRelease.value = null; // Reset for create mode
-    formulario.value = true;
+  selectedRelease.value = null; // Reset for create mode
+  formulario.value = true;
 };
 
 const editRevenue = (revenue: Lancamentos) => {
-    selectedRelease.value = { ...revenue }; // Populate form with revenue data
-    formulario.value = true;
+  selectedRelease.value = { ...revenue }; // Populate form with revenue data
+  formulario.value = true;
 };
 
 const closeForm = () => {
-    formulario.value = false;
-    selectedRelease.value = null;
+  formulario.value = false;
+  selectedRelease.value = null;
 };
 
 const updateData = (newData) => {
-    useRevenues.setRevenuesData(newData);
-    valueTotalRevenuesMonth.value = newData.ValueTotalRevenuesMonth;
-    revenuesMonth.value = newData.RevenuesMonth;
-    closeForm();
+  useRevenues.setRevenuesData(newData);
+  valueTotalRevenuesMonth.value = newData.ValueTotalRevenuesMonth;
+  revenuesMonth.value = newData.RevenuesMonth;
+  closeForm();
 };
 
 const mesAnterior = () => {
-    const [ano, mes] = mesAnoReferencia.value.split("-");
-    const dataAtual = new Date(ano, mes - 1);
-    dataAtual.setMonth(dataAtual.getMonth() - 1);
-    mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(dataAtual.getMonth() + 1).padStart(2, "0")}`;
-    buscarDadosMes(mesAnoReferencia.value);
+  const [ano, mes] = mesAnoReferencia.value.split("-");
+  const dataAtual = new Date(ano, mes - 1);
+  dataAtual.setMonth(dataAtual.getMonth() - 1);
+  mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
+    dataAtual.getMonth() + 1
+  ).padStart(2, "0")}`;
+  buscarDadosMes(mesAnoReferencia.value);
 };
 
 const proximoMes = () => {
-    const [ano, mes] = mesAnoReferencia.value.split("-");
-    const dataAtual = new Date(ano, mes - 1);
-    dataAtual.setMonth(dataAtual.getMonth() + 1);
-    mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(dataAtual.getMonth() + 1).padStart(2, "0")}`;
-    buscarDadosMes(mesAnoReferencia.value);
+  const [ano, mes] = mesAnoReferencia.value.split("-");
+  const dataAtual = new Date(ano, mes - 1);
+  dataAtual.setMonth(dataAtual.getMonth() + 1);
+  mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
+    dataAtual.getMonth() + 1
+  ).padStart(2, "0")}`;
+  buscarDadosMes(mesAnoReferencia.value);
 };
 
 const buscarDadosMes = async (data: string) => {
-    try {
-        const res = await http.post("/buscar-dados-mes", { mes: data });
-        useWallets.setMesReferencia(res.data.walletsData.mes_ano_referencia);
-        useExpenses.setExpensesData(res.data.expensesData);
-        useRevenues.setRevenuesData(res.data.revenuesData);
-        useWallets.setWalletsData(res.data.walletsData);
-        mesAnoReferencia.value = res.data.walletsData.mes_ano_referencia;
-        revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
-        valueTotalRevenuesMonth.value = res.data.revenuesData.ValueTotalRevenuesMonth;
-    } catch (error) {
-        console.error("Erro ao buscar dados do mês:", error);
-    }
+  try {
+    const res = await http.post("/buscar-dados-mes", { mes: data });
+    useWallets.setMesReferencia(res.data.walletsData.mes_ano_referencia);
+    useExpenses.setExpensesData(res.data.expensesData);
+    useRevenues.setRevenuesData(res.data.revenuesData);
+    useWallets.setWalletsData(res.data.walletsData);
+    mesAnoReferencia.value = res.data.walletsData.mes_ano_referencia;
+    revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
+    valueTotalRevenuesMonth.value =
+      res.data.revenuesData.ValueTotalRevenuesMonth;
+  } catch (error) {
+    console.error("Erro ao buscar dados do mês:", error);
+  }
 };
 
 const deletar = async (id: number) => {
-    try {
-        const res = await http.post("/delete-revenue", {
-            id,
-            mesReferencia: mesAnoReferencia.value,
-        });
-        useRevenues.setRevenuesData(res.data.revenuesData);
-        valueTotalRevenuesMonth.value = res.data.revenuesData.ValueTotalRevenuesMonth;
-        revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
-    } catch (error) {
-        console.error("Erro ao deletar receita:", error);
-    }
+  try {
+    const res = await http.post("/delete-revenue", {
+      id,
+      mesReferencia: mesAnoReferencia.value,
+    });
+    useRevenues.setRevenuesData(res.data.revenuesData);
+    valueTotalRevenuesMonth.value =
+      res.data.revenuesData.ValueTotalRevenuesMonth;
+    revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
+  } catch (error) {
+    console.error("Erro ao deletar receita:", error);
+  }
 };
 
 const receiveRevenue = async (revenueId: string, conta: string) => {
-    try {
-        const payload = {
-            conta,
-            mesReferencia: mesAnoReferencia.value, // From your ref
-        };
-        const res = await http.patch(`/api/revenue/${revenueId}/receive`, payload);
-        useRevenues.setRevenuesData(res.data.revenuesData);
-        useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
-        useWallets.setWallets(res.data.walletsData.wallets);
-        // Update UI or emit event
-    } catch (error) {
-        console.error("Erro ao receber receita:", error.response?.data);
-    }
+  try {
+    const payload = {
+      conta,
+      mesReferencia: mesAnoReferencia.value, // From your ref
+    };
+    const res = await http.patch(`/api/revenue/${revenueId}/receive`, payload);
+    useRevenues.setRevenuesData(res.data.revenuesData);
+    useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
+    useWallets.setWallets(res.data.walletsData.wallets);
+    // Update UI or emit event
+  } catch (error) {
+    console.error("Erro ao receber receita:", error.response?.data);
+  }
 };
 
 const deleteRevenue = async (revenueId: string) => {
-    try {
-        const payload = {
-            mesReferencia: mesAnoReferencia.value,
-        };
-        const res = await http.delete(`/api/revenue/${revenueId}`, { data: payload });
-        useRevenues.setRevenuesData(res.data.revenuesData);
-        useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
-        useWallets.setWallets(res.data.walletsData.wallets);
-        // Update UI or emit event
-    } catch (error) {
-        console.error("Erro ao excluir receita:", error.response?.data);
-    }
+  try {
+    const payload = {
+      mesReferencia: mesAnoReferencia.value,
+    };
+    const res = await http.delete(`/api/revenue/${revenueId}`, {
+      data: payload,
+    });
+    useRevenues.setRevenuesData(res.data.revenuesData);
+    useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
+    useWallets.setWallets(res.data.walletsData.wallets);
+    // Update UI or emit event
+  } catch (error) {
+    console.error("Erro ao excluir receita:", error.response?.data);
+  }
 };
 </script>
 
@@ -290,6 +304,8 @@ const deleteRevenue = async (revenueId: string) => {
   flex-direction: column;
   height: 100%;
   min-height: 100%;
+  width: 100%;
+  max-width: 600px;
   overflow: auto;
   padding-bottom: 10px;
 }

@@ -5,7 +5,9 @@
       class="px-3 pt-16 w-100"
       @submit.prevent="salvarLancamentos"
     >
-      <div class="header__items d-flex justify-content-between fixed-top py-10 pe-2">
+      <div
+        class="header__items d-flex justify-content-between fixed-top py-10 pe-2"
+      >
         <v-btn
           :disabled="loading"
           :loading="loading"
@@ -14,13 +16,18 @@
           @click="closeForm"
         />
         <div class="d-flex flex-column">
-          <span class="fs-5">{{ isEditMode ? 'Editar' : 'Nova' }} {{ transactionType === 'receitas' ? 'Receita' : 'Despesa' }}</span>
+          <span class="fs-5"
+            >{{ isEditMode ? "Editar" : "Nova" }}
+            {{ transactionType === "receitas" ? "Receita" : "Despesa" }}</span
+          >
         </div>
         <v-btn
-          :disabled="loading || !validFormLancamentos || formReleases.valor === '0,00'"
+          :disabled="
+            loading || !validFormLancamentos || formReleases.valor === '0,00'
+          "
           :loading="loading"
           style="background-color: #77d08e"
-          class=" px-3 me-2"
+          class="px-3 me-2"
           type="submit"
           rounded="xl"
         >
@@ -41,10 +48,7 @@
         prepend-inner-icon="mdi-text-long"
       >
         <template #message>
-          <div
-            v-if="errorsForm.descricao"
-            class="error-message"
-          >
+          <div v-if="errorsForm.descricao" class="error-message">
             {{ errorsForm.descricao[0] }}
           </div>
         </template>
@@ -63,10 +67,7 @@
         @input="formatValueSave"
       >
         <template #message>
-          <div
-            v-if="errorsForm.valor"
-            class="error-message"
-          >
+          <div v-if="errorsForm.valor" class="error-message">
             {{ errorsForm.valor[0] }}
           </div>
         </template>
@@ -83,10 +84,7 @@
         @click="openTipoLancamento = true"
       />
 
-      <div
-        v-if="openTipoLancamento"
-        class="tipo"
-      >
+      <div v-if="openTipoLancamento" class="tipo">
         <div
           class="d-flex flex-column align-start justify-space-around modal__tipo"
         >
@@ -97,7 +95,11 @@
             :loading="loading"
             :class="formReleases.tipo === item ? 'selected' : ''"
             flat
-            :prepend-icon="formReleases.tipo === item ? 'mdi-radiobox-marked' : 'mdi-checkbox-blank-circle-outline'"
+            :prepend-icon="
+              formReleases.tipo === item
+                ? 'mdi-radiobox-marked'
+                : 'mdi-checkbox-blank-circle-outline'
+            "
             @click="selecionarTipo(item)"
           >
             <span>{{ item }}</span>
@@ -105,26 +107,15 @@
         </div>
       </div>
 
-      <div
-        v-if="openParcelas"
-        class="parcelas"
-      >
+      <div v-if="openParcelas" class="parcelas">
         <div class="container__parcelas">
           <div class="p-3">
-            <h2 class="mb-4 text-center">
-              Configurar parcelas
-            </h2>
-            
+            <h2 class="mb-4 text-center">Configurar parcelas</h2>
+
             <div class="py-2">
               <div class="d-flex align-center justify-space-between">
-                <v-icon
-                  class="pe-3"
-                  icon="mdi-arrow-right"
-                  size="24"
-                />
-                <span class="item-label">
-                  Parcela inicial
-                </span>
+                <v-icon class="pe-3" icon="mdi-arrow-right" size="24" />
+                <span class="item-label"> Parcela inicial </span>
                 <div class="item-value">
                   <div class="number-stepper">
                     <v-btn
@@ -135,12 +126,12 @@
                       class="stepper-btn"
                       @click="decrementParcelaInicial"
                     />
-                    <input 
-                      v-model="tempParcelaInicial" 
-                      type="number" 
+                    <input
+                      v-model="tempParcelaInicial"
+                      type="number"
                       class="stepper-input"
                       min="1"
-                    >
+                    />
                     <v-btn
                       prepend-icon="mdi-chevron-up"
                       flat
@@ -151,9 +142,9 @@
                 </div>
               </div>
             </div>
-            
+
             <div class="divider" />
-            
+
             <div class="">
               <div class="d-flex align-center justify-space-between">
                 <v-icon
@@ -162,9 +153,7 @@
                   size="24"
                   class="pe-3"
                 />
-                <div class="item-label">
-                  Quantidade
-                </div>
+                <div class="item-label">Quantidade</div>
                 <div class="item-value">
                   <div class="number-stepper">
                     <v-btn
@@ -174,12 +163,12 @@
                       variant="text"
                       @click="decrementQuantidade"
                     />
-                    <input 
-                      v-model="tempNumParcelas" 
-                      type="number" 
+                    <input
+                      v-model="tempNumParcelas"
+                      type="number"
                       class="stepper-input"
                       min="2"
-                    >
+                    />
                     <v-btn
                       class="stepper-btn"
                       prepend-icon="mdi-chevron-up"
@@ -190,19 +179,13 @@
                 </div>
               </div>
             </div>
-            
+
             <div class="divider" />
-            
+
             <div class="">
               <div class="d-flex align-center justify-space-between">
-                <v-icon
-                  icon="mdi-calendar-blank"
-                  size="24"
-                  class="pe-3"
-                />
-                <div class="item-label">
-                  Periodicidade
-                </div>
+                <v-icon icon="mdi-calendar-blank" size="24" class="pe-3" />
+                <div class="item-label">Periodicidade</div>
                 <div class="item-value pb-2">
                   <v-select
                     v-model="tempPeriodicidade"
@@ -215,18 +198,12 @@
               </div>
             </div>
           </div>
-          
-          <div class="d-flex justify-space-between align-center  p-3">
-            <v-btn
-              class="btn-cancelar"
-              @click="cancelarConfiguracaoRepeticao"
-            >
+
+          <div class="d-flex justify-space-between align-center p-3">
+            <v-btn class="btn-cancelar" @click="cancelarConfiguracaoRepeticao">
               Cancelar
             </v-btn>
-            <v-btn
-              class="btn-concluido"
-              @click="concluirParcelas"
-            >
+            <v-btn class="btn-concluido" @click="concluirParcelas">
               Concluído
             </v-btn>
           </div>
@@ -234,7 +211,7 @@
       </div>
 
       <v-date-input
-        v-model="formReleases.date"
+        v-model="formReleases.data"
         variant="underlined"
         hide-details="auto"
         label="Data de Vencimento"
@@ -243,19 +220,13 @@
         show-adjacent-months
         color="#77d08e"
         prepend-icon=""
-        prepend-inner-icon="$calendar"
+        prepend-inner-icon="mdi-calendar"
       >
         <template #append-inner>
-          <span
-            v-if="isToday"
-            class="today__label"
-          >Hoje</span>
+          <span v-if="isTodayVencimento" class="today__label">Hoje</span>
         </template>
         <template #message>
-          <div
-            v-if="errorsForm.date"
-            class="error__message"
-          >
+          <div v-if="errorsForm.date" class="error__message">
             {{ errorsForm.date[0] }}
           </div>
         </template>
@@ -269,15 +240,27 @@
         type="text"
         class="mb-8 imput"
         readonly
-        :prepend-inner-icon="formReleases.status === 'Efetivada' ? 'mdi-check-circle-outline' : 'mdi-clock-time-three-outline'"
+        :prepend-inner-icon="
+          formReleases.status === 'Efetivada'
+            ? 'mdi-check-circle-outline'
+            : 'mdi-clock-time-three-outline'
+        "
         @click="toggleStatus"
       >
         <template #append-inner>
           <div
-            :class="formReleases.status === 'Efetivada' ? 'form__check__efetivada' : 'form__check'"
+            :class="
+              formReleases.status === 'Efetivada'
+                ? 'form__check__efetivada'
+                : 'form__check'
+            "
           >
             <div
-              :class="formReleases.status === 'Efetivada' ? 'switch__check__efetivada' : 'switch__check'"
+              :class="
+                formReleases.status === 'Efetivada'
+                  ? 'switch__check__efetivada'
+                  : 'switch__check'
+              "
             />
           </div>
         </template>
@@ -295,10 +278,25 @@
         prepend-inner-icon="mdi-scatter-plot"
       >
         <template #message>
-          <div
-            v-if="errorsForm.categoria"
-            class="error-message"
-          >
+          <div v-if="errorsForm.categoria" class="error-message">
+            {{ errorsForm.categoria[0] }}
+          </div>
+        </template>
+      </v-autocomplete>
+
+      <v-autocomplete
+        v-model="formReleases.subCategoria"
+        :items="subCategoriasNames"
+        :rules="[rules.requiredSubCatagoriasNames]"
+        label="subcategoria"
+        placeholder="Selecione..."
+        required
+        variant="underlined"
+        class="mb-8 imput"
+        prepend-inner-icon="mdi-scatter-plot"
+      >
+        <template #message>
+          <div v-if="errorsForm.categoria" class="error-message">
             {{ errorsForm.categoria[0] }}
           </div>
         </template>
@@ -306,31 +304,85 @@
 
       <v-autocomplete
         v-model="formReleases.conta"
-        :items="contas"
+        :items="contasNames"
         :rules="[rules.requiredCarteira]"
         label="Conta"
         placeholder="Selecione..."
         required
         variant="underlined"
-        class="mb-5 imput"
+        class="mb-8 imput"
         prepend-inner-icon="mdi-bank"
       >
         <template #message>
-          <div
-            v-if="errorsForm.conta"
-            class="error-message"
-          >
+          <div v-if="errorsForm.conta" class="error-message">
             {{ errorsForm.conta[0] }}
           </div>
         </template>
       </v-autocomplete>
+
+      <v-btn
+        v-if="!informacoes"
+        :append-icon="informacoes ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+        variant="plain"
+        size="x-small"
+        style="color: #77d08e"
+        block
+        @click="informacoes = !informacoes"
+      >
+        Mais informações
+      </v-btn>
+
+      <v-date-input
+        v-if="informacoes"
+        v-model="formReleases.dateLancamento"
+        variant="underlined"
+        hide-details="auto"
+        label="Data lançamento"
+        :rules="[rules.requiredDataLanacamento]"
+        class="mb-8 imput"
+        show-adjacent-months
+        color="#77d08e"
+        prepend-icon=""
+        prepend-inner-icon="mdi-calendar-clock"
+      >
+        <template #append-inner>
+          <span v-if="isTodayLancamento" class="today__label">Hoje</span>
+        </template>
+        <template #message>
+          <div v-if="errorsForm.date" class="error__message">
+            {{ errorsForm.date[0] }}
+          </div>
+        </template>
+      </v-date-input>
+
+      <v-date-input
+        v-if="informacoes"
+        v-model="formReleases.dateEfetivacao"
+        variant="underlined"
+        hide-details="auto"
+        label="Data efetivação"
+        :rules="[rules.requiredDataEfetivacao]"
+        class="mb-8 imput"
+        show-adjacent-months
+        color=""
+        prepend-icon=""
+        prepend-inner-icon="mdi-calendar-check"
+      >
+        <template #append-inner>
+          <span v-if="isTodayEfetivacao" class="today__label">Hoje</span>
+        </template>
+        <template #message>
+          <div v-if="errorsForm.date" class="error__message">
+            {{ errorsForm.date[0] }}
+          </div>
+        </template>
+      </v-date-input>
     </v-form>
   </div>
 </template>
 
-
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import http from "../services/http";
 import type { Lancamentos } from "../types/lancamentos";
 import { useWalletsStore } from "../store/wallets";
@@ -349,17 +401,19 @@ const props = defineProps<{
   mesReferencia: string;
   transactionType: "receitas" | "despesas";
 }>();
+console.log(props.releases);
 
 const validateDate = (date: string | undefined): string => {
-    if (!date) return new Date().toISOString().split("T")[0];
-    const parsedDate = new Date(date);
-    if (isNaN(parsedDate.getTime())) {
-        console.warn("Data inválida recebida, usando data atual:", date);
-        return new Date().toISOString().split("T")[0];
-    }
-    return parsedDate.toISOString().split("T")[0];
+  if (!date) return new Date().toISOString().split("T")[0];
+  const parsedDate = new Date(date);
+  if (isNaN(parsedDate.getTime())) {
+    console.warn("Data inválida recebida, usando data atual:", date);
+    return new Date().toISOString().split("T")[0];
+  }
+  return parsedDate.toISOString().split("T")[0];
 };
 
+let informacoes = ref(false);
 const parcelaInicial = ref(1);
 const tempParcelaInicial = ref(1);
 const tempNumParcelas = ref(2);
@@ -371,208 +425,273 @@ const openParcelas = ref(false);
 const errorsForm = ref<{ [key: string]: string[] }>({});
 const tiposLancamento = ref(["Não recorrente", "Parcelada", "Fixa mensal"]);
 
-const categoriasNames = ref(props.transactionType === "receitas" ? useUser.user.categoriasReceitas.map(categoria => categoria.name) : useUser.user.categoriasDespesas.map(categoria => categoria.name)); 
+const categoriasNames = ref(
+  props.transactionType === "receitas"
+    ? useUser.user.categoriasReceitas.map((categoria) => categoria.name)
+    : useUser.user.categoriasDespesas.map((categoria) => categoria.name)
+);
 
-const contas = ref(useWallets.walletsData.wallets.map(conta => conta.name));
+const contasNames = ref(
+  useWallets.walletsData.wallets.map((conta) => conta.name)
+);
 
 const isEditMode = computed(() => !!props.releases?.id);
 
-const isToday = computed(() => {
-    const today = new Date().toISOString().split("T")[0];
-    return formReleases.value.date === today;
+const isTodayVencimento = computed(() => {
+  const today = new Date().toISOString().split("T")[0];
+  const selectedDate = formReleases.value.data;
+  if (selectedDate instanceof Date) {
+    return selectedDate.toISOString().split("T")[0] === today;
+  }
+  return selectedDate === today;
 });
 
+const isTodayLancamento = computed(() => {
+  const today = new Date().toISOString().split("T")[0];
+  const selectedDate = formReleases.value.dateLancamento;
+  if (selectedDate instanceof Date) {
+    return selectedDate.toISOString().split("T")[0] === today;
+  }
+  return selectedDate === today;
+});
 
+const isTodayEfetivacao = computed(() => {
+  const today = new Date().toISOString().split("T")[0];
+  const selectedDate = formReleases.value.dateEfetivacao;
+  if (selectedDate instanceof Date) {
+    return selectedDate.toISOString().split("T")[0] === today;
+  }
+  return selectedDate === today;
+});
 
 const formReleases = ref<Lancamentos>({
-    id: props.releases?.id || null,
-    descricao: props.releases?.descricao || "",
-    valor: props.releases?.valor || "0,00",
-    tipo: props.releases?.tipo || "Não recorrente",
-    num_parcelas: props.releases?.num_parcelas || 0,
-    periodicidade: props.releases?.periodicidade || null,
-    // date: props.releases?.date || new Date().toISOString().split("T")[0],
-    date: validateDate(props.releases?.date),
-    status: props.releases?.status || "Pendente",
-    categoria: props.releases?.categoria || "Outros",
-    subCategoria: props.releases?.subCategoria || "",
-    conta: props.releases?.conta || contas,
-    mesReferencia: props.releases?.mesReferencia || props.mesReferencia,
-    dateLancamento: props.releases?.dateLancamento || new Date().toISOString().split("T")[0],
-    dateEfetivacao: props.releases?.dateEfetivacao || new Date().toISOString().split("T")[0],
+  id: props.releases?.id || null,
+  descricao: props.releases?.descricao || "",
+  valor: props.releases?.valor || "0,00",
+  tipo: props.releases?.tipo || "Não recorrente",
+  numParcelas: props.releases?.numParcelas || 0,
+  periodicidade: props.releases?.periodicidade || null,
+  data: validateDate(props.releases?.data),
+  status: props.releases?.status || "Pendente",
+  categoria: props.releases?.categoria || "Outros",
+  subCategoria: props.releases?.subCategoria || "",
+  conta: props.releases?.conta || contasNames.value[0],
+  mesReferencia: props.releases?.mesReferencia || props.mesReferencia,
+  dateLancamento: validateDate(props.releases?.data),
+  dateEfetivacao: props.releases?.dateEfetivacao,
 });
 
+watch(
+  () => formReleases.value.data,
+  (newValue) => {
+    if (newValue instanceof Date) {
+      formReleases.value.data = newValue.toISOString().split("T")[0];
+    }
+  }
+);
+
+watch(
+  () => formReleases.value.dateLancamento,
+  (newValue) => {
+    if (newValue instanceof Date) {
+      formReleases.value.dateLancamento = newValue.toISOString().split("T")[0];
+    }
+  }
+);
+
+watch(
+  () => formReleases.value.dateEfetivacao,
+  (newValue) => {
+    if (newValue instanceof Date) {
+      formReleases.value.dateEfetivacao = newValue.toISOString().split("T")[0];
+    }
+  }
+);
+
 const incrementParcelaInicial = () => {
-    tempParcelaInicial.value++;
+  tempParcelaInicial.value++;
 };
 
 const decrementParcelaInicial = () => {
-    if (tempParcelaInicial.value > 1) {
-        tempParcelaInicial.value--;
-    }
+  if (tempParcelaInicial.value > 1) {
+    tempParcelaInicial.value--;
+  }
 };
 
 // Funções para incrementar e decrementar quantidade de parcelas
 const incrementQuantidade = () => {
-    tempNumParcelas.value++;
+  tempNumParcelas.value++;
 };
 
 const decrementQuantidade = () => {
-    if (tempNumParcelas.value > 2) {
-        tempNumParcelas.value--;
-    }
+  if (tempNumParcelas.value > 2) {
+    tempNumParcelas.value--;
+  }
 };
 
 const inicializarValoresTemporarios = () => {
-    tempParcelaInicial.value = 1;
-    tempNumParcelas.value = 2;
-    tempPeriodicidade.value = "Mensal";
+  tempParcelaInicial.value = 1;
+  tempNumParcelas.value = 2;
+  tempPeriodicidade.value = "Mensal";
 };
 
 const cancelarConfiguracaoRepeticao = () => {
-    // Retorna tipo para "Não recorrente"
-    formReleases.value.tipo = "Não recorrente";
-    formReleases.value.num_parcelas = 0;
-    formReleases.value.periodicidade = "";
-  
-    // Fecha o modal
-    openParcelas.value = false;
+  // Retorna tipo para "Não recorrente"
+  formReleases.value.tipo = "Não recorrente";
+  formReleases.value.num_parcelas = 0;
+  formReleases.value.periodicidade = "";
+
+  // Fecha o modal
+  openParcelas.value = false;
 };
 
 const concluirParcelas = () => {
-    // Salva os valores temporários nos valores finais
-    parcelaInicial.value = tempParcelaInicial.value;
-    formReleases.value.num_parcelas = tempNumParcelas.value;
-    formReleases.value.periodicidade = tempPeriodicidade.value;
-  
-    // Fecha o modal
-    openParcelas.value = false;
+  // Salva os valores temporários nos valores finais
+  parcelaInicial.value = tempParcelaInicial.value;
+  formReleases.value.num_parcelas = tempNumParcelas.value;
+  formReleases.value.periodicidade = tempPeriodicidade.value;
+
+  // Fecha o modal
+  openParcelas.value = false;
 };
 
 const toggleStatus = () => {
-    formReleases.value.status = formReleases.value.status === "Efetivada" ? "Pendente" : "Efetivada";
+  formReleases.value.status =
+    formReleases.value.status === "Efetivada" ? "Pendente" : "Efetivada";
 };
 
 const closeForm = () => {
-    emit("closeForm");
-    clearInputs();
+  emit("closeForm");
+  clearInputs();
 };
 
 const selecionarTipo = (item: string) => {
-    formReleases.value.tipo = item;
-    openTipoLancamento.value = false;
-  
-    if (item === "Parcelada") {
+  formReleases.value.tipo = item;
+  openTipoLancamento.value = false;
+
+  if (item === "Parcelada") {
     // Inicializa valores para parcelamento
-        inicializarValoresTemporarios();
-    
-        // Se já existirem valores salvos, usa-os como valores temporários
-        if (formReleases.value.num_parcelas > 0) {
-            tempNumParcelas.value = formReleases.value.num_parcelas;
-        }
-    
-        if (formReleases.value.periodicidade) {
-            tempPeriodicidade.value = formReleases.value.periodicidade;
-        }
-    
-        // Abre o modal
-        openParcelas.value = true;
-    } else {
-    // Para outros tipos, limpa os valores de parcelamento
-        formReleases.value.num_parcelas = 0;
-        formReleases.value.periodicidade = "";
+    inicializarValoresTemporarios();
+
+    // Se já existirem valores salvos, usa-os como valores temporários
+    if (formReleases.value.num_parcelas > 0) {
+      tempNumParcelas.value = formReleases.value.num_parcelas;
     }
+
+    if (formReleases.value.periodicidade) {
+      tempPeriodicidade.value = formReleases.value.periodicidade;
+    }
+
+    // Abre o modal
+    openParcelas.value = true;
+  } else {
+    // Para outros tipos, limpa os valores de parcelamento
+    formReleases.value.num_parcelas = 0;
+    formReleases.value.periodicidade = "";
+  }
 };
 
 const salvarLancamentos = async () => {
-    try {
-        loading.value = true;
-        const valorStr = formReleases.value.valor.replace(/\./g, "").replace(",", ".");
-        const valorNum = parseFloat(valorStr);
-        if (isNaN(valorNum)) {
-            errorsForm.value.valor = ["O valor deve ser um número válido"];
-            return;
-        }
-        const payload = {
-            valor: valorNum,
-            date: formReleases.value.date,
-            descricao: formReleases.value.descricao,
-            categoria: formReleases.value.categoria,
-            conta: formReleases.value.conta,
-            status: formReleases.value.status,
-            mesReferencia: formReleases.value.mesReferencia,
-            num_parcelas: formReleases.value.num_parcelas,
-            periodicidade: formReleases.value.periodicidade,
-            tipo: formReleases.value.tipo,
-            tipoTransacao: props.transactionType,
-        };
-        console.log("Payload being sent:", payload);
-        const method = isEditMode.value ? "put" : "post";
-        const url = isEditMode.value ? `/revenue/${formReleases.value.id}` : "/revenue";
-        const res = await http[method](url, payload);
-
-        useRevenues.setRevenuesData(res.data.revenuesData);
-        useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
-        useWallets.setWallets(res.data.walletsData.wallets);
-        emit("updateData", res.data.revenuesData);
-        closeForm();
-    } catch (error) {
-        errorsForm.value = error.response?.data?.errors || {};
-        console.error("Erro ao salvar lançamento:", error.response?.data);
-        console.error("Validation errors:", errorsForm.value);
-    } finally {
-        loading.value = false;
+  try {
+    loading.value = true;
+    const valorStr = formReleases.value.valor
+      .replace(/\./g, "")
+      .replace(",", ".");
+    const valorNum = parseFloat(valorStr);
+    if (isNaN(valorNum)) {
+      errorsForm.value.valor = ["O valor deve ser um número válido"];
+      return;
     }
+    const payload = {
+      valor: valorNum,
+      date: formReleases.value.date,
+      descricao: formReleases.value.descricao,
+      categoria: formReleases.value.categoria,
+      conta: formReleases.value.conta,
+      status: formReleases.value.status,
+      mesReferencia: formReleases.value.mesReferencia,
+      num_parcelas: formReleases.value.num_parcelas,
+      periodicidade: formReleases.value.periodicidade,
+      tipo: formReleases.value.tipo,
+      tipoTransacao: props.transactionType,
+    };
+    console.log("Payload being sent:", payload);
+    const method = isEditMode.value ? "put" : "post";
+    const url = isEditMode.value
+      ? `/revenue/${formReleases.value.id}`
+      : "/revenue";
+    const res = await http[method](url, payload);
+
+    useRevenues.setRevenuesData(res.data.revenuesData);
+    useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
+    useWallets.setWallets(res.data.walletsData.wallets);
+    emit("updateData", res.data.revenuesData);
+    closeForm();
+  } catch (error) {
+    errorsForm.value = error.response?.data?.errors || {};
+    console.error("Erro ao salvar lançamento:", error.response?.data);
+    console.error("Validation errors:", errorsForm.value);
+  } finally {
+    loading.value = false;
+  }
 };
 
 const clearInputs = () => {
-    formReleases.value = {
-        id: null,
-        descricao: "",
-        valor: "0,00",
-        tipo: "Não recorrente",
-        num_parcelas: 0,
-        periodicidade: null,
-        date: new Date().toISOString().split("T")[0],
-        status: "Pendente",
-        categoria: "",
-        subCategoria: "",
-        conta: "",
-        mesReferencia: props.mesReferencia,
-        dateLancamento: new Date().toISOString().split("T")[0],
-        dateEfetivacao: new Date().toISOString().split("T")[0],
-    };
-    errorsForm.value = {};
+  formReleases.value = {
+    id: null,
+    descricao: "",
+    valor: "0,00",
+    tipo: "Não recorrente",
+    num_parcelas: 0,
+    periodicidade: null,
+    date: new Date().toISOString().split("T")[0],
+    status: "Pendente",
+    categoria: "",
+    subCategoria: "",
+    conta: "",
+    mesReferencia: props.mesReferencia,
+    dateLancamento: new Date().toISOString().split("T")[0],
+    dateEfetivacao: new Date().toISOString().split("T")[0],
+  };
+  errorsForm.value = {};
 };
 
 const formatValueSave = () => {
-    let novoValor = formReleases.value.valor.replace(/[^\d]/g, "");
-    if (novoValor.length > 1) {
-        const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
-        const parteDecimal = novoValor.slice(-2);
-        const parteInteiraFormatada = parteInteira.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-        formReleases.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
-    } else if (novoValor.length === 1) {
-        formReleases.value.valor = `0,0${novoValor}`;
-    } else {
-        formReleases.value.valor = "0,00";
-    }
+  let novoValor = formReleases.value.valor.replace(/[^\d]/g, "");
+  if (novoValor.length > 1) {
+    const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
+    const parteDecimal = novoValor.slice(-2);
+    const parteInteiraFormatada = parteInteira.replace(
+      /\B(?=(\d{3})+(?!\d))/g,
+      "."
+    );
+    formReleases.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
+  } else if (novoValor.length === 1) {
+    formReleases.value.valor = `0,0${novoValor}`;
+  } else {
+    formReleases.value.valor = "0,00";
+  }
 };
 
 const rules = {
-    requiredValor: (value: string) => !!value || "O campo valor é obrigatório",
-    requiredValorMaiorQue0: (value: string) => {
-        if (!value) return "O campo valor é obrigatório";
-        const numericValue = parseFloat(value.replace(/\./g, "").replace(",", "."));
-        return (!isNaN(numericValue) && numericValue > 0) || "O campo valor deve ser maior que zero";
-    },
-    requiredData: (value: string) => !!value || "O campo data é obrigatório",
-    requiredDescricao: (value: string) => !!value || "O campo descrição é obrigatório",
-    requiredCatagoria: (value: string) => !!value || "O campo categoria é obrigatório",
-    requiredCarteira: (value: string) => !!value || "O campo conta é obrigatório",
+  requiredValor: (value: string) => !!value || "O campo valor é obrigatório",
+  requiredValorMaiorQue0: (value: string) => {
+    if (!value) return "O campo valor é obrigatório";
+    const numericValue = parseFloat(value.replace(/\./g, "").replace(",", "."));
+    return (
+      (!isNaN(numericValue) && numericValue > 0) ||
+      "O campo valor deve ser maior que zero"
+    );
+  },
+  requiredData: (value: string) => !!value || "O campo data é obrigatório",
+  requiredDescricao: (value: string) =>
+    !!value || "O campo descrição é obrigatório",
+  requiredCatagoria: (value: string) =>
+    !!value || "O campo categoria é obrigatório",
+  requiredCarteira: (value: string) => !!value || "O campo conta é obrigatório",
 };
 </script>
-         
+
 <style scoped>
 .v-btn {
   background-color: transparent;
@@ -581,6 +700,7 @@ const rules = {
 
 .container__modal {
   width: 100%;
+  max-width: 600px;
   height: 100%;
   min-height: 100%;
   background: rgb(15, 15, 15);

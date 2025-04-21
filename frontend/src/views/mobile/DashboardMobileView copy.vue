@@ -1,250 +1,4 @@
 <template>
-  <!-- <div class="containe__mobile">
-    <MenuLateralMobile
-      :menu-expandido="menuExpandido"
-      @expandirMenu="menuExpandido = !menuExpandido"
-    />
-
-    <CabecalhoMobile
-      :menu-expandido="menuExpandido"
-      :mes-referencia="mesPorExtenso"
-      @expandirMenu="menuExpandido = !menuExpandido"
-      @mesAnterior="mesAnterior"
-      @proximoMes="proximoMes"
-    /> -->
-
-  <!-- <div class="container__saldo__conta d-flex justify-content-center">
-      <div class="me-4 d-flex flex-column align-center justify-content-end">
-        <span class="icon__text">
-          <mdicon
-            name="check-circle-outline"
-            size="18"
-          />
-          Inicial
-        </span>
-        <div style="display: flex; align-items: center">
-          <span
-            :style="{ color: saldoInicial < 0 ? 'red' : '#757575' }"
-            style="font-size: 13px"
-          >
-            R$ {{ formatValue(saldoInicial) }}
-          </span>
-        </div>
-      </div>
-      <div class="d-flex flex-column align-center justify-content-end">
-        <span
-          class="fs-5"
-          style="color: #757575"
-        >
-          <mdicon
-            :name="
-              totalBalance < 0
-                ? 'minus-circle-outline'
-                : totalBalance > 0
-                  ? 'heart-circle'
-                  : 'circle-outline'
-            "
-            size="22"
-          />
-          Saldo
-        </span>
-        <div style="display: flex; align-items: center"> -->
-  <!-- <span
-            :style="{
-              color:
-                totalBalance < 0
-                  ? 'red'
-                  : totalBalance > 0
-                    ? 'green'
-                    : '#757575',
-            }"
-            style="font-size: 18px"
-          >
-            R$ {{ formatValue(totalBalance) }}
-          </span>
-        </div>
-      </div>
-      <div class="ms-4 d-flex flex-column align-center justify-content-end">
-        <span class="icon__text">
-          <mdicon
-            name="clock-outline"
-            size="20"
-          /> -->
-  <!-- <mdicon name="plus-circle-outline" />
-                    <mdicon name="minus-circle-outline" />
-                    <mdicon name="clock-outline" /> -->
-  <!-- Previsto
-        </span>
-        <div style="display: flex; align-items: center">
-          <span
-            :style="{ color: valorPrevisto < 0 ? 'red' : '#757575' }"
-            style="font-size: 13px"
-          >
-            R$ {{ formatValue(valorPrevisto) }}
-          </span>
-        </div>
-      </div>
-    </div>
-
-    <div class="container__visao__geral">
-      <div class="header__visao_geral">
-        <span style="text-align: start"> Visão geral </span>
-        <mdicon
-          name="dots-vertical"
-          class="mdicon"
-          size="25"
-        />
-      </div>
-      <router-link
-        :to="{ name: 'receitas' }"
-        style="display: flex; align-items: center; text-decoration: none"
-      >
-        <div
-          style="
-            border-inline-start: solid 5px green;
-            margin: 5px 0 5px 0;
-            padding: 0 0 0 10px;
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-          "
-        >
-          <div class="tipo__lancamento">
-            <span class="lancamento"> Receitas </span>
-            <span class="previsto"> previsto </span>
-          </div>
-          <div class="tipo__lancamento">
-            <span class="lancamento">
-              R$ {{ formatValue(valueReceived) }}
-            </span>
-            <span class="valor__previsto">
-              R$ {{ formatValue(valueTotalRevenuesMonth) }}
-            </span>
-          </div>
-        </div>
-      </router-link>
-      <router-link
-        :to="{ name: 'despesas' }"
-        style="display: flex; align-items: center; text-decoration: none"
-      >
-        <div
-          style="
-            border-inline-start: solid 5px red;
-            margin: 5px 0 5px 0;
-            padding: 0 0 0 10px;
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-          "
-        >
-          <div class="tipo__lancamento">
-            <span class="lancamento"> Despesas </span>
-            <span class="previsto"> previsto </span>
-          </div>
-          <div class="tipo__lancamento">
-            <span class="lancamento"> R$ {{ formatValue(valuePay) }} </span>
-            <span class="valor__previsto">
-              R$ {{ formatValue(valueTotalExpensesMonth) }}
-            </span>
-          </div>
-        </div>
-      </router-link> -->
-  <!-- <div style="display:flex; align-items: center;">
-                <div style="border-inline-start: solid 5px orange; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
-                    <div class="tipo__lancamento">
-                        <span class="lancamento">
-                            Despesas no cartão
-                        </span>
-                        <span class="previsto">
-                            previsto
-                        </span>
-                    </div>
-                    <div class="tipo__lancamento">
-                        <span class="lancamento">
-                            R$ {{receitas}}
-                        </span>
-                        <span class="previsto">
-                            R$ {{receitas}}
-                        </span>
-                    </div>
-                </div>
-            </div> -->
-  <!-- </div> -->
-
-  <!-- <div class="teste3">
-            <span style="text-align: start;">
-            Pendências e alertas
-            </span>
-            <div style="display:flex; align-items: center;">
-                <dir style="border-inline-start: solid 5px blue; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
-                    <div class="cards__lancamentos">
-                        <div style="display: flex; flex-direction: column;">
-                            <span>
-                                Receitas pendentes
-                            </span>
-                            <span style="font-size: 12px; font-weight: 100;">
-                                Total desse mês e dos anteriores
-                            </span>
-                        </div>
-                        <span class="valor">
-                            R$ {{ valuePendingRevenues }}
-                        </span>
-                    </div>
-                </dir>
-            </div>
-            <div style="display:flex; align-items: center;">
-                <dir style="border-inline-start: solid 5px orange; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
-                    <div class="cards__lancamentos">
-                        <div style="display: flex; flex-direction: column;">
-                            <span>
-                                Despesas pendentes
-                            </span>
-                            <span style="font-size: 12px; font-weight: 100;">
-                                Total desse mês e dos anteriores
-                            </span>
-                        </div>
-                        <span>
-                            R$ {{ valuePendingExpenses }}
-                        </span>
-                    </div>
-                </dir>
-            </div>
-            <div style="display:flex; align-items: center;">
-                <dir style="border-inline-start: solid 5px yellow; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
-                    <div class="cards__lancamentos">
-                        <div style="display: flex; flex-direction: column;">
-                            <span>
-                                Faturas de cartão
-                            </span>
-                            <span style="font-size: 12px; font-weight: 100;">
-                                Faturas abertas que vencem esse mês
-                            </span>
-                        </div>
-                        <span>
-                            R$ 1.000,00
-                        </span>
-                    </div>
-                </dir>
-            </div>
-            <div style="display:flex; align-items: center;">
-                <dir style="border-inline-start: solid 5px cadetblue; margin: 5px 0 5px 0; padding: 0 0 0 10px; display: flex; justify-content: space-between; width: 100%;">
-                    <div class="cards__lancamentos">
-                        <div style="display: flex; flex-direction: column;">
-                            <span>
-                                Saldo
-                            </span>
-                            <span style="font-size: 12px; font-weight: 100;">
-                                Total das contas menos despesas pendentes
-                            </span>
-                        </div>
-                        <span>
-                            R$ {{ totalBalance }}
-                        </span>
-                    </div>
-                </dir>
-            </div>
-        </div> -->
-  <!-- </div> -->
   <v-card
     color="transparent"
     style="width: 100%"
@@ -255,8 +9,8 @@
           variant="text"
           @click.stop="drawer = !drawer"
         >
-          <mdicon
-            name="menu"
+          <v-icon
+            icon="mdi-menu"
             class="mdicon"
             size="30"
           />
@@ -264,15 +18,15 @@
 
         <!-- <v-toolbar-title> -->
         <div class="container__mes">
-          <mdicon
-            name="chevron-left"
+          <v-icon
+            icon="mdi-chevron-left"
             class="mdicon"
             size="30"
             @click="mesAnterior"
           />
           <span class="mes"> {{ mesPorExtenso }} </span>
-          <mdicon
-            name="chevron-right"
+          <v-icon
+            icon="mdi-chevron-right"
             class="mdicon"
             size="30"
             @click="proximoMes"
@@ -284,9 +38,9 @@
 
         <v-menu>
           <template #activator="{ props }">
-            <mdicon
+            <v-icon
               v-if="useAuth.isAuthenticated"
-              name="dots-vertical"
+              icon="mdi-dots-vertical"
               class="mdicon me-3"
               v-bind="props"
               size="30"
@@ -307,8 +61,8 @@
               @click="item.action"
             >
               <v-list-item-title style="font-size: 20px">
-                <mdicon
-                  :name="item.icon"
+                <v-icon
+                  :icon="item.icon"
                   class="me-3 fs-3"
                 />
                 {{ item.title }}
@@ -331,15 +85,15 @@
       >
         <v-list>
           <v-list-item
-            v-for="(item, index) in sidebarItems"
+            v-for="(item, index) in filteredItensSideBar"
             :key="index"
             :class="{ efeitoClick: elementoAtivoSideBar === index }"
+            :to="{ name: item.route }"
             @click="item.action"
           >
-            <!-- :to="{ name: item.route }" -->
             <!-- <router-link style="text-decoration: none"> -->
             <span class="icon">
-              <mdicon :name="item.icon" />
+              <v-icon :icon="item.icon" />
               <!-- Ícone do item -->
             </span>
             <span class="txt__link">
@@ -354,8 +108,8 @@
         <div class="container__saldo__conta d-flex justify-content-center">
           <div class="me-4 d-flex flex-column align-center justify-content-end">
             <span class="icon__text">
-              <mdicon
-                name="check-circle-outline"
+              <v-icon
+                icon="mdi-check-circle-outline"
                 size="18"
               />
               Inicial
@@ -374,13 +128,13 @@
               class="fs-5"
               style="color: #757575"
             >
-              <mdicon
-                :name="
+              <v-icon
+                :icon="
                   totalBalance < 0
-                    ? 'minus-circle-outline'
+                    ? 'mdi-minus-circle-outline'
                     : totalBalance > 0
-                      ? 'heart-circle'
-                      : 'circle-outline'
+                      ? 'mdi-heart-circle'
+                      : 'mdi-circle-outline'
                 "
                 size="22"
               />
@@ -405,8 +159,8 @@
           </div>
           <div class="ms-4 d-flex flex-column align-center justify-content-end">
             <span class="icon__text">
-              <mdicon
-                name="clock-outline"
+              <v-icon
+                icon="mdi-clock-outline"
                 size="20"
               />
               <!-- <mdicon name="plus-circle-outline" />
@@ -428,8 +182,8 @@
         <div class="container__visao__geral">
           <div class="header__visao_geral">
             <span style="text-align: start"> Visão geral </span>
-            <mdicon
-              name="dots-vertical"
+            <v-icon
+              icon="mdi-dots-vertical"
               class="mdicon"
               size="25"
             />
@@ -498,23 +252,12 @@
 import { useAuthStore } from "../../store/auth";
 import { useRouter } from "vue-router";
 import http from "../../services/http";
-import { ref, watch, shallowRef } from "vue";
+import { ref, watch } from "vue";
 import { useUserStore } from "../../store/user";
 import { useRoute } from "vue-router";
-import type { ShallowRef, Component } from 'vue';
-import Receitas from "../../views/receitas/ReceitasView.vue";
-
-const currentPage: ShallowRef<Component> = shallowRef(Receitas);
-
-const sidebarItems = [
-    {
-        icon: "view-dashboard",
-        name: "Dashboard",
-        action: () => (currentPage.value = Receitas),
-    },
-];
 
 const route = useRoute();
+const useUser = useUserStore();
 
 let elementoAtivoSideBar = ref(0);
 
@@ -539,44 +282,44 @@ watch(route, (value) => {
 });
 
 const itensSideBar = ref([
-    // {
-    //   name: "Admin",
-    //   icon: "view-dashboard",
-    //   route: "dashAdmim",
-    //   adminOnly: true,
-    // },
-    // { name: "Trader", icon: "chart-line", route: "dashAdmim", traderOnly: true },
+    {
+        name: "Admin",
+        icon: "view-dashboard",
+        route: "dashAdmim",
+        adminOnly: true,
+    },
+    { name: "Trader", icon: "chart-line", route: "dashAdmim", traderOnly: true },
     {
         name: "Dashboard",
-        icon: "view-dashboard",
+        icon: "mdi-view-dashboard",
         route: "dashboard",
         adminOnly: false,
         traderOnly: false,
     },
     {
         name: "Contas",
-        icon: "bank-outline",
+        icon: "mdi-bank-outline",
         route: "contas",
         adminOnly: false,
         traderOnly: false,
     },
     {
         name: "Receitas",
-        icon: "arrow-top-right-bold-outline",
+        icon: "mdi-arrow-top-right-bold-outline",
         route: "receitas",
         adminOnly: false,
         traderOnly: false,
     },
     {
         name: "Despesas",
-        icon: "arrow-bottom-right-bold-outline",
+        icon: "mdi-arrow-bottom-right-bold-outline",
         route: "despesas",
         adminOnly: false,
         traderOnly: false,
     },
     {
         name: "Categorias",
-        icon: "bookmark-minus-outline",
+        icon: "mdi-bookmark-minus-outline",
         route: "categorias",
         adminOnly: false,
         traderOnly: false,
@@ -584,8 +327,27 @@ const itensSideBar = ref([
     // { name: "Mais Opçõs", icon: "dots-horizontal", route: "dashboard" },
 ]);
 
+console.log(useUser.user.user_tipe);
+
+const filteredItensSideBar = computed(() => {
+    return itensSideBar.value.filter((item) => {
+        if (item.adminOnly) {
+            return (
+                useUser.user.user_tipe === "ADMIM" || useUser.user.user_tipe === "FULL"
+            );
+        } else if (item.traderOnly) {
+            return (
+                useUser.user.user_tipe === "TRADER" ||
+        useUser.user.user_tipe === "USER_TRADER" ||
+        useUser.user.user_tipe === "FULL"
+            );
+        }
+        return true; // Exibe os outros itens normalmente
+    });
+});
+
 const items = ref([
-    { title: "Sair", icon:"power",  action: logout },
+    { title: "Sair", icon:"mdi-power",  action: logout },
 ]);
 
 const drawer = ref(false);
@@ -604,8 +366,6 @@ const props = defineProps({
 // const titulo = computed(() => props.name);
 const router = useRouter();
 const useAuth = useAuthStore();
-const useUser = useUserStore();
-
 let name = ref(useUser.user.name.split(" ")[0]);
 
 // const items = ref([{ title: "Sair", icon: "power", action: logout }]);

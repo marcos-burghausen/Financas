@@ -1,5 +1,5 @@
 <template>
-  <div class="box">
+  <div class="box p-3">
     <div class="container__dados">
       <figure class="figure">
         <img
@@ -19,9 +19,9 @@
             @click="initiateFacebookLogin()"
           >
             <li class="item__social__media">
-              <mdicon
+              <v-icon
                 class="icon__modify"
-                name="facebook"
+                icon="mdi-facebook"
               />
             </li>
           </a>
@@ -46,45 +46,49 @@
       >
         <v-text-field
           v-model="user.email"
-          variant="outlined"
+          variant="underlined"
           type="email"
           hide-details="auto"
           label="Email"
           :rules="[rules.requiredEmail]"
-          class="mb-7 input"
+          class="mb-8 imput"
           autofocus
           autocomplete="on"
+          prepend-inner-icon="mdi-email-outline"
         >
-          <template #prepend-inner>
+          <!-- <template #prepend-inner>
             <mdicon
               class="icon__modify"
               name="email-outline"
             />
-          </template>
+          </template> -->
         </v-text-field>
 
         <v-text-field
           v-model="user.password"
-          variant="outlined"
+          variant="underlined"
           :type="mostrarSenha ? 'password' : 'text'"
           hide-details="auto"
           label="Senha"
           :rules="[rules.requiredSenha]"
-          class="mb-5 input"
+          class="mb-5 imput"
+          prepend-inner-icon="mdi-lock-outline"
+          :append-inner-icon="mostrarSenha ? 'mdi-eye' : 'mdi-eye-off'"
+          @click="mostrarSenha = !mostrarSenha"
         >
-          <template #prepend-inner>
+          <!-- <template #prepend-inner>
             <mdicon
               class="icon__modify"
               name="lock"
             />
-          </template>
-          <template #append-inner>
+          </template> -->
+          <!-- <template #append-inner>
             <mdicon
               class="icon__modify"
               :name="mostrarSenha ? 'eye' : 'eye-off'"
               @click="mostrarSenha = !mostrarSenha"
             />
-          </template>
+          </template> -->
         </v-text-field>
 
         <div class="container__button">
@@ -100,11 +104,14 @@
             cadastre-se.
           </a>
         </div>
+        <!-- class="btn btn__submit" -->
         <v-btn
           :disabled="loading || !validForm"
           :loading="loading"
-          class="btn btn__submit"
+          class="btn mt-5"
           type="submit"
+          block
+          size="large"
         >
           entrar
         </v-btn>
@@ -198,6 +205,11 @@ const rules = {
 };
 </script>
 <style scoped>
+.imput {
+  height: 40px;
+  color: #ccc;
+  width: 100%;
+}
 .box {
   display: flex;
   padding: 0;
@@ -260,14 +272,6 @@ const rules = {
   flex-direction: column;
   width: 100% !important;
 }
-.input {
-  background-color: #1e1e1e !important;
-  height: 55px;
-  color: #ccc;
-  width: 100%;
-  border: none;
-  background-color: transparent;
-}
 .icon__modify {
   color: #7f8c8d;
   padding: 0 5px;
@@ -290,7 +294,7 @@ const rules = {
   text-decoration: none;
 }
 .btn {
-  border-radius: 15px;
+  /* border-radius: 15px; */
   text-transform: uppercase;
   color: #fff;
   font-size: 10px;

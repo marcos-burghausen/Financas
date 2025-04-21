@@ -46,6 +46,7 @@ class AuthController extends Controller
                 'password' => 'senha'
             ]
         );
+
         $credentials = $request->all(['email', 'password']);
 
         //autenticação (email e senha)
