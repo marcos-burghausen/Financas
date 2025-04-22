@@ -52,7 +52,7 @@ class AuthController extends Controller
         //autenticação (email e senha)
         $token = auth('api')->attempt($credentials);
         if (!$token) {
-            // LogController::addsLog($request->email, Actions::USER_OR_PASSWORD_INVALID);
+            LogController::addsLog($request->email, Actions::USER_OR_PASSWORD_INVALID);
             return Errors::INVALID_USERNAME_OR_PASSWORD->response();
         }
 
@@ -70,7 +70,7 @@ class AuthController extends Controller
         $user = auth()->user();
         $userData = $this->getUserData($user);
 
-        // LogController::addsLog($request->email, Actions::LOGIN);
+        LogController::addsLog($request->email, Actions::LOGIN);
 
         Mail::to('rafaelburghausen@gmail.com')->queue(new NotificationMail($user, 'Login', 'Login', $user->name));
 
@@ -256,7 +256,6 @@ class AuthController extends Controller
                 'userData' => $userData
             ]);
         } catch (\Throwable $th) {
-            // Log do erro e retorno de uma resposta de erro
             Log::error('Erro na autenticação social: ' . $th->getMessage());
             LogController::addsLog('unknown', Actions::SOCIAL_AUTH_ERROR);
             return Errors::SOCIAL_AUTHENTICATION_FAILED->response();
@@ -265,14 +264,67 @@ class AuthController extends Controller
 
     private function getUserData($user)
     {
+        $categoriasDespesas = $user->categories()->whereIn('type', ['ambas', 'despesa'])->get();
+        $subcategoriasDespesas = $user->subcategories()->where('type', 'despesa')->get();
+        $subcategorias = [];
+        foreach ($categoriasDespesas as $categoria) {
+            foreach ($subcategoriasDespesas as $subcategoria) {
+                if ($categoria->id == $subcategoria->category_id) {
+                    $subcategorias[$categoria->name][] = $subcategoria;
+                }
+            }
+        }
+
+        $categoriasReceitas = $user->categories()->whereIn('type', ['ambas', 'receita'])->get();
+        $subcategoriasReceitas = $user->subcategories()->where('type', 'receita')->get();
+
+
+
         return [
-            'expensesData' => $this->classifiesReleases($user->expenses()->get(), 'Expenses'),
-            'revenuesData' => $this->classifiesReleases($user->revenues()->get(), 'Revenues'),
-            'walletsData' => [
+            'expenses' => [
+                'total' => 1000,
+                'data' => [
+                    'expensesData'        => $this->classifiesReleases($user->expenses()->get(), 'Expenses'),
+                    'categorias_despesas' => $user->categories()->whereIn('type', ['ambas', 'despesa'])->get(),
+                    'subcategorias' => $subcategorias,
+                ]
+            ],
+            "revenues" => [
+                "total" => 2000,
+                "data" => [
+                    'revenuesData'        => $this->classifiesReleases($user->revenues()->get(), 'Revenues'),
+                    'categorias_receitas' => $user->categories()->whereIn('type', ['ambas', 'despesa'])->get(),
+                    'subcategorias' => $subcategoriasReceitas,
+                ]
+            ],
+            //       "categories": {
+            //         "expenses": [
+            //           {
+            //             "id": 2,
+            //             "name": "Alimentação",
+            //             "color": "cor__8",
+            //             "icon": "mdi-silverware-variant",
+            //             "subcategories": [
+            //               // Subcategorias de Alimentação
+            //             ]
+            //           },
+            //           // Outras categorias de despesas
+            //         ],
+            //         "revenues": [
+            //           // Categorias de receitas
+            //         ]
+            //       },
+            //       "wallets": [
+            //         // Detalhes das carteiras
+            //       ]
+
+
+
+            'walletsData'         => [
                 'mes_ano_referencia' => date('Y-m'),
-                'wallets' => $user->contas()->get(),
-                'walletsNames' => $user->contas()->pluck("name"),
-                'saldoInicial' => $this->obterSaldoInicial($user),
+                'wallets'            => $user->contas()->get(),
+                'walletsNames'       => $user->contas()->pluck("name"),
+                'saldoInicial'       => $this->obterSaldoInicial($user),
                 // 'saldoAtual' => $this->obterSaldoAtual($user),
             ],
         ];

@@ -44,7 +44,7 @@
         class="form"
         @submit.prevent="login"
       >
-        <v-text-field
+        <v-combobox
           v-model="user.email"
           variant="underlined"
           type="email"
@@ -55,14 +55,7 @@
           autofocus
           autocomplete="on"
           prepend-inner-icon="mdi-email-outline"
-        >
-          <!-- <template #prepend-inner>
-            <mdicon
-              class="icon__modify"
-              name="email-outline"
-            />
-          </template> -->
-        </v-text-field>
+        />
 
         <v-text-field
           v-model="user.password"
@@ -74,7 +67,7 @@
           class="mb-5 imput"
           prepend-inner-icon="mdi-lock-outline"
           :append-inner-icon="mostrarSenha ? 'mdi-eye' : 'mdi-eye-off'"
-          @click="mostrarSenha = !mostrarSenha"
+          @click:append-inner="mostrarSenha = !mostrarSenha"
         >
           <!-- <template #prepend-inner>
             <mdicon
@@ -104,7 +97,6 @@
             cadastre-se.
           </a>
         </div>
-        <!-- class="btn btn__submit" -->
         <v-btn
           :disabled="loading || !validForm"
           :loading="loading"
@@ -146,10 +138,8 @@ const useWallets = useWalletsStore();
 const useUser = useUserStore();
 const errorStore = useErrorStore();
 const user: Ref<FormLogin> = ref({
-    email: "rafaelburghausen@gmail.com",
-    password: "Teste123@",
-    // email: "",
-    // password: "",
+    email: "",
+    password: "",
 });
 const router = useRouter();
 const data = userData();
@@ -294,14 +284,11 @@ const rules = {
   text-decoration: none;
 }
 .btn {
-  /* border-radius: 15px; */
   text-transform: uppercase;
   color: #fff;
   font-size: 10px;
-  padding: 5px;
   cursor: pointer;
   font-weight: bold;
-  width: 200px;
   align-self: center;
   border: none;
   margin-top: 1rem;
@@ -309,9 +296,6 @@ const rules = {
   background-color: #77d08e;
   border: 1px solid #77d08e;
   transition: background-color 0.5s;
-}
-.btn__submit {
-  /* margin-bottom: 80px; */
 }
 .btn__submit:hover {
   background-color: #e1e1e1;

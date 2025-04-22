@@ -10,7 +10,7 @@ class Category extends Model
     use HasFactory;
     protected $primaryKey = 'id';
 
-    protected $fillable = ['user_id', 'name', 'color', 'icon', 'type_category', 'edit'];
+    protected $fillable = ['user_id', 'name', 'color', 'icon', 'type', 'edit'];
 
     public function user()
     {

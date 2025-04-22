@@ -21,7 +21,8 @@ return new class extends Migration
             $table->integer('saldo_inicial')->default(0);
             $table->integer('incluir_em_soma_inicial')->default(false);
             $table->string('descricao', 50)->nullable();
-            $table->string('tipo', 50);
+            $table->enum('tipo', ['Pessoal', 'Empresarial', 'investimento'])->default('Pessoal');
+            $table->enum('status', ['Ativo', 'Inativo'])->default('Ativo');
             $table->timestamps();
         });
     }

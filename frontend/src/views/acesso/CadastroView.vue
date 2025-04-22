@@ -2,29 +2,39 @@
   <div class="box">
     <div class="container__dados">
       <figure class="figure">
-        <img src="@/assets/img/2.png" style="width: 200px" alt="logo" />
+        <img
+          src="@/assets/img/2.png"
+          style="width: 200px"
+          alt="logo"
+        >
       </figure>
-      <h2 class="title">Criar Uma Conta</h2>
+      <h2 class="title">
+        Criar Uma Conta
+      </h2>
 
       <ErrorMessage />
 
       <ErrorsForm />
 
-      <v-form v-model="validForm" class="form" @submit.prevent="create">
-        <v-text-field
+      <v-form
+        v-model="validForm"
+        class="form"
+        @submit.prevent="create"
+      >
+        <v-combobox
           v-model="user.name"
           variant="underlined"
           type="text"
           hide-details="auto"
           label="Nome"
           :rules="[rules.requiredName]"
-          class="mb-8 imput"
+          class="mb-8 mt-4 imput"
           autofocus
           autocomplete="on"
           prepend-inner-icon="mdi-account-outline"
         />
 
-        <v-text-field
+        <v-combobox
           v-model="user.email"
           variant="underlined"
           type="email"
@@ -39,21 +49,21 @@
         <v-text-field
           v-model="user.password"
           variant="underlined"
-          :type="mostrarSenha ? 'password' : 'text'"
+          :type="mostrarSenha ? 'text' : 'password'"
           hide-details="auto"
           label="Senha"
           :rules="[rules.requiredSenha, rules.passwordFormat]"
           class="mb-8 imput"
           prepend-inner-icon="mdi-lock-outline"
           :append-inner-icon="mostrarSenha ? 'mdi-eye' : 'mdi-eye-off'"
-          hint="A senha deve ter pelo menos 8 caracteres sendo uma letra maiúcula, uma minúscula, um número e um caracter especial exeto aspas simples e duplas"
-          @click="mostrarSenha = !mostrarSenha"
+          :hint="passwordHint"
+          @click:append-inner="mostrarSenha = !mostrarSenha"
         />
 
         <v-text-field
           v-model="user.confirmPassword"
           variant="underlined"
-          :type="mostrarSenha ? 'password' : 'text'"
+          :type="mostrarSenha ? 'text' : 'password'"
           hide-details="auto"
           label="Confirmar senha"
           :rules="[rules.requiredConfirmarSenha, rules.passwordsMatch]"
@@ -62,14 +72,18 @@
         />
 
         <div class="y">
-          <a class="btn__register" href="#" @click.prevent="emits('nextStep')">
+          <a
+            class="btn__register"
+            href="#"
+            @click.prevent="emits('nextStep')"
+          >
             <span>já tem uma conta </span>conecte-se.
           </a>
         </div>
         <v-btn
           :disabled="loading || !validForm"
           :loading="loading"
-          class="btn mt-5 btn__submit"
+          class="btn mt-5"
           block
           size="large"
           type="submit"
@@ -88,21 +102,17 @@ import ErrorsForm from "@/components/ModalErrorsForm.vue";
 import { useErrorStore } from "@/store/error";
 import http from "@/services/http";
 
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import type { AxiosError } from "axios";
 import type { FormCadastro } from "@/types/formCadastro";
 
 const emits = defineEmits(["nextStep"]);
 const errorStore = useErrorStore();
 const user = ref<FormCadastro>({
-  name: "Marcos Rafael Burghausen",
-  email: "rafaelburghausen@gmail.com",
-  password: "Teste123@",
-  confirmPassword: "Teste123@",
-  // name: "",
-  // email: "",
-  // password: "",
-  // confirmPassword: "",
+  name: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
 });
 
 let validForm = ref(false);
@@ -157,6 +167,16 @@ const rules = {
   passwordsMatch: (value: string) =>
     value === user.value.password || "As senhas não são iguais",
 };
+
+
+const passwordHint = computed(() => {
+  const regex =
+    /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}<>[\]\\/-])[A-Za-z\d!@#$%^&*(),.?":{}<>[\]\\/-]{8,}$/;
+  return regex.test(user.value.password)
+    ? ""
+    : "A senha deve ter pelo menos 8 caracteres sendo uma letra maiúcula, uma minúscula, um número e um caracter especial exeto aspas simples e duplas";
+});
+
 </script>
 <style scoped>
 .box {
@@ -310,15 +330,8 @@ const rules = {
 }
 
 .btn__register {
-  display: none;
-  display: inline;
   color: #0097a7;
   text-decoration: none;
-}
-.v-btn--disabled.v-btn--variant-elevated {
-  background: rgba(255, 255, 255, 0.12) !important;
-  color: rgba(255, 255, 255, 0.3);
-  border: none;
 }
 
 .btn__register span {
@@ -338,7 +351,6 @@ const rules = {
   display: flex;
   justify-content: space-evenly;
   align-items: center;
-  /* margin-bottom: 50px; */
 }
 
 .btn {

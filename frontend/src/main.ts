@@ -5,12 +5,12 @@ import { VDateInput } from "vuetify/labs/VDateInput";
 import "vuetify/styles";
 import "./assets/bootstrap.css";
 
+import "@mdi/font/css/materialdesignicons.css";
 import * as mdijs from "@mdi/js";
 import mdiVue from "mdi-vue/v3";
 import { createPinia } from "pinia";
 import { createApp } from "vue";
 import VueApexCharts from "vue3-apexcharts";
-import "@mdi/font/css/materialdesignicons.css";
 import { aliases, mdi } from "vuetify/iconsets/mdi";
 import App from "./App.vue";
 import router from "./router";
