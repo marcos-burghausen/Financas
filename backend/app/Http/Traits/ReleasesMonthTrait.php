@@ -31,19 +31,19 @@ trait ReleasesMonthTrait
         // $addTotalValueMonth = $this->addTotalValueMonth($releasesgroupByMonth);
         $releasesMonth = $this->lancamentosMes($lacamentos, $mes);
         $Data = [
-            "Value{$type}{$tipoLancamentos}" => $valorRecebidoOuPago,
-            "ValuePending{$tipoLancamentos}" => $valuePending,
-            "ValueTotal{$tipoLancamentos}Month" => $valorTotalMes,
+            "Value{$type}" => $valorRecebidoOuPago,
+            "ValuePending" => $valuePending,
+            "ValueTotalMonth" => $valorTotalMes,
             // "{$tipoLancamentos}GroupByMonth" => $releasesgroupByMonth,
             // "{$tipoLancamentos}AddTotalValueMonth" => $addTotalValueMonth,
-            "{$tipoLancamentos}Month" => $releasesMonth,
+            "byMonth" => $releasesMonth,
         ];
 
         if ($tipoLancamentos === 'Expenses') {
             $totalExpensesDay = $this->totalExpensesDay($releasesMonth);
             $totalByCategoryExpenses = $this->totalByCategory($releasesMonth);
-            $Data["totalExpensesDay"] = $totalExpensesDay;
-            $Data["TotalByCategoryExpenses"] = $totalByCategoryExpenses;
+            $Data["totalDay"] = $totalExpensesDay;
+            $Data["ByCategory"] = $totalByCategoryExpenses;
         }
 
         return $Data;

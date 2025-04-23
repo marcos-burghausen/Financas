@@ -10,7 +10,7 @@ class Subcategory extends Model
     use HasFactory;
 
     protected $primaryKey = 'id';
-    protected $fillable = ['user_id', 'category_id', 'name', 'color', 'icon', 'type', 'edit'];
+    protected $fillable = ['user_id', 'category_id', 'name', 'color', 'icon', 'type', 'editable'];
 
     public function user()
     {

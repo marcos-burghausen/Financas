@@ -2,15 +2,9 @@
   <div class="box p-3">
     <div class="container__dados">
       <figure class="figure">
-        <img
-          src="@/assets/img/2.png"
-          class="img"
-          alt="logo"
-        >
+        <img src="@/assets/img/2.png" class="img" alt="logo" />
       </figure>
-      <h2 class="title">
-        Bem vido ao Mr Finanças
-      </h2>
+      <h2 class="title">Bem vido ao Mr Finanças</h2>
       <div class="social__media">
         <ul class="list__social__media">
           <a
@@ -19,10 +13,7 @@
             @click="initiateFacebookLogin()"
           >
             <li class="item__social__media">
-              <v-icon
-                class="icon__modify"
-                icon="mdi-facebook"
-              />
+              <v-icon class="icon__modify" icon="mdi-facebook" />
             </li>
           </a>
           <!-- <a class="link__social__media" href="#">
@@ -39,11 +30,7 @@
       </div>
       <!-- <p class="sub__title">ou use sua conta de e-mail:</p> -->
       <ErrorMessage />
-      <v-form
-        v-model="validForm"
-        class="form"
-        @submit.prevent="login"
-      >
+      <v-form v-model="validForm" class="form" @submit.prevent="login">
         <v-combobox
           v-model="user.email"
           variant="underlined"
@@ -85,15 +72,8 @@
         </v-text-field>
 
         <div class="container__button">
-          <a
-            class="link"
-            href="#"
-          >esqueceu sua senha?</a>
-          <a
-            class="btn__register"
-            href="#"
-            @click.prevent="emits('nextStep')"
-          >
+          <a class="link" href="#">esqueceu sua senha?</a>
+          <a class="btn__register" href="#" @click.prevent="emits('nextStep')">
             cadastre-se.
           </a>
         </div>
@@ -122,14 +102,19 @@ import { useRevenuesStore } from "@/store/revenues";
 import { useWalletsStore } from "@/store/wallets";
 import { useErrorStore } from "@/store/error";
 import { useUserStore } from "@/store/user";
-import { userData } from "@/store/data";
 import { useAuthStore } from "@/store/auth";
 import { useRouter } from "vue-router";
 import http from "@/services/http";
 
-import type { FormLogin } from "@/types/formLogin";
-import { ref, type Ref } from "vue";
-import { AxiosError } from "axios";
+import type { AxiosError, AxiosResponse } from "axios";
+import type {
+  FormLogin,
+  LoginResponse,
+  User,
+  WalletData,
+  Category,
+} from "@/types";
+import { ref } from "vue";
 
 const emits = defineEmits(["nextStep"]);
 const useExpenses = useExpensesStore();
@@ -137,75 +122,82 @@ const useRevenues = useRevenuesStore();
 const useWallets = useWalletsStore();
 const useUser = useUserStore();
 const errorStore = useErrorStore();
-const user: Ref<FormLogin> = ref({
-    email: "",
-    password: "",
+const user = ref<FormLogin>({
+  email: "rafaelburghausen@gmail.com",
+  password: "Teste123@",
 });
 const router = useRouter();
-const data = userData();
 const useAuth = useAuthStore();
 
 let validForm = ref(false);
 let mostrarSenha = ref(true);
 let loading = ref(false);
 
+interface ApiErrorResponse {
+  errors?: Record<string, string[]>;
+  message?: string;
+}
+
 async function initiateFacebookLogin() {
-    // errorStore.unsetError();
-    try {
-        loading.value = true;
-        const response = await http.get("/auth/redirect");
-        window.location.href = response.data.redirect_url;
-    } catch (error) {
-        console.error("Erro ao iniciar login do Facebook", error);
-    }
+  // errorStore.unsetError();
+  try {
+    loading.value = true;
+    const response = await http.get("/auth/redirect");
+    window.location.href = response.data.redirect_url;
+  } catch (error) {
+    console.error("Erro ao iniciar login do Facebook", error);
+  }
 }
 
 async function login() {
-    errorStore.unsetError();
-    try {
-        console.log(user.value);
-        loading.value = true;
-        const response = await http.post("/auth", user.value);
-        console.log(response);
-        useAuth.setToken(response.data.token);
-        useUser.setUserData(response.data.user);
-        useExpenses.setExpensesData(response.data.userData.expensesData);
-        useRevenues.setRevenuesData(response.data.userData.revenuesData);
-        useWallets.setWalletsData(response.data.userData.walletsData);
-        // useUser.setMesAno(response.data.userData.mes_ano_referencia);
-        // useWallets.setSaldoInicial(response.data.userData.walletsData.saldoInicial);
-        // data.setTotalCreditCard(response.data.userData.totalCreditCard);
-        // data.setTotalBalance(response.data.userData.totalBalance);
+  errorStore.unsetError();
+  try {
+    loading.value = true;
+    const response: AxiosResponse<LoginResponse> = await http.post(
+      "/auth",
+      user.value
+    );
+    useAuth.setToken(response.data.token);
+    useUser.setUserData(response.data.user);
+    useExpenses.setExpensesData(response.data.data.expenses);
+    useRevenues.setRevenuesData(response.data.data.revenues);
+    useWallets.setWalletsData(response.data.data.wallets);
 
-        router.push({ name: "dashboard" });
-    } catch (error) {
-        if (error.response.data.errors) {
-            errorStore.setErrorFromForm(error);
-        } else {
-            errorStore.setErrorFromResponse(error);
-        }
-    } finally {
-        loading.value = false;
+    router.push({ name: "dashboard" });
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiErrorResponse>;
+    if (axiosError.response?.data.errors) {
+      errorStore.setErrorFromForm(axiosError);
+    } else {
+      errorStore.setErrorFromResponse(axiosError);
+      // if (error.response.data.errors) {
+      //   errorStore.setErrorFromForm(error);
+      // } else {
+      //   errorStore.setErrorFromResponse(error);
     }
+  } finally {
+    loading.value = false;
+  }
 }
 
 const rules = {
-    requiredEmail: (value: string) => !!value || "O campo email é obrigatório",
-    requiredSenha: (value: string) => !!value || "O campo senha é obrigatório",
+  requiredEmail: (value: string) => !!value || "O campo email é obrigatório",
+  requiredSenha: (value: string) => !!value || "O campo senha é obrigatório",
 };
 </script>
 <style scoped>
-.imput {
-  height: 40px;
-  color: #ccc;
-  width: 100%;
-}
 .box {
   display: flex;
   padding: 0;
   width: 100%;
   max-width: 500px;
 }
+.imput {
+  height: 40px;
+  color: #ccc;
+  width: 100%;
+}
+
 .container__dados {
   border-radius: 10px 0 0 10px;
   width: 100%;

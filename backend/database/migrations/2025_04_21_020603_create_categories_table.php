@@ -17,8 +17,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('color');
             $table->string('icon');
-            $table->string('type'); // despesa or receita
-            $table->boolean('edit')->default(false);
+            $table->string('type');
+            $table->boolean('editable')->default(false);
             $table->timestamps();
         });
     }

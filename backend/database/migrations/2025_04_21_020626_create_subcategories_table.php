@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('color');
             $table->string('icon');
             $table->string('type');
-            $table->boolean('edit')->default(false);
+            $table->boolean('editable')->default(false);
             $table->timestamps();
         });
     }

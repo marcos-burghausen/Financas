@@ -68,7 +68,7 @@ class AuthController extends Controller
 
         $token = $this->respondWithToken($token);
         $user = auth()->user();
-        $userData = $this->getUserData($user);
+        $data = $this->getUserData($user);
 
         LogController::addsLog($request->email, Actions::LOGIN);
 
@@ -76,8 +76,13 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $token->original,
-            'user'  => $user,
-            'userData' => $userData
+            'user'  => $user = [
+                'id' => auth()->user()->id,
+                'name' => auth()->user()->name,
+                'email' => auth()->user()->email,
+                'type' => auth()->user()->user_tipe,
+            ],
+            'data' => $data
         ]);
     }
 
@@ -264,69 +269,122 @@ class AuthController extends Controller
 
     private function getUserData($user)
     {
-        $categoriasDespesas = $user->categories()->whereIn('type', ['ambas', 'despesa'])->get();
-        $subcategoriasDespesas = $user->subcategories()->where('type', 'despesa')->get();
-        $subcategorias = [];
+        $categoriasDespesas = $user->categories()->whereIn('type', ['ambas', 'despesa'])->get(['id', 'name', 'color', 'icon', 'editable', 'type']);
+        $subcategoriasDespesas = $user->subcategories()->whereIn('type', ['ambas', 'despesa'])->get(['id', 'category_id', 'name', 'color', 'icon', 'editable', 'type']);
         foreach ($categoriasDespesas as $categoria) {
+            $categoria->subcategories = [];
             foreach ($subcategoriasDespesas as $subcategoria) {
                 if ($categoria->id == $subcategoria->category_id) {
-                    $subcategorias[$categoria->name][] = $subcategoria;
+                    $subcategoriaData[] = [
+                        'id' => $subcategoria->id,
+                        'name' => $subcategoria->name,
+                        'color' => $subcategoria->color,
+                        'icon' => $subcategoria->icon,
+                        'editable' => $subcategoria->editable,
+                        'type' => $subcategoria->type
+                    ];
+                    $categoria->subcategories = $subcategoriaData;
                 }
             }
         }
 
-        $categoriasReceitas = $user->categories()->whereIn('type', ['ambas', 'receita'])->get();
-        $subcategoriasReceitas = $user->subcategories()->where('type', 'receita')->get();
+        $categoriasReceitas = $user->categories()->whereIn('type', ['ambas', 'receita'])->get(['id', 'name', 'color', 'icon', 'editable', 'type']);
+        $subcategoriasReceitas = $user->subcategories()->whereIn('type', ['ambas', 'receita'])->get(['id', 'category_id', 'name', 'color', 'icon', 'editable', 'type']);
+        foreach ($categoriasReceitas as $categoria) {
+            $categoria->subcategories = [];
+            foreach ($subcategoriasReceitas as $subcategoria) {
+                if ($categoria->id == $subcategoria->category_id) {
+                    $subcategoriaData = [
+                        'id' => $subcategoria->id,
+                        'name' => $subcategoria->name,
+                        'color' => $subcategoria->color,
+                        'icon' => $subcategoria->icon,
+                        'editable' => $subcategoria->editable,
+                        'type' => $subcategoria->type
+                    ];
+                    $categoria->subcategories = $subcategoriaData;
+                }
+            }
+        }
 
 
 
         return [
             'expenses' => [
-                'total' => 1000,
-                'data' => [
-                    'expensesData'        => $this->classifiesReleases($user->expenses()->get(), 'Expenses'),
-                    'categorias_despesas' => $user->categories()->whereIn('type', ['ambas', 'despesa'])->get(),
-                    'subcategorias' => $subcategorias,
-                ]
+                ...$this->classifiesReleases($user->expenses()->get(), 'Expenses'),
             ],
             "revenues" => [
-                "total" => 2000,
-                "data" => [
-                    'revenuesData'        => $this->classifiesReleases($user->revenues()->get(), 'Revenues'),
-                    'categorias_receitas' => $user->categories()->whereIn('type', ['ambas', 'despesa'])->get(),
-                    'subcategorias' => $subcategoriasReceitas,
-                ]
+                ...$this->classifiesReleases($user->revenues()->get(), 'Revenues'),
             ],
-            //       "categories": {
-            //         "expenses": [
-            //           {
-            //             "id": 2,
-            //             "name": "Alimentação",
-            //             "color": "cor__8",
-            //             "icon": "mdi-silverware-variant",
-            //             "subcategories": [
-            //               // Subcategorias de Alimentação
-            //             ]
-            //           },
-            //           // Outras categorias de despesas
-            //         ],
-            //         "revenues": [
-            //           // Categorias de receitas
-            //         ]
-            //       },
-            //       "wallets": [
-            //         // Detalhes das carteiras
-            //       ]
-
-
-
-            'walletsData'         => [
+            "categories" => [
+                "expenses" => [
+                    ...$categoriasDespesas,
+                ],
+                "revenues" => [
+                    'categorias' => $categoriasReceitas,
+                    'subcategorias' => $subcategoriasReceitas,
+                ],
+                'wallets' => [
+                    ...$user->categories()->where('type', 'contas')->get(['id', 'name', 'color', 'icon', 'editable', 'type']),
+                ],
+            ],
+            'wallets'         => [
                 'mes_ano_referencia' => date('Y-m'),
-                'wallets'            => $user->contas()->get(),
-                'walletsNames'       => $user->contas()->pluck("name"),
+                'contas'            => $user->contas()->get(['id', 'name', 'icon', 'saldo', 'saldo_inicial', 'descricao', 'tipo', 'incluir_em_soma_inicial']),
+                'contasNames'       => $user->contas()->pluck("name"),
                 'saldoInicial'       => $this->obterSaldoInicial($user),
+
                 // 'saldoAtual' => $this->obterSaldoAtual($user),
             ],
         ];
     }
 }
+
+// Grupo 1
+// Sidney Rodrigo Klock
+// Joel Fabiano Hansen
+// Gilmar Rodrigo Knorst
+// Luciane Schumacher
+// Grupo 2
+// Felipe Augusto da Silva
+// Matheus Vogel de Faria
+// Marcelo Felipe Wolf
+// Grasiela Cristina Faccin
+// Grupo 3
+// Felipe Wunder
+// Matheus Dresch
+// Andrei Martini
+// Viliam Gabriel Metz
+// Grupo 4
+// Simone Thomazin Pereira
+// Vinícius Marcelo Becker
+// Moises Weber
+// Daniel Rodrigo Klauck
+// Renan Felipe Schuck
+// Grupo 5
+// Thiago Patzdorf Sleman
+// Jessica Camila Saldivia Bueno
+// Marcos Rafael Burghausen
+// Gean Rafael Spiering
+
+// import pandas as pd
+// df_pessoas = pd.read_parquet('pessoas.parquet')
+// df_pessoas.head()
+// df_contas = pd.read_parquet('contas.parquet')
+// df_contas.head()
+// df = df_pessoas.merge(df_contas, how='left', left_on='cpf_cnpj', right_on='cpf_cnpj')
+// df.head()
+
+// Quantos associados existem no total e qual o percentual de correntistas?
+//  Objetivo: validar a leitura da base e a contagem de registros com filtros simples.
+
+
+// Quantos associados possuem cônjuge registrado e qual a média de contas que eles têm?
+//  Objetivo: praticar o uso de joins e agregações com múltiplas tabelas.
+
+
+// Qual a distribuição dos associados por faixa de risco?
+//  Objetivo: aplicar contagem e agrupamento por categoria.
+
+
+// Qual a média e o desvio padrão do indicador ISA e do MC por faixa de

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->nullable();
-            $table->enum('user_tipe', ['USER', 'TRADER', 'USER_TRADER', 'ADMIM', 'FULL'])->default('USER');
+            $table->enum('user_type', ['USER', 'TRADER', 'USER_TRADER', 'ADMIM', 'FULL'])->default('USER');
             $table->string('facebook_id')->nullable();
             $table->string('google_id')->nullable();
             $table->string('linkedin_id')->nullable();

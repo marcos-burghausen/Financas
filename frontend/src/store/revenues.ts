@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
-import type { Lancamentos } from "@/types/lancamentos";
+import type { Lancamentos } from "@/types";
 
 export const useRevenuesStore = defineStore("revenues", () => {
 
