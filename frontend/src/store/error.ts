@@ -2,9 +2,9 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 
-import type { Ref } from "vue";
+import type { ErrorCodes } from "@/types";
 import type { AxiosError } from "axios";
-import type { ErrorCodes } from "@/types/userData";
+import type { Ref } from "vue";
 
 import errorCodes from "@/assets/errorCodes.json";
 

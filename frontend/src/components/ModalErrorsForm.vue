@@ -8,10 +8,10 @@
       role="alert"
     >
       <header class="header__modal">
-        <mdicon
+        <v-icon
           class="mdicon__close"
           type="buttom"
-          name="close"
+          icon="mdi-close"
           @click="errorStore.unsetErrorsForm()"
         />
       </header>

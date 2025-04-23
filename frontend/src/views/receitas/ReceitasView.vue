@@ -9,21 +9,25 @@
       @update-data="updateData"
       @close-form="closeForm"
     />
-    <div v-if="!formulario" class="receitas">
+    <div
+      v-if="!formulario"
+      class="receitas"
+    >
       <div class="header fixed-top">
         <div class="d-flex justify-content-between">
           <router-link
             class="link me-7 d-flex align-items-center opaco"
             :to="{ name: 'dashboard' }"
           >
-            <v-icon icon="mdi-arrow-left" size="25" />
+            <v-icon
+              icon="mdi-arrow-left"
+              size="25"
+            />
           </router-link>
           <div class="header__items">
             <div class="d-flex flex-column">
               <span class="fs-5">Receitas</span>
-              <span class="valor"
-                >R$ {{ formatValue(valueTotalRevenuesMonth) }}</span
-              >
+              <span class="valor">R$ {{ formatValue(valueTotalRevenuesMonth) }}</span>
             </div>
           </div>
         </div>
@@ -63,8 +67,8 @@
                   revenue.status === 'Efetivada'
                     ? 'mdi-check'
                     : new Date() <= new Date(revenue.date)
-                    ? 'mdi-alert'
-                    : 'mdi-alert-remove'
+                      ? 'mdi-alert'
+                      : 'mdi-alert-remove'
                 "
                 class="mdicon__lacamento"
                 :class="{
@@ -85,7 +89,11 @@
                 <div>
                   <span>{{ revenue.date }}</span>
                   <span>
-                    <mdicon name="dots-vertical" class="mdicon" size="25" />
+                    <mdicon
+                      name="dots-vertical"
+                      class="mdicon"
+                      size="25"
+                    />
                     <v-menu
                       activator="parent"
                       location="bottom end"
@@ -116,9 +124,7 @@
               </div>
               <div style="display: flex; justify-content: space-between">
                 <span class="categoria">{{ revenue.descricao }}</span>
-                <span class="categoria"
-                  >R$ {{ formatValue(revenue.valor) }}</span
-                >
+                <span class="categoria">R$ {{ formatValue(revenue.valor) }}</span>
               </div>
               <div>
                 <span class="sub__categoria">{{ revenue.categoria }}</span>
@@ -129,7 +135,10 @@
       </div>
       <NoDataComponent v-else />
     </div>
-    <div v-if="!formulario" class="fixed-bottom d-flex justify-end pe-5 pb-5">
+    <div
+      v-if="!formulario"
+      class="fixed-bottom d-flex justify-end pe-5 pb-5"
+    >
       <v-icon
         type="button"
         title="Adicionar nova receita"
@@ -145,16 +154,12 @@
 import { ref, computed } from "vue";
 import FormLancamentos from "@/components/FormLancamentos.vue";
 import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
-import type { Lancamentos } from "@/types/lancamentos";
-import { useRevenuesStore } from "../../store/revenues";
-import { useUserStore } from "../../store/user";
-import { useWalletsStore } from "../../store/wallets";
-import { useExpensesStore } from "../../store/expenses";
-import { formatValue } from "../../utils/formatValue";
-import http from "../../services/http";
+import type { Lancamentos } from "@/types";
+import { useRevenuesStore, useWalletsStore, useExpensesStore } from "@/store";
+import { formatValue } from "@/utils/formatValue";
+import http from "@/services/http";
 
 const useRevenues = useRevenuesStore();
-const useUser = useUserStore();
 const useWallets = useWalletsStore();
 const useExpenses = useExpensesStore();
 
@@ -164,7 +169,7 @@ const mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
 const valueTotalRevenuesMonth = ref(
   useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth
 );
-const revenuesMonth = ref(useRevenues.revenuesData.revenues?.RevenuesMonth);
+const revenuesMonth = ref(useRevenues.revenuesData?.byMonth);
 
 const mesPorExtenso = computed(() => {
   if (!mesAnoReferencia.value) return "";
@@ -192,12 +197,12 @@ const mesPorExtenso = computed(() => {
 });
 
 const openCreateForm = () => {
-  selectedRelease.value = null; // Reset for create mode
+  selectedRelease.value = null;
   formulario.value = true;
 };
 
 const editRevenue = (revenue: Lancamentos) => {
-  selectedRelease.value = { ...revenue }; // Populate form with revenue data
+  selectedRelease.value = { ...revenue };
   formulario.value = true;
 };
 

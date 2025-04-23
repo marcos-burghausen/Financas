@@ -40,7 +40,6 @@ class AuthController extends Controller
             [
                 'required'      => 'O campo :attribute é obrigatório',
                 'email.email'         => 'O email precisa ter um formato de válido',
-                // 'password.required'   => 'O campo senha é obrigatório',
             ],
             [
                 'password' => 'senha'
@@ -75,12 +74,12 @@ class AuthController extends Controller
         Mail::to('rafaelburghausen@gmail.com')->queue(new NotificationMail($user, 'Login', 'Login', $user->name));
 
         return response()->json([
-            'token' => $token->original,
-            'user'  => $user = [
-                'id' => auth()->user()->id,
-                'name' => auth()->user()->name,
-                'email' => auth()->user()->email,
-                'type' => auth()->user()->user_tipe,
+            'tokenData' => $token->original,
+            'userData'  => $user = [
+                'id'    => $user->id,
+                'name'  => $user->name,
+                'email' => $user->email,
+                'type'  => $user->user_type,
             ],
             'data' => $data
         ]);
@@ -312,20 +311,14 @@ class AuthController extends Controller
         return [
             'expenses' => [
                 ...$this->classifiesReleases($user->expenses()->get(), 'Expenses'),
+                "categories" => [
+                    ...$categoriasDespesas,
+                ],
             ],
             "revenues" => [
                 ...$this->classifiesReleases($user->revenues()->get(), 'Revenues'),
-            ],
-            "categories" => [
-                "expenses" => [
-                    ...$categoriasDespesas,
-                ],
-                "revenues" => [
-                    'categorias' => $categoriasReceitas,
-                    'subcategorias' => $subcategoriasReceitas,
-                ],
-                'wallets' => [
-                    ...$user->categories()->where('type', 'contas')->get(['id', 'name', 'color', 'icon', 'editable', 'type']),
+                "categories" => [
+                    ...$categoriasReceitas,
                 ],
             ],
             'wallets'         => [
@@ -333,8 +326,10 @@ class AuthController extends Controller
                 'contas'            => $user->contas()->get(['id', 'name', 'icon', 'saldo', 'saldo_inicial', 'descricao', 'tipo', 'incluir_em_soma_inicial']),
                 'contasNames'       => $user->contas()->pluck("name"),
                 'saldoInicial'       => $this->obterSaldoInicial($user),
-
                 // 'saldoAtual' => $this->obterSaldoAtual($user),
+                "categorias" => [
+                    ...$user->categories()->where('type', 'contas')->get(['id', 'name', 'color', 'icon', 'editable', 'type']),
+                ],
             ],
         ];
     }

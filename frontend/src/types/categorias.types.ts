@@ -18,5 +18,4 @@ export interface Category {
     icon: string;
     editable: boolean;
     type: "despesa" | "receita" | "ambas";
-    categoryId?: number;
   }

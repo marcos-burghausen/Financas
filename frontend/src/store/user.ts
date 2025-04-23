@@ -1,39 +1,38 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
-import type { Category } from "@/types/auth.types";
-import type { UserDAta } from "@/types/userData";
+import type { User } from "@/types";
 
 export const useUserStore = defineStore("user", () => {
     // state
-    const user = ref(
-        localStorage.getItem("user")
-            ? JSON.parse(localStorage.getItem("user") as string)
+    const userData = ref<User>(
+        localStorage.getItem("userData")
+            ? JSON.parse(localStorage.getItem("userData") as string)
             : "");
     const mesAno = ref(
         localStorage.getItem("mesAno")
     );
 
     // getters
-    const getCarteias = () => {
-        return user.value.carteiras;
-    };
+    // const getCarteias = () => {
+    //     return userData.value.carteiras;
+    // };
 
     // actions
-    function setUserData(data: UserDAta): void {
-        user.value = data;
-        localStorage.setItem("user", JSON.stringify(user.value));
+    function setUserData(data: User): void {
+        userData.value = data;
+        localStorage.setItem("userData", JSON.stringify(userData.value));
     }
 
-    function setCategoriasDespesas(categoriasDespesas: Category) {
-        user.value.categoriasDespesas = categoriasDespesas;
-        localStorage.setItem("user", JSON.stringify(user.value));
-    }
+    // function setCategoriasDespesas(categoriasDespesas: Category) {
+    //     userData.value.categoriasDespesas = categoriasDespesas;
+    //     localStorage.setItem("userData", JSON.stringify(userData.value));
+    // }
 
-    function setCategoriasReceitas(categoriasReceitas: Category) {
-        user.value.categoriasReceitas = categoriasReceitas;
-        localStorage.setItem("user", JSON.stringify(user.value));
-    }
+    // function setCategoriasReceitas(categoriasReceitas: Category) {
+    //     userData.value.categoriasReceitas = categoriasReceitas;
+    //     localStorage.setItem("userData", JSON.stringify(userData.value));
+    // }
 
     function setMesAno(mes_ano: string) {
         console.log(mes_ano);
@@ -44,11 +43,11 @@ export const useUserStore = defineStore("user", () => {
 
 
     return {
-        user,
-        getCarteias,
+        userData,
+        // getCarteias,
         setUserData,
         setMesAno,
-        setCategoriasDespesas,
-        setCategoriasReceitas,
+        // setCategoriasDespesas,
+        // setCategoriasReceitas,
     };
 });

@@ -2,9 +2,15 @@
   <div class="box p-3">
     <div class="container__dados">
       <figure class="figure">
-        <img src="@/assets/img/2.png" class="img" alt="logo" />
+        <img
+          src="@/assets/img/2.png"
+          class="img"
+          alt="logo"
+        >
       </figure>
-      <h2 class="title">Bem vido ao Mr Finanças</h2>
+      <h2 class="title">
+        Bem vido ao Mr Finanças
+      </h2>
       <div class="social__media">
         <ul class="list__social__media">
           <a
@@ -13,24 +19,31 @@
             @click="initiateFacebookLogin()"
           >
             <li class="item__social__media">
-              <v-icon class="icon__modify" icon="mdi-facebook" />
+              <v-icon
+                class="icon__modify"
+                icon="mdi-facebook"
+              />
             </li>
           </a>
           <!-- <a class="link__social__media" href="#">
             <li class="item__social__media">
-              <mdicon class="icon__modify" name="google" />
+              <v-icon class="icon__modify" icon="mdi-google" />
             </li>
           </a>
           <a class="link__social__media" href="#">
             <li class="item__social__media">
-              <mdicon class="icon__modify" name="linkedin" />
+              <v-icon class="icon__modify" icon="mdi-linkedin" />
             </li>
           </a> -->
         </ul>
       </div>
       <!-- <p class="sub__title">ou use sua conta de e-mail:</p> -->
       <ErrorMessage />
-      <v-form v-model="validForm" class="form" @submit.prevent="login">
+      <v-form
+        v-model="validForm"
+        class="form"
+        @submit.prevent="login"
+      >
         <v-combobox
           v-model="user.email"
           variant="underlined"
@@ -55,25 +68,18 @@
           prepend-inner-icon="mdi-lock-outline"
           :append-inner-icon="mostrarSenha ? 'mdi-eye' : 'mdi-eye-off'"
           @click:append-inner="mostrarSenha = !mostrarSenha"
-        >
-          <!-- <template #prepend-inner>
-            <mdicon
-              class="icon__modify"
-              name="lock"
-            />
-          </template> -->
-          <!-- <template #append-inner>
-            <mdicon
-              class="icon__modify"
-              :name="mostrarSenha ? 'eye' : 'eye-off'"
-              @click="mostrarSenha = !mostrarSenha"
-            />
-          </template> -->
-        </v-text-field>
+        />
 
         <div class="container__button">
-          <a class="link" href="#">esqueceu sua senha?</a>
-          <a class="btn__register" href="#" @click.prevent="emits('nextStep')">
+          <a
+            class="link"
+            href="#"
+          >esqueceu sua senha?</a>
+          <a
+            class="btn__register"
+            href="#"
+            @click.prevent="emits('nextStep')"
+          >
             cadastre-se.
           </a>
         </div>
@@ -97,7 +103,7 @@
 import ErrorsForm from "@/components/ModalErrorsForm.vue";
 import ErrorMessage from "@/components/ErrorMessage.vue";
 
-import { useExpensesStore } from "@/store/expenses";
+import { useExpensesStore } from "@/store";
 import { useRevenuesStore } from "@/store/revenues";
 import { useWalletsStore } from "@/store/wallets";
 import { useErrorStore } from "@/store/error";
@@ -110,9 +116,6 @@ import type { AxiosError, AxiosResponse } from "axios";
 import type {
   FormLogin,
   LoginResponse,
-  User,
-  WalletData,
-  Category,
 } from "@/types";
 import { ref } from "vue";
 
@@ -139,7 +142,7 @@ interface ApiErrorResponse {
 }
 
 async function initiateFacebookLogin() {
-  // errorStore.unsetError();
+  errorStore.unsetError();
   try {
     loading.value = true;
     const response = await http.get("/auth/redirect");
@@ -157,8 +160,8 @@ async function login() {
       "/auth",
       user.value
     );
-    useAuth.setToken(response.data.token);
-    useUser.setUserData(response.data.user);
+    useAuth.setToken(response.data.tokenData);
+    useUser.setUserData(response.data.userData);
     useExpenses.setExpensesData(response.data.data.expenses);
     useRevenues.setRevenuesData(response.data.data.revenues);
     useWallets.setWalletsData(response.data.data.wallets);
@@ -192,12 +195,6 @@ const rules = {
   width: 100%;
   max-width: 500px;
 }
-.imput {
-  height: 40px;
-  color: #ccc;
-  width: 100%;
-}
-
 .container__dados {
   border-radius: 10px 0 0 10px;
   width: 100%;
@@ -249,15 +246,20 @@ const rules = {
   text-align: center;
   color: #95a5a6;
 }
+.icon__modify {
+  color: #7f8c8d;
+  padding: 0 5px;
+  cursor: pointer;
+}
 .form {
   display: flex;
   flex-direction: column;
   width: 100% !important;
 }
-.icon__modify {
-  color: #7f8c8d;
-  padding: 0 5px;
-  cursor: pointer;
+.imput {
+  height: 40px;
+  color: #ccc;
+  width: 100%;
 }
 .container__button {
   text-align: center;
@@ -289,7 +291,7 @@ const rules = {
   border: 1px solid #77d08e;
   transition: background-color 0.5s;
 }
-.btn__submit:hover {
+.btn:hover {
   background-color: #e1e1e1;
   border: 1px solid #77d08e;
   color: #77d08e;

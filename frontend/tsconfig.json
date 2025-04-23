@@ -1,22 +1,42 @@
+// {
+//   "files": [],
+//   "references": [
+//     {
+//       "path": "./tsconfig.node.json"
+//     },
+//     {
+//       "path": "./tsconfig.app.json"
+//     },
+//   ],
+//   "compilerOptions": {
+//     "paths": {
+//       "@/*": [
+//         "src/*"
+//       ]
+//     }
+//   },
+//   "include": [
+//     "src/**/*",
+//     "src/shims-vue.d.ts"
+//   ]
+// }
 {
-  "files": [],
-  "references": [
-    {
-      "path": "./tsconfig.node.json"
-    },
-    {
-      "path": "./tsconfig.app.json"
-    },
+  "include": [
+    "./src/**/*"
   ],
   "compilerOptions": {
+    "module": "es2015",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "target": "es5",
+    "sourceMap": true,
+    "allowJs": true,
+    "baseUrl": "./src",
     "paths": {
       "@/*": [
-        "src/*"
+        "/*"
       ]
     }
-  },
-  "include": [
-    "src/**/*",
-    "src/shims-vue.d.ts"
-  ]
+  }
 }

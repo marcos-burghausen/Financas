@@ -25,24 +25,31 @@ class RegisterController extends Controller
                 ],
                 'email' => [
                     'required',
+                    'unique:users,email',
                     'regex:/^(?!(?:(?:\x22?\x5C[\x00-\x7E]\x22?)|(?:\x22?[^\x5C\x22]\x22?)){255,})(?!(?:(?:\x22?\x5C[\x00-\x7E]\x22?)|(?:\x22?[^\x5C\x22]\x22?)){65,}@)(?:(?:[\x21\x23-\x27\x2A\x2B\x2D\x2F-\x39\x3D\x3F\x5E-\x7E]+)|(?:\x22(?:[\x01-\x08\x0B\x0C\x0E-\x1F\x21\x23-\x5B\x5D-\x7F]|(?:\x5C[\x00-\x7F]))*\x22))(?:\.(?:(?:[\x21\x23-\x27\x2A\x2B\x2D\x2F-\x39\x3D\x3F\x5E-\x7E]+)|(?:\x22(?:[\x01-\x08\x0B\x0C\x0E-\x1F\x21\x23-\x5B\x5D-\x7F]|(?:\x5C[\x00-\x7F]))*\x22)))*@(?:(?:(?!.*[^.]{64,})(?:(?:(?:xn--)?[a-z0-9]+(?:-[a-z0-9]+)*\.){1,126}){1,}(?:(?:[a-z][a-z0-9]*)|(?:(?:xn--)[a-z0-9]+))(?:-[a-z0-9]+)*)|(?:\[(?:(?:IPv6:(?:(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){7})|(?:(?!(?:.*[a-f0-9][:\]]){7,})(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){0,5})?::(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){0,5})?)))|(?:(?:IPv6:(?:(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){5}:)|(?:(?!(?:.*[a-f0-9]:){5,})(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){0,3})?::(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){0,3}:)?)))?(?:(?:25[0-5])|(?:2[0-4][0-9])|(?:1[0-9]{2})|(?:[1-9]?[0-9]))(?:\.(?:(?:25[0-5])|(?:2[0-4][0-9])|(?:1[0-9]{2})|(?:[1-9]?[0-9]))){3}))\]))$/iD',
                 ],
                 'password' => [
                     'required',
+                    'min:8',
                     'regex:/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\\¨~?´`!@#$%^&*()_+={}:;.<>,|\[\]\-\/])[0-9a-zA-Z\\¨~?´`!@#$%^&*()_+={}:;.<>,|\[\]\-\/]{8,}$/',
+                ],
+                'confirmPassword' => [
+                    'required',
+                    'same:password',
                 ]
-                // 'confirmPassword' => 'required|string',
             ],
             [
-                'name.required'            => 'O campo nome é obrigatório',
-                'name.min'                 => 'O campo nome deve ter pelo menos 3 caracteres',
-                'name.regex'               => 'O campo nome deve conter apenas letras',
-                'email.required'           => 'O campo email é obrigatório',
-                'email.unique'             => 'Já existe um usuário cadastrado com esse email ',
-                'email.regex'              => 'O campo email deve ter um formato válido',
-                'password.required'        => 'O campo senha é obrigatório',
-                'password.regex'           => 'A senha deve ter pelo menos 8 caracteres sendo uma letra maiúcula, uma minúscula, um número e um caracter especial exeto aspas simples e dupla',
-                //              'confirmPassword.required' => 'O campo confirmação de senha é obrigatório',
+                'required'             => 'O campo :attribute é obrigatório',
+                'min'                  => 'O campo :attribute deve ter pelo menos :min caracteres',
+                'name.regex'           => 'O campo nome deve conter apenas letras',
+                'email.unique'         => 'Já existe um usuário cadastrado com esse email ',
+                'email.regex'          => 'O campo email deve ter um formato válido',
+                'password.regex'       => 'A senha deve ter pelo menos 8 caracteres sendo uma letra maiúcula, uma minúscula, um número e um caracter especial exeto aspas simples e dupla',
+                'confirmPassword.same' => 'A confirmação de senha deve ser igual à senha',
+            ],
+            [
+                'password'        => 'senha',
+                'confirmPassword' => 'confirmar senha'
             ]
         );
 

@@ -4,7 +4,7 @@
       <figure class="figure">
         <img
           src="@/assets/img/2.png"
-          style="width: 200px"
+          class="image"
           alt="logo"
         >
       </figure>
@@ -71,7 +71,7 @@
           prepend-inner-icon="mdi-lock-outline"
         />
 
-        <div class="y">
+        <div>
           <a
             class="btn__register"
             href="#"
@@ -83,7 +83,7 @@
         <v-btn
           :disabled="loading || !validForm"
           :loading="loading"
-          class="btn mt-5"
+          class="btn my-5"
           block
           size="large"
           type="submit"
@@ -104,7 +104,7 @@ import http from "@/services/http";
 
 import { ref, computed } from "vue";
 import type { AxiosError } from "axios";
-import type { FormCadastro } from "@/types/formCadastro";
+import type { FormCadastro } from "@/types";
 
 const emits = defineEmits(["nextStep"]);
 const errorStore = useErrorStore();
@@ -181,178 +181,46 @@ const passwordHint = computed(() => {
 <style scoped>
 .box {
   display: flex;
-  /* box-shadow: 1px 1px 10px 5px #77d08e; */
-  /* border-radius: 10px; */
   width: 90%;
   max-width: 500px;
 }
-
 .container__dados {
   border-radius: 10px 0 0 10px;
   width: 100%;
   display: flex;
   flex-direction: column;
   justify-items: center;
-  /* padding: 2rem 2rem;
-  padding-inline: 10px; */
 }
-
-.title {
-  font-size: 30px;
-  font-weight: bold;
-  color: #fefefe;
-  text-align: center;
-  /* margin: 0 0 25px 0; */
-}
-
-.title__2 {
-  font-size: 40px;
-  font-weight: bold;
-  color: #515050;
-  text-align: center;
-}
-
-.social__media {
-  margin: 1rem 0;
-  display: flex;
-  justify-content: center;
-  text-align: center;
-}
-
-.list__social__media {
-  display: flex;
-  list-style-type: none;
-}
-
-.link__social__media:not(:first-child) {
-  margin-left: 10px;
-}
-
-.link__social__media .item__social__media {
-  transition: background-color 0.5s;
-}
-
-.link__social__media:hover .item__social__media {
-  color: #fff !important;
-  border-color: #77d08e;
-}
-
-.item__social__media {
-  border: 1px solid #bdc3c7;
-  border-radius: 50%;
-  width: 35px;
-  height: 35px;
-  line-height: 35px;
-  text-align: center;
-  color: #95a5a6;
-}
-
-.icon__modify {
-  color: #7f8c8d;
-  padding: 0 5px;
-  cursor: pointer;
-}
-
-.sub__title {
-  color: #fefefe;
-  text-align: center;
-}
-
-.sub__title__2 {
-  color: #515050;
-  text-align: center;
-}
-
-.form {
-  display: flex;
-  flex-direction: column;
-  width: 100% !important;
-}
-
-.container__input {
-  background-color: #1e1e1e;
-  margin: 20px 0 0 0;
-  display: flex;
-  align-items: center;
-  padding-left: 5px;
-  position: relative;
-  border-radius: 5px;
-}
-
-/* .container__input input {
-  height: 55px;
-  color: #ccc;
-  width: 100%;
-  border: none;
-  background-color: transparent;
-} */
-.imput {
-  /* height: 40px; */
-  color: #ccc;
-  width: 100%;
-}
-
-.container__input input:focus {
-  box-shadow: 0 0 0 0.15rem #0096a72f !important;
-}
-
-.label {
-  color: #fefefe;
-  background-color: transparent;
-  position: absolute;
-  left: 10px;
-  top: -25px;
-  opacity: 0.4;
-  cursor: text;
-  transition: 0.5s ease-in-out;
-}
-
-.error {
-  height: 20px;
-}
-
-.span__error {
-  color: rgb(194, 4, 4);
-  position: relative;
-  top: 0;
-  left: 0;
-}
-
-.container__button {
-  text-align: center;
-}
-
-.link {
-  color: #0097a7;
-  font-size: 16px;
-  margin: 15px 0;
-  text-align: center;
-}
-
-.btn__register {
-  color: #0097a7;
-  text-decoration: none;
-}
-
-.btn__register span {
-  color: #fefefe;
-}
-
-.container__decription {
-  width: 40%;
-  background: #77d08e;
-  border-radius: 10px 0 0 10px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
 .figure {
   display: flex;
   justify-content: space-evenly;
   align-items: center;
 }
-
+.image {
+  width: 200px
+}
+.title {
+  font-size: 30px;
+  font-weight: bold;
+  color: #fefefe;
+  text-align: center;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  width: 100% !important;
+}
+.imput {
+  color: #ccc;
+  width: 100%;
+}
+.btn__register {
+  color: #0097a7;
+  text-decoration: none;
+}
+.btn__register span {
+  color: #fefefe;
+}
 .btn {
   text-transform: uppercase;
   color: #fff;
@@ -366,24 +234,6 @@ const passwordHint = computed(() => {
   background-color: #77d08e;
   border: 1px solid #77d08e;
   transition: background-color 0.5s;
-}
-
-.btn__submit:hover {
-  background-color: #e1e1e1;
-  border: 1px solid #77d08e;
-  color: #77d08e;
-}
-
-.btn__link {
-  margin-top: 60px;
-  background-color: transparent;
-  border: 1px solid #fff;
-  transition: background-color 0.5s;
-}
-
-.btn__link:hover {
-  background-color: #fff;
-  color: #58af9b;
 }
 
 /* @media screen and (max-width: 1201px) {

@@ -1,29 +1,24 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
-import type { Lancamentos } from "@/types";
+import type { TransactionsData } from "../types";
 
 export const useRevenuesStore = defineStore("revenues", () => {
 
-    const revenuesData = ref(
+    const revenuesData = ref<TransactionsData>(
         localStorage.getItem("revenuesData")
             ? JSON.parse(localStorage.getItem("revenuesData") as string)
             : "");
 
-    // function setRevenuesData(revenues: Lancamentos, valueTotalRevenuesMonth: number, valueReceivedRevenues: number, valuePendingRevenues: number, revenuesMonth: Lancamentos): void {
-    //     revenuesData.value = {
-    //         valueTotalRevenuesMonth,
-    //         valueReceivedRevenues,
-    //         valuePendingRevenues,
-    //         revenuesMonth,
-    //         revenues
-    //     };
-    //     localStorage.setItem('revenuesData', JSON.stringify(revenuesData.value));
-    // }
-
-    function setRevenuesData(revenues: Array<Lancamentos>): void {
+    function setRevenuesData(revenues: TransactionsData): void {
         revenuesData.value = {
-            revenues
+            byCategory: revenues.byCategory || [],
+            valuePay: revenues.valuePay || 0,
+            valuePending: revenues.valuePending || 0,
+            valueTotalMonth: revenues.valueTotalMonth || 0,
+            byMonth: revenues.byMonth || [],
+            categories: revenues.categories || [],
+            totalDays: revenues.totalDays || 0,
         };
         localStorage.setItem("revenuesData", JSON.stringify(revenuesData.value));
     }

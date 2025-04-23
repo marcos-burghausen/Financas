@@ -1,5 +1,4 @@
-// src/types/transactions.types.ts
-// Represents a financial transaction
+import type { Category } from "./";
 export interface Lancamento {
     id?: number;
     descricao?: string;
@@ -16,6 +15,16 @@ export interface Lancamento {
     mesReferencia?: string;
     dateLancamento?: string;
     dateEfetivacao?: string;
+  }
+
+  export interface TransactionsData {
+    byCategory: [];
+    valuePay: number;
+    valuePending: number;
+    valueTotalMonth: number;
+    byMonth: [];
+    categories: Category[];
+    totalDays: number;
   }
   
   // Represents transactions grouped by month

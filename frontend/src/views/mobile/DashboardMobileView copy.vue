@@ -249,12 +249,17 @@
 </template>
 
 <script setup lang="ts">
-import { useAuthStore } from "../../store/auth";
+import { useAuthStore } from "@/store/auth";
 import { useRouter } from "vue-router";
-import http from "../../services/http";
-import { ref, watch } from "vue";
-import { useUserStore } from "../../store/user";
+import http from "@/services/http";
+import { ref, watch, computed } from "vue";
+import { useUserStore } from "@/store/user";
 import { useRoute } from "vue-router";
+
+import { useExpensesStore } from "@/store/expenses";
+import { useRevenuesStore } from "@/store/revenues";
+import { formatValue } from "@/utils/formatValue";
+import { useWalletsStore } from "@/store/wallets";
 
 const route = useRoute();
 const useUser = useUserStore();
@@ -327,19 +332,19 @@ const itensSideBar = ref([
     // { name: "Mais Opçõs", icon: "dots-horizontal", route: "dashboard" },
 ]);
 
-console.log(useUser.user.user_tipe);
+console.log(useUser.userData.type);
 
 const filteredItensSideBar = computed(() => {
     return itensSideBar.value.filter((item) => {
         if (item.adminOnly) {
             return (
-                useUser.user.user_tipe === "ADMIM" || useUser.user.user_tipe === "FULL"
+                useUser.userData.type === "ADMIM" || useUser.userData.type === "FULL"
             );
         } else if (item.traderOnly) {
             return (
-                useUser.user.user_tipe === "TRADER" ||
-        useUser.user.user_tipe === "USER_TRADER" ||
-        useUser.user.user_tipe === "FULL"
+                useUser.userData.type === "TRADER" ||
+        useUser.userData.type === "USER_TRADER" ||
+        useUser.userData.type === "FULL"
             );
         }
         return true; // Exibe os outros itens normalmente
@@ -366,7 +371,7 @@ const props = defineProps({
 // const titulo = computed(() => props.name);
 const router = useRouter();
 const useAuth = useAuthStore();
-let name = ref(useUser.user.name.split(" ")[0]);
+let name = ref(useUser.userData.name.split(" ")[0]);
 
 // const items = ref([{ title: "Sair", icon: "power", action: logout }]);
 
@@ -380,57 +385,50 @@ async function logout() {
     }
 }
 
-import CabecalhoMobile from "@/components/mobile/CabecalhoMobile.vue";
-import MenuLateralMobile from "@/components/mobile/MenuLateralMobile.vue";
+// import CabecalhoMobile from "@/components/mobile/CabecalhoMobile.vue";
+// import MenuLateralMobile from "@/components/mobile/MenuLateralMobile.vue";
 
-import { computed} from "vue";
 
-import { useExpensesStore } from "@/store/expenses";
-import { useRevenuesStore } from "@/store/revenues";
-import { formatValue } from "@/utils/formatValue";
-import { useWalletsStore } from "@/store/wallets";
 
 const useExpenses = useExpensesStore();
 const useRevenues = useRevenuesStore();
 const useWallets = useWalletsStore();
 
-const menuExpandido = ref(false);
 
 // const formatValue = (value: number): string =>{
 //     let valueFormatted = (value / 100).toLocaleString("pt-BR", { style: "decimal", minimumFractionDigits: 2, maximumFractionDigits: 2 });
 //     return valueFormatted;
 // };
-// console.log(mesAnoReferencia.value);
 // const mesPorExtenso = mesAnoReferencia ? mesAnoReferencia.value.split(" ")[0] : '';
 let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
 let saldoInicial = ref(useWallets.walletsData?.saldoInicial);
 let valueTotalExpensesMonth = ref(
-    useExpenses.expensesData.expenses?.ValueTotalExpensesMonth
+    useExpenses.expensesData?.valueTotalMonth
 );
 let valueTotalRevenuesMonth = ref(
-    useRevenues.revenuesData.revenues?.ValueTotalRevenuesMonth
+    useRevenues.revenuesData?.valueTotalMonth
 );
-let totalBalance = ref(useWallets.walletsData?.wallets[0].saldo);
+let totalBalance = ref(useWallets.walletsData?.contas[0].saldo);
 let valorPrevisto = ref(
     saldoInicial.value +
     valueTotalRevenuesMonth.value -
     valueTotalExpensesMonth.value
 );
-let valuePay = ref(useExpenses.expensesData.expenses?.ValuePayExpenses);
+let valuePay = ref(useExpenses.expensesData?.valuePay);
 let valueReceived = ref(
-    useRevenues.revenuesData.revenues?.ValueReceivedRevenues
+    useRevenues.revenuesData?.valueReceived
 );
 // let totalCreditCard = ref(0);
 // let expensesAddTotalValueMonth = ref(useExpenses.expensesData.expenses?.ExpensesAddTotalValueMonth);
 // let revenuesAddTotalValueMonth = ref(useRevenues.revenuesData.revenues?.RevenuesAddTotalValueMonth);
 let totalByCategoryExpenses = ref(
-    useExpenses.expensesData.expenses?.TotalByCategoryExpenses
+    useExpenses.expensesData?.byCategory
 );
 let valuePendingRevenues = ref(
-    useRevenues.revenuesData.revenues?.ValuePendingRevenues
+    useRevenues.revenuesData?.valuePending
 );
 let valuePendingExpenses = ref(
-    useExpenses.expensesData.expenses?.ValuePendingExpenses
+    useExpenses.expensesData?.valuePending
 );
 
 const isAllZeros = (arr) => {
@@ -482,38 +480,38 @@ const proximoMes = () => {
 
 const buscarDadosMes = async (data: string, buscar: string) => {
     try {
-        const res = await http.post("/buscar-dados-mes", {
+        const response = await http.post("/buscar-dados-mes", {
             mes: data,
             buscar: buscar,
         });
-        useWallets.setMesReferencia(res.data.walletsData.mes_ano_referencia);
-        useExpenses.setExpensesData(res.data.expensesData);
-        useRevenues.setRevenuesData(res.data.revenuesData);
-        useWallets.setWalletsData(res.data.walletsData);
+        useWallets.setMesReferencia(response.data.walletsData.mes_ano_referencia);
+        useExpenses.setExpensesData(response.data.expensesData);
+        useRevenues.setRevenuesData(response.data.revenuesData);
+        useWallets.setWalletsData(response.data.walletsData);
 
-        mesAnoReferencia.value = res.data.walletsData.mes_ano_referencia;
+        mesAnoReferencia.value = response.data.walletsData.mes_ano_referencia;
 
-        saldoInicial.value = res.data.walletsData.saldoInicial;
-        totalBalance.value = res.data.walletsData.wallets[0].saldo;
+        saldoInicial.value = response.data.walletsData.saldoInicial;
+        totalBalance.value = response.data.walletsData.wallets[0].saldo;
 
         valueTotalExpensesMonth.value =
-      res.data.expensesData.ValueTotalExpensesMonth;
+        response.data.expensesData.valueTotalExpensesMonth;
         valueTotalRevenuesMonth.value =
-      res.data.revenuesData.ValueTotalRevenuesMonth;
+        response.data.revenuesData.valueTotalRevenuesMonth;
 
         valorPrevisto.value =
       saldoInicial.value +
       valueTotalRevenuesMonth.value -
       valueTotalExpensesMonth.value;
 
-        valuePay.value = res.data.expensesData.ValuePayExpenses;
-        valueReceived.value = res.data.revenuesData.ValueReceivedRevenues;
+        valuePay.value = response.data.expensesData.valuePayExpenses;
+        valueReceived.value = response.data.revenuesData.valueReceivedRevenues;
 
         totalByCategoryExpenses.value =
-      res.data.expensesData.TotalByCategoryExpenses;
+        response.data.expensesData.byCategory;
 
-        valuePendingRevenues.value = res.data.revenuesData.ValuePendingRevenues;
-        valuePendingExpenses.value = res.data.expensesData.ValuePendingExpenses;
+        valuePendingRevenues.value = response.data.revenuesData.valuePendingRevenues;
+        valuePendingExpenses.value = response.data.expensesData.valuePendingExpenses;
     } catch (error) {
     //
     }
