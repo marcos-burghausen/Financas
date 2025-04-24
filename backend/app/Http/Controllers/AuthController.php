@@ -74,7 +74,7 @@ class AuthController extends Controller
         Mail::to('rafaelburghausen@gmail.com')->queue(new NotificationMail($user, 'Login', 'Login', $user->name));
 
         return response()->json([
-            'tokenData' => $token->original,
+            'token'     => $token->original,
             'userData'  => $user = [
                 'id'    => $user->id,
                 'name'  => $user->name,

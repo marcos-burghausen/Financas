@@ -2,15 +2,9 @@
   <div class="box p-3">
     <div class="container__dados">
       <figure class="figure">
-        <img
-          src="@/assets/img/2.png"
-          class="img"
-          alt="logo"
-        >
+        <img src="@/assets/img/2.png" class="img" alt="logo" />
       </figure>
-      <h2 class="title">
-        Bem vido ao Mr Finanças
-      </h2>
+      <h2 class="title">Bem vido ao Mr Finanças</h2>
       <div class="social__media">
         <ul class="list__social__media">
           <a
@@ -19,10 +13,7 @@
             @click="initiateFacebookLogin()"
           >
             <li class="item__social__media">
-              <v-icon
-                class="icon__modify"
-                icon="mdi-facebook"
-              />
+              <v-icon class="icon__modify" icon="mdi-facebook" />
             </li>
           </a>
           <!-- <a class="link__social__media" href="#">
@@ -39,11 +30,7 @@
       </div>
       <!-- <p class="sub__title">ou use sua conta de e-mail:</p> -->
       <ErrorMessage />
-      <v-form
-        v-model="validForm"
-        class="form"
-        @submit.prevent="login"
-      >
+      <v-form v-model="validForm" class="form" @submit.prevent="login">
         <v-combobox
           v-model="user.email"
           variant="underlined"
@@ -71,15 +58,8 @@
         />
 
         <div class="container__button">
-          <a
-            class="link"
-            href="#"
-          >esqueceu sua senha?</a>
-          <a
-            class="btn__register"
-            href="#"
-            @click.prevent="emits('nextStep')"
-          >
+          <a class="link" href="#">esqueceu sua senha?</a>
+          <a class="btn__register" href="#" @click.prevent="emits('nextStep')">
             cadastre-se.
           </a>
         </div>
@@ -103,20 +83,19 @@
 import ErrorsForm from "@/components/ModalErrorsForm.vue";
 import ErrorMessage from "@/components/ErrorMessage.vue";
 
-import { useExpensesStore } from "@/store";
-import { useRevenuesStore } from "@/store/revenues";
-import { useWalletsStore } from "@/store/wallets";
-import { useErrorStore } from "@/store/error";
-import { useUserStore } from "@/store/user";
-import { useAuthStore } from "@/store/auth";
+import {
+  useExpensesStore,
+  useRevenuesStore,
+  useWalletsStore,
+  useErrorStore,
+  useUserStore,
+  useAuthStore,
+} from "@/store";
 import { useRouter } from "vue-router";
 import http from "@/services/http";
 
 import type { AxiosError, AxiosResponse } from "axios";
-import type {
-  FormLogin,
-  LoginResponse,
-} from "@/types";
+import type { FormLogin, LoginResponse } from "@/types";
 import { ref } from "vue";
 
 const emits = defineEmits(["nextStep"]);
@@ -160,7 +139,7 @@ async function login() {
       "/auth",
       user.value
     );
-    useAuth.setToken(response.data.tokenData);
+    useAuth.setToken(response.data.token);
     useUser.setUserData(response.data.userData);
     useExpenses.setExpensesData(response.data.data.expenses);
     useRevenues.setRevenuesData(response.data.data.revenues);
@@ -280,7 +259,6 @@ const rules = {
 .btn {
   text-transform: uppercase;
   color: #fff;
-  font-size: 10px;
   cursor: pointer;
   font-weight: bold;
   align-self: center;

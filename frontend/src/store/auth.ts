@@ -1,15 +1,18 @@
 import http from "@/services/http";
-import type { Token } from "@/types/token";
-import type { User } from "@/types/user";
+import { Token } from "@/types";
 import { defineStore } from "pinia";
-import type { Ref } from "vue";
 import { computed, onMounted, ref, watchEffect } from "vue";
 
 
 export const useAuthStore = defineStore("auth", () => {
-    const token = ref({ token: "", expires: 0 });
+    const token = ref<Token>({
+        token: "",
+        token_type: "",
+        expires_in: 0,
+        iat: 0,
+        expires: 0,
+    });
             
-    const user: Ref<User | null> = ref(null);
 
     onMounted(() => {
         const storedToken = localStorage.getItem("token");
@@ -17,21 +20,11 @@ export const useAuthStore = defineStore("auth", () => {
             token.value = JSON.parse(storedToken);
         }
 
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-            user.value = JSON.parse(storedUser);
-        }
     });
 
     function setToken(tokenValue: Token) {
         localStorage.setItem("token", JSON.stringify(tokenValue));
         token.value = tokenValue;
-    }
-
-
-    function setUser(userValue: User) {
-        localStorage.setItem("user", JSON.stringify(userValue));
-        user.value = userValue;
     }
 
     const isAuthenticated = computed(() => {
@@ -56,8 +49,13 @@ export const useAuthStore = defineStore("auth", () => {
         localStorage.removeItem("token");
         localStorage.removeItem("userData");
         localStorage.removeItem("walletsData");
-        token.value = { token: "", expires: 0 };
-        user.value = null;
+        token.value = {
+            token: "",
+            token_type: "",
+            expires_in: 0,
+            iat: 0,
+            expires: 0,
+        };
     }
 
     function expiredTokem() {
@@ -85,7 +83,6 @@ export const useAuthStore = defineStore("auth", () => {
 
     // Função para iniciar o monitoramento da expiração do token
     function monitorTokenExpiration() {
-        console.log("verificando");
         setInterval(() => {
             const expirationTime = token.value.expires * 1000;
             const currentTime = Date.now();
@@ -107,9 +104,7 @@ export const useAuthStore = defineStore("auth", () => {
 
     return {
         token,
-        user,
         setToken,
-        setUser,
         isAuthenticated,
         clear,
         expiredTokem,

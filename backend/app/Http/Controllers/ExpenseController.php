@@ -47,7 +47,10 @@ class ExpenseController extends Controller
         $expense->descricao = $data['descricao'];
         $expense->categoria = $data['categoria'];
         $expense->conta  = $data['conta'];
-        $expense->status    = $data['status'];
+        $expense->status       = $data['status'] ?? 'Pendente';
+        $expense->tipo         = $data['tipo'] ?? 'Não recorrente';
+        $expense->num_parcelas = $data['numParcelas'] ?? 0;
+        $expense->periodicidade = $data['periodicidade'] ?? null;
         $saved = $expense->save();
 
         if ($data['status'] === 'PAGA') {

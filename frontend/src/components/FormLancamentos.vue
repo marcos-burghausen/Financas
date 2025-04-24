@@ -10,22 +10,22 @@
       >
         <v-btn
           :disabled="loading"
-          :loading="loading"
           class="close fs-5 ms-3"
           prepend-icon="mdi-close"
           @click="closeForm"
         />
         <div class="d-flex flex-column">
-          <span class="fs-5">{{ isEditMode ? "Editar" : "Nova" }}
-            {{ transactionType === "receitas" ? "Receita" : "Despesa" }}</span>
+          <span class="fs-5">
+            {{ isEditMode ? "Editar" : "Nova" }}
+            {{ transactionType === "receitas" ? "Receita" : "Despesa" }}
+          </span>
         </div>
         <v-btn
           :disabled="
             loading || !validFormLancamentos || formReleases.valor === '0,00'
           "
           :loading="loading"
-          style="background-color: #77d08e"
-          class="px-3 me-2"
+          class="btn"
           type="submit"
           rounded="xl"
         >
@@ -46,10 +46,7 @@
         prepend-inner-icon="mdi-text-long"
       >
         <template #message>
-          <div
-            v-if="errorsForm.descricao"
-            class="error-message"
-          >
+          <div v-if="errorsForm.descricao" class="error-message">
             {{ errorsForm.descricao[0] }}
           </div>
         </template>
@@ -68,10 +65,7 @@
         @input="formatValueSave"
       >
         <template #message>
-          <div
-            v-if="errorsForm.valor"
-            class="error-message"
-          >
+          <div v-if="errorsForm.valor" class="error-message">
             {{ errorsForm.valor[0] }}
           </div>
         </template>
@@ -88,10 +82,7 @@
         @click="openTipoLancamento = true"
       />
 
-      <div
-        v-if="openTipoLancamento"
-        class="tipo"
-      >
+      <div v-if="openTipoLancamento" class="tipo">
         <div
           class="d-flex flex-column align-start justify-space-around modal__tipo"
         >
@@ -114,23 +105,14 @@
         </div>
       </div>
 
-      <div
-        v-if="openParcelas"
-        class="parcelas"
-      >
+      <div v-if="openParcelas" class="parcelas">
         <div class="container__parcelas">
           <div class="p-3">
-            <h2 class="mb-4 text-center">
-              Configurar parcelas
-            </h2>
+            <h2 class="mb-4 text-center">Configurar parcelas</h2>
 
             <div class="py-2">
               <div class="d-flex align-center justify-space-between">
-                <v-icon
-                  class="pe-3"
-                  icon="mdi-arrow-right"
-                  size="24"
-                />
+                <v-icon class="pe-3" icon="mdi-arrow-right" size="24" />
                 <span class="item-label"> Parcela inicial </span>
                 <div class="item-value">
                   <div class="number-stepper">
@@ -147,7 +129,7 @@
                       type="number"
                       class="stepper-input"
                       min="1"
-                    >
+                    />
                     <v-btn
                       prepend-icon="mdi-chevron-up"
                       flat
@@ -169,9 +151,7 @@
                   size="24"
                   class="pe-3"
                 />
-                <div class="item-label">
-                  Quantidade
-                </div>
+                <div class="item-label">Quantidade</div>
                 <div class="item-value">
                   <div class="number-stepper">
                     <v-btn
@@ -186,7 +166,7 @@
                       type="number"
                       class="stepper-input"
                       min="2"
-                    >
+                    />
                     <v-btn
                       class="stepper-btn"
                       prepend-icon="mdi-chevron-up"
@@ -202,14 +182,8 @@
 
             <div class="">
               <div class="d-flex align-center justify-space-between">
-                <v-icon
-                  icon="mdi-calendar-blank"
-                  size="24"
-                  class="pe-3"
-                />
-                <div class="item-label">
-                  Periodicidade
-                </div>
+                <v-icon icon="mdi-calendar-blank" size="24" class="pe-3" />
+                <div class="item-label">Periodicidade</div>
                 <div class="item-value pb-2">
                   <v-select
                     v-model="tempPeriodicidade"
@@ -224,16 +198,10 @@
           </div>
 
           <div class="d-flex justify-space-between align-center p-3">
-            <v-btn
-              class="btn-cancelar"
-              @click="cancelarConfiguracaoRepeticao"
-            >
+            <v-btn class="btn-cancelar" @click="cancelarConfiguracaoRepeticao">
               Cancelar
             </v-btn>
-            <v-btn
-              class="btn-concluido"
-              @click="concluirParcelas"
-            >
+            <v-btn class="btn-concluido" @click="concluirParcelas">
               Concluído
             </v-btn>
           </div>
@@ -253,16 +221,10 @@
         prepend-inner-icon="mdi-calendar"
       >
         <template #append-inner>
-          <span
-            v-if="isTodayVencimento"
-            class="today__label"
-          >Hoje</span>
+          <span v-if="isTodayVencimento" class="today__label">Hoje</span>
         </template>
         <template #message>
-          <div
-            v-if="errorsForm.date"
-            class="error__message"
-          >
+          <div v-if="errorsForm.date" class="error__message">
             {{ errorsForm.date[0] }}
           </div>
         </template>
@@ -314,10 +276,7 @@
         prepend-inner-icon="mdi-scatter-plot"
       >
         <template #message>
-          <div
-            v-if="errorsForm.categoria"
-            class="error-message"
-          >
+          <div v-if="errorsForm.categoria" class="error-message">
             {{ errorsForm.categoria[0] }}
           </div>
         </template>
@@ -335,10 +294,7 @@
         prepend-inner-icon="mdi-scatter-plot"
       >
         <template #message>
-          <div
-            v-if="errorsForm.categoria"
-            class="error-message"
-          >
+          <div v-if="errorsForm.categoria" class="error-message">
             {{ errorsForm.categoria[0] }}
           </div>
         </template>
@@ -356,10 +312,7 @@
         prepend-inner-icon="mdi-bank"
       >
         <template #message>
-          <div
-            v-if="errorsForm.conta"
-            class="error-message"
-          >
+          <div v-if="errorsForm.conta" class="error-message">
             {{ errorsForm.conta[0] }}
           </div>
         </template>
@@ -391,16 +344,10 @@
         prepend-inner-icon="mdi-calendar-clock"
       >
         <template #append-inner>
-          <span
-            v-if="isTodayLancamento"
-            class="today__label"
-          >Hoje</span>
+          <span v-if="isTodayLancamento" class="today__label">Hoje</span>
         </template>
         <template #message>
-          <div
-            v-if="errorsForm.date"
-            class="error__message"
-          >
+          <div v-if="errorsForm.date" class="error__message">
             {{ errorsForm.date[0] }}
           </div>
         </template>
@@ -420,16 +367,10 @@
         prepend-inner-icon="mdi-calendar-check"
       >
         <template #append-inner>
-          <span
-            v-if="isTodayEfetivacao"
-            class="today__label"
-          >Hoje</span>
+          <span v-if="isTodayEfetivacao" class="today__label">Hoje</span>
         </template>
         <template #message>
-          <div
-            v-if="errorsForm.date"
-            class="error__message"
-          >
+          <div v-if="errorsForm.date" class="error__message">
             {{ errorsForm.date[0] }}
           </div>
         </template>
@@ -442,7 +383,7 @@
 import { ref, computed, watch } from "vue";
 import http from "@/services/http";
 import type { Lancamentos } from "@/types";
-import { useExpensesStore, useRevenuesStore, useWalletsStore } from "/store";
+import { useExpensesStore, useRevenuesStore, useWalletsStore } from "@/store";
 
 const useWallets = useWalletsStore();
 const useRevenues = useRevenuesStore();
@@ -486,9 +427,22 @@ const categoriasNames = ref(
     : useExpenses.expensesData.categories.map((categoria) => categoria.name)
 );
 
-const contasNames = ref(
-  useWallets.walletsData.contasNames
-);
+const subCategoriasNames = computed(() => {
+  const categories =
+    props.transactionType === "receitas"
+      ? useRevenues.revenuesData.categories || []
+      : useExpenses.expensesData.categories || [];
+
+  const selectedCategory = categories.find(
+    (cat) => cat.name === formReleases.value.categoria
+  );
+
+  return selectedCategory && Array.isArray(selectedCategory.subcategories)
+    ? selectedCategory.subcategories.map((sub) => sub.name)
+    : [];
+});
+
+const contasNames = ref(useWallets.walletsData.contasNames);
 
 const isEditMode = computed(() => !!props.releases?.id);
 
@@ -528,13 +482,46 @@ const formReleases = ref<Lancamentos>({
   periodicidade: props.releases?.periodicidade || null,
   data: validateDate(props.releases?.data),
   status: props.releases?.status || "Pendente",
-  categoria: props.releases?.categoria || "Outros",
+  categoria: props.releases?.categoria || categoriasNames.value[0] || "",
   subCategoria: props.releases?.subCategoria || "",
   conta: props.releases?.conta || contasNames.value[0],
   mesReferencia: props.releases?.mesReferencia || props.mesReferencia,
   dateLancamento: validateDate(props.releases?.data),
   dateEfetivacao: props.releases?.dateEfetivacao,
 });
+
+watch(
+  () => formReleases.value.categoria,
+  (newCategoria) => {
+    // Reset subCategoria when category changes
+    formReleases.value.subCategoria = "";
+    // Optionally, set a default subcategory if needed
+    const categories =
+      props.transactionType === "receitas"
+        ? useRevenues.revenuesData.categories
+        : useExpenses.expensesData.categories;
+    const selectedCategory = categories.find(
+      (cat) => cat.name === newCategoria
+    );
+    if (selectedCategory && selectedCategory.subcategories.length > 0) {
+      formReleases.value.subCategoria = selectedCategory.subcategories[0].name;
+    }
+  }
+);
+
+watch(
+  () => categoriasNames.value,
+  (newCategorias) => {
+    if (
+      newCategorias.length > 0 &&
+      !newCategorias.includes(formReleases.value.categoria)
+    ) {
+      formReleases.value.categoria = newCategorias[0] || "";
+      formReleases.value.subCategoria = "";
+    }
+  },
+  { immediate: true }
+);
 
 watch(
   () => formReleases.value.data,
@@ -649,33 +636,12 @@ const selecionarTipo = (item: string) => {
 const salvarLancamentos = async () => {
   try {
     loading.value = true;
-    const valorStr = formReleases.value.valor
-      .replace(/\./g, "")
-      .replace(",", ".");
-    const valorNum = parseFloat(valorStr);
-    if (isNaN(valorNum)) {
-      errorsForm.value.valor = ["O valor deve ser um número válido"];
-      return;
-    }
-    const payload = {
-      valor: valorNum,
-      date: formReleases.value.date,
-      descricao: formReleases.value.descricao,
-      categoria: formReleases.value.categoria,
-      conta: formReleases.value.conta,
-      status: formReleases.value.status,
-      mesReferencia: formReleases.value.mesReferencia,
-      num_parcelas: formReleases.value.num_parcelas,
-      periodicidade: formReleases.value.periodicidade,
-      tipo: formReleases.value.tipo,
-      tipoTransacao: props.transactionType,
-    };
-    console.log("Payload being sent:", payload);
-    const method = isEditMode.value ? "put" : "post";
+    const method = isEditMode.value ? http.put : http.post;
     const url = isEditMode.value
-      ? `/revenue/${formReleases.value.id}`
-      : "/revenue";
-    const res = await http[method](url, payload);
+      ? `/${props.rota}/${formReleases.value.id}`
+      : `/${props.rota}`;
+    console.log(url);
+    const res = await method(url, formReleases.value);
 
     useRevenues.setRevenuesData(res.data.revenuesData);
     useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
@@ -744,14 +710,16 @@ const rules = {
   requiredCatagoria: (value: string) =>
     !!value || "O campo categoria é obrigatório",
   requiredCarteira: (value: string) => !!value || "O campo conta é obrigatório",
+  requiredSubCatagoriasNames: (value: string) =>
+    !!value || "O campo subcategoria é obrigatório",
 };
 </script>
 
 <style scoped>
-.v-btn {
+/* .v-btn {
   background-color: transparent;
   cursor: pointer;
-}
+} */
 
 .container__modal {
   width: 100%;
@@ -779,6 +747,19 @@ const rules = {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+.btn {
+  /* text-transform: uppercase; */
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+  align-self: center;
+  border: none;
+  margin-top: 1rem;
+  font-size: 20px;
+  background-color: #77d08e;
+  border: 1px solid #77d08e;
+  transition: background-color 0.5s;
 }
 .imput {
   height: 40px;
@@ -854,9 +835,9 @@ const rules = {
   justify-content: center;
 }
 
-.stepper-btn:hover:not(:disabled) {
+/* .stepper-btn:hover:not(:disabled) {
   color: #77d08e;
-}
+} */
 .stepper-input {
   width: 50px;
   background-color: transparent;

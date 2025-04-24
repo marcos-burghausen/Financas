@@ -32,10 +32,9 @@
     "target": "es5",
     "sourceMap": true,
     "allowJs": true,
-    "baseUrl": "./src",
     "paths": {
       "@/*": [
-        "/*"
+        "src/*"
       ]
     }
   }

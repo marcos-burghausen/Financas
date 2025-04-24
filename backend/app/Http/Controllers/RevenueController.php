@@ -24,16 +24,18 @@ class RevenueController extends Controller
 
         DB::beginTransaction();
         $revenue = new Revenue;
-        $revenue->user_id      = $user->id;
-        $revenue->valor        = $data['valor'] * 100;
-        $revenue->date         = $data['date'];
-        $revenue->descricao    = $data['descricao'];
-        $revenue->categoria    = $data['categoria'];
-        $revenue->conta        = $data['conta'];
-        $revenue->status       = $data['status'] ?? 'Pendente';
-        $revenue->tipo         = $data['tipo'] ?? 'Não recorrente';
-        $revenue->num_parcelas = $data['numParcelas'] ?? 0;
-        $revenue->periodicidade = $data['periodicidade'] ?? null;
+        $revenue->user_id         = $user->id;
+        $revenue->descricao       = $data['descricao'];
+        $revenue->valor           = str_replace([',', '.'], '', $data['valor']);
+        $revenue->tipo            = $data['tipo'] ?? 'Não recorrente';
+        $revenue->num_parcelas    = $data['numParcelas'] ?? 0;
+        $revenue->periodicidade   = $data['periodicidade'] ?? null;
+        $revenue->data_vencimento = $data['data'];
+        $revenue->data_lancamento = $data['data'];
+        $revenue->status          = $data['status'] ?? 'Pendente';
+        $revenue->categoria       = $data['categoria'];
+        $revenue->sub_categoria   = $data['sub_categoria'];
+        $revenue->conta           = $data['conta'];
         $saved = $revenue->save();
 
         if ($data['status'] === 'Efetivada') {
@@ -257,8 +259,8 @@ class RevenueController extends Controller
     {
         return $request->validate(
             [
-                'valor'         => 'required|numeric|min:0.01',
-                'date'          => 'required|date',
+                'valor'         => 'required|min:0.01',
+                'data'          => 'required|date',
                 'descricao'     => 'required|string|max:255',
                 'categoria'     => 'required|string|max:100',
                 'conta'         => 'required|string|max:100',

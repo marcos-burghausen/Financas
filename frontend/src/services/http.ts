@@ -1,4 +1,4 @@
-import { useAuthStore } from "@/store/auth";
+import { useAuthStore } from "@/store";
 import axios from "axios";
 
 const axiosInstance = axios.create({
@@ -35,7 +35,7 @@ axiosInstance.interceptors.response.use(
     error => {
         // console.error("Erro na resposta:", error.response ? error.response.data : error.message);
         const auth = useAuthStore();
-        // console.log("Erro na resposta: ", error);
+        console.log("Erro na resposta: ", error);
         if (error.response.data.message === "Token has expired") {
             alert("sessão expirada, vamos te redirecionar para a tela de login");
             auth.expiredTokem();

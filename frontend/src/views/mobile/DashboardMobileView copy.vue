@@ -1,19 +1,9 @@
 <template>
-  <v-card
-    color="transparent"
-    style="width: 100%"
-  >
+  <v-card color="transparent" style="width: 100%">
     <v-layout>
       <v-app-bar color="transparent">
-        <v-app-bar-nav-icon
-          variant="text"
-          @click.stop="drawer = !drawer"
-        >
-          <v-icon
-            icon="mdi-menu"
-            class="mdicon"
-            size="30"
-          />
+        <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer">
+          <v-icon icon="mdi-menu" class="mdicon" size="30" />
         </v-app-bar-nav-icon>
 
         <!-- <v-toolbar-title> -->
@@ -48,11 +38,11 @@
           </template>
           <v-list
             style="
-            width: 150px;
-            background: rgb(38, 38, 39);
-            box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
-            color: #fefefe;
-          "
+              width: 150px;
+              background: rgb(38, 38, 39);
+              box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+              color: #fefefe;
+            "
           >
             <v-list-item
               v-for="(item, index) in items"
@@ -61,10 +51,7 @@
               @click="item.action"
             >
               <v-list-item-title style="font-size: 20px">
-                <v-icon
-                  :icon="item.icon"
-                  class="me-3 fs-3"
-                />
+                <v-icon :icon="item.icon" class="me-3 fs-3" />
                 {{ item.title }}
               </v-list-item-title>
             </v-list-item>
@@ -108,10 +95,7 @@
         <div class="container__saldo__conta d-flex justify-content-center">
           <div class="me-4 d-flex flex-column align-center justify-content-end">
             <span class="icon__text">
-              <v-icon
-                icon="mdi-check-circle-outline"
-                size="18"
-              />
+              <v-icon icon="mdi-check-circle-outline" size="18" />
               Inicial
             </span>
             <div style="display: flex; align-items: center">
@@ -124,17 +108,14 @@
             </div>
           </div>
           <div class="d-flex flex-column align-center justify-content-end">
-            <span
-              class="fs-5"
-              style="color: #757575"
-            >
+            <span class="fs-5" style="color: #757575">
               <v-icon
                 :icon="
                   totalBalance < 0
                     ? 'mdi-minus-circle-outline'
                     : totalBalance > 0
-                      ? 'mdi-heart-circle'
-                      : 'mdi-circle-outline'
+                    ? 'mdi-heart-circle'
+                    : 'mdi-circle-outline'
                 "
                 size="22"
               />
@@ -148,8 +129,8 @@
                     totalBalance < 0
                       ? 'red'
                       : totalBalance > 0
-                        ? 'green'
-                        : '#757575',
+                      ? 'green'
+                      : '#757575',
                 }"
                 style="font-size: 18px"
               >
@@ -159,10 +140,7 @@
           </div>
           <div class="ms-4 d-flex flex-column align-center justify-content-end">
             <span class="icon__text">
-              <v-icon
-                icon="mdi-clock-outline"
-                size="20"
-              />
+              <v-icon icon="mdi-clock-outline" size="20" />
               <!-- <mdicon name="plus-circle-outline" />
                     <mdicon name="minus-circle-outline" />
                     <mdicon name="clock-outline" /> -->
@@ -182,11 +160,7 @@
         <div class="container__visao__geral">
           <div class="header__visao_geral">
             <span style="text-align: start"> Visão geral </span>
-            <v-icon
-              icon="mdi-dots-vertical"
-              class="mdicon"
-              size="25"
-            />
+            <v-icon icon="mdi-dots-vertical" class="mdicon" size="25" />
           </div>
           <router-link
             :to="{ name: 'receitas' }"
@@ -249,272 +223,241 @@
 </template>
 
 <script setup lang="ts">
-import { useAuthStore } from "@/store/auth";
-import { useRouter } from "vue-router";
-import http from "@/services/http";
 import { ref, watch, computed } from "vue";
-import { useUserStore } from "@/store/user";
 import { useRoute } from "vue-router";
 
-import { useExpensesStore } from "@/store/expenses";
-import { useRevenuesStore } from "@/store/revenues";
 import { formatValue } from "@/utils/formatValue";
-import { useWalletsStore } from "@/store/wallets";
+import http from "@/services/http";
+import {
+  useExpensesStore,
+  useRevenuesStore,
+  useWalletsStore,
+  useAuthStore,
+  useUserStore,
+} from "@/store";
 
-const route = useRoute();
+const useExpenses = useExpensesStore();
+const useRevenues = useRevenuesStore();
+const useWallets = useWalletsStore();
+const useAuth = useAuthStore();
 const useUser = useUserStore();
+const route = useRoute();
 
+// let expensesAddTotalValueMonth = ref(useExpenses.expensesData.expenses?.ExpensesAddTotalValueMonth);
+// let revenuesAddTotalValueMonth = ref(useRevenues.revenuesData.revenues?.RevenuesAddTotalValueMonth);
+let valueTotalExpensesMonth = ref(useExpenses.expensesData?.valueTotalMonth);
+let valueTotalRevenuesMonth = ref(useRevenues.revenuesData?.valueTotalMonth);
+let totalByCategoryExpenses = ref(useExpenses.expensesData?.byCategory);
+let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
+let valuePendingRevenues = ref(useRevenues.revenuesData?.valuePending);
+let valuePendingExpenses = ref(useExpenses.expensesData?.valuePending);
+let valueReceived = ref(useRevenues.revenuesData?.valuePay);
+let totalBalance = ref(useWallets.walletsData?.contas[0].saldo);
+let saldoInicial = ref(useWallets.walletsData?.saldoInicial);
+let valuePay = ref(useExpenses.expensesData?.valuePay);
+let name = ref(useUser.userData.name.split(" ")[0]);
+let valorPrevisto = ref(
+  saldoInicial.value +
+    valueTotalRevenuesMonth.value -
+    valueTotalExpensesMonth.value
+);
 let elementoAtivoSideBar = ref(0);
+// let totalCreditCard = ref(0);
 
 watch(route, (value) => {
-    switch (value.name) {
+  switch (value.name) {
     case "dashboard":
-        elementoAtivoSideBar.value = 0;
-        break;
+      elementoAtivoSideBar.value = 0;
+      break;
     case "contas":
-        elementoAtivoSideBar.value = 1;
-        break;
+      elementoAtivoSideBar.value = 1;
+      break;
     case "receitas":
-        elementoAtivoSideBar.value = 2;
-        break;
+      elementoAtivoSideBar.value = 2;
+      break;
     case "despesas":
-        elementoAtivoSideBar.value = 3;
-        break;
+      elementoAtivoSideBar.value = 3;
+      break;
     case "categorias":
-        elementoAtivoSideBar.value = 4;
-        break;
-    }
+      elementoAtivoSideBar.value = 4;
+      break;
+  }
 });
 
 const itensSideBar = ref([
-    {
-        name: "Admin",
-        icon: "view-dashboard",
-        route: "dashAdmim",
-        adminOnly: true,
-    },
-    { name: "Trader", icon: "chart-line", route: "dashAdmim", traderOnly: true },
-    {
-        name: "Dashboard",
-        icon: "mdi-view-dashboard",
-        route: "dashboard",
-        adminOnly: false,
-        traderOnly: false,
-    },
-    {
-        name: "Contas",
-        icon: "mdi-bank-outline",
-        route: "contas",
-        adminOnly: false,
-        traderOnly: false,
-    },
-    {
-        name: "Receitas",
-        icon: "mdi-arrow-top-right-bold-outline",
-        route: "receitas",
-        adminOnly: false,
-        traderOnly: false,
-    },
-    {
-        name: "Despesas",
-        icon: "mdi-arrow-bottom-right-bold-outline",
-        route: "despesas",
-        adminOnly: false,
-        traderOnly: false,
-    },
-    {
-        name: "Categorias",
-        icon: "mdi-bookmark-minus-outline",
-        route: "categorias",
-        adminOnly: false,
-        traderOnly: false,
-    },
-    // { name: "Mais Opçõs", icon: "dots-horizontal", route: "dashboard" },
+  {
+    name: "Admin",
+    icon: "view-dashboard",
+    route: "dashAdmim",
+    adminOnly: true,
+  },
+  { name: "Trader", icon: "chart-line", route: "dashAdmim", traderOnly: true },
+  {
+    name: "Dashboard",
+    icon: "mdi-view-dashboard",
+    route: "dashboard",
+    adminOnly: false,
+    traderOnly: false,
+  },
+  {
+    name: "Contas",
+    icon: "mdi-bank-outline",
+    route: "contas",
+    adminOnly: false,
+    traderOnly: false,
+  },
+  {
+    name: "Receitas",
+    icon: "mdi-arrow-top-right-bold-outline",
+    route: "receitas",
+    adminOnly: false,
+    traderOnly: false,
+  },
+  {
+    name: "Despesas",
+    icon: "mdi-arrow-bottom-right-bold-outline",
+    route: "despesas",
+    adminOnly: false,
+    traderOnly: false,
+  },
+  {
+    name: "Categorias",
+    icon: "mdi-bookmark-minus-outline",
+    route: "categorias",
+    adminOnly: false,
+    traderOnly: false,
+  },
+  // { name: "Mais Opçõs", icon: "dots-horizontal", route: "dashboard" },
 ]);
-
-console.log(useUser.userData.type);
 
 const filteredItensSideBar = computed(() => {
-    return itensSideBar.value.filter((item) => {
-        if (item.adminOnly) {
-            return (
-                useUser.userData.type === "ADMIM" || useUser.userData.type === "FULL"
-            );
-        } else if (item.traderOnly) {
-            return (
-                useUser.userData.type === "TRADER" ||
+  return itensSideBar.value.filter((item) => {
+    if (item.adminOnly) {
+      return (
+        useUser.userData.type === "ADMIM" || useUser.userData.type === "FULL"
+      );
+    } else if (item.traderOnly) {
+      return (
+        useUser.userData.type === "TRADER" ||
         useUser.userData.type === "USER_TRADER" ||
         useUser.userData.type === "FULL"
-            );
-        }
-        return true; // Exibe os outros itens normalmente
-    });
+      );
+    }
+    return true; // Exibe os outros itens normalmente
+  });
 });
 
-const items = ref([
-    { title: "Sair", icon:"mdi-power",  action: logout },
-]);
+const items = ref([{ title: "Sair", icon: "mdi-power", action: logout }]);
 
 const drawer = ref(false);
 const group = ref(null);
 
 watch(group, () => {
-    drawer.value = false;
+  drawer.value = false;
 });
 
 const props = defineProps({
-    mesReferencia: {
-        type: String,
-        default: "",
-    },
+  mesReferencia: {
+    type: String,
+    default: "",
+  },
 });
-// const titulo = computed(() => props.name);
-const router = useRouter();
-const useAuth = useAuthStore();
-let name = ref(useUser.userData.name.split(" ")[0]);
-
-// const items = ref([{ title: "Sair", icon: "power", action: logout }]);
 
 async function logout() {
-    try {
-        await http.post("/logout");
-        useAuth.clear();
-        router.push({ name: "home" });
-    } catch (error) {
+  try {
+    await http.post("/logout");
+    useAuth.clear();
+    route.push({ name: "home" });
+  } catch (error) {
     // console.log(error);
-    }
+  }
 }
 
-// import CabecalhoMobile from "@/components/mobile/CabecalhoMobile.vue";
-// import MenuLateralMobile from "@/components/mobile/MenuLateralMobile.vue";
-
-
-
-const useExpenses = useExpensesStore();
-const useRevenues = useRevenuesStore();
-const useWallets = useWalletsStore();
-
-
-// const formatValue = (value: number): string =>{
-//     let valueFormatted = (value / 100).toLocaleString("pt-BR", { style: "decimal", minimumFractionDigits: 2, maximumFractionDigits: 2 });
-//     return valueFormatted;
-// };
-// const mesPorExtenso = mesAnoReferencia ? mesAnoReferencia.value.split(" ")[0] : '';
-let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
-let saldoInicial = ref(useWallets.walletsData?.saldoInicial);
-let valueTotalExpensesMonth = ref(
-    useExpenses.expensesData?.valueTotalMonth
-);
-let valueTotalRevenuesMonth = ref(
-    useRevenues.revenuesData?.valueTotalMonth
-);
-let totalBalance = ref(useWallets.walletsData?.contas[0].saldo);
-let valorPrevisto = ref(
-    saldoInicial.value +
-    valueTotalRevenuesMonth.value -
-    valueTotalExpensesMonth.value
-);
-let valuePay = ref(useExpenses.expensesData?.valuePay);
-let valueReceived = ref(
-    useRevenues.revenuesData?.valueReceived
-);
-// let totalCreditCard = ref(0);
-// let expensesAddTotalValueMonth = ref(useExpenses.expensesData.expenses?.ExpensesAddTotalValueMonth);
-// let revenuesAddTotalValueMonth = ref(useRevenues.revenuesData.revenues?.RevenuesAddTotalValueMonth);
-let totalByCategoryExpenses = ref(
-    useExpenses.expensesData?.byCategory
-);
-let valuePendingRevenues = ref(
-    useRevenues.revenuesData?.valuePending
-);
-let valuePendingExpenses = ref(
-    useExpenses.expensesData?.valuePending
-);
-
 const isAllZeros = (arr) => {
-    return arr.every((value) => value === "0,00");
+  return arr.every((value) => value === "0,00");
 };
 
 const mesPorExtenso = computed(() => {
-    if (!mesAnoReferencia.value) return "";
+  if (!mesAnoReferencia.value) return "";
 
-    const [ano, mes] = mesAnoReferencia.value.split("-");
+  const [ano, mes] = mesAnoReferencia.value.split("-");
 
-    const mesesPorExtenso = [
-        "Janeiro",
-        "Fevereiro",
-        "Março",
-        "Abril",
-        "Maio",
-        "Junho",
-        "Julho",
-        "Agosto",
-        "Setembro",
-        "Outubro",
-        "Novembro",
-        "Dezembro",
-    ];
+  const mesesPorExtenso = [
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
+  ];
 
-    return mesesPorExtenso[parseInt(mes, 10) - 1];
+  return mesesPorExtenso[parseInt(mes, 10) - 1];
 });
 
 const mesAnterior = () => {
-    const [ano, mes] = mesAnoReferencia.value.split("-");
-    const dataAtual = new Date(ano, mes - 1);
-    dataAtual.setMonth(dataAtual.getMonth() - 1);
-    mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
-        dataAtual.getMonth() + 1
-    ).padStart(2, "0")}`;
-    buscarDadosMes(mesAnoReferencia.value, "anterior");
+  const [ano, mes] = mesAnoReferencia.value.split("-");
+  const dataAtual = new Date(ano, mes - 1);
+  dataAtual.setMonth(dataAtual.getMonth() - 1);
+  mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
+    dataAtual.getMonth() + 1
+  ).padStart(2, "0")}`;
+  buscarDadosMes(mesAnoReferencia.value, "anterior");
 };
 
 const proximoMes = () => {
-    const [ano, mes] = mesAnoReferencia.value.split("-");
-    const dataAtual = new Date(ano, mes - 1);
-    dataAtual.setMonth(dataAtual.getMonth() + 1);
-    mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
-        dataAtual.getMonth() + 1
-    ).padStart(2, "0")}`;
-    buscarDadosMes(mesAnoReferencia.value, "proximo");
+  const [ano, mes] = mesAnoReferencia.value.split("-");
+  const dataAtual = new Date(ano, mes - 1);
+  dataAtual.setMonth(dataAtual.getMonth() + 1);
+  mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
+    dataAtual.getMonth() + 1
+  ).padStart(2, "0")}`;
+  buscarDadosMes(mesAnoReferencia.value, "proximo");
 };
 
 const buscarDadosMes = async (data: string, buscar: string) => {
-    try {
-        const response = await http.post("/buscar-dados-mes", {
-            mes: data,
-            buscar: buscar,
-        });
-        useWallets.setMesReferencia(response.data.walletsData.mes_ano_referencia);
-        useExpenses.setExpensesData(response.data.expensesData);
-        useRevenues.setRevenuesData(response.data.revenuesData);
-        useWallets.setWalletsData(response.data.walletsData);
+  try {
+    const response = await http.post("/buscar-dados-mes", {
+      mes: data,
+      buscar: buscar,
+    });
+    useWallets.setMesReferencia(response.data.walletsData.mes_ano_referencia);
+    useExpenses.setExpensesData(response.data.expensesData);
+    useRevenues.setRevenuesData(response.data.revenuesData);
+    useWallets.setWalletsData(response.data.walletsData);
 
-        mesAnoReferencia.value = response.data.walletsData.mes_ano_referencia;
+    mesAnoReferencia.value = response.data.walletsData.mes_ano_referencia;
 
-        saldoInicial.value = response.data.walletsData.saldoInicial;
-        totalBalance.value = response.data.walletsData.wallets[0].saldo;
+    saldoInicial.value = response.data.walletsData.saldoInicial;
+    totalBalance.value = response.data.walletsData.wallets[0].saldo;
 
-        valueTotalExpensesMonth.value =
-        response.data.expensesData.valueTotalExpensesMonth;
-        valueTotalRevenuesMonth.value =
-        response.data.revenuesData.valueTotalRevenuesMonth;
+    valueTotalExpensesMonth.value =
+      response.data.expensesData.valueTotalExpensesMonth;
+    valueTotalRevenuesMonth.value =
+      response.data.revenuesData.valueTotalRevenuesMonth;
 
-        valorPrevisto.value =
+    valorPrevisto.value =
       saldoInicial.value +
       valueTotalRevenuesMonth.value -
       valueTotalExpensesMonth.value;
 
-        valuePay.value = response.data.expensesData.valuePayExpenses;
-        valueReceived.value = response.data.revenuesData.valueReceivedRevenues;
+    valuePay.value = response.data.expensesData.valuePayExpenses;
+    valueReceived.value = response.data.revenuesData.valueReceivedRevenues;
 
-        totalByCategoryExpenses.value =
-        response.data.expensesData.byCategory;
+    totalByCategoryExpenses.value = response.data.expensesData.byCategory;
 
-        valuePendingRevenues.value = response.data.revenuesData.valuePendingRevenues;
-        valuePendingExpenses.value = response.data.expensesData.valuePendingExpenses;
-    } catch (error) {
+    valuePendingRevenues.value =
+      response.data.revenuesData.valuePendingRevenues;
+    valuePendingExpenses.value =
+      response.data.expensesData.valuePendingExpenses;
+  } catch (error) {
     //
-    }
+  }
 };
 
 // =============================== grafico de barras inicio =============================== //

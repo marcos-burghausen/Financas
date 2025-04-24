@@ -5,7 +5,10 @@
         class="link me-7 d-flex align-items-center opaco"
         :to="{ name: 'dashboard' }"
       >
-        <mdicon name="arrow-left" size="25" />
+        <mdicon
+          name="arrow-left"
+          size="25"
+        />
       </router-link>
       <div class="header__items">
         <div class="d-flex flex-column">
@@ -53,14 +56,21 @@
       class="btn__nova__despesa"
       @click="formStoreExpense = !formStoreExpense"
     >
-      <mdicon name="plus" class="mdicon" size="30" />
+      <mdicon
+        name="plus"
+        class="mdicon"
+        size="30"
+      />
     </button>
 
     <!-- <FormLancamentos /> -->
     <!-- ========================================================================= -->
     <!-- ================ inicio formulario lançamentos despesas ================= -->
     <!-- ========================================================================= -->
-    <div v-if="formStoreExpense" class="container-fluid">
+    <div
+      v-if="formStoreExpense"
+      class="container-fluid"
+    >
       <div class="container d-flex justify-content-center">
         <div class="cadastro">
           <!-- <form class="form" @submit.prevent="salvarLancamentos"> -->
@@ -91,10 +101,11 @@
                 class="form-check-input mb-5"
                 type="checkbox"
                 checked
-              />
-              <label class="form-check-label" for="flexSwitchCheckChecked"
-                >Paga</label
               >
+              <label
+                class="form-check-label"
+                for="flexSwitchCheckChecked"
+              >Paga</label>
             </div>
 
             <v-text-field
@@ -181,7 +192,10 @@
     <!-- ========================================================================= -->
     <!-- ================== inicio formulario editar despesa =================== -->
     <!-- ========================================================================= -->
-    <div v-if="formEditExpense" class="container-fluid">
+    <div
+      v-if="formEditExpense"
+      class="container-fluid"
+    >
       <div class="container d-flex justify-content-center">
         <div class="cadastro">
           <v-form
@@ -295,7 +309,10 @@
     <!-- ========================================================================= -->
 
     <div v-if="expensesMonth && expensesMonth.length > 0">
-      <div v-if="!formStoreExpense && !formEditExpense" class="container-fluid">
+      <div
+        v-if="!formStoreExpense && !formEditExpense"
+        class="container-fluid"
+      >
         <div
           v-for="(expense, key) in expensesMonth"
           :key="expense.id"
@@ -313,8 +330,8 @@
                   expense.status === 'PAGA'
                     ? 'check'
                     : new Date() <= new Date(expense.date)
-                    ? 'alert'
-                    : 'alert-remove'
+                      ? 'alert'
+                      : 'alert-remove'
                 "
                 class="mdicon__lacamento"
                 :class="{
@@ -339,7 +356,11 @@
                     {{ expense.date }}
                   </span>
                   <span>
-                    <mdicon name="dots-vertical" class="mdicon" size="25" />
+                    <mdicon
+                      name="dots-vertical"
+                      class="mdicon"
+                      size="25"
+                    />
                     <v-menu
                       activator="parent"
                       location="bottom end"
@@ -423,21 +444,16 @@ let validFormEdit = ref(false);
 let loading = ref(false);
 
 let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
-let valueTotalExpensesMonth = ref(
-  useExpenses.expensesData.expenses?.ValueTotalExpensesMonth
-);
-let valuePending = ref(useExpenses.expensesData.expenses?.ValuePendingExpenses);
-let expensesMonth = ref(useExpenses.expensesData.expenses?.ExpensesMonth);
-let valuePay = ref(
-  formatValue(useExpenses.expensesData.expenses?.ValuePayExpenses)
-);
+let valueTotalExpensesMonth = ref(useExpenses.expensesData?.valueTotalMonth);
+let valuePending = ref(useExpenses.expensesData?.valuePending);
+let expensesMonth = ref(useExpenses.expensesData?.byMonth);
+let valuePay = ref(formatValue(useExpenses.expensesData?.valuePay));
 // let categorias = ref(userStore.user.categoriasDespesas);
-const categoriasNames = ref([]);
-userStore.user.categoriasDespesas.forEach((categoria) => {
-  categoriasNames.value.push(categoria.name);
-});
+const categoriasNames = ref(
+  useExpenses.expensesData.categories.map((categoria) => categoria.name)
+);
 // let carteiras = ref(useWallets.walletsData.wallets.map((wallet) => wallet.name));
-let carteiras = ref(useWallets.walletsData.walletsNames);
+let carteiras = ref(useWallets.walletsData.contasNames);
 let errorsForm = ref({ errors: {} });
 let formStoreExpense = ref(false);
 let formEditExpense = ref(false);

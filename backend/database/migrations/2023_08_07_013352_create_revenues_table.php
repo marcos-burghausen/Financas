@@ -23,7 +23,7 @@ return new class extends Migration
             $table->date('data_vencimento');
             $table->date('data_lancamento');
             $table->date('data_efetivacao')->nullable()->default(null);
-            $table->enum('status', ['EFETIVADA', 'PENDENTE'])->default('PENDENTE');
+            $table->enum('status', ['efetivada', 'Pendente'])->default('Pendente');
             $table->string('categoria', 30);
             $table->string('sub_categoria', 30);
             $table->string('conta', 30);
