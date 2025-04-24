@@ -2,34 +2,32 @@ import type { Category } from "./";
 export interface Lancamento {
     id?: number;
     descricao?: string;
-    valor?: number; // Changed to number for consistency
-    tipo?: "despesa" | "receita";
-    numParcelas?: number;
-    periodicidade?: string;
-    data?: string;
-    status?: string;
+    valor?: string; // Changed to number for consistency
+    tipo?: "Não recorrente" | "Parcelada" | "Fixa mensal";
+    num_parcelas?: number;
+    periodicidade?: "Mensal" | "Diario" | "Semanal" | "Quinzenal" | "Trimenstral" | "Anual";
+    data_vencimento?: string;
+    status?: "Efetivada" | "Pendente";
     categoria?: string;
-    carteira?: string;
-    subCategoria?: string;
+    subcategoria?: string;
     conta?: string;
-    mesReferencia?: string;
-    dateLancamento?: string;
-    dateEfetivacao?: string;
+    data_lancamento?: string;
+    data_efetivacao?: string;
   }
 
   export interface TransactionsData {
-    byCategory: [];
-    valuePay: number;
-    valuePending: number;
-    valueTotalMonth: number;
-    byMonth: [];
+    by_category: [];
+    value_pay: number;
+    value_pending: number;
+    value_total_month: number;
+    by_month: [];
     categories: Category[];
-    totalDays: number;
+    total_days: number;
   }
   
   // Represents transactions grouped by month
   export interface LancamentosPorMes {
-    [mesAno: string]: Lancamento[];
+    [mes_ano: string]: Lancamento[];
   }
   
   // Data for monthly financial summaries
@@ -40,7 +38,7 @@ export interface Lancamento {
   
   // Data for financial summaries by category
   export interface CategoryData {
-    categoryId: number;
+    category_id: number;
     name: string;
     total: number;
   }

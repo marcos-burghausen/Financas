@@ -46,7 +46,10 @@
         prepend-inner-icon="mdi-text-long"
       >
         <template #message>
-          <div v-if="errorsForm.descricao" class="error-message">
+          <div
+            v-if="errorsForm.descricao"
+            class="error-message"
+          >
             {{ errorsForm.descricao[0] }}
           </div>
         </template>
@@ -65,7 +68,10 @@
         @input="formatValueSave"
       >
         <template #message>
-          <div v-if="errorsForm.valor" class="error-message">
+          <div
+            v-if="errorsForm.valor"
+            class="error-message"
+          >
             {{ errorsForm.valor[0] }}
           </div>
         </template>
@@ -82,7 +88,10 @@
         @click="openTipoLancamento = true"
       />
 
-      <div v-if="openTipoLancamento" class="tipo">
+      <div
+        v-if="openTipoLancamento"
+        class="tipo"
+      >
         <div
           class="d-flex flex-column align-start justify-space-around modal__tipo"
         >
@@ -105,14 +114,23 @@
         </div>
       </div>
 
-      <div v-if="openParcelas" class="parcelas">
+      <div
+        v-if="openParcelas"
+        class="parcelas"
+      >
         <div class="container__parcelas">
           <div class="p-3">
-            <h2 class="mb-4 text-center">Configurar parcelas</h2>
+            <h2 class="mb-4 text-center">
+              Configurar parcelas
+            </h2>
 
             <div class="py-2">
               <div class="d-flex align-center justify-space-between">
-                <v-icon class="pe-3" icon="mdi-arrow-right" size="24" />
+                <v-icon
+                  class="pe-3"
+                  icon="mdi-arrow-right"
+                  size="24"
+                />
                 <span class="item-label"> Parcela inicial </span>
                 <div class="item-value">
                   <div class="number-stepper">
@@ -129,7 +147,7 @@
                       type="number"
                       class="stepper-input"
                       min="1"
-                    />
+                    >
                     <v-btn
                       prepend-icon="mdi-chevron-up"
                       flat
@@ -151,7 +169,9 @@
                   size="24"
                   class="pe-3"
                 />
-                <div class="item-label">Quantidade</div>
+                <div class="item-label">
+                  Quantidade
+                </div>
                 <div class="item-value">
                   <div class="number-stepper">
                     <v-btn
@@ -166,7 +186,7 @@
                       type="number"
                       class="stepper-input"
                       min="2"
-                    />
+                    >
                     <v-btn
                       class="stepper-btn"
                       prepend-icon="mdi-chevron-up"
@@ -182,8 +202,14 @@
 
             <div class="">
               <div class="d-flex align-center justify-space-between">
-                <v-icon icon="mdi-calendar-blank" size="24" class="pe-3" />
-                <div class="item-label">Periodicidade</div>
+                <v-icon
+                  icon="mdi-calendar-blank"
+                  size="24"
+                  class="pe-3"
+                />
+                <div class="item-label">
+                  Periodicidade
+                </div>
                 <div class="item-value pb-2">
                   <v-select
                     v-model="tempPeriodicidade"
@@ -198,10 +224,16 @@
           </div>
 
           <div class="d-flex justify-space-between align-center p-3">
-            <v-btn class="btn-cancelar" @click="cancelarConfiguracaoRepeticao">
+            <v-btn
+              class="btn-cancelar"
+              @click="cancelarConfiguracaoRepeticao"
+            >
               Cancelar
             </v-btn>
-            <v-btn class="btn-concluido" @click="concluirParcelas">
+            <v-btn
+              class="btn-concluido"
+              @click="concluirParcelas"
+            >
               Concluído
             </v-btn>
           </div>
@@ -209,11 +241,11 @@
       </div>
 
       <v-date-input
-        v-model="formReleases.data"
+        v-model="formReleases.data_vencimento"
         variant="underlined"
         hide-details="auto"
         label="Data de Vencimento"
-        :rules="[rules.requiredData]"
+        :rules="[rules.requiredDataVencimento]"
         class="mb-8 imput"
         show-adjacent-months
         color="#77d08e"
@@ -221,10 +253,16 @@
         prepend-inner-icon="mdi-calendar"
       >
         <template #append-inner>
-          <span v-if="isTodayVencimento" class="today__label">Hoje</span>
+          <span
+            v-if="isTodayVencimento"
+            class="today__label"
+          >Hoje</span>
         </template>
         <template #message>
-          <div v-if="errorsForm.date" class="error__message">
+          <div
+            v-if="errorsForm.date"
+            class="error__message"
+          >
             {{ errorsForm.date[0] }}
           </div>
         </template>
@@ -276,7 +314,10 @@
         prepend-inner-icon="mdi-scatter-plot"
       >
         <template #message>
-          <div v-if="errorsForm.categoria" class="error-message">
+          <div
+            v-if="errorsForm.categoria"
+            class="error-message"
+          >
             {{ errorsForm.categoria[0] }}
           </div>
         </template>
@@ -294,7 +335,10 @@
         prepend-inner-icon="mdi-scatter-plot"
       >
         <template #message>
-          <div v-if="errorsForm.categoria" class="error-message">
+          <div
+            v-if="errorsForm.categoria"
+            class="error-message"
+          >
             {{ errorsForm.categoria[0] }}
           </div>
         </template>
@@ -312,7 +356,10 @@
         prepend-inner-icon="mdi-bank"
       >
         <template #message>
-          <div v-if="errorsForm.conta" class="error-message">
+          <div
+            v-if="errorsForm.conta"
+            class="error-message"
+          >
             {{ errorsForm.conta[0] }}
           </div>
         </template>
@@ -332,7 +379,7 @@
 
       <v-date-input
         v-if="informacoes"
-        v-model="formReleases.dateLancamento"
+        v-model="formReleases.data_lancamento"
         variant="underlined"
         hide-details="auto"
         label="Data lançamento"
@@ -344,10 +391,16 @@
         prepend-inner-icon="mdi-calendar-clock"
       >
         <template #append-inner>
-          <span v-if="isTodayLancamento" class="today__label">Hoje</span>
+          <span
+            v-if="isTodayLancamento"
+            class="today__label"
+          >Hoje</span>
         </template>
         <template #message>
-          <div v-if="errorsForm.date" class="error__message">
+          <div
+            v-if="errorsForm.date"
+            class="error__message"
+          >
             {{ errorsForm.date[0] }}
           </div>
         </template>
@@ -355,7 +408,7 @@
 
       <v-date-input
         v-if="informacoes"
-        v-model="formReleases.dateEfetivacao"
+        v-model="formReleases.data_efetivacao"
         variant="underlined"
         hide-details="auto"
         label="Data efetivação"
@@ -367,10 +420,16 @@
         prepend-inner-icon="mdi-calendar-check"
       >
         <template #append-inner>
-          <span v-if="isTodayEfetivacao" class="today__label">Hoje</span>
+          <span
+            v-if="isTodayEfetivacao"
+            class="today__label"
+          >Hoje</span>
         </template>
         <template #message>
-          <div v-if="errorsForm.date" class="error__message">
+          <div
+            v-if="errorsForm.date"
+            class="error__message"
+          >
             {{ errorsForm.date[0] }}
           </div>
         </template>
@@ -380,10 +439,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
 import http from "@/services/http";
-import type { Lancamentos } from "@/types";
 import { useExpensesStore, useRevenuesStore, useWalletsStore } from "@/store";
+import type { Lancamento } from "@/types";
+import { computed, ref, watch } from "vue";
 
 const useWallets = useWalletsStore();
 const useRevenues = useRevenuesStore();
@@ -392,12 +451,11 @@ const useExpenses = useExpensesStore();
 const emit = defineEmits(["updateData", "closeForm"]);
 
 const props = defineProps<{
-  releases?: Lancamentos;
+  releases?: Lancamento;
   rota: string;
   mesReferencia: string;
   transactionType: "receitas" | "despesas";
 }>();
-console.log(props.releases);
 
 const validateDate = (date: string | undefined): string => {
   if (!date) return new Date().toISOString().split("T")[0];
@@ -441,6 +499,7 @@ const subCategoriasNames = computed(() => {
     ? selectedCategory.subcategories.map((sub) => sub.name)
     : [];
 });
+console.log(subCategoriasNames.value);
 
 const contasNames = ref(useWallets.walletsData.contasNames);
 
@@ -448,7 +507,7 @@ const isEditMode = computed(() => !!props.releases?.id);
 
 const isTodayVencimento = computed(() => {
   const today = new Date().toISOString().split("T")[0];
-  const selectedDate = formReleases.value.data;
+  const selectedDate = formReleases.value.data_lancamento;
   if (selectedDate instanceof Date) {
     return selectedDate.toISOString().split("T")[0] === today;
   }
@@ -457,7 +516,7 @@ const isTodayVencimento = computed(() => {
 
 const isTodayLancamento = computed(() => {
   const today = new Date().toISOString().split("T")[0];
-  const selectedDate = formReleases.value.dateLancamento;
+  const selectedDate = formReleases.value.data_lancamento;
   if (selectedDate instanceof Date) {
     return selectedDate.toISOString().split("T")[0] === today;
   }
@@ -466,36 +525,38 @@ const isTodayLancamento = computed(() => {
 
 const isTodayEfetivacao = computed(() => {
   const today = new Date().toISOString().split("T")[0];
-  const selectedDate = formReleases.value.dateEfetivacao;
+  const selectedDate = formReleases.value.data_efetivacao;
   if (selectedDate instanceof Date) {
     return selectedDate.toISOString().split("T")[0] === today;
   }
   return selectedDate === today;
 });
 
-const formReleases = ref<Lancamentos>({
+const formReleases = ref<Lancamento>({
   id: props.releases?.id || null,
   descricao: props.releases?.descricao || "",
   valor: props.releases?.valor || "0,00",
   tipo: props.releases?.tipo || "Não recorrente",
-  numParcelas: props.releases?.numParcelas || 0,
+  num_parcelas: props.releases?.num_parcelas || 0,
   periodicidade: props.releases?.periodicidade || null,
-  data: validateDate(props.releases?.data),
+  data_vencimento: validateDate(props.releases?.data_vencimento),
   status: props.releases?.status || "Pendente",
   categoria: props.releases?.categoria || categoriasNames.value[0] || "",
-  subCategoria: props.releases?.subCategoria || "",
+  subcategoria: props.releases?.subcategoria || "",
   conta: props.releases?.conta || contasNames.value[0],
-  mesReferencia: props.releases?.mesReferencia || props.mesReferencia,
-  dateLancamento: validateDate(props.releases?.data),
-  dateEfetivacao: props.releases?.dateEfetivacao,
+  // mesReferencia: props.releases?.mesReferencia || props.mesReferencia,
+  data_lancamento: validateDate(props.releases?.data_lancamento),
+  data_efetivacao: props.releases?.data_efetivacao,
 });
 
 watch(
   () => formReleases.value.categoria,
+  
   (newCategoria) => {
-    // Reset subCategoria when category changes
-    formReleases.value.subCategoria = "";
-    // Optionally, set a default subcategory if needed
+    console.log(formReleases.value.categoria);
+    // Redefinir subCategoria quando a categoria muda
+    formReleases.value.subcategoria = "";
+    // Opcionalmente, defina uma subcategoria padrão, se necessário
     const categories =
       props.transactionType === "receitas"
         ? useRevenues.revenuesData.categories
@@ -504,7 +565,7 @@ watch(
       (cat) => cat.name === newCategoria
     );
     if (selectedCategory && selectedCategory.subcategories.length > 0) {
-      formReleases.value.subCategoria = selectedCategory.subcategories[0].name;
+      formReleases.value.subcategoria = selectedCategory.subcategories[0].name;
     }
   }
 );
@@ -580,7 +641,7 @@ const inicializarValoresTemporarios = () => {
 const cancelarConfiguracaoRepeticao = () => {
   // Retorna tipo para "Não recorrente"
   formReleases.value.tipo = "Não recorrente";
-  formReleases.value.num_parcelas = 0;
+  formReleases.value.numParcelas = 0;
   formReleases.value.periodicidade = "";
 
   // Fecha o modal
@@ -629,7 +690,7 @@ const selecionarTipo = (item: string) => {
   } else {
     // Para outros tipos, limpa os valores de parcelamento
     formReleases.value.num_parcelas = 0;
-    formReleases.value.periodicidade = "";
+    formReleases.value.periodicidade = "Mensal";
   }
 };
 
@@ -645,7 +706,7 @@ const salvarLancamentos = async () => {
 
     useRevenues.setRevenuesData(res.data.revenuesData);
     useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
-    useWallets.setWallets(res.data.walletsData.wallets);
+    useWallets.setWalletsData(res.data.walletsData.wallets);
     emit("updateData", res.data.revenuesData);
     closeForm();
   } catch (error) {
@@ -665,14 +726,14 @@ const clearInputs = () => {
     tipo: "Não recorrente",
     num_parcelas: 0,
     periodicidade: null,
-    date: new Date().toISOString().split("T")[0],
+    data_vencimento: new Date().toISOString().split("T")[0],
     status: "Pendente",
     categoria: "",
-    subCategoria: "",
+    subcategoria: "",
     conta: "",
-    mesReferencia: props.mesReferencia,
-    dateLancamento: new Date().toISOString().split("T")[0],
-    dateEfetivacao: new Date().toISOString().split("T")[0],
+    // mesReferencia: props.mesReferencia,
+    data_lancamento: new Date().toISOString().split("T")[0],
+    data_efetivacao: new Date().toISOString().split("T")[0],
   };
   errorsForm.value = {};
 };
@@ -695,6 +756,8 @@ const formatValueSave = () => {
 };
 
 const rules = {
+  requiredDescricao: (value: string) =>
+    !!value || "O campo descrição é obrigatório",
   requiredValor: (value: string) => !!value || "O campo valor é obrigatório",
   requiredValorMaiorQue0: (value: string) => {
     if (!value) return "O campo valor é obrigatório";
@@ -704,9 +767,9 @@ const rules = {
       "O campo valor deve ser maior que zero"
     );
   },
-  requiredData: (value: string) => !!value || "O campo data é obrigatório",
-  requiredDescricao: (value: string) =>
-    !!value || "O campo descrição é obrigatório",
+  requiredPeriodicidade: (value: string) =>
+    !!value || "O campo periodicidade é obrigatório",
+  requiredDataVencimento: (value: string) => !!value || "O campo data é obrigatório",
   requiredCatagoria: (value: string) =>
     !!value || "O campo categoria é obrigatório",
   requiredCarteira: (value: string) => !!value || "O campo conta é obrigatório",

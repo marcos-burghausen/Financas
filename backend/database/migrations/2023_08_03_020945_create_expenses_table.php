@@ -21,11 +21,11 @@ return new class extends Migration
             $table->integer('num_parcelas')->nullable()->default(1);
             $table->enum('periodicidade', ['Mensal', 'Diario', 'Semanal', 'Quinzenal', 'Trimenstral', 'Anual'])->nullable()->default(null);
             $table->date('data_vencimento');
+            $table->enum('status', ['efetivada', 'Pendente'])->default('Pendente');
+            $table->string('categoria', 30);
+            $table->string('subcategoria', 30);
             $table->date('data_lancamento');
             $table->date('data_efetivacao')->nullable()->default(null);
-            $table->enum('status', ["PENDENTE", "PAGA"])->default('PENDENTE');
-            $table->string('categoria', 30);
-            $table->string('sub_categoria', 30);
             $table->string('conta', 30);
             $table->timestamps();
         });
