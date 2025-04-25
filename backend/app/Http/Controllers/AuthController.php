@@ -268,13 +268,14 @@ class AuthController extends Controller
 
     private function getUserData($user)
     {
+        // Expenses (Despesas)
         $categoriasDespesas = $user->categories()->whereIn('type', ['ambas', 'despesa'])->get(['id', 'name', 'color', 'icon', 'editable', 'type']);
         $subcategoriasDespesas = $user->subcategories()->whereIn('type', ['ambas', 'despesa'])->get(['id', 'category_id', 'name', 'color', 'icon', 'editable', 'type']);
         foreach ($categoriasDespesas as $categoria) {
-            $categoria->subcategories = [];
+            $subcategories_data = []; // Temporary array for subcategories
             foreach ($subcategoriasDespesas as $subcategoria) {
                 if ($categoria->id == $subcategoria->category_id) {
-                    $subcategoriaData[] = [
+                    $subcategories_data[] = [
                         'id' => $subcategoria->id,
                         'name' => $subcategoria->name,
                         'color' => $subcategoria->color,
@@ -282,18 +283,19 @@ class AuthController extends Controller
                         'editable' => $subcategoria->editable,
                         'type' => $subcategoria->type
                     ];
-                    $categoria->subcategories = $subcategoriaData;
                 }
             }
+            $categoria->subcategories_data = $subcategories_data; // Assign to a custom attribute
         }
 
+        // Revenues (Receitas)
         $categoriasReceitas = $user->categories()->whereIn('type', ['ambas', 'receita'])->get(['id', 'name', 'color', 'icon', 'editable', 'type']);
         $subcategoriasReceitas = $user->subcategories()->whereIn('type', ['ambas', 'receita'])->get(['id', 'category_id', 'name', 'color', 'icon', 'editable', 'type']);
         foreach ($categoriasReceitas as $categoria) {
-            $categoria->subcategories = [];
+            $subcategories_data = []; // Temporary array for subcategories
             foreach ($subcategoriasReceitas as $subcategoria) {
                 if ($categoria->id == $subcategoria->category_id) {
-                    $subcategoriaData = [
+                    $subcategories_data[] = [
                         'id' => $subcategoria->id,
                         'name' => $subcategoria->name,
                         'color' => $subcategoria->color,
@@ -301,9 +303,9 @@ class AuthController extends Controller
                         'editable' => $subcategoria->editable,
                         'type' => $subcategoria->type
                     ];
-                    $categoria->subcategories = $subcategoriaData;
                 }
             }
+            $categoria->subcategories_data = $subcategories_data; // Assign to a custom attribute
         }
 
 
