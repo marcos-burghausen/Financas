@@ -25,7 +25,7 @@ trait GroupReleasesTrait
         ];
 
         foreach ($releases as $release) {
-            $date = new DateTime($release['date']);
+            $date = new DateTime($release['dataVencimento']);
             $month = $date->format('M');
             $releasesByMonth[$month][] = $release;
         }

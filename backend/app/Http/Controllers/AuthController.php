@@ -325,7 +325,7 @@ class AuthController extends Controller
             ],
             'wallets'         => [
                 'mes_ano_referencia' => date('Y-m'),
-                'contas'            => $user->contas()->get(['id', 'name', 'icon', 'saldo', 'saldo_inicial', 'descricao', 'tipo', 'incluir_em_soma_inicial']),
+                'contas'             => $user->contas()->get(['id', 'name', 'icon', 'saldo', 'saldoInicial', 'descricao', 'tipo', 'incluirEmSomaInicial']),
                 'contasNames'       => $user->contas()->pluck("name"),
                 'saldoInicial'       => $this->obterSaldoInicial($user),
                 // 'saldoAtual' => $this->obterSaldoAtual($user),

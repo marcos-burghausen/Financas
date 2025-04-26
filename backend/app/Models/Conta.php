@@ -11,12 +11,15 @@ class Conta extends Model
 
     protected $primaryKey = 'id';
     protected $fillable = [
+        'user_id',
         'name',
-        'valor',
+        'icon',
+        'saldo',
+        'saldoInicial',
+        'incluirEmSomaInicial',
         'descricao',
         'tipo',
-        'user_id',
-        'icon'
+        'status',
     ];
 
     public function users()

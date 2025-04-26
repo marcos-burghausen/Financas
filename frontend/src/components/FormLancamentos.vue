@@ -472,7 +472,7 @@ const formReleases = ref<Lancamento>({
   conta: props.releases?.conta || contasNames.value[0],
   dataLancamento: validateDate(props.releases?.dataLancamento),
   dataEfetivacao: props.releases?.dataEfetivacao,
-  mesReferencia: props.releases?.mesReferencia || props.mesReferencia,
+  mesReferencia: props.mesReferencia,
 });
 
 watch(
@@ -612,8 +612,9 @@ const selecionarTipo = (item: string) => {
     formReleases.value.periodicidade = "Mensal";
   }
 };
-
+console.log(props.mesReferencia);
 const salvarLancamentos = async () => {
+  console.log(formReleases.value);
   try {
     loading.value = true;
     const method = isEditMode.value ? http.put : http.post;

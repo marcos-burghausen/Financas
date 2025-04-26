@@ -58,9 +58,10 @@
                 :icon="
                   revenue.status === 'Efetivada'
                     ? 'mdi-check'
-                    : new Date() <= new Date(revenue.data_vencimento)
-                    ? 'mdi-alert'
-                    : 'mdi-alert-remove'
+                    : new Date() <= new Date(revenue.data_vencimento) &&
+                      revenue.status === 'Pendente'
+                    ? 'mdi-calendar-remove'
+                    : 'mdi-alert'
                 "
                 class="mdicon__lacamento"
                 :class="{
@@ -68,7 +69,7 @@
                   atrasada:
                     new Date() > new Date(revenue.data_vencimento) &&
                     revenue.status === 'Pendente',
-                  Pendente:
+                  pendente:
                     new Date() <= new Date(revenue.data_vencimento) &&
                     revenue.status === 'Pendente',
                 }"
@@ -194,6 +195,7 @@ const openCreateForm = () => {
 };
 
 const editRevenue = (revenue: Lancamento) => {
+  console.log(revenue);
   selectedRelease.value = { ...revenue };
   formulario.value = true;
 };
@@ -348,7 +350,7 @@ const receiveRevenue = async (revenueId: string, conta: string) => {
 .mdicon__card {
   padding-right: 10px;
   display: flex;
-  align-items: end;
+  align-items: center;
 }
 .mdicon__lacamento {
   border-radius: 50%;
@@ -363,7 +365,7 @@ const receiveRevenue = async (revenueId: string, conta: string) => {
   color: #ff0000 !important;
   background: #ff000021 !important;
 }
-.Pendente {
+.pendente {
   color: #e5ff00 !important;
   background: #e5ff0021 !important;
 }

@@ -73,7 +73,7 @@ class RegisterController extends Controller
             $conta->user_id                 = $lastUser->id;
             $conta->name                    = "Pessoal";
             $conta->icon                    = "mdi-cash";
-            $conta->incluir_em_soma_inicial = true;
+            $conta->incluirEmSomaInicial = true;
             $conta->descricao               = "Conta de uso pessoal";
             $conta->tipo                    = "Pessoal";
             $conta->save();

@@ -8,15 +8,23 @@ export interface Account {
     saldoInicial: number;
     descricao: string;
     tipo: string;
-    incluirEmSomaInicial: boolean; // Renamed for camelCase
-    createdAt?: string;
+    incluirEmSomaInicial: boolean;
     updatedAt?: string;
   }
   
   // Represents wallet-related data (replacing Wallets)
   export interface WalletData {
-    saldoInicial: number;
     contas: Account[];
     contasNames: string[];
-    mesAnoReferencia: string;
+    saldoInicial: number;
+    categories: CategoryAccount[];
+  }
+
+  export interface CategoryAccount {
+    id: number;
+    name: string;
+    color: string;
+    icon: string;
+    edit: boolean;
+    type: string
   }

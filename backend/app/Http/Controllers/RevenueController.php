@@ -28,14 +28,14 @@ class RevenueController extends Controller
         $revenue->descricao       = $data['descricao'];
         $revenue->valor           = str_replace([',', '.'], '', $data['valor']);
         $revenue->tipo            = $data['tipo'] ?? 'Não recorrente';
-        $revenue->num_parcelas    = $data['numParcelas'] ?? null;
+        $revenue->numParcelas    = $data['numParcelas'] ?? null;
         $revenue->periodicidade   = $data['periodicidade'] ?? null;
-        $revenue->data_vencimento = $data['dataVencimento'];
+        $revenue->dataVencimento = $data['dataVencimento'];
         $revenue->status          = $data['status'];
         $revenue->categoria       = $data['categoria'];
         $revenue->subcategoria    = $data['subcategoria'];
-        $revenue->data_lancamento = $data['dataLancamento'];
-        $revenue->data_efetivacao = $data['dataEfetivacao'] ?? null;
+        $revenue->dataLancamento = $data['dataLancamento'];
+        $revenue->dataEfetivacao = $data['dataEfetivacao'] ?? null;
         $revenue->conta           = $data['conta'];
         $saved = $revenue->save();
 
@@ -57,9 +57,10 @@ class RevenueController extends Controller
 
         DB::commit();
 
-        $revenuesData = $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data['mesReferencia'] ?? date('Y-m'));
+        $revenuesData = $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data['mesReferencia']);
         $walletsData = [
-            'wallets' => $user->contas()->get(),
+            "mes_ano_referencia" => $data['mesReferencia'],
+            'contas'             => $user->contas()->get(['id', 'name', 'icon', 'saldo', 'saldoInicial', 'descricao', 'tipo', 'incluirEmSomaInicial']),
             'saldoInicial' => $this->obterSaldoInicial($user, $data['mesReferencia'] ?? date('Y-m')),
         ];
 
@@ -94,14 +95,14 @@ class RevenueController extends Controller
         $revenue->descricao       = $data['descricao'];
         $revenue->valor           = str_replace([',', '.'], '', $data['valor']);
         $revenue->tipo            = $data['tipo'] ?? 'Não recorrente';
-        $revenue->num_parcelas    = $data['numParcelas'] ?? null;
+        $revenue->numParcelas    = $data['numParcelas'] ?? null;
         $revenue->periodicidade   = $data['periodicidade'] ?? null;
-        $revenue->data_vencimento = $data['dataVencimento'];
+        $revenue->dataVencimento = $data['dataVencimento'];
         $revenue->status          = $data['status'];
         $revenue->categoria       = $data['categoria'];
         $revenue->subcategoria    = $data['subcategoria'];
-        $revenue->data_lancamento = $data['dataLancamento'];
-        $revenue->data_efetivacao = $data['dataEfetivacao'] ?? null;
+        $revenue->dataLancamento = $data['dataLancamento'];
+        $revenue->dataEfetivacao = $data['dataEfetivacao'] ?? null;
         $revenue->conta           = $data['conta'];
         $saved = $revenue->save();
 
@@ -173,7 +174,7 @@ class RevenueController extends Controller
         }
 
         $revenue->status = 'Efetivada';
-        $revenue->data_efetivacao = date('Y-m-d');
+        $revenue->dataEfetivacao = date('Y-m-d');
         $saved = $revenue->save();
 
         if (!$saved) {

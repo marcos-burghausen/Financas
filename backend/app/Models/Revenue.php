@@ -11,12 +11,19 @@ class Revenue extends Model
 
     protected $primaryKey = 'id';
     protected $filable = [
-        'valor',
-        'date',
+        'user_id',
         'descricao',
-        'categoria',
-        'carteira',
+        'valor',
+        'tipo',
+        'numParcelas',
+        'periodicidade',
+        'dataVencimento',
         'status',
+        'categoria',
+        'subcategoria',
+        'dataLancamento',
+        'dataEfetivacao',
+        'conta',
     ];
 
     public function user()

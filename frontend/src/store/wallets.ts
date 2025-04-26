@@ -11,7 +11,12 @@ export const useWalletsStore = defineStore("wallets", () => {
 
 
     function setWalletsData(wallets: WalletData): void {
-        walletsData.value = wallets;
+        walletsData.value = {
+            contas: wallets?.contas ?? walletsData.value.contas,
+            contasNames: wallets?.contasNames ?? walletsData.value.contasNames,
+            saldoInicial: wallets?.saldoInicial ?? walletsData.value.saldoInicial,
+            categories: wallets?.categories ?? walletsData.value.categories,
+        };
         localStorage.setItem("walletsData", JSON.stringify(wallets));
     }
 

@@ -18,8 +18,8 @@ return new class extends Migration
             $table->string('name', 20);
             $table->string('icon', 20)->default('');
             $table->integer('saldo')->default(0);
-            $table->integer('saldo_inicial')->default(0);
-            $table->integer('incluir_em_soma_inicial')->default(false);
+            $table->integer('saldoInicial')->default(0);
+            $table->integer('incluirEmSomaInicial')->default(false);
             $table->string('descricao', 50)->nullable();
             $table->enum('tipo', ['Pessoal', 'Empresarial', 'investimento'])->default('Pessoal');
             $table->enum('status', ['Ativo', 'Inativo'])->default('Ativo');
