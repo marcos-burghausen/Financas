@@ -40,7 +40,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('/revenue', [RevenueController::class, 'getRevenue']);
     Route::post('/revenue', [RevenueController::class, 'saveRevenue']);
     Route::put('/revenue/{id}', [RevenueController::class, 'editRevenue']);
-    Route::patch('/revenue/{id}/receive', [RevenueController::class, 'receivedRevenue']);
+    Route::patch('/revenue/{id}', [RevenueController::class, 'receivedRevenue']);
     Route::delete('/revenue/{id}', [RevenueController::class, 'deleteRevenue']);
 
     Route::post('/save-wallet', [WalletsController::class, 'saveWallet']);

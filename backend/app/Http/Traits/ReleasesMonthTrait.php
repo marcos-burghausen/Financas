@@ -13,25 +13,19 @@ trait ReleasesMonthTrait
         // $mes = DateTime::createFromFormat('Y-m', $data)->format('m');
         // info('mes ' . $mes);
 
-        $status = 'PAGA';
-        $type = 'Pay';
-        if ($tipoLancamentos === 'Revenues') {
-            $status = 'RECEBIDA';
-            $type = 'Received';
-        }
         // $lacamentosMes = $this->lancamentosMes($lacamentos, $mes);
         // info(['lacamentosMes ' => $lacamentosMes]);
 
-        $valorRecebidoOuPago = $this->valorPendenteMes($lacamentos, $mes, $status);
+        $valorRecebidoOuPago = $this->valorPendenteMes($lacamentos, $mes, "efetivada");
         // dd($valorRecebidoOuPago);
-        $valuePending = $this->valorPendenteMes($lacamentos, $mes, "AGUARDANDO");
+        $valuePending = $this->valorPendenteMes($lacamentos, $mes, "Pendente");
         // $valuePending = $this->valuePending($releases, date('m'), "AGUARDANDO");
         $valorTotalMes = $this->valorLancamentosMes($lacamentos, $mes);
         // $releasesgroupByMonth = $this->groupByMonth($lacamentos);
         // $addTotalValueMonth = $this->addTotalValueMonth($releasesgroupByMonth);
         $releasesMonth = $this->lancamentosMes($lacamentos, $mes);
         $Data = [
-            "value{$type}" => $valorRecebidoOuPago,
+            "valuePay" => $valorRecebidoOuPago,
             "valuePending" => $valuePending,
             "valueTotalMonth" => $valorTotalMes,
             // "{$tipoLancamentos}GroupByMonth" => $releasesgroupByMonth,
@@ -53,7 +47,7 @@ trait ReleasesMonthTrait
     {
         $totalExpensesDay = 0;
         foreach ($releasesMonth as $release) {
-            if ($release->status === 'PAGA' && strtotime($release->data_lancamento) === strtotime(date('Y-m-d'))) {
+            if ($release->status === 'efetivada' && strtotime($release->data_lancamento) === strtotime(date('Y-m-d'))) {
                 $totalExpensesDay += $release->valor;
             }
         }
@@ -210,13 +204,13 @@ trait ReleasesMonthTrait
             if ($conta->incluir_em_soma_inicial) {
                 $despesas = $user->expenses()
                     ->where('conta', $conta->name)
-                    ->where('status', 'PAGA')
+                    ->where('status', 'efetivada')
                     ->where('data_lancamento', '<=', $dataLimite)
                     ->sum('valor');
                 // ->get();
                 $receitas = $user->revenues()
                     ->where('conta', $conta->name)
-                    ->where('status', 'RECEBIDA')
+                    ->where('status', 'efetivada')
                     ->where('data_lancamento', '<=', $dataLimite)
                     ->sum('valor');
                 $saldoInicial = $somaSaldo + $receitas - $despesas;
@@ -235,7 +229,7 @@ trait ReleasesMonthTrait
             if ($conta->incluir_em_soma_inicial) {
                 $despesas = $user->expenses()
                     ->where('conta', $conta->name)
-                    ->where('status', 'PAGA')
+                    ->where('status', 'efetivada')
                     ->where('data_lancamento', '<=', "$mes-31")
                     ->sum('valor');
 

@@ -21,9 +21,9 @@
           <div class="header__items">
             <div class="d-flex flex-column">
               <span class="fs-5">Receitas</span>
-              <span class="valor"
-                >R$ {{ formatValue(valueTotalRevenuesMonth) }}</span
-              >
+              <span class="valor">
+                R$ {{ formatValue(valueTotalRevenuesMonth) }}
+              </span>
             </div>
           </div>
         </div>
@@ -53,16 +53,12 @@
           class="container__table"
         >
           <div class="card__lancamento">
-            <v-card
-              color="transparent"
-              class="mdicon__card"
-              :disabled="revenue.status === 'Efetivada'"
-            >
+            <v-card color="transparent" class="mdicon__card">
               <v-icon
                 :icon="
                   revenue.status === 'Efetivada'
                     ? 'mdi-check'
-                    : new Date() <= new Date(revenue.date)
+                    : new Date() <= new Date(revenue.data_vencimento)
                     ? 'mdi-alert'
                     : 'mdi-alert-remove'
                 "
@@ -70,22 +66,24 @@
                 :class="{
                   paga: revenue.status === 'Efetivada',
                   atrasada:
-                    new Date() > new Date(revenue.date) &&
+                    new Date() > new Date(revenue.data_vencimento) &&
                     revenue.status === 'Pendente',
                   Pendente:
-                    new Date() <= new Date(revenue.date) &&
+                    new Date() <= new Date(revenue.data_vencimento) &&
                     revenue.status === 'Pendente',
                 }"
                 size="30"
+                :disabled="revenue.status === 'Efetivada'"
+                @click="receiveRevenue(revenue.id, revenue.conta)"
               />
             </v-card>
             <div style="width: 100%">
               <div class="header__visao_geral">
                 <span style="text-align: start">{{ revenue.conta }}</span>
                 <div>
-                  <span>{{ revenue.date }}</span>
+                  <span>{{ revenue.data_vencimento }}</span>
                   <span>
-                    <mdicon name="dots-vertical" class="mdicon" size="25" />
+                    <v-icon icon="mdi-dots-vertical" class="mdicon" size="25" />
                     <v-menu
                       activator="parent"
                       location="bottom end"
@@ -207,8 +205,8 @@ const closeForm = () => {
 
 const updateData = (newData) => {
   useRevenues.setRevenuesData(newData);
-  valueTotalRevenuesMonth.value = newData.ValueTotalRevenuesMonth;
-  revenuesMonth.value = newData.RevenuesMonth;
+  valueTotalRevenuesMonth.value = newData.valueTotalMonth;
+  revenuesMonth.value = newData.byMonth;
   closeForm();
 };
 
@@ -249,15 +247,14 @@ const buscarDadosMes = async (data: string) => {
 };
 
 const deletar = async (id: number) => {
+  console.log(id);
   try {
-    const res = await http.post("/delete-revenue", {
-      id,
+    const res = await http.delete(`/revenue/${id}`, {
       mesReferencia: mesAnoReferencia.value,
     });
     useRevenues.setRevenuesData(res.data.revenuesData);
-    valueTotalRevenuesMonth.value =
-      res.data.revenuesData.ValueTotalRevenuesMonth;
-    revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
+    valueTotalRevenuesMonth.value = res.data.revenuesData.valueTotalMonth;
+    revenuesMonth.value = res.data.revenuesData.byMonth;
   } catch (error) {
     console.error("Erro ao deletar receita:", error);
   }
@@ -267,32 +264,19 @@ const receiveRevenue = async (revenueId: string, conta: string) => {
   try {
     const payload = {
       conta,
-      mesReferencia: mesAnoReferencia.value, // From your ref
+      mesReferencia: mesAnoReferencia.value,
     };
-    const res = await http.patch(`/api/revenue/${revenueId}/receive`, payload);
+    const res = await http.patch(`/revenue/${revenueId}`, payload);
+    console.log(res.data);
     useRevenues.setRevenuesData(res.data.revenuesData);
+    console.log(res.data.revenuesData);
     useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
-    useWallets.setWallets(res.data.walletsData.wallets);
+    console.log(res.data.walletsData.saldoInicial);
+    useWallets.setContas(res.data.walletsData.wallets);
+    console.log(res.data.walletsData.wallets);
     // Update UI or emit event
   } catch (error) {
     console.error("Erro ao receber receita:", error.response?.data);
-  }
-};
-
-const deleteRevenue = async (revenueId: string) => {
-  try {
-    const payload = {
-      mesReferencia: mesAnoReferencia.value,
-    };
-    const res = await http.delete(`/api/revenue/${revenueId}`, {
-      data: payload,
-    });
-    useRevenues.setRevenuesData(res.data.revenuesData);
-    useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
-    useWallets.setWallets(res.data.walletsData.wallets);
-    // Update UI or emit event
-  } catch (error) {
-    console.error("Erro ao excluir receita:", error.response?.data);
   }
 };
 </script>

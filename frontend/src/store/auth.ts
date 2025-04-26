@@ -7,8 +7,8 @@ import { computed, onMounted, ref, watchEffect } from "vue";
 export const useAuthStore = defineStore("auth", () => {
     const token = ref<Token>({
         token: "",
-        token_type: "",
-        expires_in: 0,
+        tokenType: "",
+        expiresIn: 0,
         iat: 0,
         expires: 0,
     });
@@ -51,8 +51,8 @@ export const useAuthStore = defineStore("auth", () => {
         localStorage.removeItem("walletsData");
         token.value = {
             token: "",
-            token_type: "",
-            expires_in: 0,
+            tokenType: "",
+            expiresIn: 0,
             iat: 0,
             expires: 0,
         };

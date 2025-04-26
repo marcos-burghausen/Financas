@@ -2,25 +2,15 @@
   <div class="box">
     <div class="container__dados">
       <figure class="figure">
-        <img
-          src="@/assets/img/2.png"
-          class="image"
-          alt="logo"
-        >
+        <img src="@/assets/img/2.png" class="image" alt="logo" />
       </figure>
-      <h2 class="title">
-        Criar Uma Conta
-      </h2>
+      <h2 class="title">Criar Uma Conta</h2>
 
       <ErrorMessage />
 
       <ErrorsForm />
 
-      <v-form
-        v-model="validForm"
-        class="form"
-        @submit.prevent="create"
-      >
+      <v-form v-model="validForm" class="form" @submit.prevent="create">
         <v-combobox
           v-model="user.name"
           variant="underlined"
@@ -72,11 +62,7 @@
         />
 
         <div>
-          <a
-            class="btn__register"
-            href="#"
-            @click.prevent="emits('nextStep')"
-          >
+          <a class="btn__register" href="#" @click.prevent="emits('nextStep')">
             <span>já tem uma conta </span>conecte-se.
           </a>
         </div>
@@ -168,7 +154,6 @@ const rules = {
     value === user.value.password || "As senhas não são iguais",
 };
 
-
 const passwordHint = computed(() => {
   const regex =
     /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}<>[\]\\/-])[A-Za-z\d!@#$%^&*(),.?":{}<>[\]\\/-]{8,}$/;
@@ -176,7 +161,6 @@ const passwordHint = computed(() => {
     ? ""
     : "A senha deve ter pelo menos 8 caracteres sendo uma letra maiúcula, uma minúscula, um número e um caracter especial exeto aspas simples e duplas";
 });
-
 </script>
 <style scoped>
 .box {
@@ -197,7 +181,7 @@ const passwordHint = computed(() => {
   align-items: center;
 }
 .image {
-  width: 200px
+  width: 200px;
 }
 .title {
   font-size: 30px;

@@ -12,13 +12,13 @@ export const useRevenuesStore = defineStore("revenues", () => {
 
     function setRevenuesData(revenues: TransactionsData): void {
         revenuesData.value = {
-            byCategory: revenues.byCategory || [],
-            valuePay: revenues.valuePay || 0,
-            valuePending: revenues.valuePending || 0,
-            valueTotalMonth: revenues.valueTotalMonth || 0,
-            byMonth: revenues.byMonth || [],
-            categories: revenues.categories || [],
-            totalDays: revenues.totalDays || 0,
+            byCategory: revenues?.byCategory ?? revenuesData.value.byCategory,
+            valuePay: revenues?.valuePay ?? revenuesData.value.valuePay,
+            valuePending: revenues?.valuePending ?? revenuesData.value.valuePending,
+            valueTotalMonth: revenues?.valueTotalMonth ?? revenuesData.value.valueTotalMonth,
+            byMonth: revenues?.byMonth ?? revenuesData.value.byMonth,
+            categories: revenues?.categories ?? revenuesData.value.categories,
+            totalDays: revenues?.totalDays ?? revenuesData.value.totalDays,
         };
         localStorage.setItem("revenuesData", JSON.stringify(revenuesData.value));
     }

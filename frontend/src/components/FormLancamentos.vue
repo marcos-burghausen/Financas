@@ -209,7 +209,7 @@
       </div>
 
       <v-date-input
-        v-model="formReleases.data_vencimento"
+        v-model="formReleases.dataVencimento"
         variant="underlined"
         hide-details="auto"
         label="Data de Vencimento"
@@ -284,8 +284,8 @@
 
       <v-autocomplete
         v-model="formReleases.subcategoria"
-        :items="subCategoriasNames"
-        :rules="[rules.requiredSubCatagoriasNames]"
+        :items="subcategoriesNames"
+        :rules="[rules.requiredSubcatagoria]"
         label="subcategoria"
         placeholder="Selecione..."
         required
@@ -303,7 +303,7 @@
       <v-autocomplete
         v-model="formReleases.conta"
         :items="contasNames"
-        :rules="[rules.requiredCarteira]"
+        :rules="[rules.requiredConta]"
         label="Conta"
         placeholder="Selecione..."
         required
@@ -332,7 +332,7 @@
 
       <v-date-input
         v-if="informacoes"
-        v-model="formReleases.data_lancamento"
+        v-model="formReleases.dataLancamento"
         variant="underlined"
         hide-details="auto"
         label="Data lançamento"
@@ -355,7 +355,7 @@
 
       <v-date-input
         v-if="informacoes"
-        v-model="formReleases.data_efetivacao"
+        v-model="formReleases.dataEfetivacao"
         variant="underlined"
         hide-details="auto"
         label="Data efetivação"
@@ -409,6 +409,7 @@ const validateDate = (date: string | undefined): string => {
 };
 
 let informacoes = ref(false);
+let subcategoriesNames = ref("");
 const parcelaInicial = ref(1);
 const tempParcelaInicial = ref(1);
 const tempNumParcelas = ref(2);
@@ -432,7 +433,7 @@ const isEditMode = computed(() => !!props.releases?.id);
 
 const isTodayVencimento = computed(() => {
   const today = new Date().toISOString().split("T")[0];
-  const selectedDate = formReleases.value.data_lancamento;
+  const selectedDate = formReleases.value.dataVencimento;
   if (selectedDate instanceof Date) {
     return selectedDate.toISOString().split("T")[0] === today;
   }
@@ -441,7 +442,7 @@ const isTodayVencimento = computed(() => {
 
 const isTodayLancamento = computed(() => {
   const today = new Date().toISOString().split("T")[0];
-  const selectedDate = formReleases.value.data_lancamento;
+  const selectedDate = formReleases.value.dataLancamento;
   if (selectedDate instanceof Date) {
     return selectedDate.toISOString().split("T")[0] === today;
   }
@@ -450,7 +451,7 @@ const isTodayLancamento = computed(() => {
 
 const isTodayEfetivacao = computed(() => {
   const today = new Date().toISOString().split("T")[0];
-  const selectedDate = formReleases.value.data_efetivacao;
+  const selectedDate = formReleases.value.dataEfetivacao;
   if (selectedDate instanceof Date) {
     return selectedDate.toISOString().split("T")[0] === today;
   }
@@ -462,44 +463,38 @@ const formReleases = ref<Lancamento>({
   descricao: props.releases?.descricao || "",
   valor: props.releases?.valor || "0,00",
   tipo: props.releases?.tipo || "Não recorrente",
-  num_parcelas: props.releases?.num_parcelas || 0,
+  numParcelas: props.releases?.numParcelas || null,
   periodicidade: props.releases?.periodicidade || null,
-  data_vencimento: validateDate(props.releases?.data_vencimento),
+  dataVencimento: validateDate(props.releases?.dataVencimento),
   status: props.releases?.status || "Pendente",
-  // categoria: props.releases?.categoria || categoriasNames.value[0] || "",
   categoria: props.releases?.categoria || "Outros",
   subcategoria: props.releases?.subcategoria || "Outros",
   conta: props.releases?.conta || contasNames.value[0],
-  // mesReferencia: props.releases?.mesReferencia || props.mesReferencia,
-  data_lancamento: validateDate(props.releases?.data_lancamento),
-  data_efetivacao: props.releases?.data_efetivacao,
+  dataLancamento: validateDate(props.releases?.dataLancamento),
+  dataEfetivacao: props.releases?.dataEfetivacao,
+  mesReferencia: props.releases?.mesReferencia || props.mesReferencia,
 });
 
-// const subCategoriasNames = computed(() => {
-//   const categories =
-//     props.transactionType === "receitas"
-//       ? useRevenues.revenuesData.categories || []
-//       : useExpenses.expensesData.categories || [];
+watch(
+  () => formReleases.value.status,
+  (newStatus) => {
+    if (newStatus === "Efetivada") {
+      formReleases.value.dataEfetivacao = new Date()
+        .toISOString()
+        .split("T")[0];
+    } else {
+      formReleases.value.dataEfetivacao = null;
+    }
+  }
+);
 
-//   const selectedCategory = categories.find(
-//     (cat) => cat.name === formReleases.value.categoria
-//   );
-
-//   return selectedCategory && Array.isArray(selectedCategory.subcategories)
-//     ? selectedCategory.subcategories.map((sub) => sub.name)
-//     : [];
-// });
-let subcategoriesNames = ref(null);
 watch(
   () => formReleases.value.categoria,
   (newCategoria) => {
-    console.log(formReleases.value.categoria);
-    formReleases.value.subcategoria = ""; // Reset subcategoria
     const categories =
       props.transactionType === "receitas"
         ? useRevenues.revenuesData.categories
         : useExpenses.expensesData.categories;
-    console.log(categories);
     const selectedCategory = categories.find(
       (cat) => cat.name === newCategoria
     );
@@ -507,49 +502,34 @@ watch(
       subcategoriesNames.value = selectedCategory.subcategories_data.map(
         (subcategoria) => subcategoria.name
       );
-      console.log("subcategoriesNames:", subcategoriesNames);
-      // formReleases.value.subcategoria = subcategoriesNames.value[0];
+      formReleases.value.subcategoria = subcategoriesNames.value[0];
     }
   }
 );
 
 watch(
-  () => categoriasNames.value,
-  (newCategorias) => {
-    if (
-      newCategorias.length > 0 &&
-      !newCategorias.includes(formReleases.value.categoria)
-    ) {
-      formReleases.value.categoria = newCategorias[0] || "";
-      formReleases.value.subCategoria = "";
-    }
-  },
-  { immediate: true }
-);
-
-watch(
-  () => formReleases.value.data,
+  () => formReleases.value.dataVencimento,
   (newValue) => {
     if (newValue instanceof Date) {
-      formReleases.value.data = newValue.toISOString().split("T")[0];
+      formReleases.value.dataVencimento = newValue.toISOString().split("T")[0];
     }
   }
 );
 
 watch(
-  () => formReleases.value.dateLancamento,
+  () => formReleases.value.dataLancamento,
   (newValue) => {
     if (newValue instanceof Date) {
-      formReleases.value.dateLancamento = newValue.toISOString().split("T")[0];
+      formReleases.value.dataLancamento = newValue.toISOString().split("T")[0];
     }
   }
 );
 
 watch(
-  () => formReleases.value.dateEfetivacao,
+  () => formReleases.value.dataEfetivacao,
   (newValue) => {
     if (newValue instanceof Date) {
-      formReleases.value.dateEfetivacao = newValue.toISOString().split("T")[0];
+      formReleases.value.dataEfetivacao = newValue.toISOString().split("T")[0];
     }
   }
 );
@@ -594,7 +574,7 @@ const cancelarConfiguracaoRepeticao = () => {
 const concluirParcelas = () => {
   // Salva os valores temporários nos valores finais
   parcelaInicial.value = tempParcelaInicial.value;
-  formReleases.value.num_parcelas = tempNumParcelas.value;
+  formReleases.value.numParcelas = tempNumParcelas.value;
   formReleases.value.periodicidade = tempPeriodicidade.value;
 
   // Fecha o modal
@@ -616,23 +596,19 @@ const selecionarTipo = (item: string) => {
   openTipoLancamento.value = false;
 
   if (item === "Parcelada") {
-    // Inicializa valores para parcelamento
     inicializarValoresTemporarios();
 
-    // Se já existirem valores salvos, usa-os como valores temporários
-    if (formReleases.value.num_parcelas > 0) {
-      tempNumParcelas.value = formReleases.value.num_parcelas;
+    if (formReleases.value.numParcelas > 0) {
+      tempNumParcelas.value = formReleases.value.numParcelas;
     }
 
     if (formReleases.value.periodicidade) {
       tempPeriodicidade.value = formReleases.value.periodicidade;
     }
 
-    // Abre o modal
     openParcelas.value = true;
   } else {
-    // Para outros tipos, limpa os valores de parcelamento
-    formReleases.value.num_parcelas = 0;
+    formReleases.value.numParcelas = 0;
     formReleases.value.periodicidade = "Mensal";
   }
 };
@@ -644,7 +620,6 @@ const salvarLancamentos = async () => {
     const url = isEditMode.value
       ? `/${props.rota}/${formReleases.value.id}`
       : `/${props.rota}`;
-    console.log(url);
     const res = await method(url, formReleases.value);
 
     useRevenues.setRevenuesData(res.data.revenuesData);
@@ -667,16 +642,16 @@ const clearInputs = () => {
     descricao: "",
     valor: "0,00",
     tipo: "Não recorrente",
-    num_parcelas: 0,
+    numParcelas: 0,
     periodicidade: null,
-    data_vencimento: new Date().toISOString().split("T")[0],
+    dataVencimento: new Date().toISOString().split("T")[0],
     status: "Pendente",
     categoria: "",
     subcategoria: "",
     conta: "",
     // mesReferencia: props.mesReferencia,
-    data_lancamento: new Date().toISOString().split("T")[0],
-    data_efetivacao: new Date().toISOString().split("T")[0],
+    dataLancamento: new Date().toISOString().split("T")[0],
+    dataEfetivacao: new Date().toISOString().split("T")[0],
   };
   errorsForm.value = {};
 };
@@ -710,24 +685,26 @@ const rules = {
       "O campo valor deve ser maior que zero"
     );
   },
-  requiredPeriodicidade: (value: string) =>
-    !!value || "O campo periodicidade é obrigatório",
   requiredDataVencimento: (value: string) =>
-    !!value || "O campo data é obrigatório",
+    !!value || "O campo data vencimento é obrigatório",
+  requiredStatus: (value: string) => !!value || "O campo Status é obrigatório",
   requiredCatagoria: (value: string) =>
     !!value || "O campo categoria é obrigatório",
-  requiredCarteira: (value: string) => !!value || "O campo conta é obrigatório",
-  requiredSubCatagoriasNames: (value: string) =>
+  requiredSubcatagoria: (value: string) =>
     !!value || "O campo subcategoria é obrigatório",
+  requiredConta: (value: string) => !!value || "O campo conta é obrigatório",
+  requiredDataLancamento: (value: string) =>
+    !!value || "O campo data lançamento é obrigatório",
+  requiredDataEfetivacao: (value: string) => {
+    if (formReleases.value.status === "Efetivada") {
+      return !!value || "O campo data efetivação é obrigatório";
+    }
+    return true;
+  },
 };
 </script>
 
 <style scoped>
-/* .v-btn {
-  background-color: transparent;
-  cursor: pointer;
-} */
-
 .container__modal {
   width: 100%;
   max-width: 600px;
@@ -756,7 +733,6 @@ const rules = {
   align-items: center;
 }
 .btn {
-  /* text-transform: uppercase; */
   color: #fff;
   cursor: pointer;
   font-weight: bold;
@@ -842,9 +818,6 @@ const rules = {
   justify-content: center;
 }
 
-/* .stepper-btn:hover:not(:disabled) {
-  color: #77d08e;
-} */
 .stepper-input {
   width: 50px;
   background-color: transparent;
@@ -852,7 +825,7 @@ const rules = {
   color: white;
   text-align: center;
   font-size: 18px;
-  -moz-appearance: textfield; /* Firefox */
+  -moz-appearance: textfield;
 }
 .stepper-input::-webkit-outer-spin-button,
 .stepper-input::-webkit-inner-spin-button {

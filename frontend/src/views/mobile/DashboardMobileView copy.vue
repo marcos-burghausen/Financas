@@ -241,7 +241,7 @@ const useRevenues = useRevenuesStore();
 const useWallets = useWalletsStore();
 const useAuth = useAuthStore();
 const useUser = useUserStore();
-const route = useRoute();
+const router = useRoute();
 
 // let expensesAddTotalValueMonth = ref(useExpenses.expensesData.expenses?.ExpensesAddTotalValueMonth);
 // let revenuesAddTotalValueMonth = ref(useRevenues.revenuesData.revenues?.RevenuesAddTotalValueMonth);
@@ -264,7 +264,7 @@ let valorPrevisto = ref(
 let elementoAtivoSideBar = ref(0);
 // let totalCreditCard = ref(0);
 
-watch(route, (value) => {
+watch(router, (value) => {
   switch (value.name) {
     case "dashboard":
       elementoAtivoSideBar.value = 0;
@@ -367,7 +367,7 @@ async function logout() {
   try {
     await http.post("/logout");
     useAuth.clear();
-    route.push({ name: "home" });
+    router.push({ name: "home" });
   } catch (error) {
     // console.log(error);
   }

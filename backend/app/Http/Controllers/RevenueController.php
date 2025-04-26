@@ -28,13 +28,14 @@ class RevenueController extends Controller
         $revenue->descricao       = $data['descricao'];
         $revenue->valor           = str_replace([',', '.'], '', $data['valor']);
         $revenue->tipo            = $data['tipo'] ?? 'Não recorrente';
-        $revenue->num_parcelas    = $data['numParcelas'] ?? 0;
+        $revenue->num_parcelas    = $data['numParcelas'] ?? null;
         $revenue->periodicidade   = $data['periodicidade'] ?? null;
-        $revenue->data_vencimento = $data['data'];
-        $revenue->data_lancamento = $data['data'];
-        $revenue->status          = $data['status'] ?? 'Pendente';
+        $revenue->data_vencimento = $data['dataVencimento'];
+        $revenue->status          = $data['status'];
         $revenue->categoria       = $data['categoria'];
-        $revenue->sub_categoria   = $data['sub_categoria'];
+        $revenue->subcategoria    = $data['subcategoria'];
+        $revenue->data_lancamento = $data['dataLancamento'];
+        $revenue->data_efetivacao = $data['dataEfetivacao'] ?? null;
         $revenue->conta           = $data['conta'];
         $saved = $revenue->save();
 
@@ -89,15 +90,19 @@ class RevenueController extends Controller
         $oldValor = $revenue->valor;
         $oldConta = $revenue->conta;
 
-        $revenue->valor        = $data['valor'] * 100;
-        $revenue->date         = $data['date'];
-        $revenue->descricao    = $data['descricao'];
-        $revenue->categoria    = $data['categoria'];
-        $revenue->conta        = $data['conta'];
-        $revenue->status       = $data['status'] ?? 'Pendente';
-        $revenue->tipo         = $data['tipo'] ?? 'Não recorrente';
-        $revenue->num_parcelas = $data['numParcelas'] ?? 0;
-        $revenue->periodicidade = $data['periodicidade'] ?? null;
+
+        $revenue->descricao       = $data['descricao'];
+        $revenue->valor           = str_replace([',', '.'], '', $data['valor']);
+        $revenue->tipo            = $data['tipo'] ?? 'Não recorrente';
+        $revenue->num_parcelas    = $data['numParcelas'] ?? null;
+        $revenue->periodicidade   = $data['periodicidade'] ?? null;
+        $revenue->data_vencimento = $data['dataVencimento'];
+        $revenue->status          = $data['status'];
+        $revenue->categoria       = $data['categoria'];
+        $revenue->subcategoria    = $data['subcategoria'];
+        $revenue->data_lancamento = $data['dataLancamento'];
+        $revenue->data_efetivacao = $data['dataEfetivacao'] ?? null;
+        $revenue->conta           = $data['conta'];
         $saved = $revenue->save();
 
         if (!$saved) {
@@ -168,6 +173,7 @@ class RevenueController extends Controller
         }
 
         $revenue->status = 'Efetivada';
+        $revenue->data_efetivacao = date('Y-m-d');
         $saved = $revenue->save();
 
         if (!$saved) {
@@ -259,28 +265,30 @@ class RevenueController extends Controller
     {
         return $request->validate(
             [
-                'valor'         => 'required|min:0.01',
-                'data'          => 'required|date',
-                'descricao'     => 'required|string|max:255',
-                'categoria'     => 'required|string|max:100',
-                'conta'         => 'required|string|max:100',
-                'status'        => 'nullable|string|in:Pendente,Efetivada',
-                'mesReferencia' => 'nullable|string|regex:/^\d{4}-\d{2}$/',
-                'numParcelas'   => 'nullable|integer|min:0',
-                'periodicidade' => 'nullable|string|in:Mensal,Diario,Semanal,Quinzenal,Trimestral,Anual',
-                'tipo'          => 'nullable|string|in:Não recorrente,Parcelada,Fixa mensal',
+                'id'              => 'nullable | integer',
+                'descricao'       => 'required | string | max:50',
+                'valor'           => 'required | min:0.01',
+                'tipo'            => 'string | in:Não recorrente,Parcelada,Fixa mensal',
+                'numParcelas'    => 'nullable | integer | min:2',
+                'periodicidade'   => 'nullable | string | in:Mensal,Diario,Semanal,Quinzenal,Trimestral,Anual',
+                'dataVencimento' => 'required | date',
+                'status'          => 'required | string | in:Pendente,Efetivada',
+                'categoria'       => 'required | string | max:30',
+                'subcategoria'    => 'required | string | max:30',
+                'dataLancamento' => 'required | date',
+                'dataEfetivacao' => 'nullable | date',
+                'conta'           => 'required | string | max:30',
+                'mesReferencia'  => 'required | string | regex:/^\d{4}-\d{2}$/',
             ],
             [
-                'valor.required'     => 'O campo valor é obrigatório',
-                'valor.numeric'      => 'O valor deve ser um número',
-                'valor.min'          => 'O valor deve ser maior que zero',
-                'date.required'      => 'O campo data é obrigatório',
-                'descricao.required' => 'O campo descrição é obrigatório',
-                'categoria.required' => 'O campo categoria é obrigatório',
-                'conta.required'     => 'O campo conta é obrigatório',
+                'required'             => 'O campo :attribute é obrigatório',
+                'integer'              => 'O campo :attribute deve ser um número',
+                'string'               => 'O campo :attribute deve conter apenas letras',
+                'max'                  => 'O campo :attribute deve conter no máximo :max caracteres',
+                'min'                  => 'O campo :attribute deve ser maior que :min',
+                'in'                   => 'O campo :attribute não corresponde ao valor esperado',
+                'date'                 => 'O campo :attribute nâo é uma data valida',
                 'mesReferencia.regex' => 'O campo mesReferencia deve estar no formato YYYY-MM (ex: 2025-04)',
-                'periodicidade.in'   => 'O campo periodicidade deve ser um dos seguintes: Mensal, Diario, Semanal, Quinzenal, Trimestral, Anual',
-                'tipo.in'           => 'O campo tipo deve ser um dos seguintes: Não recorrente, Parcelada, Fixa mensal',
             ]
         );
     }

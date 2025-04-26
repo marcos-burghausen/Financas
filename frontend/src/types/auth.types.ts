@@ -1,11 +1,11 @@
 // src/types/auth.types.ts
 // Defines the structure of the login API response
-import type { Account, Category, CategoryData, MonthData } from "./index";
+import type { Account, Category, CategoryData, MonthData, WalletData } from "./index";
 
 export interface Token {
   token: string;
-  token_type: string;
-  expires_in: number;
+  tokenType: string;
+  expiresIn: number;
   iat: number;
   expires: number;
 }
@@ -23,17 +23,17 @@ export interface LoginResponse {
     
     data: {
       expenses: {
-        ValuePay: number;
-        ValuePending: number;
-        ValueTotalMonth: number;
+        valuePay: number;
+        valuePending: number;
+        valueTotalMonth: number;
         byMonth: MonthData[];
         totalDay: number;
-        ByCategory: CategoryData[];
+        byCategory: CategoryData[];
       };
       revenues: {
-        ValueReceived: number;
-        ValuePending: number;
-        ValueTotalMonth: number;
+        valueReceived: number;
+        valuePending: number;
+        valueTotalMonth: number;
         byMonth: MonthData[];
       };
       categories: {
@@ -41,12 +41,7 @@ export interface LoginResponse {
         revenues: Category[];
         wallets: Category[];
       };
-      wallets: {
-        mes_ano_referencia: string;
-        contas: Account[];
-        contasNames: string[];
-        saldoInicial: number;
-      };
+      wallets: WalletData
     };
   }
 
