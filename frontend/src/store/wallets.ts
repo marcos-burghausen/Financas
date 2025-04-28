@@ -34,18 +34,11 @@ export const useWalletsStore = defineStore("wallets", () => {
           }
     }
 
-    function setMesReferencia(mesAnoReferencia: string) {
-        if (walletsData.value) {
-            walletsData.value.mesAnoReferencia = mesAnoReferencia;
-            localStorage.setItem("walletsData", JSON.stringify(walletsData.value));
-          }
-    }
 
     return {
         walletsData,
         setWalletsData,
         setContas,
         setSaldoInicial,
-        setMesReferencia
     };
 });

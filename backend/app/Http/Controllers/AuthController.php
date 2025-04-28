@@ -324,7 +324,6 @@ class AuthController extends Controller
                 ],
             ],
             'wallets'         => [
-                'mes_ano_referencia' => date('Y-m'),
                 'contas'             => $user->contas()->get(['id', 'name', 'icon', 'saldo', 'saldoInicial', 'descricao', 'tipo', 'incluirEmSomaInicial']),
                 'contasNames'       => $user->contas()->pluck("name"),
                 'saldoInicial'       => $this->obterSaldoInicial($user),
@@ -333,6 +332,7 @@ class AuthController extends Controller
                     ...$user->categories()->where('type', 'contas')->get(['id', 'name', 'color', 'icon', 'editable', 'type']),
                 ],
             ],
+            'mesAno' => date('Y-m'),
         ];
     }
 }

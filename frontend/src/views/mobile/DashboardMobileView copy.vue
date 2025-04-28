@@ -248,14 +248,14 @@ const router = useRoute();
 let valueTotalExpensesMonth = ref(useExpenses.expensesData?.valueTotalMonth);
 let valueTotalRevenuesMonth = ref(useRevenues.revenuesData?.valueTotalMonth);
 let totalByCategoryExpenses = ref(useExpenses.expensesData?.byCategory);
-let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
+let mesAnoReferencia = ref(useUser.getMesAno());
 let valuePendingRevenues = ref(useRevenues.revenuesData?.valuePending);
 let valuePendingExpenses = ref(useExpenses.expensesData?.valuePending);
 let valueReceived = ref(useRevenues.revenuesData?.valuePay);
 let totalBalance = ref(useWallets.walletsData?.contas[0].saldo);
 let saldoInicial = ref(useWallets.walletsData?.saldoInicial);
 let valuePay = ref(useExpenses.expensesData?.valuePay);
-let name = ref(useUser.userData.name.split(" ")[0]);
+// let name = ref(useUser.userData.name.split(" ")[0]);
 let valorPrevisto = ref(
   saldoInicial.value +
     valueTotalRevenuesMonth.value -

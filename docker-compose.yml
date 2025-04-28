@@ -27,7 +27,7 @@ services:
 
   #node
   node:
-    image: marcosrafaelburghausen/node-19
+    image: marcosrafaelburghausen/node-22
     container_name: Mr_frontend
     working_dir: /home/node/app
     stdin_open: true

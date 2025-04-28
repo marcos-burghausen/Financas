@@ -41,9 +41,14 @@ export const useUserStore = defineStore("user", () => {
         
     }
 
+    function getMesAno() {
+        return localStorage.getItem("mesAno");
+    }
+
 
     return {
         userData,
+        getMesAno,
         // getCarteias,
         setUserData,
         setMesAno,
