@@ -1,41 +1,36 @@
-// {
-//   "files": [],
-//   "references": [
-//     {
-//       "path": "./tsconfig.node.json"
-//     },
-//     {
-//       "path": "./tsconfig.app.json"
-//     },
-//   ],
-//   "compilerOptions": {
-//     "paths": {
-//       "@/*": [
-//         "src/*"
-//       ]
-//     }
-//   },
-//   "include": [
-//     "src/**/*",
-//     "src/shims-vue.d.ts"
-//   ]
-// }
 {
-  "include": [
-    "./src/**/*"
-  ],
   "compilerOptions": {
-    "module": "es2015",
+    "target": "esnext",
+    "module": "esnext",
+    "strict": true,
     "moduleResolution": "node",
-    "resolveJsonModule": true,
     "esModuleInterop": true,
-    "target": "es5",
-    "sourceMap": true,
-    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": "src",
     "paths": {
       "@/*": [
-        "src/*"
+        "*"
+      ],
+      "@services/*": [
+        "services/*"
+      ],
+      "@types/*": [
+        "types/*"
+      ],
+      "@store/*": [
+        "store/*"
       ]
-    }
-  }
+    },
+    "types": [
+      "vuetify"
+    ],
+    "jsx": "preserve",
+    "skipLibCheck": true
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

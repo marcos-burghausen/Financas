@@ -58,7 +58,8 @@
                 :icon="
                   revenue.status === 'Efetivada'
                     ? 'mdi-check'
-                    : new Date() <= new Date(revenue.data_vencimento) &&
+                    : revenue.dataVencimento &&
+                      new Date() <= new Date(revenue.dataVencimento) &&
                       revenue.status === 'Pendente'
                     ? 'mdi-calendar-remove'
                     : 'mdi-alert'
@@ -67,10 +68,12 @@
                 :class="{
                   paga: revenue.status === 'Efetivada',
                   atrasada:
-                    new Date() > new Date(revenue.data_vencimento) &&
+                    revenue.dataVencimento &&
+                    new Date() > new Date(revenue.dataVencimento) &&
                     revenue.status === 'Pendente',
                   pendente:
-                    new Date() <= new Date(revenue.data_vencimento) &&
+                    revenue.dataVencimento &&
+                    new Date() <= new Date(revenue.dataVencimento) &&
                     revenue.status === 'Pendente',
                 }"
                 size="30"
@@ -82,7 +85,7 @@
               <div class="header__visao_geral">
                 <span style="text-align: start">{{ revenue.conta }}</span>
                 <div>
-                  <span>{{ revenue.data_vencimento }}</span>
+                  <span>{{ revenue.dataVencimento }}</span>
                   <span>
                     <v-icon icon="mdi-dots-vertical" class="mdicon" size="25" />
                     <v-menu
@@ -148,21 +151,37 @@ import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
 
 import http from "@/services/http";
 
-import { useRevenuesStore, useWalletsStore, useExpensesStore } from "@/store";
+import {
+  useRevenuesStore,
+  useWalletsStore,
+  useExpensesStore,
+  useUserStore,
+} from "@/store";
 
-import type { Lancamento } from "@/types";
+import type { Lancamento, RevenuesData } from "@/types";
 
 import { formatValue } from "@/utils/formatValue";
 
 const useRevenues = useRevenuesStore();
 const useWallets = useWalletsStore();
 const useExpenses = useExpensesStore();
+const useUser = useUserStore();
 
 const formulario = ref(false);
-const selectedRelease = ref<Lancamento | null>(null);
-const mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
+const selectedRelease = ref<Lancamento | undefined>(undefined);
+const mesAnoReferencia = ref<string>(useUser.getMesAno() || "");
 const valueTotalRevenuesMonth = ref(useRevenues.revenuesData?.valueTotalMonth);
-const revenuesMonth = ref(useRevenues.revenuesData?.byMonth);
+const revenuesMonth = ref<Lancamento[]>(
+  useRevenues.revenuesData?.byMonth || []
+);
+
+interface ApiError {
+  response?: {
+    data?: {
+      errors?: { [key: string]: string[] };
+    };
+  };
+}
 
 const mesPorExtenso = computed(() => {
   if (!mesAnoReferencia.value) return "";
@@ -190,7 +209,7 @@ const mesPorExtenso = computed(() => {
 });
 
 const openCreateForm = () => {
-  selectedRelease.value = null;
+  selectedRelease.value = undefined;
   formulario.value = true;
 };
 
@@ -202,10 +221,10 @@ const editRevenue = (revenue: Lancamento) => {
 
 const closeForm = () => {
   formulario.value = false;
-  selectedRelease.value = null;
+  selectedRelease.value = undefined;
 };
 
-const updateData = (newData) => {
+const updateData = (newData: RevenuesData) => {
   useRevenues.setRevenuesData(newData);
   valueTotalRevenuesMonth.value = newData.valueTotalMonth;
   revenuesMonth.value = newData.byMonth;
@@ -235,7 +254,7 @@ const proximoMes = () => {
 const buscarDadosMes = async (data: string) => {
   try {
     const res = await http.post("/buscar-dados-mes", { mes: data });
-    useWallets.setMesReferencia(res.data.walletsData.mes_ano_referencia);
+    useUser.setMesAno(res.data.walletsData.mes_ano_referencia);
     useExpenses.setExpensesData(res.data.expensesData);
     useRevenues.setRevenuesData(res.data.revenuesData);
     useWallets.setWalletsData(res.data.walletsData);
@@ -244,25 +263,26 @@ const buscarDadosMes = async (data: string) => {
     valueTotalRevenuesMonth.value =
       res.data.revenuesData.ValueTotalRevenuesMonth;
   } catch (error) {
-    console.error("Erro ao buscar dados do mês:", error);
+    const apiError = error as ApiError;
+    console.error("Erro ao buscar dados do mês::", apiError.response?.data);
   }
 };
 
 const deletar = async (id: number) => {
-  console.log(id);
   try {
     const res = await http.delete(`/revenue/${id}`, {
-      mesReferencia: mesAnoReferencia.value,
+      data: { mesReferencia: mesAnoReferencia.value },
     });
     useRevenues.setRevenuesData(res.data.revenuesData);
     valueTotalRevenuesMonth.value = res.data.revenuesData.valueTotalMonth;
     revenuesMonth.value = res.data.revenuesData.byMonth;
-  } catch (error) {
-    console.error("Erro ao deletar receita:", error);
+  } catch (error: unknown) {
+    const apiError = error as ApiError;
+    console.error("Erro ao deletar receita:", apiError.response?.data);
   }
 };
 
-const receiveRevenue = async (revenueId: string, conta: string) => {
+const receiveRevenue = async (revenueId: number, conta: string) => {
   try {
     const payload = {
       conta,
@@ -278,7 +298,8 @@ const receiveRevenue = async (revenueId: string, conta: string) => {
     console.log(res.data.walletsData.wallets);
     // Update UI or emit event
   } catch (error) {
-    console.error("Erro ao receber receita:", error.response?.data);
+    const apiError = error as ApiError;
+    console.error("Erro ao receber receita:", apiError.response?.data);
   }
 };
 </script>

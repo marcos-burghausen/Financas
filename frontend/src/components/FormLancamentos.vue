@@ -336,7 +336,7 @@
         variant="underlined"
         hide-details="auto"
         label="Data lançamento"
-        :rules="[rules.requiredDataLanacamento]"
+        :rules="[rules.requiredDataLancamento]"
         class="mb-8 imput"
         show-adjacent-months
         color="#77d08e"
@@ -409,7 +409,7 @@ const validateDate = (date: string | undefined): string => {
 };
 
 let informacoes = ref(false);
-let subcategoriesNames = ref("");
+let subcategoriesNames = ref<string[]>([]);
 const parcelaInicial = ref(1);
 const tempParcelaInicial = ref(1);
 const tempNumParcelas = ref(2);
@@ -437,7 +437,7 @@ const isTodayVencimento = computed(() => {
   if (selectedDate instanceof Date) {
     return selectedDate.toISOString().split("T")[0] === today;
   }
-  return selectedDate === today;
+  return typeof selectedDate === "string" && selectedDate === today;
 });
 
 const isTodayLancamento = computed(() => {
@@ -446,7 +446,7 @@ const isTodayLancamento = computed(() => {
   if (selectedDate instanceof Date) {
     return selectedDate.toISOString().split("T")[0] === today;
   }
-  return selectedDate === today;
+  return typeof selectedDate === "string" && selectedDate === today;
 });
 
 const isTodayEfetivacao = computed(() => {
@@ -455,7 +455,7 @@ const isTodayEfetivacao = computed(() => {
   if (selectedDate instanceof Date) {
     return selectedDate.toISOString().split("T")[0] === today;
   }
-  return selectedDate === today;
+  return typeof selectedDate === "string" && selectedDate === today;
 });
 
 const formReleases = ref<Lancamento>({
@@ -499,10 +499,14 @@ watch(
       (cat) => cat.name === newCategoria
     );
     if (selectedCategory) {
-      subcategoriesNames.value = selectedCategory.subcategories_data.map(
-        (subcategoria) => subcategoria.name
-      );
-      formReleases.value.subcategoria = subcategoriesNames.value[0];
+      subcategoriesNames.value =
+        selectedCategory.subcategories_data?.map(
+          (subcategoria) => subcategoria.name
+        ) || [];
+      formReleases.value.subcategoria = subcategoriesNames.value[0] || "";
+    } else {
+      subcategoriesNames.value = [];
+      formReleases.value.subcategoria = "";
     }
   }
 );
@@ -562,7 +566,6 @@ const inicializarValoresTemporarios = () => {
 };
 
 const cancelarConfiguracaoRepeticao = () => {
-  // Retorna tipo para "Não recorrente"
   formReleases.value.tipo = "Não recorrente";
   formReleases.value.numParcelas = 0;
   formReleases.value.periodicidade = "";
@@ -573,7 +576,7 @@ const cancelarConfiguracaoRepeticao = () => {
 
 const concluirParcelas = () => {
   // Salva os valores temporários nos valores finais
-  parcelaInicial.value = tempParcelaInicial.value;
+  parcelaInicial.value = tempParcelaInicial.value || null;
   formReleases.value.numParcelas = tempNumParcelas.value;
   formReleases.value.periodicidade = tempPeriodicidade.value;
 
@@ -591,7 +594,9 @@ const closeForm = () => {
   clearInputs();
 };
 
-const selecionarTipo = (item: string) => {
+const selecionarTipo = (
+  item: "Não recorrente" | "Parcelada" | "Fixa mensal"
+) => {
   formReleases.value.tipo = item;
   openTipoLancamento.value = false;
 
@@ -612,7 +617,15 @@ const selecionarTipo = (item: string) => {
     formReleases.value.periodicidade = "Mensal";
   }
 };
-console.log(props.mesReferencia);
+
+// interface ApiError {
+//   response?: {
+//     data?: {
+//       errors?: { [key: string]: string[] };
+//     };
+//   };
+// }
+
 const salvarLancamentos = async () => {
   console.log(formReleases.value);
   try {

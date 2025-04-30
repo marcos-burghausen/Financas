@@ -1,19 +1,25 @@
 import type { Category } from "./";
 export interface Lancamento {
-    id?: number;
+    id: number | null;
     descricao?: string;
-    valor?: string;
+    valor: string;
     tipo?: "Não recorrente" | "Parcelada" | "Fixa mensal";
-    numParcelas?: number;
+    numParcelas: number | null;
     periodicidade?: "Mensal" | "Diario" | "Semanal" | "Quinzenal" | "Trimenstral" | "Anual";
-    dataVencimento?: string;
+    dataVencimento?: string | Date;
     status?: "Efetivada" | "Pendente";
     categoria?: string;
     subcategoria?: string;
     conta?: string;
-    dataLancamento?: string;
-    dataEfetivacao?: string;
+    dataLancamento?: string | Date;
+    dataEfetivacao: string | Date | null;
     mesReferencia?: string;
+  }
+
+  export interface RevenuesData {
+    byMonth: Lancamento[];
+    valueTotalMonth: number;
+    categories: Category[];
   }
 
   export interface TransactionsData {
