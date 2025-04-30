@@ -9,14 +9,20 @@
       @update-data="updateData"
       @close-form="closeForm"
     />
-    <div v-if="!formulario" class="receitas">
+    <div
+      v-if="!formulario"
+      class="receitas"
+    >
       <div class="header fixed-top">
         <div class="d-flex justify-content-between">
           <router-link
             class="link me-7 d-flex align-items-center opaco"
             :to="{ name: 'dashboard' }"
           >
-            <v-icon icon="mdi-arrow-left" size="25" />
+            <v-icon
+              icon="mdi-arrow-left"
+              size="25"
+            />
           </router-link>
           <div class="header__items">
             <div class="d-flex flex-column">
@@ -49,11 +55,14 @@
       >
         <div
           v-for="revenue in revenuesMonth"
-          :key="revenue.id"
+          :key="revenue.id ?? undefined"
           class="container__table"
         >
           <div class="card__lancamento">
-            <v-card color="transparent" class="mdicon__card">
+            <v-card
+              color="transparent"
+              class="mdicon__card"
+            >
               <v-icon
                 :icon="
                   revenue.status === 'Efetivada'
@@ -61,8 +70,8 @@
                     : revenue.dataVencimento &&
                       new Date() <= new Date(revenue.dataVencimento) &&
                       revenue.status === 'Pendente'
-                    ? 'mdi-calendar-remove'
-                    : 'mdi-alert'
+                      ? 'mdi-calendar-remove'
+                      : 'mdi-alert'
                 "
                 class="mdicon__lacamento"
                 :class="{
@@ -78,7 +87,7 @@
                 }"
                 size="30"
                 :disabled="revenue.status === 'Efetivada'"
-                @click="receiveRevenue(revenue.id, revenue.conta)"
+                @click="receiveRevenue(revenue.id!, revenue.conta!)"
               />
             </v-card>
             <div style="width: 100%">
@@ -87,7 +96,11 @@
                 <div>
                   <span>{{ revenue.dataVencimento }}</span>
                   <span>
-                    <v-icon icon="mdi-dots-vertical" class="mdicon" size="25" />
+                    <v-icon
+                      icon="mdi-dots-vertical"
+                      class="mdicon"
+                      size="25"
+                    />
                     <v-menu
                       activator="parent"
                       location="bottom end"
@@ -109,7 +122,7 @@
                         <v-list-item
                           title="Excluir"
                           link
-                          @click="deletar(revenue.id)"
+                          @click="deletar(revenue.id!)"
                         />
                       </v-list>
                     </v-menu>
@@ -118,9 +131,7 @@
               </div>
               <div style="display: flex; justify-content: space-between">
                 <span class="categoria">{{ revenue.descricao }}</span>
-                <span class="categoria"
-                  >R$ {{ formatValue(revenue.valor) }}</span
-                >
+                <span class="categoria">R$ {{ formatValue(Number(revenue.valor)) }}</span>
               </div>
               <div>
                 <span class="sub__categoria">{{ revenue.categoria }}</span>
@@ -131,7 +142,10 @@
       </div>
       <NoDataComponent v-else />
     </div>
-    <div v-if="!formulario" class="fixed-bottom d-flex justify-end pe-5 pb-5">
+    <div
+      v-if="!formulario"
+      class="fixed-bottom d-flex justify-end pe-5 pb-5"
+    >
       <v-icon
         type="button"
         title="Adicionar nova receita"
@@ -144,7 +158,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { computed, ref } from "vue";
 
 import FormLancamentos from "@/components/FormLancamentos.vue";
 import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
@@ -152,13 +166,13 @@ import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
 import http from "@/services/http";
 
 import {
-  useRevenuesStore,
-  useWalletsStore,
   useExpensesStore,
+  useRevenuesStore,
   useUserStore,
+  useWalletsStore,
 } from "@/store";
 
-import type { Lancamento, RevenuesData } from "@/types";
+import type { Lancamento, TransactionsData } from "@/types";
 
 import { formatValue } from "@/utils/formatValue";
 
@@ -224,15 +238,15 @@ const closeForm = () => {
   selectedRelease.value = undefined;
 };
 
-const updateData = (newData: RevenuesData) => {
+const updateData = (newData: TransactionsData) => {
   useRevenues.setRevenuesData(newData);
   valueTotalRevenuesMonth.value = newData.valueTotalMonth;
-  revenuesMonth.value = newData.byMonth;
+  revenuesMonth.value = newData.byMonth || [];
   closeForm();
 };
 
 const mesAnterior = () => {
-  const [ano, mes] = mesAnoReferencia.value.split("-");
+  const [ano, mes] = mesAnoReferencia.value.split("-").map(Number);
   const dataAtual = new Date(ano, mes - 1);
   dataAtual.setMonth(dataAtual.getMonth() - 1);
   mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
@@ -242,7 +256,7 @@ const mesAnterior = () => {
 };
 
 const proximoMes = () => {
-  const [ano, mes] = mesAnoReferencia.value.split("-");
+  const [ano, mes] = mesAnoReferencia.value.split("-").map(Number);
   const dataAtual = new Date(ano, mes - 1);
   dataAtual.setMonth(dataAtual.getMonth() + 1);
   mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
@@ -289,11 +303,8 @@ const receiveRevenue = async (revenueId: number, conta: string) => {
       mesReferencia: mesAnoReferencia.value,
     };
     const res = await http.patch(`/revenue/${revenueId}`, payload);
-    console.log(res.data);
     useRevenues.setRevenuesData(res.data.revenuesData);
-    console.log(res.data.revenuesData);
     useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
-    console.log(res.data.walletsData.saldoInicial);
     useWallets.setContas(res.data.walletsData.wallets);
     console.log(res.data.walletsData.wallets);
     // Update UI or emit event

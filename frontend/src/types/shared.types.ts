@@ -11,3 +11,8 @@ export interface IconItem {
 
 // Represents error codes from errorCodes.json
 export type ErrorCodes = string; 
+
+export interface ApiErrorResponse {
+  errors?: Record<string, string[]>;
+  message?: string;
+}

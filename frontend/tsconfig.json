@@ -4,6 +4,7 @@
     "module": "esnext",
     "strict": true,
     "moduleResolution": "node",
+    "resolveJsonModule": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "baseUrl": "src",
@@ -22,7 +23,8 @@
       ]
     },
     "types": [
-      "vuetify"
+      "vuetify",
+      "vite/client"
     ],
     "jsx": "preserve",
     "skipLibCheck": true

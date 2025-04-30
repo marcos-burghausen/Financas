@@ -2,15 +2,25 @@
   <div class="box">
     <div class="container__dados">
       <figure class="figure">
-        <img src="@/assets/img/2.png" class="image" alt="logo" />
+        <img
+          src="@/assets/img/2.png"
+          class="image"
+          alt="logo"
+        >
       </figure>
-      <h2 class="title">Criar Uma Conta</h2>
+      <h2 class="title">
+        Criar Uma Conta
+      </h2>
 
       <ErrorMessage />
 
       <ErrorsForm />
 
-      <v-form v-model="validForm" class="form" @submit.prevent="create">
+      <v-form
+        v-model="validForm"
+        class="form"
+        @submit.prevent="create"
+      >
         <v-combobox
           v-model="user.name"
           variant="underlined"
@@ -62,7 +72,11 @@
         />
 
         <div>
-          <a class="btn__register" href="#" @click.prevent="emits('nextStep')">
+          <a
+            class="btn__register"
+            href="#"
+            @click.prevent="emits('nextStep')"
+          >
             <span>já tem uma conta </span>conecte-se.
           </a>
         </div>
@@ -85,12 +99,12 @@
 import ErrorMessage from "@/components/ErrorMessage.vue";
 import ErrorsForm from "@/components/ModalErrorsForm.vue";
 
-import { useErrorStore } from "@/store/error";
 import http from "@/services/http";
+import { useErrorStore } from "@/store/error";
 
-import { ref, computed } from "vue";
-import type { AxiosError } from "axios";
 import type { FormCadastro } from "@/types";
+import type { AxiosError } from "axios";
+import { computed, ref } from "vue";
 
 const emits = defineEmits(["nextStep"]);
 const errorStore = useErrorStore();
@@ -105,33 +119,27 @@ let validForm = ref(false);
 let mostrarSenha = ref(false);
 let loading = ref(false);
 
+interface ApiErrorResponse {
+  errors?: Record<string, string[]>;
+  message?: string;
+}
+
 async function create() {
-  loading.value = true;
+  errorStore.unsetError();
   try {
+    loading.value = true;
     await http.post("/create", user.value);
     emits("nextStep");
-  } catch (error: unknown) {
-    if (isAxiosErrorWithData(error)) {
-      if (error.response.data.errors) {
-        errorStore.setErrorFromForm(error);
-      } else {
-        errorStore.setErrorFromResponse(error);
-      }
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiErrorResponse>;
+    if (axiosError.response?.data.errors) {
+      errorStore.setErrorFromForm(axiosError);
     } else {
-      console.error("Erro desconhecido:", error);
+      errorStore.setErrorFromResponse(axiosError);
     }
   } finally {
     loading.value = false;
   }
-}
-
-function isAxiosErrorWithData(
-  error: unknown
-): error is AxiosError<{ errors?: any }> {
-  const axiosError = error as AxiosError;
-  return (
-    axiosError.isAxiosError === true && axiosError.response?.data !== undefined
-  );
 }
 
 const rules = {
@@ -157,7 +165,7 @@ const rules = {
 const passwordHint = computed(() => {
   const regex =
     /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}<>[\]\\/-])[A-Za-z\d!@#$%^&*(),.?":{}<>[\]\\/-]{8,}$/;
-  return regex.test(user.value.password)
+  return regex.test(user.value.password || "")
     ? ""
     : "A senha deve ter pelo menos 8 caracteres sendo uma letra maiúcula, uma minúscula, um número e um caracter especial exeto aspas simples e duplas";
 });

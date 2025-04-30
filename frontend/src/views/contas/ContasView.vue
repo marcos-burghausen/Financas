@@ -155,25 +155,26 @@
 </template>
 
 <script setup lang="ts">
-import ModalNovaConta from "@/components/ModalNovaConta.vue";
+// import ModalNovaConta from "@/components/ModalNovaConta.vue";
 import { formatValue } from "@/utils/formatValue";
 import { computed } from "vue";
 
-import { useWalletsStore } from "@/store/wallets";
+import { useUserStore, useWalletsStore } from "@/store";
 import { ref } from "vue";
 
 const useWallets = useWalletsStore();
-let wallets = ref(useWallets.walletsData.wallets);
-let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
+const useUser = useUserStore();
+let wallets = ref(useWallets.walletsData.contas);
+let mesAnoReferencia = ref(useUser.getMesAno());
 
-const updateContas = (novoValor) => {
-    wallets.value = novoValor;
-};
+// const updateContas = (novoValor) => {
+//     wallets.value = novoValor;
+// };
 
 const mesPorExtenso = computed(() => {
     if (!mesAnoReferencia.value) return "";
 
-    const [ano, mes] = mesAnoReferencia.value.split("-");
+    const [mes] = mesAnoReferencia.value.split("-");
 
     const mesesPorExtenso = [
         "Janeiro",

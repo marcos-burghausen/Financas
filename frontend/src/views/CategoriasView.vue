@@ -42,8 +42,8 @@
         </div>
         <Modal
           :color="selectedOption === 'categoria por despesas' ? 'color__despesa' : 'color__receita'"
-          @updateCategoriasDespesas="updateCategoriasDespesas"
-          @updateCategoriasReceitas="updateCategoriasReceitas"
+          @update-categorias-despesas="updateCategoriasDespesas"
+          @update-categorias-receitas="updateCategoriasReceitas"
         />
       </nav>
     </div>
@@ -96,7 +96,7 @@
               <mdicon name="pencil-outline" />
             </button>
             <button
-              v-if="categoria.edit === true"
+              v-if="categoria.editable === true"
               style="color: #fefefe;"
               class="btn btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 "
               title="apagar"
@@ -165,7 +165,7 @@
               <mdicon name="pencil-outline" />
             </button>
             <button
-              v-if="categoria.edit === true"
+              v-if="categoria.editable === true"
               style="color: #fefefe;"
               class="btn btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 "
               title="apagar"
@@ -182,15 +182,18 @@
 <script setup lang="ts">
 import Modal from "@/components/ModalCategoria.vue";
 
-import type { Category } from "@/types/category";
-import { useUserStore } from "@/store/user";
-import { ref, reactive } from "vue";
 import http from "@/services/http";
+import { useErrorStore, useExpensesStore, useRevenuesStore } from "@/store";
+import type { ApiErrorResponse, CategoryData } from "@/types";
+import type { AxiosError } from "axios";
+import { reactive, ref } from "vue";
 
-const useUser = useUserStore();
+const useExpenses = useExpensesStore();
+const useRevenues = useRevenuesStore();
+const errorStore = useErrorStore();
 
-const categoriasDespesas = ref(useUser.user.categoriasDespesas);
-const categoriasReceitas = ref(useUser.user.categoriasReceitas);
+const categoriasDespesas = ref(useExpenses.expensesData?.categories || []);
+const categoriasReceitas = ref(useRevenues.revenuesData?.categories || []);
 
 const isDropdownOpen = ref(false);
 const selectedOption = ref("categoria por despesas");
@@ -199,10 +202,10 @@ const options = reactive([
     { name: "categoria por despesas" },
     { name: "categoria por receitas" }
 ]);
-const updateCategoriasDespesas = (novoValor: Array<Category>) => {
+const updateCategoriasDespesas = (novoValor: Array<CategoryData>) => {
     categoriasDespesas.value = novoValor;
 };
-const updateCategoriasReceitas = (novoValor: Array<Category>) => {
+const updateCategoriasReceitas = (novoValor: Array<CategoryData>) => {
     categoriasReceitas.value = novoValor;
 };
 
@@ -214,22 +217,33 @@ const selectOption = (option: string) => {
     selectedOption.value = option;
     isDropdownOpen.value = false;
 };
+let loading = ref(false);
 
-const deleteCategory = async (category: Category) => {
-    try {
-        const res = await http.post("delete-category", category);
-        if (res.data.categoriasDespesas) {
-            useUser.setCategoriasDespesas(res.data.categoriasDespesas);
-            categoriasDespesas.value = res.data.categoriasDespesas;
-        }
-        if (res.data.categoriasReceitas) {
-            useUser.setCategoriasReceitas(res.data.categoriasReceitas);
-            categoriasReceitas.value = res.data.categoriasReceitas;
-        }
-    } catch (error) {
-        // console.log(error);
+const deleteCategory = async (category: CategoryData) => {
+  errorStore.unsetError();
+  try {
+    loading.value = true;
+    const res = await http.post("delete-category", category);
+    if (res.data.categoriasDespesas) {
+      useExpenses.setCategories(res.data.categories);
+      // categoriasDespesas.value = res.data.categoriasDespesas;
     }
+    if (res.data.categoriasReceitas) {
+      // useUser.setCategoriasReceitas(res.data.categoriasReceitas);
+      // categoriasReceitas.value = res.data.categoriasReceitas;
+    }
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiErrorResponse>;
+    if (axiosError.response?.data.errors) {
+      errorStore.setErrorFromForm(axiosError);
+    } else {
+      errorStore.setErrorFromResponse(axiosError);
+    }
+  } finally {
+    loading.value = false;
+  }
 };
+
 
 
 </script>

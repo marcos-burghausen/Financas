@@ -1,7 +1,7 @@
 // src/types/categories.types.ts
 // Represents a financial category (expenses, revenues, or wallets)
 
-export interface Category {
+export interface CategoryData {
     id: number;
     name: string;
     color: string;

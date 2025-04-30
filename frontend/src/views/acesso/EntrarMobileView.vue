@@ -2,9 +2,15 @@
   <div class="box p-3">
     <div class="container__dados">
       <figure class="figure">
-        <img src="@/assets/img/2.png" class="img" alt="logo" />
+        <img
+          src="@/assets/img/2.png"
+          class="img"
+          alt="logo"
+        >
       </figure>
-      <h2 class="title">Bem vido ao Mr Finanças</h2>
+      <h2 class="title">
+        Bem vido ao Mr Finanças
+      </h2>
       <div class="social__media">
         <ul class="list__social__media">
           <a
@@ -13,7 +19,10 @@
             @click="initiateFacebookLogin()"
           >
             <li class="item__social__media">
-              <v-icon class="icon__modify" icon="mdi-facebook" />
+              <v-icon
+                class="icon__modify"
+                icon="mdi-facebook"
+              />
             </li>
           </a>
           <!-- <a class="link__social__media" href="#">
@@ -30,7 +39,11 @@
       </div>
       <!-- <p class="sub__title">ou use sua conta de e-mail:</p> -->
       <ErrorMessage />
-      <v-form v-model="validForm" class="form" @submit.prevent="login">
+      <v-form
+        v-model="validForm"
+        class="form"
+        @submit.prevent="login"
+      >
         <v-combobox
           v-model="user.email"
           variant="underlined"
@@ -58,8 +71,15 @@
         />
 
         <div class="container__button">
-          <a class="link" href="#">esqueceu sua senha?</a>
-          <a class="btn__register" href="#" @click.prevent="emits('nextStep')">
+          <a
+            class="link"
+            href="#"
+          >esqueceu sua senha?</a>
+          <a
+            class="btn__register"
+            href="#"
+            @click.prevent="emits('nextStep')"
+          >
             cadastre-se.
           </a>
         </div>
@@ -80,22 +100,25 @@
 </template>
 
 <script setup lang="ts">
-import ErrorsForm from "@/components/ModalErrorsForm.vue";
 import ErrorMessage from "@/components/ErrorMessage.vue";
+import ErrorsForm from "@/components/ModalErrorsForm.vue";
 
 import {
+  useAuthStore,
+  useErrorStore,
   useExpensesStore,
   useRevenuesStore,
-  useWalletsStore,
-  useErrorStore,
   useUserStore,
-  useAuthStore,
+  useWalletsStore,
 } from "@/store";
-import { useRouter } from "vue-router";
-import http from "@/services/http";
 
-import type { AxiosError, AxiosResponse } from "axios";
+import { ApiErrorResponse } from "@/types";
+
+import http from "@/services/http";
+import { useRouter } from "vue-router";
+
 import type { FormLogin, LoginResponse } from "@/types";
+import type { AxiosError, AxiosResponse } from "axios";
 import { ref } from "vue";
 
 const emits = defineEmits(["nextStep"]);
@@ -115,11 +138,6 @@ let validForm = ref(false);
 let mostrarSenha = ref(true);
 let loading = ref(false);
 
-interface ApiErrorResponse {
-  errors?: Record<string, string[]>;
-  message?: string;
-}
-
 async function initiateFacebookLogin() {
   errorStore.unsetError();
   try {
@@ -131,7 +149,7 @@ async function initiateFacebookLogin() {
   }
 }
 
-async function login() {
+const login = async () => {
   errorStore.unsetError();
   try {
     loading.value = true;
@@ -153,15 +171,11 @@ async function login() {
       errorStore.setErrorFromForm(axiosError);
     } else {
       errorStore.setErrorFromResponse(axiosError);
-      // if (error.response.data.errors) {
-      //   errorStore.setErrorFromForm(error);
-      // } else {
-      //   errorStore.setErrorFromResponse(error);
     }
   } finally {
     loading.value = false;
   }
-}
+};
 
 const rules = {
   requiredEmail: (value: string) => !!value || "O campo email é obrigatório",

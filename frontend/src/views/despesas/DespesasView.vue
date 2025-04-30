@@ -1,363 +1,103 @@
 <template>
-  <div class="content-wrapper">
-    <div class="header">
-      <router-link
-        class="link me-7 d-flex align-items-center opaco"
-        :to="{ name: 'dashboard' }"
-      >
-        <mdicon
-          name="arrow-left"
-          size="25"
-        />
-      </router-link>
-      <div class="header__items">
-        <div class="d-flex flex-column">
-          <span class="fs-5"> Despesas </span>
-          <span class="valor">
-            RS {{ formatValue(valueTotalExpensesMonth) }}
-          </span>
-        </div>
-        <!-- <div>
-                    <mdicon
-                        name="magnify"
-                        class="mdicon me-3"
-                        size="25"
-                    />
-                    <mdicon
-                        name="clipboard-text"
-                        class="mdicon me-2"
-                        size="25"
-                    />
-                    <mdicon
-                        name="dots-vertical"
-                        class="mdicon"
-                        size="25"
-                    />
-                </div> -->
-      </div>
-    </div>
-    <div class="container__mes">
-      <mdicon
-        name="chevron-left"
-        class="mdicon"
-        size="30"
-        @click="mesAnterior()"
-      />
-      <span class="mes"> {{ mesPorExtenso }} </span>
-      <mdicon
-        name="chevron-right"
-        class="mdicon"
-        size="30"
-        @click="proximoMes()"
-      />
-    </div>
-    <button
-      v-if="!formStoreExpense && !formEditExpense"
-      class="btn__nova__despesa"
-      @click="formStoreExpense = !formStoreExpense"
-    >
-      <mdicon
-        name="plus"
-        class="mdicon"
-        size="30"
-      />
-    </button>
-
-    <!-- <FormLancamentos /> -->
-    <!-- ========================================================================= -->
-    <!-- ================ inicio formulario lançamentos despesas ================= -->
-    <!-- ========================================================================= -->
+  <v-container class="h-100 p-0 d-flex justify-content-center">
+    <FormLancamentos
+      v-if="formulario"
+      :releases="selectedRelease"
+      rota="expense"
+      :mes-referencia="mesAnoReferencia"
+      transaction-type="despesas"
+      @update-data="updateData"
+      @close-form="closeForm"
+    />
     <div
-      v-if="formStoreExpense"
-      class="container-fluid"
+      v-if="!formulario"
+      class="receitas"
     >
-      <div class="container d-flex justify-content-center">
-        <div class="cadastro">
-          <!-- <form class="form" @submit.prevent="salvarLancamentos"> -->
-          <v-form
-            v-model="validFormLancamentos"
-            class="form"
-            @submit.prevent="salvarLancamentos"
+      <div class="header fixed-top">
+        <div class="d-flex justify-content-between">
+          <router-link
+            class="link me-7 d-flex align-items-center opaco"
+            :to="{ name: 'dashboard' }"
           >
-            <v-text-field
-              v-model="release.valor"
-              autofocus
-              density="compact"
-              prefix="R$"
-              placeholder="0,00"
-              variant="outlined"
-              type="tel"
-              hide-details="auto"
-              label="Valor"
-              :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
-              class="mb-5 input"
-              @input="formatValueSave()"
+            <v-icon
+              icon="mdi-arrow-left"
+              size="25"
             />
-
-            <div class="form-check form-switch text-white">
-              <input
-                id="flexSwitchCheckChecked"
-                v-model="status"
-                class="form-check-input mb-5"
-                type="checkbox"
-                checked
-              >
-              <label
-                class="form-check-label"
-                for="flexSwitchCheckChecked"
-              >Paga</label>
+          </router-link>
+          <div class="header__items">
+            <div class="d-flex flex-column">
+              <span class="fs-5">Receitas</span>
+              <span class="valor">
+                R$ {{ formatValue(Number(valueTotalExpensesMonth)) }}
+              </span>
             </div>
-
-            <v-text-field
-              v-model="release.date"
-              density="compact"
-              variant="outlined"
-              type="date"
-              hide-details="auto"
-              label="Data"
-              :rules="[rules.requiredData]"
-              class="mb-7 input"
-            />
-
-            <v-text-field
-              v-model="release.descricao"
-              density="compact"
-              variant="outlined"
-              type="text"
-              hide-details="auto"
-              label="Descriçao"
-              :rules="[rules.requiredDescricao]"
-              class="mb-7 input"
-            />
-
-            <v-autocomplete
-              v-model="release.categoria"
-              density="compact"
-              variant="outlined"
-              :rules="[rules.requiredCatagoria]"
-              :items="categoriasNames"
-              label="Categoria"
-              placeholder="Select..."
-              class="mb-7 input"
-            />
-
-            <v-autocomplete
-              v-model="release.carteira"
-              density="compact"
-              variant="outlined"
-              :rules="[rules.requiredCarteira]"
-              :items="carteiras"
-              label="Carteira"
-              placeholder="Select..."
-              class="mb-7 input"
-            />
-
-            <div
-              class="form-group p-0 container d-flex justify-content-between col-12 mt-2 mb-4"
-            >
-              <v-btn
-                :disabled="loading"
-                :loading="loading"
-                style="background-color: #dc3545; color: #fefefe"
-                class="px-5"
-                @click="
-                  {
-                    formStoreExpense = !formStoreExpense;
-                  }
-                  clearInputs();
-                "
-              >
-                Cancelar
-              </v-btn>
-              <v-btn
-                :disabled="
-                  loading || !validFormLancamentos || release.valor === '0,00'
-                "
-                :loading="loading"
-                style="background-color: #77d08e"
-                class="btn-light px-5"
-                type="submit"
-              >
-                Salvar
-              </v-btn>
-            </div>
-          </v-form>
+          </div>
+        </div>
+        <div class="container__mes">
+          <v-icon
+            icon="mdi-chevron-left"
+            class="mdicon"
+            size="30"
+            @click="mesAnterior"
+          />
+          <span class="mes">{{ mesPorExtenso }}</span>
+          <v-icon
+            icon="mdi-chevron-right"
+            class="mdicon"
+            size="30"
+            @click="proximoMes"
+          />
         </div>
       </div>
-    </div>
-    <!-- ========================================================================= -->
-    <!-- ================= fim formulario lançamentos despesas==================== -->
-    <!-- ========================================================================= -->
-
-    <!-- ========================================================================= -->
-    <!-- ================== inicio formulario editar despesa =================== -->
-    <!-- ========================================================================= -->
-    <div
-      v-if="formEditExpense"
-      class="container-fluid"
-    >
-      <div class="container d-flex justify-content-center">
-        <div class="cadastro">
-          <v-form
-            v-model="validFormEdit"
-            class="form"
-            @submit.prevent="saveEditedExpense"
-          >
-            <v-text-field
-              v-model="expenseEdit.valor"
-              density="compact"
-              prefix="R$"
-              variant="outlined"
-              type="tel"
-              hide-details="auto"
-              label="Valor"
-              :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
-              class="mb-5 input"
-              @input="formatValueEdit()"
-            />
-
-            <v-text-field
-              v-model="expenseEdit.date"
-              density="compact"
-              variant="outlined"
-              type="date"
-              hide-details="auto"
-              label="Data"
-              :rules="[rules.requiredData]"
-              class="mb-7 input"
-            />
-
-            <v-text-field
-              v-model="expenseEdit.descricao"
-              density="compact"
-              variant="outlined"
-              type="text"
-              hide-details="auto"
-              label="Descriçao"
-              :rules="[rules.requiredDescricao]"
-              class="mb-7 input"
-            />
-
-            <v-autocomplete
-              v-model="expenseEdit.status"
-              density="compact"
-              variant="outlined"
-              :rules="[rules.requiredCatagoria]"
-              :items="['PAGA', 'AGUARDANDO']"
-              label="Status"
-              placeholder="Select..."
-              class="mb-7 input"
-            />
-
-            <v-autocomplete
-              v-model="expenseEdit.categoria"
-              density="compact"
-              variant="outlined"
-              :rules="[rules.requiredCatagoria]"
-              :items="categoriasNames"
-              label="Categoria"
-              placeholder="Select..."
-              class="mb-7 input"
-            />
-
-            <v-autocomplete
-              v-model="expenseEdit.carteira"
-              density="compact"
-              variant="outlined"
-              :rules="[rules.requiredCarteira]"
-              :items="carteiras"
-              label="Carteira"
-              placeholder="Select..."
-              class="mb-7 input"
-            />
-
-            <div
-              class="form-group p-0 container d-flex justify-content-between col-12 mt-2 mb-4"
-            >
-              <v-btn
-                :disabled="loading"
-                :loading="loading"
-                style="background-color: #dc3545; color: #fefefe"
-                class="px-5"
-                @click="
-                  revertEdit();
-                  {
-                    formEditExpense = !formEditExpense;
-                  }
-                "
-              >
-                Cancelar
-              </v-btn>
-              <v-btn
-                :disabled="
-                  loading || !validFormEdit || release.valor === '0,00'
-                "
-                :loading="loading"
-                style="background-color: #77d08e"
-                class="btn-light px-5"
-                type="submit"
-              >
-                Salvar
-              </v-btn>
-            </div>
-          </v-form>
-        </div>
-      </div>
-    </div>
-    <!-- ========================================================================= -->
-    <!-- =================== fim formulario editar despesa ===================== -->
-    <!-- ========================================================================= -->
-
-    <div v-if="expensesMonth && expensesMonth.length > 0">
       <div
-        v-if="!formStoreExpense && !formEditExpense"
-        class="container-fluid"
+        v-if="expensesMonth && expensesMonth.length > 0"
+        class="container-fluid pt-15 mt-15 pb-8 mb-8"
       >
         <div
-          v-for="(expense, key) in expensesMonth"
-          :key="expense.id"
+          v-for="revenue in expensesMonth"
+          :key="revenue.id ?? undefined"
           class="container__table"
         >
           <div class="card__lancamento">
-            <!-- :class="{ recebida: revenue.status === 'RECEBIDA' }" -->
-            <div
+            <v-card
+              color="transparent"
               class="mdicon__card"
-              :disabled="expense.status === 'RECEBIDA'"
-              @click="payExpense(expense)"
             >
-              <mdicon
-                :name="
-                  expense.status === 'PAGA'
-                    ? 'check'
-                    : new Date() <= new Date(expense.date)
-                      ? 'alert'
-                      : 'alert-remove'
+              <v-icon
+                :icon="
+                  revenue.status === 'Efetivada'
+                    ? 'mdi-check'
+                    : revenue.dataVencimento &&
+                      new Date() <= new Date(revenue.dataVencimento) &&
+                      revenue.status === 'Pendente'
+                      ? 'mdi-calendar-remove'
+                      : 'mdi-alert'
                 "
                 class="mdicon__lacamento"
                 :class="{
-                  paga: expense.status === 'PAGA',
-                  aguardando:
-                    new Date() <= new Date(expense.date) &&
-                    expense.status === 'AGUARDANDO',
+                  paga: revenue.status === 'Efetivada',
                   atrasada:
-                    new Date() > new Date(expense.date) &&
-                    expense.status === 'AGUARDANDO',
+                    revenue.dataVencimento &&
+                    new Date() > new Date(revenue.dataVencimento) &&
+                    revenue.status === 'Pendente',
+                  pendente:
+                    revenue.dataVencimento &&
+                    new Date() <= new Date(revenue.dataVencimento) &&
+                    revenue.status === 'Pendente',
                 }"
                 size="30"
+                :disabled="revenue.status === 'Efetivada'"
+                @click="payExpense(revenue.id!, revenue.conta!)"
               />
-            </div>
+            </v-card>
             <div style="width: 100%">
               <div class="header__visao_geral">
-                <span style="text-align: start">
-                  {{ expense.carteira }}
-                </span>
+                <span style="text-align: start">{{ revenue.conta }}</span>
                 <div>
+                  <span>{{ revenue.dataVencimento }}</span>
                   <span>
-                    {{ expense.date }}
-                  </span>
-                  <span>
-                    <mdicon
-                      name="dots-vertical"
+                    <v-icon
+                      icon="mdi-dots-vertical"
                       class="mdicon"
                       size="25"
                     />
@@ -366,7 +106,6 @@
                       location="bottom end"
                       transition="fade-transition"
                     >
-                      <!-- style="background-color: rgb(15, 15, 15); box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;" -->
                       <v-list
                         class="color"
                         style="background-color: rgb(15, 15, 15)"
@@ -378,12 +117,12 @@
                         <v-list-item
                           title="Editar"
                           link
-                          @click="displayFormEditExpense(expense)"
+                          @click="editExpense(revenue)"
                         />
                         <v-list-item
                           title="Excluir"
                           link
-                          @click="deletar(expense.id)"
+                          @click="deletar(revenue.id!)"
                         />
                       </v-list>
                     </v-menu>
@@ -391,107 +130,72 @@
                 </div>
               </div>
               <div style="display: flex; justify-content: space-between">
-                <span class="categoria">
-                  {{ expense.descricao }}
-                </span>
-                <span class="categoria">
-                  R$ {{ formatValue(expense.valor) }}
-                </span>
+                <span class="categoria">{{ revenue.descricao }}</span>
+                <span class="categoria">R$ {{ formatValue(Number(revenue.valor)) }}</span>
               </div>
               <div>
-                <span class="sub__categoria">
-                  {{ expense.categoria }}
-                </span>
-                <span class="sub__categoria">
-                  {{ expense.categoria }}
-                </span>
+                <span class="sub__categoria">{{ revenue.categoria }}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
+      <NoDataComponent v-else />
     </div>
-    <NoDataComponent v-else />
-  </div>
+    <div
+      v-if="!formulario"
+      class="fixed-bottom d-flex justify-end pe-5 pb-5"
+    >
+      <v-icon
+        type="button"
+        title="Adicionar nova receita"
+        icon="mdi-plus"
+        class="mdicon__add"
+        @click="openCreateForm"
+      />
+    </div>
+  </v-container>
 </template>
 
 <script setup lang="ts">
-import Card from "@/components/Card.vue";
+import { computed, ref } from "vue";
+
+import FormLancamentos from "@/components/FormLancamentos.vue";
 import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
 
-import { ref, type Ref } from "vue";
-
-import type { Lancamentos } from "@/types/lancamentos";
-
-import { useExpensesStore } from "@/store/expenses";
-import { useUserStore } from "@/store/user";
 import http from "@/services/http";
-import { formatValue } from "@/utils/formatValue";
-import { computed } from "vue";
 
-import type { RevenueEdit } from "@/types/revenueEdit";
-import { useWalletsStore } from "@/store/wallets";
-import { useRevenuesStore } from "@/store/revenues";
+import { useExpensesStore, useRevenuesStore, useUserStore, useWalletsStore } from "@/store";
+
+import type { Lancamento, TransactionsData } from "@/types";
+
+import { formatValue } from "@/utils/formatValue";
 
 const useRevenues = useRevenuesStore();
-
-const useExpenses = useExpensesStore();
-const userStore = useUserStore();
 const useWallets = useWalletsStore();
+const useExpenses = useExpensesStore();
+const useUser = useUserStore();
 
-let validFormLancamentos = ref(false);
-let validFormEdit = ref(false);
-let loading = ref(false);
-
-let mesAnoReferencia = ref(useWallets.walletsData?.mes_ano_referencia);
-let valueTotalExpensesMonth = ref(useExpenses.expensesData?.valueTotalMonth);
-let valuePending = ref(useExpenses.expensesData?.valuePending);
-let expensesMonth = ref(useExpenses.expensesData?.byMonth);
-let valuePay = ref(formatValue(useExpenses.expensesData?.valuePay));
-// let categorias = ref(userStore.user.categoriasDespesas);
-const categoriasNames = ref(
-  useExpenses.expensesData.categories.map((categoria) => categoria.name)
+const formulario = ref(false);
+const selectedRelease = ref<Lancamento | undefined>(undefined);
+const mesAnoReferencia = ref<string>(useUser.getMesAno() || "");
+const valueTotalExpensesMonth = ref(useExpenses.expensesData?.valueTotalMonth);
+const expensesMonth = ref<Lancamento[]>(
+  useExpenses.expensesData?.byMonth || []
 );
-// let carteiras = ref(useWallets.walletsData.wallets.map((wallet) => wallet.name));
-let carteiras = ref(useWallets.walletsData.contasNames);
-let errorsForm = ref({ errors: {} });
-let formStoreExpense = ref(false);
-let formEditExpense = ref(false);
-let expenseEdit = ref<RevenueEdit>({
-  user_id: 0,
-  valor: "",
-  date: "",
-  descricao: "",
-  categoria: "",
-  carteira: "",
-  status: "",
-  created_at: "",
-  updated_at: "",
-  mesReferencia: mesAnoReferencia.value,
-});
-let expenseUnedited = ref<RevenueEdit>({
-  valor: "",
-  date: "",
-  descricao: "",
-  categoria: "",
-  carteira: "",
-  status: "",
-});
-let release = ref<Lancamentos>({
-  valor: "",
-  date: "",
-  status: "",
-  descricao: "",
-  categoria: "",
-  carteira: "",
-  mesReferencia: mesAnoReferencia.value,
-});
+
+interface ApiError {
+  response?: {
+    data?: {
+      errors?: { [key: string]: string[] };
+    };
+  };
+}
 
 const mesPorExtenso = computed(() => {
   if (!mesAnoReferencia.value) return "";
-
-  const mes = mesAnoReferencia.value.split("-");
-
+  const [ano, mes] = mesAnoReferencia.value.split("-");
+  const anoAtual = new Date().getFullYear();
   const mesesPorExtenso = [
     "Janeiro",
     "Fevereiro",
@@ -506,12 +210,38 @@ const mesPorExtenso = computed(() => {
     "Novembro",
     "Dezembro",
   ];
-
-  return mesesPorExtenso[parseInt(mes, 10) - 1];
+  if (parseInt(ano, 10) === anoAtual) {
+    return mesesPorExtenso[parseInt(mes, 10) - 1];
+  }
+  const mesAbreviado = mesesPorExtenso[parseInt(mes, 10) - 1].slice(0, 3);
+  return `${mesAbreviado}./${ano.slice(2)}`;
 });
 
+const openCreateForm = () => {
+  selectedRelease.value = undefined;
+  formulario.value = true;
+};
+
+const editExpense = (revenue: Lancamento) => {
+  console.log(revenue);
+  selectedRelease.value = { ...revenue };
+  formulario.value = true;
+};
+
+const closeForm = () => {
+  formulario.value = false;
+  selectedRelease.value = undefined;
+};
+
+const updateData = (newData: TransactionsData) => {
+  useExpenses.setExpensesData(newData);
+  valueTotalExpensesMonth.value = newData.valueTotalMonth;
+  expensesMonth.value = newData.byMonth || [];
+  closeForm();
+};
+
 const mesAnterior = () => {
-  const [ano, mes] = mesAnoReferencia.value.split("-");
+  const [ano, mes] = mesAnoReferencia.value.split("-").map(Number);
   const dataAtual = new Date(ano, mes - 1);
   dataAtual.setMonth(dataAtual.getMonth() - 1);
   mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
@@ -521,7 +251,7 @@ const mesAnterior = () => {
 };
 
 const proximoMes = () => {
-  const [ano, mes] = mesAnoReferencia.value.split("-");
+  const [ano, mes] = mesAnoReferencia.value.split("-").map(Number);
   const dataAtual = new Date(ano, mes - 1);
   dataAtual.setMonth(dataAtual.getMonth() + 1);
   mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
@@ -530,189 +260,55 @@ const proximoMes = () => {
   buscarDadosMes(mesAnoReferencia.value);
 };
 
-const buscarDadosMes = async (data) => {
+const buscarDadosMes = async (data: string) => {
   try {
     const res = await http.post("/buscar-dados-mes", { mes: data });
-    useWallets.setMesReferencia(res.data.walletsData.mes_ano_referencia);
+    useUser.setMesAno(res.data.walletsData.mes_ano_referencia);
     useExpenses.setExpensesData(res.data.expensesData);
     useRevenues.setRevenuesData(res.data.revenuesData);
     useWallets.setWalletsData(res.data.walletsData);
-
     mesAnoReferencia.value = res.data.walletsData.mes_ano_referencia;
-
-    expensesMonth.value = res.data.expensesData.ExpensesMonth;
-
+    expensesMonth.value = res.data.expensesData.expensesMonth;
     valueTotalExpensesMonth.value =
       res.data.expensesData.ValueTotalExpensesMonth;
-
-    valuePay.value = res.data.expensesData.ValuePayExpenses;
   } catch (error) {
-    //
+    const apiError = error as ApiError;
+    console.error("Erro ao buscar dados do mês::", apiError.response?.data);
   }
-};
-
-const formatValueSave = () => {
-  let novoValor = release.value.valor.replace(/[^\d]/g, "");
-
-  if (novoValor.length > 1) {
-    const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
-    const parteDecimal = novoValor.slice(-2);
-    const parteInteiraFormatada = parteInteira.replace(
-      /\B(?=(\d{3})+(?!\d))/g,
-      "."
-    );
-    release.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
-  } else if (novoValor.length === 1) {
-    release.value.valor = `0,0${novoValor}`;
-  } else {
-    release.value.valor = "0,00";
-  }
-};
-
-const formatValueEdit = () => {
-  let novoValor = expenseEdit.value.valor.replace(/[^\d]/g, "");
-
-  if (novoValor.length > 1) {
-    const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
-    const parteDecimal = novoValor.slice(-2);
-    const parteInteiraFormatada = parteInteira.replace(
-      /\B(?=(\d{3})+(?!\d))/g,
-      "."
-    );
-    expenseEdit.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
-  } else if (novoValor.length === 1) {
-    expenseEdit.value.valor = `0,0${novoValor}`;
-  } else {
-    expenseEdit.value.valor = "0,00";
-  }
-};
-
-let status = ref(true);
-
-const clearInputs = () => {
-  release.value.valor = "";
-  release.value.date = "";
-  release.value.descricao = "";
-  release.value.categoria = "";
-  release.value.carteira = "";
-};
-
-const revertEdit = () => {
-  expensesMonth.value.forEach((revenue: RevenueEdit, index: number) => {
-    if (revenue.id === expenseEdit.value.id) {
-      console.log(expensesMonth.value);
-      expensesMonth.value[index] = JSON.parse(JSON.stringify(expenseUnedited));
-      console.log(expensesMonth.value);
-    }
-  });
-};
-
-const returnExpense = () => {
-  formStoreExpense.value =
-    formStoreExpense.value === true
-      ? !formStoreExpense.value
-      : formStoreExpense.value;
-  formEditExpense.value =
-    formEditExpense.value === true
-      ? !formEditExpense.value
-      : formEditExpense.value;
-};
-
-const salvarLancamentos = async () => {
-  try {
-    console.log(release.value);
-    release.value.status = status.value ? "PAGA" : "AGUARDANDO";
-    const res = await http.post("/save-expense", release.value);
-    useExpenses.setExpensesData(res.data.expensesData);
-    valueTotalExpensesMonth.value =
-      res.data.expensesData.ValueTotalExpensesMonth;
-    valuePay.value = res.data.expensesData.ValuePayExpenses;
-    valuePending.value = res.data.expensesData.ValuePendingExpenses;
-    expensesMonth.value = res.data.expensesData.ExpensesMonth;
-    useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
-    useWallets.setWallets(res.data.walletsData.wallets);
-    clearInputs();
-    formStoreExpense.value = false;
-  } catch (error) {
-    // console.log(error);
-    errorsForm.value["errors"] = error.response.data.errors;
-  }
-};
-
-const payExpense = async (expense: Lancamentos) => {
-  try {
-    const res = await http.post("/pay-expense", {
-      id: expense.id,
-      mesReferencia: mesAnoReferencia.value,
-    });
-    useExpenses.setExpensesData(res.data.expensesData);
-    valuePending.value = res.data.expensesData.ValuePendingExpenses;
-    valuePay.value = res.data.expensesData.ValuePayExpenses;
-    // expense.status = 'PAGA';
-    expensesMonth.value.forEach((expenses) => {
-      if (expenses.id === expense.id) {
-        expense.status = "PAGA";
-      }
-    });
-    useWallets.setWallets(res.data.walletsData.wallets);
-  } catch (error) {
-    // console.log(error);
-  }
-};
-
-function displayFormEditExpense(expense: RevenueEdit) {
-  expenseUnedited.value = JSON.parse(JSON.stringify(expense));
-  expenseEdit.value = expense;
-  expenseEdit.value.valor = formatValue(Number(expenseEdit.value.valor));
-  formEditExpense.value = true;
-}
-
-const saveEditedExpense = async () => {
-  try {
-    const res = await http.post("/edit-expense", expenseEdit);
-    useExpenses.setExpensesData(res.data.expensesData);
-    useWallets.setWallets(res.data.walletsData.wallets);
-    valueTotalExpensesMonth.value =
-      res.data.expensesData.ValueTotalExpensesMonth;
-    valuePending.value = res.data.expensesData.ValuePendingExpenses;
-    valuePay.value = res.data.expensesData.ValuePayExpenses;
-    expensesMonth.value = res.data.expensesData.ExpensesMonth;
-  } catch (error) {
-    // console.log(error);
-  }
-
-  formEditExpense.value = false;
 };
 
 const deletar = async (id: number) => {
   try {
-    const res = await http.post("/delete-expense", {
-      id: id,
-      mesReferencia: mesAnoReferencia.value,
+    const res = await http.delete(`/expense/${id}`, {
+      data: { mesReferencia: mesAnoReferencia.value },
     });
-    useExpenses.setExpensesData(res.data.expensesData);
-    valueTotalExpensesMonth.value =
-      res.data.expensesData.ValueTotalExpensesMonth;
-    valuePending.value = res.data.expensesData.ValuePendingExpenses;
-    valuePay.value = res.data.expensesData.ValuePayExpenses;
-    expensesMonth.value = res.data.expensesData.ExpensesMonth;
-  } catch (error) {
-    // console.log(error);
+    useExpenses.setExpensesData(res.data.revenuesData);
+    valueTotalExpensesMonth.value = res.data.expensesData.valueTotalMonth;
+    expensesMonth.value = res.data.expensesData.byMonth;
+  } catch (error: unknown) {
+    const apiError = error as ApiError;
+    console.error("Erro ao deletar receita:", apiError.response?.data);
   }
 };
 
-const rules = {
-  requiredValor: (value: string) => !!value || "O campo valor é obrigatório",
-  requiredValorMaiorQue0: (value: string) =>
-    parseFloat(value.replace(",", ".")) > 0 ||
-    "O campo valor deve ser maior que zero",
-  requiredData: (value: string) => !!value || "O campo data é obrigatório",
-  requiredDescricao: (value: string) =>
-    !!value || "O campo escriçãp é obrigatório",
-  requiredCatagoria: (value: string) =>
-    !!value || "O campo categoria é obrigatório",
-  requiredCarteira: (value: string) =>
-    !!value || "O campo categoria é obrigatório",
+const payExpense = async (expnseId: number, conta: string) => {
+  try {
+    const payload = {
+      conta,
+      mesReferencia: mesAnoReferencia.value,
+    };
+    const res = await http.patch(`/expense/${expnseId}`, payload);
+    useRevenues.setRevenuesData(res.data.revenuesData);
+    console.log(res.data.revenuesData);
+    useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
+    console.log(res.data.walletsData.saldoInicial);
+    useWallets.setContas(res.data.walletsData.wallets);
+    console.log(res.data.walletsData.wallets);
+    // Update UI or emit event
+  } catch (error) {
+    const apiError = error as ApiError;
+    console.error("Erro ao receber receita:", apiError.response?.data);
+  }
 };
 </script>
 

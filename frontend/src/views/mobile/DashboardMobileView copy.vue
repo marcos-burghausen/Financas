@@ -1,9 +1,19 @@
 <template>
-  <v-card color="transparent" style="width: 100%">
+  <v-card
+    color="transparent"
+    style="width: 100%"
+  >
     <v-layout>
       <v-app-bar color="transparent">
-        <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer">
-          <v-icon icon="mdi-menu" class="mdicon" size="30" />
+        <v-app-bar-nav-icon
+          variant="text"
+          @click.stop="drawer = !drawer"
+        >
+          <v-icon
+            icon="mdi-menu"
+            class="mdicon"
+            size="30"
+          />
         </v-app-bar-nav-icon>
 
         <!-- <v-toolbar-title> -->
@@ -51,7 +61,10 @@
               @click="item.action"
             >
               <v-list-item-title style="font-size: 20px">
-                <v-icon :icon="item.icon" class="me-3 fs-3" />
+                <v-icon
+                  :icon="item.icon"
+                  class="me-3 fs-3"
+                />
                 {{ item.title }}
               </v-list-item-title>
             </v-list-item>
@@ -95,7 +108,10 @@
         <div class="container__saldo__conta d-flex justify-content-center">
           <div class="me-4 d-flex flex-column align-center justify-content-end">
             <span class="icon__text">
-              <v-icon icon="mdi-check-circle-outline" size="18" />
+              <v-icon
+                icon="mdi-check-circle-outline"
+                size="18"
+              />
               Inicial
             </span>
             <div style="display: flex; align-items: center">
@@ -108,14 +124,17 @@
             </div>
           </div>
           <div class="d-flex flex-column align-center justify-content-end">
-            <span class="fs-5" style="color: #757575">
+            <span
+              class="fs-5"
+              style="color: #757575"
+            >
               <v-icon
                 :icon="
                   totalBalance < 0
                     ? 'mdi-minus-circle-outline'
                     : totalBalance > 0
-                    ? 'mdi-heart-circle'
-                    : 'mdi-circle-outline'
+                      ? 'mdi-heart-circle'
+                      : 'mdi-circle-outline'
                 "
                 size="22"
               />
@@ -129,8 +148,8 @@
                     totalBalance < 0
                       ? 'red'
                       : totalBalance > 0
-                      ? 'green'
-                      : '#757575',
+                        ? 'green'
+                        : '#757575',
                 }"
                 style="font-size: 18px"
               >
@@ -140,7 +159,10 @@
           </div>
           <div class="ms-4 d-flex flex-column align-center justify-content-end">
             <span class="icon__text">
-              <v-icon icon="mdi-clock-outline" size="20" />
+              <v-icon
+                icon="mdi-clock-outline"
+                size="20"
+              />
               <!-- <mdicon name="plus-circle-outline" />
                     <mdicon name="minus-circle-outline" />
                     <mdicon name="clock-outline" /> -->
@@ -160,7 +182,11 @@
         <div class="container__visao__geral">
           <div class="header__visao_geral">
             <span style="text-align: start"> Visão geral </span>
-            <v-icon icon="mdi-dots-vertical" class="mdicon" size="25" />
+            <v-icon
+              icon="mdi-dots-vertical"
+              class="mdicon"
+              size="25"
+            />
           </div>
           <router-link
             :to="{ name: 'receitas' }"
@@ -223,25 +249,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from "vue";
-import { useRoute } from "vue-router";
+import { computed, ref, watch } from "vue";
+import { useRouter } from "vue-router";
 
-import { formatValue } from "@/utils/formatValue";
 import http from "@/services/http";
 import {
+  useAuthStore,
   useExpensesStore,
   useRevenuesStore,
-  useWalletsStore,
-  useAuthStore,
   useUserStore,
+  useWalletsStore,
 } from "@/store";
+import { formatValue } from "@/utils/formatValue";
 
 const useExpenses = useExpensesStore();
 const useRevenues = useRevenuesStore();
 const useWallets = useWalletsStore();
 const useAuth = useAuthStore();
 const useUser = useUserStore();
-const router = useRoute();
+const router = useRouter();
 
 // let expensesAddTotalValueMonth = ref(useExpenses.expensesData.expenses?.ExpensesAddTotalValueMonth);
 // let revenuesAddTotalValueMonth = ref(useRevenues.revenuesData.revenues?.RevenuesAddTotalValueMonth);
@@ -265,7 +291,7 @@ let elementoAtivoSideBar = ref(0);
 // let totalCreditCard = ref(0);
 
 watch(router, (value) => {
-  switch (value.name) {
+  switch (value.currentRoute.value.name) {
     case "dashboard":
       elementoAtivoSideBar.value = 0;
       break;
@@ -290,14 +316,16 @@ const itensSideBar = ref([
     icon: "view-dashboard",
     route: "dashAdmim",
     adminOnly: true,
+    action: () => router.push({ name: "dashAdmim" }),
   },
-  { name: "Trader", icon: "chart-line", route: "dashAdmim", traderOnly: true },
+  { name: "Trader", icon: "chart-line", route: "dashAdmim", traderOnly: true, action: () => router.push({ name: "dashAdmim" }), },
   {
     name: "Dashboard",
     icon: "mdi-view-dashboard",
     route: "dashboard",
     adminOnly: false,
     traderOnly: false,
+    action: () => router.push({ name: "dashboard" }),
   },
   {
     name: "Contas",
@@ -305,6 +333,7 @@ const itensSideBar = ref([
     route: "contas",
     adminOnly: false,
     traderOnly: false,
+    action: () => router.push({ name: "contas" }),
   },
   {
     name: "Receitas",
@@ -312,6 +341,7 @@ const itensSideBar = ref([
     route: "receitas",
     adminOnly: false,
     traderOnly: false,
+    action: () => router.push({ name: "receitas" }),
   },
   {
     name: "Despesas",
@@ -319,6 +349,7 @@ const itensSideBar = ref([
     route: "despesas",
     adminOnly: false,
     traderOnly: false,
+    action: () => router.push({ name: "despesas" }),
   },
   {
     name: "Categorias",
@@ -326,6 +357,7 @@ const itensSideBar = ref([
     route: "categorias",
     adminOnly: false,
     traderOnly: false,
+    action: () => router.push({ name: "categorias" }),
   },
   // { name: "Mais Opçõs", icon: "dots-horizontal", route: "dashboard" },
 ]);
@@ -356,12 +388,12 @@ watch(group, () => {
   drawer.value = false;
 });
 
-const props = defineProps({
-  mesReferencia: {
-    type: String,
-    default: "",
-  },
-});
+// const props = defineProps({
+//   mesReferencia: {
+//     type: String,
+//     default: "",
+//   },
+// });
 
 async function logout() {
   try {
@@ -373,14 +405,14 @@ async function logout() {
   }
 }
 
-const isAllZeros = (arr) => {
-  return arr.every((value) => value === "0,00");
-};
+// const isAllZeros = (arr: string[]) => {
+//   return arr.every((value: string) => value === "0,00");
+// };
 
 const mesPorExtenso = computed(() => {
   if (!mesAnoReferencia.value) return "";
 
-  const [ano, mes] = mesAnoReferencia.value.split("-");
+  const [mes] = mesAnoReferencia.value.split("-");
 
   const mesesPorExtenso = [
     "Janeiro",
@@ -401,23 +433,27 @@ const mesPorExtenso = computed(() => {
 });
 
 const mesAnterior = () => {
-  const [ano, mes] = mesAnoReferencia.value.split("-");
-  const dataAtual = new Date(ano, mes - 1);
-  dataAtual.setMonth(dataAtual.getMonth() - 1);
-  mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
-    dataAtual.getMonth() + 1
-  ).padStart(2, "0")}`;
-  buscarDadosMes(mesAnoReferencia.value, "anterior");
+  if (mesAnoReferencia.value) {
+    const [ano, mes] = mesAnoReferencia.value.split("-").map(Number);
+    const dataAtual = new Date(ano, mes - 1);
+    dataAtual.setMonth(dataAtual.getMonth() - 1);
+    mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
+      dataAtual.getMonth() + 1
+    ).padStart(2, "0")}`;
+    buscarDadosMes(mesAnoReferencia.value, "anterior");
+  }
 };
 
 const proximoMes = () => {
-  const [ano, mes] = mesAnoReferencia.value.split("-");
-  const dataAtual = new Date(ano, mes - 1);
-  dataAtual.setMonth(dataAtual.getMonth() + 1);
-  mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
-    dataAtual.getMonth() + 1
-  ).padStart(2, "0")}`;
-  buscarDadosMes(mesAnoReferencia.value, "proximo");
+  if (mesAnoReferencia.value) {
+    const [ano, mes] = mesAnoReferencia.value.split("-").map(Number);
+    const dataAtual = new Date(ano, mes - 1);
+    dataAtual.setMonth(dataAtual.getMonth() + 1);
+    mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
+      dataAtual.getMonth() + 1
+    ).padStart(2, "0")}`;
+    buscarDadosMes(mesAnoReferencia.value, "proximo");
+  }
 };
 
 const buscarDadosMes = async (data: string, buscar: string) => {
@@ -426,7 +462,7 @@ const buscarDadosMes = async (data: string, buscar: string) => {
       mes: data,
       buscar: buscar,
     });
-    useWallets.setMesReferencia(response.data.walletsData.mes_ano_referencia);
+    useUser.setMesAno(response.data.walletsData.mes_ano_referencia);
     useExpenses.setExpensesData(response.data.expensesData);
     useRevenues.setRevenuesData(response.data.revenuesData);
     useWallets.setWalletsData(response.data.walletsData);
@@ -491,7 +527,7 @@ const buscarDadosMes = async (data: string, buscar: string) => {
 //     },
 //     tooltip: {
 //         y: {
-//             formatter: function (val) {
+//             formatter: function (val: Number) {
 //                 return "R$ " + val;
 //             }
 //         }, theme: "dark",

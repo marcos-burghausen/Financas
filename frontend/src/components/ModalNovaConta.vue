@@ -100,27 +100,31 @@
   <ErrorsForm />
 </template>
 <script setup lang="ts">
-import ErrorsForm from "@/components/ModalErrorsForm.vue";
 import ErrorMessage from "@/components/ErrorMessage.vue";
+import ErrorsForm from "@/components/ModalErrorsForm.vue";
 import SuccessMessage from "@/components/SuccessMessage.vue";
 
-import { useWalletsStore } from "@/store/wallets";
+import http from "@/services/http";
+import { ref } from "vue";
+
 import { useErrorStore } from "@/store/error";
 import { useUserStore } from "@/store/user";
-import type { Wallets } from "@/types/wallets";
-import type { Category } from "@/types/category";
+import { useWalletsStore } from "@/store/wallets";
+import type { Account, ApiErrorResponse, Category } from "@/types";
+import type { AxiosError } from "axios";
 
 const useWallets = useWalletsStore();
 const errorStore = useErrorStore();
 const useUser = useUserStore();
 const emit = defineEmits<{
-  (e: "updateContas", wallets: Wallets): void
+  (e: "updateContas", wallets: Account): void
   (e: "updateCategoriasReceitas", categorias: Category): void
   (e: "updateCategoriasDespesas", categorias: Category): void
 }>();
 
 let validForm = ref(false);
 let loading = ref(false);
+let openModal = ref(false);
 
 let conta = ref({
     user_id: "",
@@ -130,8 +134,16 @@ let conta = ref({
     tipoConta: "",
 });
 
+const clearInputs = () => {
+    conta.value.user_id = "";
+    conta.value.valor = "";
+    conta.value.instituicaoFinanceira = "";
+    conta.value.descricao = "";
+    conta.value.tipoConta = "";
+};
+
 const salvarConta = async () => {
-    conta.value.user_id = useUser.user.id;
+    conta.value.user_id = useUser.userData.id.toString();
     try {
         const res = await http.post("/save-wallet", conta.value);
         useWallets.setWalletsData(res.data.wallets);
@@ -141,24 +153,19 @@ const salvarConta = async () => {
         errorStore.setSuccessFromResponse(res.data.success);
         clearInputs();
         openModal.value = false;
-    } catch (error) {
-        if (error.response.data.errors) {
-            errorStore.setErrorFromForm(error);
-        } else {
-            errorStore.setErrorFromResponse(error);
-        }
-    } finally {
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiErrorResponse>;
+      if (axiosError.response?.data.errors) {
+        errorStore.setErrorFromForm(axiosError);
+      } else {
+        errorStore.setErrorFromResponse(axiosError);
+      }
+    }  finally {
         loading.value = false;
     }
 };
 
-const clearInputs = () => {
-    conta.value.user_id = "";
-    conta.value.valor = "";
-    conta.value.instituicaoFinanceira = "";
-    conta.value.descricao = "";
-    conta.value.tipoConta = "";
-};
+
 
 const formatValueSave = () => {
     let novoValor = conta.value.valor.replace(/[^\d]/g, "");
@@ -185,56 +192,7 @@ const rules = {
         !!value || "O campo tipo de conta é obrigatório",
 };
 
-import ModalColors from "@/components/ModalColors.vue";
-import ModalIcons from "@/components/ModalIcons.vue";
 
-import { reactive, ref } from "vue";
-import http from "@/services/http";
-
-const selectedColor = ref("");
-const selectedIcon = ref("");
-const openModal = ref(false);
-const nameCategory = ref("");
-const props = defineProps({
-    color: {
-        type: String,
-    },
-});
-
-const updateSelectedIcon = (novoValor: string) => {
-    selectedIcon.value = novoValor;
-};
-const updateSelectedColor = (novoValor: string) => {
-    selectedColor.value = novoValor;
-};
-const saveCategory = async () => {
-    const data = ref({
-        name: nameCategory.value,
-        color: selectedColor.value,
-        icon: selectedIcon.value,
-        typeCategory: "",
-        edit: true,
-    });
-    try {
-        data.value.typeCategory =
-      props.color === "color__despesa" ? "despesa" : "receita";
-
-        const res = await http.post("/save-category", data.value);
-        useUser.setUserData(res.data.user);
-        if (res.data.categoriasDespesas) {
-            emit("updateCategoriasDespesas", res.data.categoriasDespesas);
-        }
-        if (res.data.categoriasReceitas) {
-            emit("updateCategoriasReceitas", res.data.categoriasReceitas);
-        }
-        nameCategory.value = "";
-        selectedColor.value = "";
-        selectedIcon.value = "";
-        openModal.value = false;
-    } catch (error) {
-    // console.log(error);
-    }
-};
 </script>
 
 <style scoped>

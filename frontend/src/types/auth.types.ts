@@ -1,6 +1,6 @@
 // src/types/auth.types.ts
 // Defines the structure of the login API response
-import type { Account, Category, CategoryData, MonthData, WalletData } from "./index";
+import type { CategoryData, Lancamento, WalletData } from "./index";
 
 export interface Token {
   token: string;
@@ -19,30 +19,30 @@ type: string;
 
 export interface LoginResponse {
     token: Token;
-    user: User;
+    userData: User;
     
     data: {
       expenses: {
         valuePay: number;
         valuePending: number;
         valueTotalMonth: number;
-        byMonth: MonthData[];
+        byMonth: Lancamento[];
         totalDay: number;
         byCategory: CategoryData[];
+        categories: CategoryData[];
       };
       revenues: {
-        valueReceived: number;
+        valuePay: number;
         valuePending: number;
         valueTotalMonth: number;
-        byMonth: MonthData[];
-      };
-      categories: {
-        expenses: Category[];
-        revenues: Category[];
-        wallets: Category[];
+        byMonth: Lancamento[];
+        totalDay: number;
+        byCategory: Lancamento[];
+        categories: CategoryData[];
       };
       wallets: WalletData
     };
+    mesAno: string;
   }
 
   
@@ -61,14 +61,14 @@ export interface FormCadastro {
   }
   
   // User data (replacing User and UserDAta)
-export interface UserDAta {
-    id: number;
-    name: string;
-    email: string;
-    userType: string | null; // Renamed from user_tipe
-    createdAt: string;
-    updatedAt: string;
-    carteiras?: Account[]; // Specific type instead of []
-    categoriasDespesas?: Category[];
-    categoriasReceitas?: Category[];
-  }
+// export interface UserDAta {
+//     id: number;
+//     name: string;
+//     email: string;
+//     userType: string | null; // Renamed from user_tipe
+//     createdAt: string;
+//     updatedAt: string;
+//     carteiras?: Account[]; // Specific type instead of []
+//     categoriasDespesas?: Category[];
+//     categoriasReceitas?: Category[];
+//   }

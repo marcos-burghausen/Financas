@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { TransactionsData } from "../types";
+
+import type { Category, TransactionsData } from "../types";
 
 
 export const useExpensesStore = defineStore("expenses", () => {
@@ -23,9 +24,16 @@ export const useExpensesStore = defineStore("expenses", () => {
         };
         localStorage.setItem("expensesData", JSON.stringify(expensesData.value));
     }
+    
+    function setCategories(expenses: Array<Category>): void {
+        expensesData.value.categories = expenses || [];
+        
+        localStorage.setItem("expensesData", JSON.stringify(expensesData.value));
+    }
 
     return {
         expensesData,
         setExpensesData,
+        setCategories,
     };
 });
