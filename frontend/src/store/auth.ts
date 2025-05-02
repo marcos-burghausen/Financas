@@ -49,6 +49,7 @@ export const useAuthStore = defineStore("auth", () => {
         localStorage.removeItem("token");
         localStorage.removeItem("userData");
         localStorage.removeItem("walletsData");
+        localStorage.removeItem("mesAno");
         token.value = {
             token: "",
             tokenType: "",

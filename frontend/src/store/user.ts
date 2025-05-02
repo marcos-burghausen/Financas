@@ -35,7 +35,6 @@ export const useUserStore = defineStore("user", () => {
     // }
 
     function setMesAno(mes_ano: string) {
-        console.log(mes_ano);
         mesAno.value = mes_ano;
         localStorage.setItem("mesAno", JSON.stringify(mesAno.value));
         
@@ -48,8 +47,8 @@ export const useUserStore = defineStore("user", () => {
 
     return {
         userData,
+        mesAno,
         getMesAno,
-        // getCarteias,
         setUserData,
         setMesAno,
         // setCategoriasDespesas,

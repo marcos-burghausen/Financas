@@ -28,7 +28,7 @@ export interface LoginResponse {
         valueTotalMonth: number;
         byMonth: Lancamento[];
         totalDay: number;
-        byCategory: CategoryData[];
+        byCategory: Lancamento[];
         categories: CategoryData[];
       };
       revenues: {

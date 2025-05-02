@@ -46,10 +46,7 @@
         prepend-inner-icon="mdi-text-long"
       >
         <template #message>
-          <div
-            v-if="errorsForm.descricao"
-            class="error-message"
-          >
+          <div v-if="errorsForm.descricao" class="error-message">
             {{ errorsForm.descricao[0] }}
           </div>
         </template>
@@ -68,10 +65,7 @@
         @input="formatValueSave"
       >
         <template #message>
-          <div
-            v-if="errorsForm.valor"
-            class="error-message"
-          >
+          <div v-if="errorsForm.valor" class="error-message">
             {{ errorsForm.valor[0] }}
           </div>
         </template>
@@ -88,10 +82,7 @@
         @click="openTipoLancamento = true"
       />
 
-      <div
-        v-if="openTipoLancamento"
-        class="tipo"
-      >
+      <div v-if="openTipoLancamento" class="tipo">
         <div
           class="d-flex flex-column align-start justify-space-around modal__tipo"
         >
@@ -114,23 +105,14 @@
         </div>
       </div>
 
-      <div
-        v-if="openParcelas"
-        class="parcelas"
-      >
+      <div v-if="openParcelas" class="parcelas">
         <div class="container__parcelas">
           <div class="p-3">
-            <h2 class="mb-4 text-center">
-              Configurar parcelas
-            </h2>
+            <h2 class="mb-4 text-center">Configurar parcelas</h2>
 
             <div class="py-2">
               <div class="d-flex align-center justify-space-between">
-                <v-icon
-                  class="pe-3"
-                  icon="mdi-arrow-right"
-                  size="24"
-                />
+                <v-icon class="pe-3" icon="mdi-arrow-right" size="24" />
                 <span class="item-label"> Parcela inicial </span>
                 <div class="item-value">
                   <div class="number-stepper">
@@ -147,7 +129,7 @@
                       type="number"
                       class="stepper-input"
                       min="1"
-                    >
+                    />
                     <v-btn
                       prepend-icon="mdi-chevron-up"
                       flat
@@ -169,9 +151,7 @@
                   size="24"
                   class="pe-3"
                 />
-                <div class="item-label">
-                  Quantidade
-                </div>
+                <div class="item-label">Quantidade</div>
                 <div class="item-value">
                   <div class="number-stepper">
                     <v-btn
@@ -186,7 +166,7 @@
                       type="number"
                       class="stepper-input"
                       min="2"
-                    >
+                    />
                     <v-btn
                       class="stepper-btn"
                       prepend-icon="mdi-chevron-up"
@@ -202,14 +182,8 @@
 
             <div class="">
               <div class="d-flex align-center justify-space-between">
-                <v-icon
-                  icon="mdi-calendar-blank"
-                  size="24"
-                  class="pe-3"
-                />
-                <div class="item-label">
-                  Periodicidade
-                </div>
+                <v-icon icon="mdi-calendar-blank" size="24" class="pe-3" />
+                <div class="item-label">Periodicidade</div>
                 <div class="item-value pb-2">
                   <v-select
                     v-model="tempPeriodicidade"
@@ -224,16 +198,10 @@
           </div>
 
           <div class="d-flex justify-space-between align-center p-3">
-            <v-btn
-              class="btn-cancelar"
-              @click="cancelarConfiguracaoRepeticao"
-            >
+            <v-btn class="btn-cancelar" @click="cancelarConfiguracaoRepeticao">
               Cancelar
             </v-btn>
-            <v-btn
-              class="btn-concluido"
-              @click="concluirParcelas"
-            >
+            <v-btn class="btn-concluido" @click="concluirParcelas">
               Concluído
             </v-btn>
           </div>
@@ -253,16 +221,10 @@
         prepend-inner-icon="mdi-calendar"
       >
         <template #append-inner>
-          <span
-            v-if="isTodayVencimento"
-            class="today__label"
-          >Hoje</span>
+          <span v-if="isTodayVencimento" class="today__label">Hoje</span>
         </template>
         <template #message>
-          <div
-            v-if="errorsForm.date"
-            class="error__message"
-          >
+          <div v-if="errorsForm.date" class="error__message">
             {{ errorsForm.date[0] }}
           </div>
         </template>
@@ -314,10 +276,7 @@
         prepend-inner-icon="mdi-scatter-plot"
       >
         <template #message>
-          <div
-            v-if="errorsForm.categoria"
-            class="error-message"
-          >
+          <div v-if="errorsForm.categoria" class="error-message">
             {{ errorsForm.categoria[0] }}
           </div>
         </template>
@@ -335,10 +294,7 @@
         prepend-inner-icon="mdi-scatter-plot"
       >
         <template #message>
-          <div
-            v-if="errorsForm.categoria"
-            class="error-message"
-          >
+          <div v-if="errorsForm.categoria" class="error-message">
             {{ errorsForm.categoria[0] }}
           </div>
         </template>
@@ -356,10 +312,7 @@
         prepend-inner-icon="mdi-bank"
       >
         <template #message>
-          <div
-            v-if="errorsForm.conta"
-            class="error-message"
-          >
+          <div v-if="errorsForm.conta" class="error-message">
             {{ errorsForm.conta[0] }}
           </div>
         </template>
@@ -391,16 +344,10 @@
         prepend-inner-icon="mdi-calendar-clock"
       >
         <template #append-inner>
-          <span
-            v-if="isTodayLancamento"
-            class="today__label"
-          >Hoje</span>
+          <span v-if="isTodayLancamento" class="today__label">Hoje</span>
         </template>
         <template #message>
-          <div
-            v-if="errorsForm.date"
-            class="error__message"
-          >
+          <div v-if="errorsForm.date" class="error__message">
             {{ errorsForm.date[0] }}
           </div>
         </template>
@@ -420,16 +367,10 @@
         prepend-inner-icon="mdi-calendar-check"
       >
         <template #append-inner>
-          <span
-            v-if="isTodayEfetivacao"
-            class="today__label"
-          >Hoje</span>
+          <span v-if="isTodayEfetivacao" class="today__label">Hoje</span>
         </template>
         <template #message>
-          <div
-            v-if="errorsForm.date"
-            class="error__message"
-          >
+          <div v-if="errorsForm.date" class="error__message">
             {{ errorsForm.date[0] }}
           </div>
         </template>
@@ -472,22 +413,30 @@ let subcategoriesNames = ref<string[]>([]);
 const parcelaInicial = ref<number | null>(null);
 const tempParcelaInicial = ref(1);
 const tempNumParcelas = ref(2);
-const tempPeriodicidade = ref<"Mensal" | "Diario" | "Semanal" | "Quinzenal" | "Trimenstral" | "Anual" | undefined>("Mensal");
+const tempPeriodicidade = ref<
+  | "Mensal"
+  | "Diario"
+  | "Semanal"
+  | "Quinzenal"
+  | "Trimenstral"
+  | "Anual"
+  | undefined
+>("Mensal");
 const loading = ref(false);
 const validFormLancamentos = ref(false);
 const openTipoLancamento = ref(false);
 const openParcelas = ref(false);
 const errorsForm = ref<{ [key: string]: string[] }>({});
-const tiposLancamento = ref<("Não recorrente" | "Parcelada" | "Fixa mensal")[]>([
-  "Não recorrente",
-  "Parcelada",
-  "Fixa mensal",
-]);
+const tiposLancamento = ref<("Não recorrente" | "Parcelada" | "Fixa mensal")[]>(
+  ["Não recorrente", "Parcelada", "Fixa mensal"]
+);
 
 const categoriasNames = ref(
   props.transactionType === "receitas"
-    ? useRevenues.revenuesData.categories.map((categoria) => categoria.name) || []
-    : useExpenses.expensesData.categories.map((categoria) => categoria.name) || []
+    ? useRevenues.revenuesData.categories.map((categoria) => categoria.name) ||
+        []
+    : useExpenses.expensesData.categories.map((categoria) => categoria.name) ||
+        []
 );
 
 const contasNames = ref(useWallets.walletsData.contasNames);
@@ -526,7 +475,7 @@ const formReleases = ref<Lancamento>({
   descricao: props.releases?.descricao || "",
   valor: props.releases?.valor || "0,00",
   tipo: props.releases?.tipo || "Não recorrente",
-  numParcelas: props.releases?.numParcelas || 0,
+  numParcelas: props.releases?.numParcelas || undefined,
   periodicidade: props.releases?.periodicidade || undefined,
   dataVencimento: validateDate(props.releases?.dataVencimento),
   status: props.releases?.status || "Pendente",
@@ -665,7 +614,7 @@ const selecionarTipo = (
   if (item === "Parcelada") {
     inicializarValoresTemporarios();
 
-    if (formReleases.value.numParcelas > 0) {
+    if (formReleases.value.numParcelas > undefined) {
       tempNumParcelas.value = formReleases.value.numParcelas;
     }
 
@@ -681,7 +630,6 @@ const selecionarTipo = (
 };
 
 const salvarLancamentos = async () => {
-  console.log(formReleases.value);
   try {
     loading.value = true;
     const method = isEditMode.value ? http.put : http.post;
@@ -691,12 +639,14 @@ const salvarLancamentos = async () => {
     const res = await method(url, formReleases.value);
 
     useRevenues.setRevenuesData(res.data.revenuesData);
-    useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
-    useWallets.setWalletsData(res.data.walletsData.wallets);
+    // useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
+    useWallets.setWalletsData(res.data.walletsData);
     emit("updateData", res.data.revenuesData);
     closeForm();
   } catch (error) {
-    const axiosError = error as AxiosError<{ errors: { [key: string]: string[] } }>;
+    const axiosError = error as AxiosError<{
+      errors: { [key: string]: string[] };
+    }>;
     errorsForm.value = axiosError.response?.data?.errors || {};
     console.error("Erro ao salvar lançamento:", axiosError.response?.data);
   } finally {
@@ -710,14 +660,13 @@ const clearInputs = () => {
     descricao: "",
     valor: "0,00",
     tipo: "Não recorrente",
-    numParcelas: 0,
+    numParcelas: undefined,
     periodicidade: undefined,
     dataVencimento: new Date().toISOString().split("T")[0],
     status: "Pendente",
     categoria: "",
     subcategoria: "",
     conta: "",
-    // mesReferencia: props.mesReferencia,
     dataLancamento: new Date().toISOString().split("T")[0],
     dataEfetivacao: new Date().toISOString().split("T")[0],
   };

@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
-import type { Category, TransactionsData } from "../types";
+import type { TransactionsData } from "../types";
 
 
 export const useExpensesStore = defineStore("expenses", () => {
@@ -14,26 +14,20 @@ export const useExpensesStore = defineStore("expenses", () => {
 
     function setExpensesData(expenses: TransactionsData): void {
         expensesData.value = {
-            byCategory: expenses.byCategory || [],
-            valuePay: expenses.valuePay || 0,
-            valuePending: expenses.valuePending || 0,
-            valueTotalMonth: expenses.valueTotalMonth || 0,
-            byMonth: expenses.byMonth || [],
-            categories: expenses.categories || [],
-            totalDays: expenses.totalDays || 0,
+            byCategory: expenses.byCategory ?? expensesData.value.byCategory,
+            valuePay: expenses.valuePay ?? expensesData.value.valuePay,
+            valuePending: expenses.valuePending ?? expensesData.value.valuePending,
+            valueTotalMonth: expenses.valueTotalMonth ?? expensesData.value.valueTotalMonth,
+            byMonth: expenses.byMonth ?? expensesData.value.byMonth,
+            categories: expenses.categories ?? expensesData.value.categories,
+            totalDays: expenses.totalDays ?? expensesData.value.totalDays,
         };
         localStorage.setItem("expensesData", JSON.stringify(expensesData.value));
     }
     
-    function setCategories(expenses: Array<Category>): void {
-        expensesData.value.categories = expenses || [];
-        
-        localStorage.setItem("expensesData", JSON.stringify(expensesData.value));
-    }
 
     return {
         expensesData,
         setExpensesData,
-        setCategories,
     };
 });

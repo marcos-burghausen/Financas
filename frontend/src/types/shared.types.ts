@@ -10,9 +10,10 @@ export interface IconItem {
 }
 
 // Represents error codes from errorCodes.json
-export type ErrorCodes = string; 
+export type ErrorCodes = keyof typeof import("@/assets/errorCodes.json"); 
 
 export interface ApiErrorResponse {
-  errors?: Record<string, string[]>;
+  errors?: { [key: string]: string | string[] };
+  error_code?: ErrorCodes;
   message?: string;
 }

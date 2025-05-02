@@ -1,14 +1,14 @@
+// router/index.ts
 import { createRouter, createWebHistory } from "vue-router";
 import routes from "../router/routes";
-import HomeView from "../views/HomeView.vue";
 
 const router = createRouter({
-    history: createWebHistory(import.meta.env.BASE_URL),
+    history: createWebHistory((import.meta as any).env.BASE_URL),
     routes: [
         {
             path: "/",
             name: "home",
-            component: HomeView
+            component: () => import("../views/HomeView.vue"),
         },
         {
             path: "/auth/callback",

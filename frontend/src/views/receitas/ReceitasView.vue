@@ -9,20 +9,14 @@
       @update-data="updateData"
       @close-form="closeForm"
     />
-    <div
-      v-if="!formulario"
-      class="receitas"
-    >
+    <div v-if="!formulario" class="receitas">
       <div class="header fixed-top">
         <div class="d-flex justify-content-between">
           <router-link
             class="link me-7 d-flex align-items-center opaco"
             :to="{ name: 'dashboard' }"
           >
-            <v-icon
-              icon="mdi-arrow-left"
-              size="25"
-            />
+            <v-icon icon="mdi-arrow-left" size="25" />
           </router-link>
           <div class="header__items">
             <div class="d-flex flex-column">
@@ -59,10 +53,7 @@
           class="container__table"
         >
           <div class="card__lancamento">
-            <v-card
-              color="transparent"
-              class="mdicon__card"
-            >
+            <v-card color="transparent" class="mdicon__card">
               <v-icon
                 :icon="
                   revenue.status === 'Efetivada'
@@ -70,8 +61,8 @@
                     : revenue.dataVencimento &&
                       new Date() <= new Date(revenue.dataVencimento) &&
                       revenue.status === 'Pendente'
-                      ? 'mdi-calendar-remove'
-                      : 'mdi-alert'
+                    ? 'mdi-calendar-remove'
+                    : 'mdi-alert'
                 "
                 class="mdicon__lacamento"
                 :class="{
@@ -96,11 +87,7 @@
                 <div>
                   <span>{{ revenue.dataVencimento }}</span>
                   <span>
-                    <v-icon
-                      icon="mdi-dots-vertical"
-                      class="mdicon"
-                      size="25"
-                    />
+                    <v-icon icon="mdi-dots-vertical" class="mdicon" size="25" />
                     <v-menu
                       activator="parent"
                       location="bottom end"
@@ -131,7 +118,9 @@
               </div>
               <div style="display: flex; justify-content: space-between">
                 <span class="categoria">{{ revenue.descricao }}</span>
-                <span class="categoria">R$ {{ formatValue(Number(revenue.valor)) }}</span>
+                <span class="categoria"
+                  >R$ {{ formatValue(Number(revenue.valor)) }}</span
+                >
               </div>
               <div>
                 <span class="sub__categoria">{{ revenue.categoria }}</span>
@@ -142,10 +131,7 @@
       </div>
       <NoDataComponent v-else />
     </div>
-    <div
-      v-if="!formulario"
-      class="fixed-bottom d-flex justify-end pe-5 pb-5"
-    >
+    <div v-if="!formulario" class="fixed-bottom d-flex justify-end pe-5 pb-5">
       <v-icon
         type="button"
         title="Adicionar nova receita"
@@ -183,7 +169,7 @@ const useUser = useUserStore();
 
 const formulario = ref(false);
 const selectedRelease = ref<Lancamento | undefined>(undefined);
-const mesAnoReferencia = ref<string>(useUser.getMesAno() || "");
+const mesAnoReferencia = ref<string>(useUser.mesAno || "");
 const valueTotalRevenuesMonth = ref(useRevenues.revenuesData?.valueTotalMonth);
 const revenuesMonth = ref<Lancamento[]>(
   useRevenues.revenuesData?.byMonth || []

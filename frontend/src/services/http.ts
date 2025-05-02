@@ -1,8 +1,9 @@
+// File: src/services/http.ts
 import { useAuthStore } from "@/store";
 import axios from "axios";
 
 const axiosInstance = axios.create({
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: (import.meta as any).env.VITE_API_URL,
     timeout: 10000,
     headers: {
         "Accept": "application/json",

@@ -59,8 +59,7 @@ class RevenueController extends Controller
 
         $revenuesData = $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data['mesReferencia']);
         $walletsData = [
-            "mes_ano_referencia" => $data['mesReferencia'],
-            'contas'             => $user->contas()->get(['id', 'name', 'icon', 'saldo', 'saldoInicial', 'descricao', 'tipo', 'incluirEmSomaInicial']),
+            'contas'       => $user->contas()->get(['id', 'name', 'icon', 'saldo', 'saldoInicial', 'descricao', 'tipo', 'incluirEmSomaInicial']),
             'saldoInicial' => $this->obterSaldoInicial($user, $data['mesReferencia'] ?? date('Y-m')),
         ];
 
@@ -70,6 +69,7 @@ class RevenueController extends Controller
             'success' => 'Receita cadastrada com sucesso',
             'revenuesData' => $revenuesData,
             'walletsData' => $walletsData,
+            "mesAno" => $data['mesReferencia'],
         ], 201);
     }
 

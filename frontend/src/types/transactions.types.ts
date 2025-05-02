@@ -4,7 +4,7 @@ export interface Lancamento {
     descricao?: string;
     valor: string;
     tipo?: "Não recorrente" | "Parcelada" | "Fixa mensal";
-    numParcelas: number;
+    numParcelas?: number;
     periodicidade: "Mensal" | "Diario" | "Semanal" | "Quinzenal" | "Trimenstral" | "Anual" | undefined;
     dataVencimento?: string | Date;
     status?: "Efetivada" | "Pendente";
@@ -23,7 +23,7 @@ export interface Lancamento {
   // }
 
   export interface TransactionsData {
-    byCategory: CategoryData[];
+    byCategory: Lancamento[];
     valuePay: number;
     valuePending: number;
     valueTotalMonth: number;
