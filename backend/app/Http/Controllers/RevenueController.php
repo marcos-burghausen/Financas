@@ -18,9 +18,15 @@ class RevenueController extends Controller
 
     public function saveRevenue(Request $request)
     {
-        $data = $this->validateRevenue($request);
+        $data = $this->validateData($request);
 
+
+        /** @var \App\Models\User $user */
         $user = auth()->user();
+
+        if ($data['numParcelas'] > 1) {
+            $this->dividirParcelas($data);
+        }
 
         DB::beginTransaction();
         $revenue = new Revenue;
@@ -75,7 +81,7 @@ class RevenueController extends Controller
 
     public function editRevenue(Request $request, $id)
     {
-        $data = $this->validateRevenue($request);
+        $data = $this->validateData($request);
 
         $user = auth()->user();
 
@@ -262,7 +268,7 @@ class RevenueController extends Controller
         return response()->json(['revenues' => $revenues], 200);
     }
 
-    protected function validateRevenue(Request $request)
+    protected function validateData(Request $request)
     {
         return $request->validate(
             [
@@ -292,5 +298,28 @@ class RevenueController extends Controller
                 'mesReferencia.regex' => 'O campo mesReferencia deve estar no formato YYYY-MM (ex: 2025-04)',
             ]
         );
+    }
+
+    protected function dividirParcelas($data)
+    {
+        $valorParcela = $data['valor'] / $data['numParcelas'];
+        $dataVencimento = $data['dataVencimento'];
+
+        for ($i = 1; $i <= $data['numParcelas']; $i++) {
+            Revenue::create([
+                'user_id'         => auth()->user()->id,
+                'descricao'       => $data['descricao'] . " - Parcela " . $i,
+                'valor'           => str_replace([',', '.'], '', $valorParcela),
+                'tipo'            => 'Parcelada',
+                'numParcelas'    => null,
+                'periodicidade'   => null,
+                'dataVencimento' => date('Y-m-d', strtotime($dataVencimento . " + " . ($i - 1) . " month")),
+                'status'          => 'Pendente',
+                'categoria'       => $data['categoria'],
+                'subcategoria'    => $data['subcategoria'],
+                'dataLancamento' => date('Y-m-d'),
+                'conta'           => $data['conta'],
+            ]);
+        }
     }
 }

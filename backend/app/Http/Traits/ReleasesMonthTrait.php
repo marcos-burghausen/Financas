@@ -83,7 +83,7 @@ trait ReleasesMonthTrait
         $dataFim = (new DateTime($dataInicio))->format("Y-m-t");
         // info('dataFim ' . $dataFim);
         foreach ($lancamentos as $lancamento) {
-            if ($lancamento && $lancamento->dataLancamento >= $dataInicio && $lancamento->dataLancamento <= $dataFim) {
+            if ($lancamento && $lancamento->dataVencimento >= $dataInicio && $lancamento->dataVencimento <= $dataFim) {
                 $lancamentosMes[] = $lancamento;
             }
         }
