@@ -379,35 +379,51 @@ class User extends Authenticatable implements JWTSubject
     }
 
 
-    public function expenses()
+    public function lancamentos()
     {
         //hasMany (tem muitos)
-        return $this->hasMany(Expense::class);
+        return $this->hasMany(Lancamento::class);
     }
 
-    public function revenues()
-    {
-        //hasMany (tem muitos)
-        return $this->hasMany(Revenue::class);
-    }
+    // public function revenues()
+    // {
+    //     //hasMany (tem muitos)
+    //     return $this->hasMany(Revenue::class);
+    // }
 
     public function contas()
     {
         return $this->hasMany(Conta::class);
     }
 
-    public function calculateTotalBalance()
+    // public function calculateTotalBalance()
+    // {
+    //     $totalRevenues = $this->revenues()->sum('amount');
+    //     $totalExpenses = $this->expenses()->sum('amount');
+    //     return $totalRevenues - $totalExpenses;
+    // }
+
+    // public function calculateTotalCreditableCard()
+    // {
+    //     return $this->expenses()
+    //         ->where('payment_method', 'creditable_card')
+    //         ->sum('amount');
+    // }
+
+    public function expenses()
     {
-        $totalRevenues = $this->revenues()->sum('amount');
-        $totalExpenses = $this->expenses()->sum('amount');
-        return $totalRevenues - $totalExpenses;
+        $expenses = $this->lancamentos()
+            ->where('tipo', 'Despesa')
+            ->get();
+        return $expenses;
     }
 
-    public function calculateTotalCreditableCard()
+    public function revenues()
     {
-        return $this->expenses()
-            ->where('payment_method', 'creditable_card')
-            ->sum('amount');
+        $revenues = $this->lancamentos()
+            ->where('tipo', 'Receita')
+            ->get();
+        return $revenues;
     }
 
     // Rest omitted for brevity

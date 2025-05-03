@@ -46,10 +46,7 @@
         prepend-inner-icon="mdi-text-long"
       >
         <template #message>
-          <div
-            v-if="errorsForm.descricao"
-            class="error-message"
-          >
+          <div v-if="errorsForm.descricao" class="error-message">
             {{ errorsForm.descricao[0] }}
           </div>
         </template>
@@ -68,10 +65,7 @@
         @input="formatValueSave"
       >
         <template #message>
-          <div
-            v-if="errorsForm.valor"
-            class="error-message"
-          >
+          <div v-if="errorsForm.valor" class="error-message">
             {{ errorsForm.valor[0] }}
           </div>
         </template>
@@ -88,10 +82,7 @@
         @click="openTipoLancamento = true"
       />
 
-      <div
-        v-if="openTipoLancamento"
-        class="tipo"
-      >
+      <div v-if="openTipoLancamento" class="tipo">
         <div
           class="d-flex flex-column align-start justify-space-around modal__tipo"
         >
@@ -100,7 +91,7 @@
             :key="index"
             :disabled="loading"
             :loading="loading"
-            style="background: transparent;"
+            style="background: transparent"
             :class="formReleases.tipo === item ? 'selected' : ''"
             flat
             :prepend-icon="
@@ -115,23 +106,14 @@
         </div>
       </div>
 
-      <div
-        v-if="openParcelas"
-        class="parcelas"
-      >
+      <div v-if="openParcelas" class="parcelas">
         <div class="container__parcelas">
           <div class="p-3">
-            <h2 class="mb-4 text-center">
-              Configurar parcelas
-            </h2>
+            <h2 class="mb-4 text-center">Configurar parcelas</h2>
 
             <div class="py-2">
               <div class="d-flex align-center justify-space-between">
-                <v-icon
-                  class="pe-3"
-                  icon="mdi-arrow-right"
-                  size="24"
-                />
+                <v-icon class="pe-3" icon="mdi-arrow-right" size="24" />
                 <span class="item-label"> Parcela inicial </span>
                 <div class="item-value">
                   <div class="number-stepper">
@@ -148,7 +130,7 @@
                       type="number"
                       class="stepper-input"
                       min="1"
-                    >
+                    />
                     <v-btn
                       prepend-icon="mdi-chevron-up"
                       flat
@@ -170,9 +152,7 @@
                   size="24"
                   class="pe-3"
                 />
-                <div class="item-label">
-                  Quantidade
-                </div>
+                <div class="item-label">Quantidade</div>
                 <div class="item-value">
                   <div class="number-stepper">
                     <v-btn
@@ -187,7 +167,7 @@
                       type="number"
                       class="stepper-input"
                       min="2"
-                    >
+                    />
                     <v-btn
                       class="stepper-btn"
                       prepend-icon="mdi-chevron-up"
@@ -203,14 +183,8 @@
 
             <div class="">
               <div class="d-flex align-center justify-space-between">
-                <v-icon
-                  icon="mdi-calendar-blank"
-                  size="24"
-                  class="pe-3"
-                />
-                <div class="item-label">
-                  Periodicidade
-                </div>
+                <v-icon icon="mdi-calendar-blank" size="24" class="pe-3" />
+                <div class="item-label">Periodicidade</div>
                 <div class="item-value pb-2">
                   <v-select
                     v-model="tempPeriodicidade"
@@ -225,16 +199,10 @@
           </div>
 
           <div class="d-flex justify-space-between align-center p-3">
-            <v-btn
-              class="btn-cancelar"
-              @click="cancelarConfiguracaoRepeticao"
-            >
+            <v-btn class="btn-cancelar" @click="cancelarConfiguracaoRepeticao">
               Cancelar
             </v-btn>
-            <v-btn
-              class="btn-concluido"
-              @click="concluirParcelas"
-            >
+            <v-btn class="btn-concluido" @click="concluirParcelas">
               Concluído
             </v-btn>
           </div>
@@ -254,16 +222,10 @@
         prepend-inner-icon="mdi-calendar"
       >
         <template #append-inner>
-          <span
-            v-if="isTodayVencimento"
-            class="today__label"
-          >Hoje</span>
+          <span v-if="isTodayVencimento" class="today__label">Hoje</span>
         </template>
         <template #message>
-          <div
-            v-if="errorsForm.date"
-            class="error__message"
-          >
+          <div v-if="errorsForm.date" class="error__message">
             {{ errorsForm.date[0] }}
           </div>
         </template>
@@ -315,10 +277,7 @@
         prepend-inner-icon="mdi-scatter-plot"
       >
         <template #message>
-          <div
-            v-if="errorsForm.categoria"
-            class="error-message"
-          >
+          <div v-if="errorsForm.categoria" class="error-message">
             {{ errorsForm.categoria[0] }}
           </div>
         </template>
@@ -336,10 +295,7 @@
         prepend-inner-icon="mdi-scatter-plot"
       >
         <template #message>
-          <div
-            v-if="errorsForm.categoria"
-            class="error-message"
-          >
+          <div v-if="errorsForm.categoria" class="error-message">
             {{ errorsForm.categoria[0] }}
           </div>
         </template>
@@ -357,10 +313,7 @@
         prepend-inner-icon="mdi-bank"
       >
         <template #message>
-          <div
-            v-if="errorsForm.conta"
-            class="error-message"
-          >
+          <div v-if="errorsForm.conta" class="error-message">
             {{ errorsForm.conta[0] }}
           </div>
         </template>
@@ -392,16 +345,10 @@
         prepend-inner-icon="mdi-calendar-clock"
       >
         <template #append-inner>
-          <span
-            v-if="isTodayLancamento"
-            class="today__label"
-          >Hoje</span>
+          <span v-if="isTodayLancamento" class="today__label">Hoje</span>
         </template>
         <template #message>
-          <div
-            v-if="errorsForm.date"
-            class="error__message"
-          >
+          <div v-if="errorsForm.date" class="error__message">
             {{ errorsForm.date[0] }}
           </div>
         </template>
@@ -421,28 +368,32 @@
         prepend-inner-icon="mdi-calendar-check"
       >
         <template #append-inner>
-          <span
-            v-if="isTodayEfetivacao"
-            class="today__label"
-          >Hoje</span>
+          <span v-if="isTodayEfetivacao" class="today__label">Hoje</span>
         </template>
         <template #message>
-          <div
-            v-if="errorsForm.date"
-            class="error__message"
-          >
+          <div v-if="errorsForm.date" class="error__message">
             {{ errorsForm.date[0] }}
           </div>
         </template>
       </v-date-input>
     </v-form>
   </div>
+  <ErrorsForm />
+  <ErrorMessage />
 </template>
 
 <script setup lang="ts">
+import ErrorMessage from "@/components/ErrorMessage.vue";
+import ErrorsForm from "@/components/ModalErrorsForm.vue";
+
 import http from "@/services/http";
-import { useExpensesStore, useRevenuesStore, useWalletsStore } from "@/store";
-import type { Lancamento } from "@/types";
+import {
+  useExpensesStore,
+  useRevenuesStore,
+  useWalletsStore,
+  useErrorStore,
+} from "@/store";
+import type { Lancamento, ApiErrorResponse } from "@/types";
 import { formatValue } from "@/utils/formatValue";
 import type { AxiosError } from "axios";
 import { computed, ref, watch } from "vue";
@@ -450,6 +401,7 @@ import { computed, ref, watch } from "vue";
 const useWallets = useWalletsStore();
 const useRevenues = useRevenuesStore();
 const useExpenses = useExpensesStore();
+const errorStore = useErrorStore();
 
 const emit = defineEmits(["updateData", "closeForm"]);
 
@@ -457,7 +409,7 @@ const props = defineProps<{
   releases?: Lancamento;
   rota: string;
   mesReferencia: string;
-  transactionType: "receitas" | "despesas";
+  transactionType: "Receita" | "Despesa";
 }>();
 
 const validateDate = (date: string | Date | undefined): string => {
@@ -488,9 +440,9 @@ const validFormLancamentos = ref(false);
 const openTipoLancamento = ref(false);
 const openParcelas = ref(false);
 const errorsForm = ref<{ [key: string]: string[] }>({});
-const tiposLancamento = ref<("Não recorrente" | "Parcelada" | "Fixa mensal")[]>(
-  ["Não recorrente", "Parcelada", "Fixa mensal"]
-);
+const tiposLancamento = ref<("Receita" | "Despesa" | "CartaoCredito")[]>([
+  "Receita" | "Despesa" | "CartaoCredito",
+]);
 
 const categoriasNames = ref(
   props.transactionType === "receitas"
@@ -535,7 +487,7 @@ const formReleases = ref<Lancamento>({
   id: props.releases?.id || null,
   descricao: props.releases?.descricao || "",
   valor: formatValue(Number(props.releases?.valor)) || "0,00",
-  tipo: props.releases?.tipo || "Não recorrente",
+  tipo: props.releases?.tipo || props.transactionType,
   numParcelas: props.releases?.numParcelas || undefined,
   periodicidade: props.releases?.periodicidade || undefined,
   dataVencimento: validateDate(props.releases?.dataVencimento),
@@ -655,10 +607,6 @@ const concluirParcelas = () => {
   // Fecha o modal
   openParcelas.value = false;
 };
-console.log(parcelaInicial.value);
-console.log(formReleases.value.numParcelas);
-console.log(formReleases.value.periodicidade);
-console.log(formReleases.value.valor);
 
 const toggleStatus = () => {
   formReleases.value.status =
@@ -670,9 +618,7 @@ const closeForm = () => {
   clearInputs();
 };
 
-const selecionarTipo = (
-  item: "Não recorrente" | "Parcelada" | "Fixa mensal"
-) => {
+const selecionarTipo = (item: "Receita" | "Despesa" | "CartaoCredito") => {
   formReleases.value.tipo = item;
   openTipoLancamento.value = false;
 
@@ -695,6 +641,7 @@ const selecionarTipo = (
 };
 
 const salvarLancamentos = async () => {
+  errorStore.unsetError();
   try {
     loading.value = true;
     const method = isEditMode.value ? http.put : http.post;
@@ -704,16 +651,16 @@ const salvarLancamentos = async () => {
     const res = await method(url, formReleases.value);
 
     useRevenues.setRevenuesData(res.data.revenuesData);
-    // useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
     useWallets.setWalletsData(res.data.walletsData);
     emit("updateData", res.data.revenuesData);
     closeForm();
   } catch (error) {
-    const axiosError = error as AxiosError<{
-      errors: { [key: string]: string[] };
-    }>;
-    errorsForm.value = axiosError.response?.data?.errors || {};
-    console.error("Erro ao salvar lançamento:", axiosError.response?.data);
+    const axiosError = error as AxiosError<ApiErrorResponse>;
+    if (axiosError.response?.data.errors) {
+      errorStore.setErrorFromForm(axiosError);
+    } else {
+      errorStore.setErrorFromResponse(axiosError);
+    }
   } finally {
     loading.value = false;
   }

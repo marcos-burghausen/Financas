@@ -312,13 +312,13 @@ class AuthController extends Controller
 
         return [
             'expenses' => [
-                ...$this->classifiesReleases($user->expenses()->get(), 'Expenses'),
+                ...$this->classifiesReleases($user->expenses(), 'Expenses'),
                 "categories" => [
                     ...$categoriasDespesas,
                 ],
             ],
             "revenues" => [
-                ...$this->classifiesReleases($user->revenues()->get(), 'Revenues'),
+                ...$this->classifiesReleases($user->revenues(), 'Revenues'),
                 "categories" => [
                     ...$categoriasReceitas,
                 ],

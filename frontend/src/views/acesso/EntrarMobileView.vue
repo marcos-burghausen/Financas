@@ -92,12 +92,10 @@ import {
   useWalletsStore,
 } from "@/store";
 
-import { ApiErrorResponse } from "@/types";
-
 import http from "@/services/http";
 import { useRouter } from "vue-router";
 
-import type { FormLogin, LoginResponse } from "@/types";
+import type { FormLogin, LoginResponse, ApiErrorResponse } from "@/types";
 import type { AxiosError, AxiosResponse } from "axios";
 import { ref } from "vue";
 

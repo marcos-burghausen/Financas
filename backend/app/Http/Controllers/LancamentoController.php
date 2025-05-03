@@ -3,22 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Errors;
-use App\Http\Traits\GroupReleasesTrait;
 use App\Http\Traits\ReleasesMonthTrait;
 use App\Mail\NotificationMail;
 use App\Models\Conta;
 use App\Models\Lancamento;
 use App\Models\Parcela;
-use App\Models\Revenue;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
-class RevenueController extends Controller
+class LancamentoController extends Controller
 {
     use ReleasesMonthTrait;
 
-    public function saveRevenue(Request $request)
+    public function saveLancamento(Request $request)
     {
         $data = $this->validateData($request);
 
@@ -27,21 +25,21 @@ class RevenueController extends Controller
         $user = auth()->user();
 
         DB::beginTransaction();
-        $revenue = new Revenue;
-        $revenue->user_id        = $user->id;
-        $revenue->descricao      = $data['descricao'];
-        $revenue->valor          = str_replace([',', '.'], '', $data['valor']);
-        $revenue->tipo           = $data['tipo'];
-        $revenue->numParcelas    = $data['numParcelas'] ?? null;
-        $revenue->periodicidade  = $data['periodicidade'] ?? null;
-        $revenue->dataVencimento = $data['dataVencimento'];
-        $revenue->status         = $data['status'];
-        $revenue->categoria      = $data['categoria'];
-        $revenue->subcategoria   = $data['subcategoria'];
-        $revenue->dataLancamento = $data['dataLancamento'];
-        $revenue->dataEfetivacao = $data['dataEfetivacao'] ?? null;
-        $revenue->conta          = $data['conta'];
-        $saved = $revenue->save();
+        $lancamento                 = new Lancamento();
+        $lancamento->user_id        = $user->id;
+        $lancamento->descricao      = $data['descricao'];
+        $lancamento->valor          = str_replace([',', '.'], '', $data['valor']);
+        $lancamento->tipo           = $data['tipo'];
+        $lancamento->numParcelas    = $data['numParcelas'] ?? null;
+        $lancamento->periodicidade  = $data['periodicidade'] ?? null;
+        $lancamento->dataVencimento = $data['dataVencimento'];
+        $lancamento->status         = $data['status'];
+        $lancamento->categoria      = $data['categoria'];
+        $lancamento->subcategoria   = $data['subcategoria'];
+        $lancamento->dataLancamento = $data['dataLancamento'];
+        $lancamento->dataEfetivacao = $data['dataEfetivacao'] ?? null;
+        $lancamento->conta          = $data['conta'];
+        $saved = $lancamento->save();
 
         if ($saved && $data['numParcelas'] > 1) {
             $lastLancamento = Lancamento::latest('id')->first();
@@ -54,31 +52,31 @@ class RevenueController extends Controller
                 ->first();
 
             if ($conta) {
-                $conta->saldo += $revenue->valor;
+                $conta->saldo += $lancamento->valor;
                 $conta->save();
             }
         }
 
         if (!$saved) {
             DB::rollBack();
-            return response()->json(Errors::ERROR_REGISTERING_REVENUE->response(), 422);
+            return response()->json(Errors::ERROR_REGISTERING_LANCAMENTO->response(), 422);
         }
 
         DB::commit();
 
-        $revenuesData = $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data['mesReferencia']);
+        $lancamentoData = $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data['mesReferencia']);
         $walletsData = [
             'contas'       => $user->contas()->get(['id', 'name', 'icon', 'saldo', 'saldoInicial', 'descricao', 'tipo', 'incluirEmSomaInicial']),
             'saldoInicial' => $this->obterSaldoInicial($user, $data['mesReferencia'] ?? date('Y-m')),
         ];
 
-        Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Receita', $revenue->descricao));
+        Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', $data['tipo'], $lancamento->descricao));
 
         return response()->json([
-            'success' => 'Receita cadastrada com sucesso',
-            'revenuesData' => $revenuesData,
-            'walletsData' => $walletsData,
-            "mesAno" => $data['mesReferencia'],
+            'success'         => "{$data['tipo']} cadastrada com sucesso",
+            "{$data['tipo']}" => $lancamentoData,
+            'walletsData'     => $walletsData,
+            "mesAno"          => $data['mesReferencia'],
         ], 201);
     }
 
@@ -90,7 +88,7 @@ class RevenueController extends Controller
 
         DB::beginTransaction();
 
-        $revenue = Revenue::where('id', $id)->where('user_id', $user->id)->first();
+        $revenue = Lancamento::where('id', $id)->where('user_id', $user->id)->first();
         if (!$revenue) {
             DB::rollBack();
             return response()->json(['error' => 'Receita não encontrada'], 404);
@@ -176,7 +174,7 @@ class RevenueController extends Controller
         $user = auth()->user();
 
         DB::beginTransaction();
-        $revenue = Revenue::where('id', $id)->where('user_id', $user->id)->first();
+        $revenue = Lancamento::where('id', $id)->where('user_id', $user->id)->first();
         if (!$revenue) {
             DB::rollBack();
             return response()->json(['error' => 'Receita não encontrada'], 404);
@@ -226,7 +224,7 @@ class RevenueController extends Controller
         $user = auth()->user();
 
         DB::beginTransaction();
-        $revenue = Revenue::where('id', $id)->where('user_id', $user->id)->first();
+        $revenue = Lancamneto::where('id', $id)->where('user_id', $user->id)->first();
         if (!$revenue) {
             DB::rollBack();
             return response()->json(['error' => 'Receita não encontrada'], 404);
@@ -278,7 +276,7 @@ class RevenueController extends Controller
                 'id'              => 'nullable | integer',
                 'descricao'       => 'required | string | max:50',
                 'valor'           => 'required | min:0.01',
-                'tipo'            => 'string | in:Não recorrente,Parcelada,Fixa mensal',
+                'tipo'            => 'string | in:Receita,Despesa,CartaoCredito',
                 'numParcelas'    => 'nullable | integer | min:2',
                 'periodicidade'   => 'nullable | string | in:Mensal,Diario,Semanal,Quinzenal,Trimestral,Anual',
                 'dataVencimento' => 'required | date',

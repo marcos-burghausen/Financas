@@ -4,7 +4,7 @@ namespace App\Enums;
 
 enum Errors: string
 {
-    /**
+/**
      * As Enums devem seguir esse padrão:
      * case NOME_DO_ERRO = "SP000"
      * 
@@ -37,7 +37,7 @@ enum Errors: string
     case ERROR_WHILE_GETTING_USER_DATA  = "SP200";          //Erro ao obter dados do usuario.
 
 
-    case ERROR_REGISTERING_EXPENSE      = "SP300";          //Erro ao cadastrar despesa.
+    case ERROR_REGISTERING_LANCAMENTO   = "SP300";          //Erro ao cadastrar lançamento.
     case ERROR_DELETING_EXPENSE         = "SP301";          //Erro ao excluir despesa.
     case ERROR_UPDATING_EXPENSE         = "SP302";          //Erro ao atualizar despesa.
     case ERROR_FETCHING_EXPENSE         = "SP303";          //Erro ao buscar despesa.
