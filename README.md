@@ -134,10 +134,11 @@ o app vai ter cadastro de usuários o usuário vai poder cadastrar lançamentos 
 o usuário poderá cadastrar contas e cartão de credito o qual deve estar vinculado a uma conta, também poderá cadastrar categorias e subcategorias
 as contas também terão categorias
 as contas, cartões, categorias e subcategorias terão ícones esses poderão ter cores escolhidas pelo usuário
-o usuário terá um perfil onde ele poderá inserir/alterar seu avatar, trocar senha, inserir alguns dados como endereço documentos...
+o usuário terá um perfil onde ele poderá inserir/alterar seu avatar, trocar senha, selecionar se ele quer receber notificações dos vencimentos dos lançamentos se a notificação sera enviada no dia ou ate 3 dias antes do vencimento e tambem o horario que a notificação sera enviada,inserir alguns dados como endereço, documentos...
 para o cadastro/login poderá ser feito da forma tradicional, facebook, goolge e LinkedIn
 quero que analise minhas funcionalidades e veja se tem algo importante que eu possa ter esquecido e deva ser implementado
 quero desenvolver esse app de forma profissional usando boas praticas tanto no planejamento quanto desenvolvimento
+a stack de tecnologia que quero usar vue js3 no front, laravel no back docker e mysql
 
 +------------------+ +------------------+ +------------------+
 | Users | | Accounts | | CreditCards |

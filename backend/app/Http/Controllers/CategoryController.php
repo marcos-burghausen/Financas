@@ -22,9 +22,12 @@ class CategoryController extends Controller
                 'name.min'                 => 'O campo nome da categoria deve ter pelo menos 3 caracteres',
             ]
         );
+
         $newCategory = $request->all(['color', 'edit', 'icon', 'name', 'typeCategory']);
+
         /** @var User $user */
         $user = auth()->user();
+
         if ($newCategory['typeCategory'] === 'despesa') {
             $categoriasDespesas = $user->categoriasDespesas;
             $categoriasDespesas[] = $newCategory;
