@@ -9,24 +9,18 @@
       @update-data="updateData"
       @close-form="closeForm"
     />
-    <div
-      v-if="!formulario"
-      class="receitas"
-    >
+    <div v-if="!formulario" class="receitas">
       <div class="header fixed-top">
         <div class="d-flex justify-content-between">
           <router-link
             class="link me-7 d-flex align-items-center opaco"
             :to="{ name: 'dashboard' }"
           >
-            <v-icon
-              icon="mdi-arrow-left"
-              size="25"
-            />
+            <v-icon icon="mdi-arrow-left" size="25" />
           </router-link>
           <div class="header__items">
             <div class="d-flex flex-column">
-              <span class="fs-5">Receitas</span>
+              <span class="fs-5">despesas</span>
               <span class="valor">
                 R$ {{ formatValue(Number(valueTotalExpensesMonth)) }}
               </span>
@@ -59,10 +53,7 @@
           class="container__table"
         >
           <div class="card__lancamento">
-            <v-card
-              color="transparent"
-              class="mdicon__card"
-            >
+            <v-card color="transparent" class="mdicon__card">
               <v-icon
                 :icon="
                   revenue.status === 'Efetivada'
@@ -70,8 +61,8 @@
                     : revenue.dataVencimento &&
                       new Date() <= new Date(revenue.dataVencimento) &&
                       revenue.status === 'Pendente'
-                      ? 'mdi-calendar-remove'
-                      : 'mdi-alert'
+                    ? 'mdi-calendar-remove'
+                    : 'mdi-alert'
                 "
                 class="mdicon__lacamento"
                 :class="{
@@ -96,11 +87,7 @@
                 <div>
                   <span>{{ revenue.dataVencimento }}</span>
                   <span>
-                    <v-icon
-                      icon="mdi-dots-vertical"
-                      class="mdicon"
-                      size="25"
-                    />
+                    <v-icon icon="mdi-dots-vertical" class="mdicon" size="25" />
                     <v-menu
                       activator="parent"
                       location="bottom end"
@@ -131,7 +118,9 @@
               </div>
               <div style="display: flex; justify-content: space-between">
                 <span class="categoria">{{ revenue.descricao }}</span>
-                <span class="categoria">R$ {{ formatValue(Number(revenue.valor)) }}</span>
+                <span class="categoria"
+                  >R$ {{ formatValue(Number(revenue.valor)) }}</span
+                >
               </div>
               <div>
                 <span class="sub__categoria">{{ revenue.categoria }}</span>
@@ -142,10 +131,7 @@
       </div>
       <NoDataComponent v-else />
     </div>
-    <div
-      v-if="!formulario"
-      class="fixed-bottom d-flex justify-end pe-5 pb-5"
-    >
+    <div v-if="!formulario" class="fixed-bottom d-flex justify-end pe-5 pb-5">
       <v-icon
         type="button"
         title="Adicionar nova receita"
@@ -165,7 +151,12 @@ import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
 
 import http from "@/services/http";
 
-import { useExpensesStore, useRevenuesStore, useUserStore, useWalletsStore } from "@/store";
+import {
+  useExpensesStore,
+  useRevenuesStore,
+  useUserStore,
+  useWalletsStore,
+} from "@/store";
 
 import type { Lancamento, TransactionsData } from "@/types";
 
@@ -313,15 +304,22 @@ const payExpense = async (expnseId: number, conta: string) => {
 </script>
 
 <style scoped>
-.content-wrapper {
+.receitas {
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 100%;
+  width: 100%;
+  max-width: 600px;
+  overflow: auto;
+  padding-bottom: 10px;
 }
 .header {
   display: flex;
+  flex-direction: column;
   padding: 10px;
   color: #bdbdbd;
+  background-color: rgb(15, 15, 15);
 }
 .link {
   text-decoration: none;
@@ -343,22 +341,24 @@ const payExpense = async (expnseId: number, conta: string) => {
   width: 100%;
   display: flex;
   justify-content: space-around;
+  padding-top: 15px;
+}
+.mdicon {
+  color: #757575;
+  cursor: pointer;
+}
+.mdicon__add {
+  height: 45px;
+  width: 45px;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 50px;
+  background-color: #ff0000;
+  color: #fefefe;
 }
 .mes {
   font-size: 25px;
   color: #bdbdbd;
-}
-.btn__nova__despesa {
-  position: fixed;
-  right: calc(
-    (100vw - 500px) / 2 + 55px
-  ); /* Calcula a posição relativa ao centro do #app */
-  bottom: 15px;
-  background-color: #ff0000;
-  border: none;
-  border-radius: 50%;
-  padding: 10px;
-  color: #fefefe;
 }
 .container__table {
   margin-top: 15px;
@@ -370,7 +370,7 @@ const payExpense = async (expnseId: number, conta: string) => {
 .mdicon__card {
   padding-right: 10px;
   display: flex;
-  align-items: end;
+  align-items: center;
 }
 .mdicon__lacamento {
   border-radius: 50%;
@@ -385,7 +385,7 @@ const payExpense = async (expnseId: number, conta: string) => {
   color: #ff0000 !important;
   background: #ff000021 !important;
 }
-.aguardando {
+.pendente {
   color: #e5ff00 !important;
   background: #e5ff0021 !important;
 }
@@ -393,6 +393,7 @@ const payExpense = async (expnseId: number, conta: string) => {
   display: flex;
   justify-content: space-between;
   color: #757575;
+  height: 22px;
 }
 .color {
   color: #bdbdbd;
@@ -401,6 +402,9 @@ const payExpense = async (expnseId: number, conta: string) => {
   font-size: 20px;
   color: #bdbdbd;
   padding-right: 27px;
+  height: 22px;
+  display: flex;
+  align-items: center;
 }
 .sub__categoria {
   font-size: 15px;
@@ -408,124 +412,5 @@ const payExpense = async (expnseId: number, conta: string) => {
   margin-right: 5px;
   padding-inline: 5px;
   border-radius: 15px;
-}
-
-.conta__lancamento {
-  display: flex;
-  flex-direction: column;
-}
-
-.cadastro {
-  box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
-  padding-top: 15px;
-  width: 400px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.inputSimples {
-  background-color: #1e1e1e;
-  margin: 20px 0 0 0;
-  display: flex;
-  align-items: center;
-  padding-left: 5px;
-  position: relative;
-  border-radius: 5px;
-}
-
-input[type="date"]::-webkit-calendar-picker-indicator {
-  background: transparent;
-  bottom: 0;
-  color: transparent;
-  cursor: pointer;
-  height: auto;
-  left: 0;
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: auto;
-}
-
-.error {
-  height: 20px;
-}
-
-.span-error {
-  color: rgb(194, 4, 4);
-  position: relative;
-  top: 0;
-  left: 0;
-}
-
-.mdicon {
-  color: white;
-}
-
-.options {
-  background-color: #292d32;
-}
-.form {
-  display: flex;
-  flex-direction: column;
-  width: 100% !important;
-  padding: 10px;
-}
-
-.input {
-  background-color: #1e1e1e !important;
-  height: 40px;
-  color: #ccc;
-  width: 100%;
-  border: none;
-}
-
-.input:focus ~ label,
-.input:valid ~ label {
-  transform: translateY(-30px);
-  opacity: 0.9;
-}
-
-.input:internal-autofill-selected {
-  background-color: transparent;
-}
-
-.label {
-  color: #ccc;
-  position: absolute;
-  left: 10px;
-  top: 8px;
-  opacity: 0.4;
-  cursor: text;
-  transition: 0.5s ease-in-out;
-}
-
-.card__container {
-  display: flex;
-}
-
-.cards {
-  width: 33.33%;
-  color: #ccc;
-  font-size: 30px;
-  background-color: rgba(0, 0, 0, 0.1);
-}
-
-.btn {
-  height: 40px;
-  /* margin-top: 15px; */
-}
-
-.pay {
-  color: #1dbb01 !important;
-}
-
-@media screen and (max-width: 600px) {
-  .card__container {
-    flex-direction: column;
-  }
-  .cards {
-    width: 100%;
-  }
 }
 </style>

@@ -8,6 +8,17 @@ export default defineConfig({
     plugins: [
         vue(),
     ],
+    server: {
+        host: true, // Importante para ser acessível dentro do Docker
+        proxy: {
+            // Qualquer requisição para /api será redirecionada
+            "/api": {
+                // target: 'http://backend_dev:80',
+                target: import.meta.env.VITE_URL, // O alvo é o seu container Laravel
+                changeOrigin: true,
+            }
+        }
+    },
     resolve: {
         alias: {
             "@": fileURLToPath(new URL("./src", import.meta.url)),
