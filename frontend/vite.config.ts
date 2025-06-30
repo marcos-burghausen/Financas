@@ -12,6 +12,9 @@ export default defineConfig(({ mode }) => {
         plugins: [vue()],
     server: {
         host: true, // Importante para ser acessível dentro do Docker
+        allowedHosts: [
+            env.VITE_URL_DEV,
+        ],
         proxy: {
             // Qualquer requisição para /api será redirecionada
             "/api": {

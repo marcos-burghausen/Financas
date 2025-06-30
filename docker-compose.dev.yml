@@ -18,7 +18,7 @@ services:
 
   #node
   frontend_dev: # <-- MUDANÇA: Nome do serviço
-    image: marcosrafaelburghausen/node-19
+    image: marcosrafaelburghausen/node-22
     container_name: Mr_frontend_dev # <-- MUDANÇA: Nome do container
     working_dir: /home/node/app
     command: bash -c "npm i && npm run dev -- --host"
