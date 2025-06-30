@@ -1,20 +1,22 @@
 import vue from "@vitejs/plugin-vue";
 import { fileURLToPath } from "node:url";
 import path from "path";
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 
 // https://vitejs.dev/config/
-export default defineConfig({
-    plugins: [
-        vue(),
-    ],
+export default defineConfig(({ mode }) => {
+
+    const env = loadEnv(mode, process.cwd(), "");
+
+    return {
+        plugins: [vue()],
     server: {
         host: true, // Importante para ser acessível dentro do Docker
         proxy: {
             // Qualquer requisição para /api será redirecionada
             "/api": {
                 // target: 'http://backend_dev:80',
-                target: import.meta.env.VITE_URL, // O alvo é o seu container Laravel
+                target: env.VITE_URL, // 
                 changeOrigin: true,
             }
         }
@@ -27,6 +29,7 @@ export default defineConfig({
             "@store": path.resolve(__dirname, "./src/store")
         }
     }
+};
 });
 // import vue from "@vitejs/plugin-vue";
 // import { defineConfig } from "vite";
