@@ -1,0 +1,17 @@
+[
+    {
+        "id": "deploy-dev",
+        "execute-command": "/var/webhook/deploy.sh",
+        "command-working-directory": "/var/webhook/",
+        "trigger-rule": {
+            "match": {
+                "type": "value",
+                "value": "SEU_SEGREDO_SUPER_SECRETO_AQUI",
+                "parameter": {
+                    "source": "url",
+                    "name": "secret"
+                }
+            }
+        }
+    }
+]

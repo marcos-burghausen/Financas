@@ -88,6 +88,19 @@ services:
     networks:
       - network_dev # <-- MUDANÇA: Nome da rede
 
+  # Serviço para o Webhook de Deploy Automático
+  webhook_dev:
+    image: adnanh/webhook
+    container_name: webhook_financas_dev
+    networks:
+      - network_dev
+    ports:
+      - "9000:9000" # Expõe a porta 9000 para o servidor
+    volumes:
+      - ./deploy.sh:/var/webhook/deploy.sh # Mapeia o script de deploy
+      - ./hooks.json:/etc/webhook/hooks.json # Mapeia o arquivo de configuração
+    command: -hooks /etc/webhook/hooks.json -verbose
+
 volumes:
   mysql_db_dev: # <-- MUDANÇA
     driver: "local"
