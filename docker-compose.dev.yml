@@ -90,7 +90,7 @@ services:
 
   # Serviço para o Webhook de Deploy Automático
   webhook_dev:
-    image: adnanh/webhook
+    image: almir/webhook
     container_name: webhook_financas_dev
     networks:
       - network_dev
