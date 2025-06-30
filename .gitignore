@@ -2,3 +2,5 @@ teste.html
 teste.js
 frontend_django
 Mr_backend_django
+deploy.sh
+hooks.json
