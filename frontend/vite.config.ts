@@ -8,17 +8,15 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [vue()],
     server: {
-      host: "0.0.0.0",
-      allowedHosts: [
-        env.VITE_URL_DEV
-      ],
-      proxy: {
+    host: "0.0.0.0", // Diz ao Vite para escutar em todas as interfaces de rede
+    strictPort: true, // Garante que o Vite use a porta que definimos
+    proxy: {
         "/api": {
-          target: env.VITE_URL,
-          changeOrigin: true,
+        target: env.VITE_URL, 
+        changeOrigin: true,
         }
-      }
-    },
+    }
+},
     resolve: {
       alias: {
         "@": fileURLToPath(new URL("./src", import.meta.url)),
