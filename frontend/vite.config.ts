@@ -8,8 +8,9 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [vue()],
     server: {
-    host: "0.0.0.0", // Diz ao Vite para escutar em todas as interfaces de rede
-    strictPort: true, // Garante que o Vite use a porta que definimos
+    host: true,
+    strictPort: true,
+    allowedHosts: ["*"],
     proxy: {
         "/api": {
         target: env.VITE_URL, 
