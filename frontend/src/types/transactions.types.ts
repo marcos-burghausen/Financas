@@ -3,7 +3,8 @@ export interface Lancamento {
     id: number | null;
     descricao?: string;
     valor: string;
-    tipo?: "Receita" | "Despesa" | "CartaoCredito";
+    tipo?: "Receita" | "Despesa";
+    recorrencia?: "Único" | "Fixo" | "Parcelado";
     numParcelas?: number;
     periodicidade: "Mensal" | "Diario" | "Semanal" | "Quinzenal" | "Trimenstral" | "Anual" | undefined;
     dataVencimento?: string | Date;

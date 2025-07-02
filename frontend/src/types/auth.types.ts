@@ -41,8 +41,8 @@ export interface LoginResponse {
         categories: CategoryData[];
       };
       wallets: WalletData
+      mesAno: string;
     };
-    mesAno: string;
   }
 
   

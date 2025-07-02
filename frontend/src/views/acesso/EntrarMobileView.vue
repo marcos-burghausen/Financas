@@ -16,19 +16,8 @@
               <v-icon class="icon__modify" icon="mdi-facebook" />
             </li>
           </a>
-          <!-- <a class="link__social__media" href="#">
-            <li class="item__social__media">
-              <v-icon class="icon__modify" icon="mdi-google" />
-            </li>
-          </a>
-          <a class="link__social__media" href="#">
-            <li class="item__social__media">
-              <v-icon class="icon__modify" icon="mdi-linkedin" />
-            </li>
-          </a> -->
         </ul>
       </div>
-      <!-- <p class="sub__title">ou use sua conta de e-mail:</p> -->
       <ErrorMessage />
       <v-form v-model="validForm" class="form" @submit.prevent="login">
         <v-combobox
@@ -47,13 +36,13 @@
         <v-text-field
           v-model="user.password"
           variant="underlined"
-          :type="mostrarSenha ? 'password' : 'text'"
+          :type="mostrarSenha ? 'text' : 'password'"
           hide-details="auto"
           label="Senha"
           :rules="[rules.requiredSenha]"
           class="mb-5 imput"
           prepend-inner-icon="mdi-lock-outline"
-          :append-inner-icon="mostrarSenha ? 'mdi-eye' : 'mdi-eye-off'"
+          :append-inner-icon="mostrarSenha ? 'mdi-eye-off' : 'mdi-eye'"
           @click:append-inner="mostrarSenha = !mostrarSenha"
         />
 
@@ -82,7 +71,6 @@
 <script setup lang="ts">
 import ErrorMessage from "@/components/ErrorMessage.vue";
 import ErrorsForm from "@/components/ModalErrorsForm.vue";
-
 import {
   useAuthStore,
   useErrorStore,
@@ -91,10 +79,8 @@ import {
   useUserStore,
   useWalletsStore,
 } from "@/store";
-
 import http from "@/services/http";
 import { useRouter } from "vue-router";
-
 import type { FormLogin, LoginResponse, ApiErrorResponse } from "@/types";
 import type { AxiosError, AxiosResponse } from "axios";
 import { ref } from "vue";
@@ -105,15 +91,17 @@ const useRevenues = useRevenuesStore();
 const useWallets = useWalletsStore();
 const useUser = useUserStore();
 const errorStore = useErrorStore();
-const user = ref<FormLogin>({
-  email: "rafaelburghausen@gmail.com",
-  password: "Teste123@",
-});
 const router = useRouter();
 const useAuth = useAuthStore();
 
+// CORREÇÃO: Removidos os dados de usuário hardcoded.
+const user = ref<FormLogin>({
+  email: "",
+  password: "",
+});
+
 let validForm = ref(false);
-let mostrarSenha = ref(true);
+let mostrarSenha = ref(false); // Mudado para false para começar com a senha oculta
 let loading = ref(false);
 
 async function initiateFacebookLogin() {
@@ -124,10 +112,12 @@ async function initiateFacebookLogin() {
     window.location.href = response.data.redirect_url;
   } catch (error) {
     console.error("Erro ao iniciar login do Facebook", error);
+    loading.value = false; // Garante que o loading para em caso de erro
   }
 }
 
 const login = async () => {
+  if (!validForm.value) return; // Prevenção extra
   errorStore.unsetError();
   try {
     loading.value = true;
@@ -135,6 +125,7 @@ const login = async () => {
       "/auth",
       user.value
     );
+    // SUGESTÃO: Esta lógica poderia ser movida para uma única ação na store, como useAuth.loginAndFetchData(...)
     useAuth.setToken(response.data.token);
     useUser.setUserData(response.data.userData);
     useUser.setMesAno(response.data.data.mesAno);
@@ -161,6 +152,7 @@ const rules = {
 };
 </script>
 <style scoped>
+/* SEU CSS AQUI (sem alterações) */
 .box {
   display: flex;
   padding: 0;

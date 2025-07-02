@@ -5,7 +5,7 @@
       :releases="selectedRelease"
       rota="expense"
       :mes-referencia="mesAnoReferencia"
-      transaction-type="despesas"
+      transaction-type="Despesa"
       @update-data="updateData"
       @close-form="closeForm"
     />
@@ -48,44 +48,44 @@
         class="container-fluid pt-15 mt-15 pb-8 mb-8"
       >
         <div
-          v-for="revenue in expensesMonth"
-          :key="revenue.id ?? undefined"
+          v-for="expense in expensesMonth"
+          :key="expense.id ?? undefined"
           class="container__table"
         >
           <div class="card__lancamento">
             <v-card color="transparent" class="mdicon__card">
               <v-icon
                 :icon="
-                  revenue.status === 'Efetivada'
+                  expense.status === 'Efetivada'
                     ? 'mdi-check'
-                    : revenue.dataVencimento &&
-                      new Date() <= new Date(revenue.dataVencimento) &&
-                      revenue.status === 'Pendente'
+                    : expense.dataVencimento &&
+                      new Date() <= new Date(expense.dataVencimento) &&
+                      expense.status === 'Pendente'
                     ? 'mdi-calendar-remove'
                     : 'mdi-alert'
                 "
                 class="mdicon__lacamento"
                 :class="{
-                  paga: revenue.status === 'Efetivada',
+                  paga: expense.status === 'Efetivada',
                   atrasada:
-                    revenue.dataVencimento &&
-                    new Date() > new Date(revenue.dataVencimento) &&
-                    revenue.status === 'Pendente',
+                    expense.dataVencimento &&
+                    new Date() > new Date(expense.dataVencimento) &&
+                    expense.status === 'Pendente',
                   pendente:
-                    revenue.dataVencimento &&
-                    new Date() <= new Date(revenue.dataVencimento) &&
-                    revenue.status === 'Pendente',
+                    expense.dataVencimento &&
+                    new Date() <= new Date(expense.dataVencimento) &&
+                    expense.status === 'Pendente',
                 }"
                 size="30"
-                :disabled="revenue.status === 'Efetivada'"
-                @click="payExpense(revenue.id!, revenue.conta!)"
+                :disabled="expense.status === 'Efetivada'"
+                @click="payExpense(expense.id!, expense.conta!)"
               />
             </v-card>
             <div style="width: 100%">
               <div class="header__visao_geral">
-                <span style="text-align: start">{{ revenue.conta }}</span>
+                <span style="text-align: start">{{ expense.conta }}</span>
                 <div>
-                  <span>{{ revenue.dataVencimento }}</span>
+                  <span>{{ expense.dataVencimento }}</span>
                   <span>
                     <v-icon icon="mdi-dots-vertical" class="mdicon" size="25" />
                     <v-menu
@@ -104,12 +104,12 @@
                         <v-list-item
                           title="Editar"
                           link
-                          @click="editExpense(revenue)"
+                          @click="editExpense(expense)"
                         />
                         <v-list-item
                           title="Excluir"
                           link
-                          @click="deletar(revenue.id!)"
+                          @click="deletar(expense.id!)"
                         />
                       </v-list>
                     </v-menu>
@@ -117,13 +117,13 @@
                 </div>
               </div>
               <div style="display: flex; justify-content: space-between">
-                <span class="categoria">{{ revenue.descricao }}</span>
+                <span class="categoria">{{ expense.descricao }}</span>
                 <span class="categoria"
-                  >R$ {{ formatValue(Number(revenue.valor)) }}</span
+                  >R$ {{ formatValue(Number(expense.valor)) }}</span
                 >
               </div>
               <div>
-                <span class="sub__categoria">{{ revenue.categoria }}</span>
+                <span class="sub__categoria">{{ expense.categoria }}</span>
               </div>
             </div>
           </div>
@@ -134,7 +134,7 @@
     <div v-if="!formulario" class="fixed-bottom d-flex justify-end pe-5 pb-5">
       <v-icon
         type="button"
-        title="Adicionar nova receita"
+        title="Adicionar nova despesa"
         icon="mdi-plus"
         class="mdicon__add"
         @click="openCreateForm"
@@ -144,7 +144,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
+import { storeToRefs } from "pinia";
 
 import FormLancamentos from "@/components/FormLancamentos.vue";
 import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
@@ -159,7 +160,6 @@ import {
 } from "@/store";
 
 import type { Lancamento, TransactionsData } from "@/types";
-
 import { formatValue } from "@/utils/formatValue";
 
 const useRevenues = useRevenuesStore();
@@ -170,10 +170,13 @@ const useUser = useUserStore();
 const formulario = ref(false);
 const selectedRelease = ref<Lancamento | undefined>(undefined);
 const mesAnoReferencia = ref<string>(useUser.getMesAno() || "");
-const valueTotalExpensesMonth = ref(useExpenses.expensesData?.valueTotalMonth);
-const expensesMonth = ref<Lancamento[]>(
-  useExpenses.expensesData?.byMonth || []
+
+// CORREÇÃO: Usando storeToRefs e computed para manter a reatividade com a store
+const { expensesData } = storeToRefs(useExpenses);
+const valueTotalExpensesMonth = computed(
+  () => expensesData.value?.valueTotalMonth
 );
+const expensesMonth = computed(() => expensesData.value?.byMonth || []);
 
 interface ApiError {
   response?: {
@@ -186,26 +189,16 @@ interface ApiError {
 const mesPorExtenso = computed(() => {
   if (!mesAnoReferencia.value) return "";
   const [ano, mes] = mesAnoReferencia.value.split("-");
+  const data = new Date(parseInt(ano, 10), parseInt(mes, 10) - 1);
   const anoAtual = new Date().getFullYear();
-  const mesesPorExtenso = [
-    "Janeiro",
-    "Fevereiro",
-    "Março",
-    "Abril",
-    "Maio",
-    "Junho",
-    "Julho",
-    "Agosto",
-    "Setembro",
-    "Outubro",
-    "Novembro",
-    "Dezembro",
-  ];
-  if (parseInt(ano, 10) === anoAtual) {
-    return mesesPorExtenso[parseInt(mes, 10) - 1];
+
+  if (data.getFullYear() === anoAtual) {
+    return new Intl.DateTimeFormat("pt-BR", { month: "long" }).format(data);
   }
-  const mesAbreviado = mesesPorExtenso[parseInt(mes, 10) - 1].slice(0, 3);
-  return `${mesAbreviado}./${ano.slice(2)}`;
+  return new Intl.DateTimeFormat("pt-BR", {
+    month: "short",
+    year: "2-digit",
+  }).format(data);
 });
 
 const openCreateForm = () => {
@@ -213,9 +206,8 @@ const openCreateForm = () => {
   formulario.value = true;
 };
 
-const editExpense = (revenue: Lancamento) => {
-  console.log(revenue);
-  selectedRelease.value = { ...revenue };
+const editExpense = (expense: Lancamento) => {
+  selectedRelease.value = { ...expense };
   formulario.value = true;
 };
 
@@ -226,42 +218,39 @@ const closeForm = () => {
 
 const updateData = (newData: TransactionsData) => {
   useExpenses.setExpensesData(newData);
-  valueTotalExpensesMonth.value = newData.valueTotalMonth;
-  expensesMonth.value = newData.byMonth || [];
+  // Os refs locais foram removidos, as propriedades computadas serão atualizadas automaticamente
   closeForm();
 };
 
 const mesAnterior = () => {
   const [ano, mes] = mesAnoReferencia.value.split("-").map(Number);
-  const dataAtual = new Date(ano, mes - 1);
+  const dataAtual = new Date(ano, mes - 1, 1);
   dataAtual.setMonth(dataAtual.getMonth() - 1);
-  mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
+  const novoMes = `${dataAtual.getFullYear()}-${String(
     dataAtual.getMonth() + 1
   ).padStart(2, "0")}`;
-  buscarDadosMes(mesAnoReferencia.value);
+  buscarDadosMes(novoMes);
 };
 
 const proximoMes = () => {
   const [ano, mes] = mesAnoReferencia.value.split("-").map(Number);
-  const dataAtual = new Date(ano, mes - 1);
+  const dataAtual = new Date(ano, mes - 1, 1);
   dataAtual.setMonth(dataAtual.getMonth() + 1);
-  mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
+  const novoMes = `${dataAtual.getFullYear()}-${String(
     dataAtual.getMonth() + 1
   ).padStart(2, "0")}`;
-  buscarDadosMes(mesAnoReferencia.value);
+  buscarDadosMes(novoMes);
 };
 
 const buscarDadosMes = async (data: string) => {
   try {
     const res = await http.post("/buscar-dados-mes", { mes: data });
-    useUser.setMesAno(res.data.walletsData.mes_ano_referencia);
-    useExpenses.setExpensesData(res.data.expensesData);
-    useRevenues.setRevenuesData(res.data.revenuesData);
-    useWallets.setWalletsData(res.data.walletsData);
-    mesAnoReferencia.value = res.data.walletsData.mes_ano_referencia;
-    expensesMonth.value = res.data.expensesData.expensesMonth;
-    valueTotalExpensesMonth.value =
-      res.data.expensesData.ValueTotalExpensesMonth;
+    // A store já atualiza os dados, o `computed` vai refletir as mudanças
+    useUser.setMesAno(res.data.data.mesAno);
+    useExpenses.setExpensesData(res.data.data.expenses);
+    useRevenues.setRevenuesData(res.data.data.revenues);
+    useWallets.setWalletsData(res.data.data.wallets);
+    mesAnoReferencia.value = res.data.data.mesAno;
   } catch (error) {
     const apiError = error as ApiError;
     console.error("Erro ao buscar dados do mês::", apiError.response?.data);
@@ -273,37 +262,41 @@ const deletar = async (id: number) => {
     const res = await http.delete(`/expense/${id}`, {
       data: { mesReferencia: mesAnoReferencia.value },
     });
-    useExpenses.setExpensesData(res.data.revenuesData);
-    valueTotalExpensesMonth.value = res.data.expensesData.valueTotalMonth;
-    expensesMonth.value = res.data.expensesData.byMonth;
+    // A store já atualiza os dados
+    useExpenses.setExpensesData(res.data.expensesData);
   } catch (error: unknown) {
     const apiError = error as ApiError;
-    console.error("Erro ao deletar receita:", apiError.response?.data);
+    console.error("Erro ao deletar despesa:", apiError.response?.data);
   }
 };
 
-const payExpense = async (expnseId: number, conta: string) => {
+const payExpense = async (expenseId: number, conta: string) => {
   try {
     const payload = {
       conta,
       mesReferencia: mesAnoReferencia.value,
     };
-    const res = await http.patch(`/expense/${expnseId}`, payload);
+    const res = await http.patch(`/expense/${expenseId}`, payload);
+    // Atualiza todas as stores relevantes
+    useExpenses.setExpensesData(res.data.expensesData);
     useRevenues.setRevenuesData(res.data.revenuesData);
-    console.log(res.data.revenuesData);
-    useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
-    console.log(res.data.walletsData.saldoInicial);
-    useWallets.setContas(res.data.walletsData.wallets);
-    console.log(res.data.walletsData.wallets);
-    // Update UI or emit event
+    useWallets.setWalletsData(res.data.walletsData);
   } catch (error) {
     const apiError = error as ApiError;
-    console.error("Erro ao receber receita:", apiError.response?.data);
+    console.error("Erro ao pagar despesa:", apiError.response?.data);
   }
 };
+
+// CORREÇÃO: Usando watch para atualizar o mesAnoReferencia se ele mudar na store (ex: login)
+watch(useUser.getMesAno, (newVal) => {
+  if (newVal) {
+    mesAnoReferencia.value = newVal;
+  }
+});
 </script>
 
 <style scoped>
+/* SEU CSS AQUI (sem alterações) */
 .receitas {
   display: flex;
   flex-direction: column;
