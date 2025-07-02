@@ -1,30 +1,42 @@
 import vue from "@vitejs/plugin-vue";
-import { fileURLToPath, URL } from "node:url";
-import { defineConfig, loadEnv } from "vite";
+import { fileURLToPath } from "node:url";
+import path from "path";
+import { defineConfig } from "vite";
 
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), "");
-
-  return {
-    plugins: [vue()],
-    server: {
-    host: true,
-    strictPort: true,
-    allowedHosts: ["*"],
-    proxy: {
-        "/api": {
-        target: env.VITE_URL, 
-        changeOrigin: true,
+// https://vitejs.dev/config/
+export default defineConfig({
+    plugins: [
+        vue(),
+    ],
+    resolve: {
+        alias: {
+            "@": fileURLToPath(new URL("./src", import.meta.url)),
+            "@services": path.resolve(__dirname, "./src/services"),
+            "@types": path.resolve(__dirname, "./src/types"),
+            "@store": path.resolve(__dirname, "./src/store")
         }
     }
-},
-    resolve: {
-      alias: {
-        "@": fileURLToPath(new URL("./src", import.meta.url)),
-        "@services": fileURLToPath(new URL("./src/services", import.meta.url)),
-        "@types": fileURLToPath(new URL("./src/types", import.meta.url)),
-        "@store": fileURLToPath(new URL("./src/store", import.meta.url))
-      }
-    }
-  };
 });
+// import vue from "@vitejs/plugin-vue";
+// import { defineConfig } from "vite";
+
+// export default defineConfig({
+//     plugins: [vue()],
+//     resolve: {
+//         alias: {
+//             "@": path.resolve(__dirname, "./src"),
+//             // "@": fileURLToPath(new URL("./src", import.meta.url)),
+//             // "@components": fileURLToPath(new URL("./src/components", import.meta.url))
+//         }
+//     },
+//     build: {
+//         rollupOptions: {
+//             external: [], // Adicione aqui módulos que devem ser externalizados
+//             output: {
+//                 manualChunks: {
+//                     // Sua configuração de chunks...
+//                 }
+//             }
+//         }
+//     }
+// });
