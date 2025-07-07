@@ -2,9 +2,15 @@
   <div class="box p-3">
     <div class="container__dados">
       <figure class="figure">
-        <img src="@/assets/img/2.png" class="img" alt="logo" />
+        <img
+          src="@/assets/img/2.png"
+          class="img"
+          alt="logo"
+        >
       </figure>
-      <h2 class="title">Bem vido ao Mr Finanças</h2>
+      <h2 class="title">
+        Bem vido ao Mr Finanças
+      </h2>
       <div class="social__media">
         <ul class="list__social__media">
           <a
@@ -13,13 +19,20 @@
             @click="initiateFacebookLogin()"
           >
             <li class="item__social__media">
-              <v-icon class="icon__modify" icon="mdi-facebook" />
+              <v-icon
+                class="icon__modify"
+                icon="mdi-facebook"
+              />
             </li>
           </a>
         </ul>
       </div>
       <ErrorMessage />
-      <v-form v-model="validForm" class="form" @submit.prevent="login">
+      <v-form
+        v-model="validForm"
+        class="form"
+        @submit.prevent="login"
+      >
         <v-combobox
           v-model="user.email"
           variant="underlined"
@@ -47,8 +60,15 @@
         />
 
         <div class="container__button">
-          <a class="link" href="#">esqueceu sua senha?</a>
-          <a class="btn__register" href="#" @click.prevent="emits('nextStep')">
+          <a
+            class="link"
+            href="#"
+          >esqueceu sua senha?</a>
+          <a
+            class="btn__register"
+            href="#"
+            @click.prevent="emits('nextStep')"
+          >
             cadastre-se.
           </a>
         </div>
@@ -96,8 +116,8 @@ const useAuth = useAuthStore();
 
 // CORREÇÃO: Removidos os dados de usuário hardcoded.
 const user = ref<FormLogin>({
-  email: "",
-  password: "",
+  email: "teste@teste.com",
+  password: "123456",
 });
 
 let validForm = ref(false);
