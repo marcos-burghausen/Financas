@@ -1,5 +1,13 @@
 [phases.setup]
-nixPkgs = ["...", "python311Packages.supervisor"]
+nixPkgs = [
+    '(php.withExtensions (pe: with pe; [ bcmath pdo_mysql zip gd intl openssl ]))',
+    'nginx',
+    'libmysqlclient',
+    'phpPackages.composer',
+    'nodejs_18',
+    'npm-9_x',
+    'python311Packages.supervisor'
+]
 
 [phases.build]
 cmds = [
@@ -17,6 +25,7 @@ cmds = [
 [phases.postbuild]
 cmds = [
     "php artisan migrate --force",
+#    "npm run build",
     "php artisan config:cache",
     "php artisan route:cache",
     #"php artisan queue:work"
