@@ -1,9 +1,16 @@
 [phases.setup]
-nixPkgs = [
-    "php",          # Certifique-se que o PHP está incluído
-    "phpPakages.composer"
-    "nodejs-22_x",  # Adicione Node.js
-    "python311Packages.supervisor",
+aptPkgs = [
+    "php8.2-bcmath", 
+    "php8.2-mysql", 
+    "php8.2-zip", 
+    "php8.2-gd", 
+    "php8.2-intl",
+    "php8.2-openssl",
+    "nginx",
+    "supervisor",
+    "composer",
+    "nodejs",
+    "npm"
 ]
 
 [phases.install]
