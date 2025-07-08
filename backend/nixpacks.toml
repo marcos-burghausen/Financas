@@ -1,12 +1,16 @@
 [phases.setup]
 nixPkgs = [
-    '(php.withExtensions (pe: with pe; [ bcmath pdo_mysql zip gd intl openssl ]))',
-    'nginx',
-    'libmysqlclient',
-    'phpPackages.composer',
-    'nodejs_18',
-    'npm-9_x',
-    'python311Packages.supervisor'
+    "php8.2-bcmath",
+    "php8.2-mysql",
+    "php8.2-zip",
+    "php8.2-gd",
+    "php8.2-intl",
+    "php8.2-openssl",
+    "nginx",
+    "supervisor",
+    "composer",
+    "nodejs",
+    "npm"
 ]
 
 [phases.build]
