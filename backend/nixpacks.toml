@@ -1,16 +1,17 @@
 [phases.setup]
 nixPkgs = [
-    "php8.2-bcmath",
-    "php8.2-mysql",
-    "php8.2-zip",
-    "php8.2-gd",
-    "php8.2-intl",
-    "php8.2-openssl",
+    "php82",
+    "php82Packages.composer",
+    "php82Extensions.curl",
+    "php82Extensions.mbstring",
+    "php82Extensions.xml",
+    "php82Extensions.openssl",
+    "php82Extensions.pdo_mysql",
+    "mariadb",
+    "python311Packages.supervisor",
+    "nodejs-18_x",
     "nginx",
-    "supervisor",
-    "composer",
-    "nodejs",
-    "npm"
+    "python311Packages.supervisor"
 ]
 
 [phases.build]
