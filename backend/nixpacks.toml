@@ -1,9 +1,9 @@
 [phases.setup]
 nixPkgs = [
+    "php",          # Certifique-se que o PHP está incluído
+    "phpPakages.composer"
     "nodejs-22_x",  # Adicione Node.js
     "python311Packages.supervisor",
-    "php",          # Certifique-se que o PHP está incluído
-    "composer"
 ]
 
 [phases.install]
