@@ -10,6 +10,14 @@ use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\RevenueController;
 use Illuminate\Support\Facades\Route;
 
+Route::options('{any?}', function () {
+    return response()->json(['message' => 'OK'], 200, [
+        'Access-Control-Allow-Origin' => 'https://mrfinancas.burghausen.dev',
+        'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
+    ]);
+})->where('any', '.*');
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
