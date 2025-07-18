@@ -2,19 +2,19 @@
   <div class="container__modal">
     <v-form
       v-model="validFormLancamentos"
-      class="px-3 pt-16 w-100"
+      class="px-3 w-100"
       @submit.prevent="salvarLancamentos"
     >
       <div
-        class="header__items d-flex justify-content-between fixed-top py-10 pe-2"
+        class="header__items d-flex justify-content-between fixed-top py-10 align-items-center"
       >
-        <v-btn
-          :disabled="loading"
-          class="close fs-5 ms-3"
-          prepend-icon="mdi-close"
-          @click="closeForm"
-        />
-        <div class="d-flex flex-column">
+        <div class="d-flex">
+          <v-btn
+            :disabled="loading"
+            class="close fs-5 ms-2"
+            prepend-icon="mdi-close"
+            @click="closeForm"
+          />
           <span class="fs-5">
             {{ isEditMode ? "Editar" : "Nova" }}
             {{ transactionType }}
@@ -25,7 +25,7 @@
             loading || !validFormLancamentos || formReleases.valor === '0,00'
           "
           :loading="loading"
-          class="btn"
+          class="btn m-0 me-3 p-0 px-2"
           type="submit"
           rounded="xl"
         >
@@ -475,5 +475,200 @@ const rules = {
 </script>
 
 <style scoped>
-/* SEU CSS AQUI (sem alterações) */
+.container__modal {
+  width: 100%;
+  max-width: 600px;
+  height: 100%;
+  min-height: 100%;
+  background: rgb(15, 15, 15);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+}
+.header__items {
+  background-color: rgb(15, 15, 15);
+  color: #fefefe;
+  height: 70px;
+}
+.close {
+  cursor: pointer;
+  border-radius: 50%;
+  height: 40px;
+  width: 40px;
+  background-color: transparent;
+  color: #fefefe;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.btn {
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+  align-self: center;
+  border: none;
+  margin-top: 1rem;
+  font-size: 20px;
+  background-color: #77d08e;
+  border: 1px solid #77d08e;
+  transition: background-color 0.5s;
+}
+.imput {
+  height: 40px;
+  color: #ccc;
+  width: 100%;
+}
+.tipo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.modal__tipo {
+  background: #2c2c2e;
+  color: #fefefe;
+  height: 200px;
+  border-radius: 20px;
+  padding: 15px;
+}
+.selected {
+  color: #77d08e;
+}
+.parcelas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.container__parcelas {
+  background: #1e1e1e;
+  width: 100%;
+  max-width: 500px;
+  border-radius: 15px;
+  overflow: hidden;
+  color: #fefefe;
+}
+.item-label {
+  flex-grow: 1;
+  font-size: 18px;
+  font-weight: 400;
+}
+.item-value {
+  margin-right: 20px;
+  font-size: 18px;
+  font-weight: 500;
+}
+.number-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 120px;
+}
+.stepper-btn {
+  background-color: transparent;
+  border: none;
+  width: 30px;
+  color: #999;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stepper-input {
+  width: 50px;
+  background-color: transparent;
+  border: none;
+  color: white;
+  text-align: center;
+  font-size: 18px;
+  -moz-appearance: textfield;
+}
+.stepper-input::-webkit-outer-spin-button,
+.stepper-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.divider {
+  height: 1px;
+  background-color: #333;
+  margin: 5px 0;
+}
+.select-dark {
+  color: white;
+  width: 120px;
+  text-align: right;
+}
+.btn-cancelar {
+  color: #77d08e;
+  background-color: transparent;
+  border-radius: 25px;
+  font-size: 16px;
+  padding: 0 30px;
+  height: 45px;
+}
+.btn-concluido {
+  background-color: #77d08e;
+  color: white;
+  border-radius: 25px;
+  font-size: 16px;
+  padding: 0 30px;
+  height: 45px;
+}
+.today__label {
+  font-size: 16px;
+  color: #77d08e;
+  font-weight: 500;
+  margin-right: 8px;
+}
+.form__check__efetivada {
+  width: 40px;
+  height: 20px;
+  border-radius: 15px;
+  background-color: rgba(119, 208, 142, 0.4);
+  display: flex;
+  justify-content: flex-end;
+}
+.form__check {
+  width: 40px;
+  height: 20px;
+  border-radius: 15px;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+.switch__check__efetivada {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #77d08e;
+}
+.switch__check {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #fefefe;
+}
+.error__message {
+  color: red;
+  font-size: 12px;
+  margin-top: 4px;
+}
+h2 {
+  font-size: 28px;
+  font-weight: 500;
+  color: white;
+  margin-bottom: 30px;
+}
 </style>
