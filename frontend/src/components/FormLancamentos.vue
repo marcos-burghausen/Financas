@@ -71,16 +71,61 @@
         </template>
       </v-text-field>
 
-      <v-text-field
-        v-model="formReleases.recorrencia"
-        variant="underlined"
-        label="Recorrência"
-        type="text"
-        class="mb-8 imput"
-        readonly
-        prepend-inner-icon="mdi-refresh"
-        @click="openRecorrenciaModal = true"
-      />
+      <!-- <div>
+          <v-text-field
+              v-model="formReleases.recorrencia"
+              variant="underlined"
+              label="Recorrência"
+              type="text"
+              class="imput"
+              readonly
+              prepend-inner-icon="mdi-refresh"
+              @click="openRecorrenciaModal = true"
+              hide-details="auto" />
+          <div v-if="detalheRecorrencia" class="detalhe-parcela">
+              <span>{{ detalheRecorrencia }}</span>
+              <v-icon
+                  size="small"
+                  class="ms-2"
+                  icon="mdi-pencil"
+                  @click="openParcelas = true"
+              />
+          </div>
+      </div> -->
+      <div class="custom-input-container mb-8">
+        
+        <div class="custom-input-label">Recorrência</div>
+        <div class="custom-input-content" @click="openRecorrenciaModal = true">
+          <v-icon icon="mdi-refresh" class="me-2" />
+          <div class="d-flex flex-column">
+            <span>{{ formReleases.recorrencia }}</span>
+            <span v-if="detalheRecorrencia" class="detalhe-parcela-interno">
+              {{ detalheRecorrencia }}
+            </span>
+          </div>
+          <v-spacer />
+          <v-icon
+            v-if="formReleases.recorrencia === 'Parcelado'"
+            icon="mdi-pencil"
+            size="x-small"
+            class="edit-icon"
+            @click.stop="openParcelas = true"
+          />
+        </div>
+
+        <v-btn-toggle
+          v-if="formReleases.recorrencia === 'Parcelado'"
+          v-model="tipoCalculoParcela"
+          mandatory
+          class="parcela-toggle mt-4"
+          variant="flat"
+        >
+          <v-btn class="toggle-btn" value="total" rounded="lg">Valor total</v-btn>
+          <v-btn class="toggle-btn" value="parcela" rounded="lg">Valor parcela</v-btn>
+        </v-btn-toggle>
+
+        <div class="custom-underline" />
+      </div>
 
       <div v-if="openRecorrenciaModal" class="tipo">
         <div
@@ -105,7 +150,108 @@
         </div>
       </div>
 
-      <div v-if="openParcelas" class="parcelas" />
+      <div v-if="openParcelas" class="parcelas">
+        <div class="container__parcelas">
+          <div class="p-3">
+            <h2 class="mb-4 text-center">Configurar parcelas</h2>
+
+            <div class="py-2">
+              <div class="d-flex align-center justify-space-between">
+                <v-icon class="pe-3" icon="mdi-arrow-right" size="24" />
+                <span class="item-label"> Parcela inicial </span>
+                <div class="item-value">
+                  <div class="number-stepper">
+                    <v-btn
+                      :disabled="tempParcelaInicial <= 1"
+                      prepend-icon="mdi-chevron-down"
+                      flat
+                      variant="text"
+                      class="stepper-btn"
+                      @click="decrementParcelaInicial"
+                    />
+                    <input
+                      v-model="tempParcelaInicial"
+                      type="number"
+                      class="stepper-input"
+                      min="1"
+                    />
+                    <v-btn
+                      prepend-icon="mdi-chevron-up"
+                      flat
+                      class="stepper-btn"
+                      @click="incrementParcelaInicial"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="divider" />
+
+            <div class="">
+              <div class="d-flex align-center justify-space-between">
+                <v-icon
+                  icon="mdi-plus-circle-outline"
+                  name="plus-circle-outline"
+                  size="24"
+                  class="pe-3"
+                />
+                <div class="item-label">Quantidade</div>
+                <div class="item-value">
+                  <div class="number-stepper">
+                    <v-btn
+                      class="stepper-btn"
+                      :disabled="tempNumParcelas <= 2"
+                      prepend-icon="mdi-chevron-down"
+                      variant="text"
+                      @click="decrementQuantidade"
+                    />
+                    <input
+                      v-model="tempNumParcelas"
+                      type="number"
+                      class="stepper-input"
+                      min="2"
+                    />
+                    <v-btn
+                      class="stepper-btn"
+                      prepend-icon="mdi-chevron-up"
+                      variant="text"
+                      @click="incrementQuantidade"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="divider" />
+
+            <div class="">
+              <div class="d-flex align-center justify-space-between">
+                <v-icon icon="mdi-calendar-blank" size="24" class="pe-3" />
+                <div class="item-label">Periodicidade</div>
+                <div class="item-value pb-2">
+                  <v-select
+                    v-model="tempPeriodicidade"
+                    :items="['Mensal', 'Semanal', 'Quinzenal', 'Bimestral']"
+                    variant="plain"
+                    hide-details
+                    class="select-dark"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-space-between align-center p-3">
+            <v-btn class="btn-cancelar" @click="cancelarConfiguracaoRepeticao">
+              Cancelar
+            </v-btn>
+            <v-btn class="btn-concluido" @click="concluirParcelas">
+              Concluído
+            </v-btn>
+          </div>
+        </div>
+      </div>
 
       <v-date-input
         v-model="formReleases.dataVencimento"
@@ -113,7 +259,7 @@
         hide-details="auto"
         label="Data de Vencimento"
         :rules="[rules.requiredDataVencimento]"
-        class="mb-8 imput"
+        class="my-8 imput"
         show-adjacent-months
         color="#77d08e"
         prepend-icon=""
@@ -257,9 +403,9 @@ const errorsForm = ref<{ [key: string]: string[] }>({});
 
 // CORREÇÃO: Lógica de tipos separada para recorrência
 const openRecorrenciaModal = ref(false);
-const tiposRecorrencia = ref<("Único" | "Fixo" | "Parcelado")[]>([
-  "Único",
-  "Fixo",
+const tiposRecorrencia = ref<("Não recorrente" | "Fixa" | "Parcelado")[]>([
+  "Não recorrente",
+  "Fixa",
   "Parcelado",
 ]);
 
@@ -269,25 +415,28 @@ const toggleStatus = () => {
 };
 
 const formatValueSave = () => {
-  let novoValor = formReleases.value.valor.replace(/[^\d]/g, "");
-  if (novoValor.length > 2) {
-    const parteInteira = novoValor.slice(0, -2).replace(/^0+/, "") || "0";
-    const parteDecimal = novoValor.slice(-2);
-    const parteInteiraFormatada = parteInteira.replace(
-      /\B(?=(\d{3})+(?!\d))/g,
-      "."
-    );
-    formReleases.value.valor = `${parteInteiraFormatada},${parteDecimal}`;
-  } else if (novoValor.length === 2) {
-    formReleases.value.valor = `0,${novoValor}`;
-  } else if (novoValor.length === 1) {
-    formReleases.value.valor = `0,0${novoValor}`;
-  } else {
-    formReleases.value.valor = "0,00";
+  // 1. Pega apenas os dígitos do valor
+  let digits = formReleases.value.valor.replace(/\D/g, "");
+
+  // 2. Remove zeros à esquerda, tratando o caso de ser tudo zero
+  digits = digits.replace(/^0+/, "") || "0";
+
+  // 3. Garante que o valor tenha pelo menos 3 dígitos para a formatação (ex: 50 vira 050)
+  while (digits.length < 3) {
+    digits = "0" + digits;
   }
+
+  // 4. Separa a parte inteira e a decimal
+  const integerPart = digits.slice(0, -2);
+  const decimalPart = digits.slice(-2);
+
+  // 5. Formata a parte inteira com pontos como separadores de milhar
+  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+  // 6. Monta o valor final formatado
+  formReleases.value.valor = `${formattedIntegerPart},${decimalPart}`;
 };
 
-// CORREÇÃO: A lista de categorias agora é uma propriedade computada para reagir a mudanças no tipo
 const categoriasNames = computed(() => {
   if (props.transactionType === "Receita") {
     return useRevenues.revenuesData?.categories.map((cat) => cat.name) || [];
@@ -316,13 +465,14 @@ const isTodayEfetivacao = computed(() =>
   isToday(formReleases.value.dataEfetivacao)
 );
 
-// CORREÇÃO: `tipo` agora vem direto das props e `recorrencia` é inicializado
+const tipoCalculoParcela = ref<'total' | 'parcela'>('total');
+
 const formReleases = ref<Lancamento>({
   id: props.releases?.id || null,
   descricao: props.releases?.descricao || "",
   valor: formatValue(Number(props.releases?.valor)) || "0,00",
-  tipo: props.transactionType, // Vem direto das props
-  recorrencia: props.releases?.recorrencia || "Único", // Novo campo
+  tipo: props.transactionType,
+  recorrencia: props.releases?.recorrencia || "Não recorrente",
   numParcelas: props.releases?.numParcelas || undefined,
   periodicidade: props.releases?.periodicidade || undefined,
   dataVencimento: validateDate(props.releases?.dataVencimento),
@@ -333,6 +483,32 @@ const formReleases = ref<Lancamento>({
   dataLancamento: validateDate(props.releases?.dataLancamento),
   dataEfetivacao: props.releases?.dataEfetivacao || null,
   mesReferencia: props.mesReferencia,
+});
+
+const detalheRecorrencia = computed(() => {
+  if (
+    formReleases.value.recorrencia === "Parcelado" &&
+    formReleases.value.numParcelas &&
+    formReleases.value.numParcelas > 0
+  ) {
+    const valorInput = parseFloat(
+      formReleases.value.valor.replace(/\./g, "").replace(",", ".")
+    );
+    if (isNaN(valorInput) || valorInput <= 0) return "";
+
+    // Lógica para "Valor é o Total" (Já estava correta)
+    if (tipoCalculoParcela.value === 'total') {
+      const valorParcela = valorInput / formReleases.value.numParcelas;
+      return `Em ${formReleases.value.numParcelas}x de R$ ${formatValue(valorParcela)}`;
+    }
+    // Lógica CORRIGIDA para "Valor é da Parcela"
+    else {
+      // O valor da parcela é o próprio valor do input.
+      // Apenas usamos ele na frase, sem calcular um novo total para exibição.
+      return `Em ${formReleases.value.numParcelas}x de R$ ${formatValue(valorInput)}`;
+    }
+  }
+  return "";
 });
 
 watch(
@@ -390,13 +566,60 @@ watch(
   (nv) => (formReleases.value.dataEfetivacao = formatDateOnWatch(nv))
 );
 
+const incrementParcelaInicial = () => {
+  tempParcelaInicial.value++;
+};
+
+const decrementParcelaInicial = () => {
+  if (tempParcelaInicial.value > 1) {
+    tempParcelaInicial.value--;
+  }
+};
+
+// Funções para incrementar e decrementar quantidade de parcelas
+const incrementQuantidade = () => {
+  tempNumParcelas.value++;
+};
+
+const decrementQuantidade = () => {
+  if (tempNumParcelas.value > 2) {
+    tempNumParcelas.value--;
+  }
+};
+
+const inicializarValoresTemporarios = () => {
+  tempParcelaInicial.value = 1;
+  tempNumParcelas.value = 2;
+  tempPeriodicidade.value = "Mensal";
+};
+
+const cancelarConfiguracaoRepeticao = () => {
+  // Retorna tipo para "Não recorrente"
+  formReleases.value.tipo = "Não recorrente";
+  formReleases.value.numParcelas = 0;
+  formReleases.value.periodicidade = "";
+
+  // Fecha o modal
+  openParcelas.value = false;
+};
+
+const concluirParcelas = () => {
+  // Salva os valores temporários nos valores finais
+  parcelaInicial.value = tempParcelaInicial.value;
+  formReleases.value.numParcelas = tempNumParcelas.value;
+  formReleases.value.periodicidade = tempPeriodicidade.value;
+
+  // Fecha o modal
+  openParcelas.value = false;
+};
+
 const closeForm = () => {
   emit("closeForm");
-  // clearInputs() é chamado no final para limpar
+  clearInputs();
 };
 
 // CORREÇÃO: Nova função para lidar com a seleção de recorrência
-const selecionarRecorrencia = (item: "Único" | "Fixo" | "Parcelado") => {
+const selecionarRecorrencia = (item: "Não recorrente" | "Fixa" | "Parcelado") => {
   formReleases.value.recorrencia = item;
   openRecorrenciaModal.value = false;
 
@@ -410,8 +633,55 @@ const selecionarRecorrencia = (item: "Único" | "Fixo" | "Parcelado") => {
   }
 };
 
+// const selecionarTipo = (item: string) => {
+//   formReleases.value.tipo = item;
+//   openTipoLancamento.value = false;
+
+//   if (item === "Parcelada") {
+//     inicializarValoresTemporarios();
+
+//     if (formReleases.value.numParcelas > 0) {
+//       tempNumParcelas.value = formReleases.value.numParcelas;
+//     }
+
+//     if (formReleases.value.periodicidade) {
+//       tempPeriodicidade.value = formReleases.value.periodicidade;
+//     }
+
+//     openParcelas.value = true;
+//   } else {
+//     formReleases.value.numParcelas = 0;
+//     formReleases.value.periodicidade = "Mensal";
+//   }
+// };
+
 const salvarLancamentos = async () => {
   errorStore.unsetError();
+
+  // const payload = { ...formReleases.value };
+  // if (
+  //   payload.recorrencia === 'Parcelado' &&
+  //   tipoCalculoParcela.value === 'parcela' &&
+  //   payload.numParcelas
+  // ) {
+  //   const valorParcela = parseFloat(payload.valor.replace(/\./g, "").replace(",", "."));
+  //   const valorTotalReal = valorParcela * payload.numParcelas;
+  //   // Atualiza o valor no payload para ser o total
+  //   payload.valor = String(valorTotalReal);
+  // }
+  // // FIM DA PARTE NOVA
+
+  // try {
+  //   loading.value = true;
+  //   const method = isEditMode.value ? http.put : http.post;
+  //   const url = isEditMode.value
+  //     ? `/${props.rota}/${payload.id}`
+  //     : `/${props.rota}`;
+  //   // Use o 'payload' modificado aqui
+  //   const res = await method(url, payload); 
+
+
+
   try {
     loading.value = true;
     const method = isEditMode.value ? http.put : http.post;
@@ -420,8 +690,6 @@ const salvarLancamentos = async () => {
       : `/${props.rota}`;
     const res = await method(url, formReleases.value);
 
-    // SUGESTÃO: A store de despesa/receita deveria ser a única a ser atualizada,
-    // as outras (wallets) deveriam reagir a essa mudança internamente ou no backend.
     if (props.transactionType === "Receita") {
       useRevenues.setRevenuesData(res.data.revenuesData);
       emit("updateData", res.data.revenuesData);
@@ -525,7 +793,7 @@ const rules = {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.5);
   z-index: 999;
   display: flex;
   justify-content: center;
@@ -538,6 +806,27 @@ const rules = {
   border-radius: 20px;
   padding: 15px;
 }
+.detalhe-parcela {
+  display: flex;
+  align-items: center;
+  /* Remove o justify-content para que o lápis fique ao lado do texto */
+  
+  color: #b0b0b0; /* Cor mais suave para o texto de detalhe */
+  
+  /* Ajuste fino na margem para ficar logo abaixo do campo, sem sobrepor */
+  margin-top: 2px;
+  padding-bottom: 8px; /* Espaçamento abaixo da linha de detalhe */
+
+  /* Alinha o texto com o início do input (após o ícone) */
+  margin-left: 40px; 
+  font-size: 14px;
+  height: 24px; /* Garante altura consistente */
+}
+
+.detalhe-parcela .v-icon {
+  cursor: pointer;
+  color: #77d08e;
+}
 .selected {
   color: #77d08e;
 }
@@ -547,19 +836,20 @@ const rules = {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(12, 12, 12, 0.8);
   z-index: 999;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-end;
 }
 .container__parcelas {
-  background: #1e1e1e;
+  background: #161616ff;
   width: 100%;
   max-width: 500px;
   border-radius: 15px;
   overflow: hidden;
   color: #fefefe;
+  padding-bottom: 20px;
 }
 .item-label {
   flex-grow: 1;
@@ -670,5 +960,66 @@ h2 {
   font-weight: 500;
   color: white;
   margin-bottom: 30px;
+}
+.custom-input-container {
+  position: relative;
+  padding-bottom: 8px; /* Espaço antes da linha de baixo */
+}
+
+.custom-input-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 4px;
+}
+
+.custom-input-content {
+  display: flex;
+  align-items: center;
+  color: #fff;
+  cursor: pointer;
+}
+
+.detalhe-parcela-interno {
+  font-size: 14px;
+  color: #e0e0e0;
+  line-height: 1.2;
+  margin-top: 4px;
+}
+
+.edit-icon {
+  color: #77d08e;
+}
+
+/* Linha de baixo do input */
+.custom-underline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+/* ESTILOS NOVOS PARA OS BOTÕES TOGGLE */
+.parcela-toggle {
+  display: flex;
+  border-radius: 10px;
+  border: 1px solid #4F4F4F;
+  background-color: transparent;
+  overflow: hidden;
+}
+
+.parcela-toggle .toggle-btn {
+  flex: 1;
+  text-transform: none;
+  font-size: 14px;
+  color: #bdbdbd;
+  background-color: transparent;
+}
+
+.parcela-toggle .v-btn--active {
+  background-color: #77d08e;
+  color: #121212 !important; /* Cor do texto do botão ativo */
+  font-weight: bold;
 }
 </style>
