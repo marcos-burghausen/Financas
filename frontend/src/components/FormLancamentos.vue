@@ -38,63 +38,30 @@
         variant="underlined"
         type="text"
         hide-details="auto"
-        label="Descrição"
+        placeholder="Descrição"
         required
-        class="mb-8 imput"
+        class="mb-3 imput"
         :rules="[rules.requiredDescricao]"
         rows="1"
         prepend-inner-icon="mdi-text-long"
       >
-        <template #message>
-          <div v-if="errorsForm.descricao" class="error-message">
-            {{ errorsForm.descricao[0] }}
-          </div>
-        </template>
       </v-textarea>
 
       <v-text-field
         v-model="formReleases.valor"
         variant="underlined"
-        placeholder="0,00"
         hide-details="auto"
-        label="Valor"
         type="tel"
-        class="mb-8 imput"
+        class="mb-3 imput"
         :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
         prepend-inner-icon="mdi-currency-usd"
         @input="formatValueSave"
       >
-        <template #message>
-          <div v-if="errorsForm.valor" class="error-message">
-            {{ errorsForm.valor[0] }}
-          </div>
-        </template>
       </v-text-field>
 
-      <!-- <div>
-          <v-text-field
-              v-model="formReleases.recorrencia"
-              variant="underlined"
-              label="Recorrência"
-              type="text"
-              class="imput"
-              readonly
-              prepend-inner-icon="mdi-refresh"
-              @click="openRecorrenciaModal = true"
-              hide-details="auto" />
-          <div v-if="detalheRecorrencia" class="detalhe-parcela">
-              <span>{{ detalheRecorrencia }}</span>
-              <v-icon
-                  size="small"
-                  class="ms-2"
-                  icon="mdi-pencil"
-                  @click="openParcelas = true"
-              />
-          </div>
-      </div> -->
-      <div class="custom-input-container mb-8">
+      <div class="custom__input__container mb-3">
         
-        <div class="custom-input-label">Recorrência</div>
+        <!-- <div class="custom-input-label">Recorrência</div> -->
         <div class="custom-input-content" @click="openRecorrenciaModal = true">
           <v-icon icon="mdi-refresh" class="me-2" />
           <div class="d-flex flex-column">
@@ -124,7 +91,7 @@
           <v-btn class="toggle-btn" value="parcela" rounded="lg">Valor parcela</v-btn>
         </v-btn-toggle>
 
-        <div class="custom-underline" />
+        <div class="custom__underline" />
       </div>
 
       <div v-if="openRecorrenciaModal" class="tipo">
@@ -253,30 +220,40 @@
         </div>
       </div>
 
-      <v-date-input
-        v-model="formReleases.dataVencimento"
-        variant="underlined"
-        hide-details="auto"
-        label="Data de Vencimento"
-        :rules="[rules.requiredDataVencimento]"
-        class="my-8 imput"
-        show-adjacent-months
-        color="#77d08e"
-        prepend-icon=""
-        prepend-inner-icon="mdi-calendar"
-      >
-        <template #append-inner>
-          <span v-if="isTodayVencimento" class="today__label">Hoje</span>
-        </template>
-      </v-date-input>
+      <div class="mb-2 pt-1">
+        <v-menu
+          v-model="menuDataVencimento"
+          :close-on-content-click="false"
+          transition="scale-transition"
+          offset-y
+        >
+          <template #activator="{ props }">
+            <div class="custom__display__input" v-bind="props">
+              <div class="d-flex align-center text-grey">
+                <v-icon icon="mdi-calendar" class="me-3" />
+                <span>Data de vencimento</span>
+              </div>
+              <v-spacer class="m-0 p-0" />
+              <span class="font-weight-medium">{{ displayDataVencimento }}</span>
+            </div>
+          </template>
+
+          <v-date-picker
+            v-model="formReleases.dataVencimento"
+            @update:modelValue="menuDataVencimento = false"
+            color="#77d08e"
+            hide-header
+            show-adjacent-months
+          />
+        </v-menu>
+      </div>
 
       <v-text-field
         v-model="formReleases.status"
         variant="underlined"
         hide-details="auto"
-        label="Status"
         type="text"
-        class="mb-8 imput"
+        class="mb-6 imput"
         readonly
         :prepend-inner-icon="
           formReleases.status === 'Efetivada'
@@ -309,22 +286,26 @@
         :items="categoriasNames"
         :rules="[rules.requiredCatagoria]"
         label="Categoria"
-        placeholder="Selecione..."
         required
         variant="underlined"
-        class="mb-8 imput"
-        prepend-inner-icon="mdi-scatter-plot"
-      />
+        class="mb-6 imput"
+      >
+        <template #prepend-inner>
+          <v-icon :icon="categoriaIcon" :class="categoriaColorClass" />
+        </template>
+      </v-autocomplete>
 
       <v-autocomplete
         v-model="formReleases.subcategoria"
         :items="subcategoriesNames"
         label="Subcategoria"
-        placeholder="Selecione..."
         variant="underlined"
-        class="mb-8 imput"
-        prepend-inner-icon="mdi-scatter-plot"
-      />
+        class="mb-6 imput"
+      >
+        <template #prepend-inner>
+          <v-icon :icon="subcategoriaIcon" :class="subcategoriaColorClass" />
+        </template>
+      </v-autocomplete>
 
       <v-autocomplete
         v-model="formReleases.conta"
@@ -334,9 +315,81 @@
         placeholder="Selecione..."
         required
         variant="underlined"
-        class="mb-8 imput"
+        class="mb-6 imput"
         prepend-inner-icon="mdi-bank"
       />
+
+      <v-btn
+        v-if="!informacoes"
+        :append-icon="informacoes ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+        variant="plain"
+        size="x-small"
+        style="color: #77d08e"
+        block
+        @click="informacoes = !informacoes"
+      >
+        Mais informações
+      </v-btn>
+
+      <div
+        v-if="informacoes"
+        class="mb-6">
+        <v-menu
+          v-model="menuDataLancamento"
+          :close-on-content-click="false"
+          transition="scale-transition"
+          offset-y
+        >
+          <template #activator="{ props }">
+            <div class="custom__display__input" v-bind="props">
+              <div class="d-flex align-center text-grey">
+                <v-icon icon="mdi-calendar" class="me-3" />
+                <span>Data de lançamento</span>
+              </div>
+              <v-spacer />
+              <span class="font-weight-medium">{{ displayDataLancamento }}</span>
+            </div>
+          </template>
+
+          <v-date-picker
+            v-model="formReleases.dataLancamento"
+            @update:modelValue="menuDataLancamento = false"
+            color="#77d08e"
+            hide-header
+            show-adjacent-months
+          />
+        </v-menu>
+      </div>
+      
+      <div
+        v-if="informacoes"
+        class="mb-1">
+        <v-menu
+          v-model="menuDataEfetivacao"
+          :close-on-content-click="false"
+          transition="scale-transition"
+          offset-y
+        >
+          <template #activator="{ props }">
+            <div class="custom__display__input" v-bind="props">
+              <div class="d-flex align-center text-grey">
+                <v-icon icon="mdi-calendar" class="me-3" />
+                <span>Data de efetivação</span>
+              </div>
+              <v-spacer />
+              <span class="font-weight-medium">{{ displayDataEfetivacao }}</span>
+            </div>
+          </template>
+
+          <v-date-picker
+            v-model="formReleases.dataEfetivacao"
+            @update:modelValue="menuDataEfetivacao = false"
+            color="#77d08e"
+            hide-header
+            show-adjacent-months
+          />
+        </v-menu>
+      </div>
     </v-form>
   </div>
   <ErrorsForm />
@@ -358,6 +411,8 @@ import { formatValue } from "@/utils/formatValue";
 import type { AxiosError } from "axios";
 import { computed, ref, watch } from "vue";
 import { format as formatDate, isValid } from "date-fns";
+import { isToday, isYesterday, isTomorrow, parseISO, format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const useWallets = useWalletsStore();
 const useRevenues = useRevenuesStore();
@@ -365,6 +420,9 @@ const useExpenses = useExpensesStore();
 const errorStore = useErrorStore();
 
 const emit = defineEmits(["updateData", "closeForm"]);
+const menuDataVencimento = ref(false);
+const menuDataLancamento = ref(false);
+const menuDataEfetivacao = ref(false);
 
 const props = defineProps<{
   releases?: Lancamento;
@@ -450,14 +508,106 @@ const isEditMode = computed(() => !!props.releases?.id);
 
 const isToday = (dateValue: string | Date | undefined | null): boolean => {
   if (!dateValue) return false;
-  const today = formatDate(new Date(), "yyyy-MM-dd");
-  const selectedDate = formatDate(new Date(dateValue), "yyyy-MM-dd");
-  return selectedDate === today;
+
+  // Pega a data de hoje, já formatada corretamente.
+  const todayStr = formatDate(new Date(), "yyyy-MM-dd");
+
+  let selectedDateStr: string;
+
+  if (typeof dateValue === 'string') {
+    // Se o valor já for uma string (ex: '2025-07-23'), 
+    // usamos apenas os 10 primeiros caracteres para evitar problemas de fuso horário.
+    selectedDateStr = dateValue.substring(0, 10);
+  } else {
+    // Se for um objeto Date (vindo do seletor de data), nós o formatamos.
+    selectedDateStr = formatDate(dateValue, "yyyy-MM-dd");
+  }
+
+  return todayStr === selectedDateStr;
 };
+
+const displayDataVencimento = computed(() => {
+  // Se não houver data, não mostre nada.
+  if (!formReleases.value.dataVencimento) return 'Selecione...';
+
+  // Converte a string 'yyyy-MM-dd' do seu model para um objeto Date
+  const data = parseISO(formReleases.value.dataVencimento);
+
+  // Compara com a data atual e retorna o texto correspondente
+  if (isToday(data)) return 'Hoje';
+  if (isYesterday(data)) return 'Ontem';
+  if (isTomorrow(data)) return 'Amanhã';
+  
+  // Pega o nome do dia da semana (ex: "segunda-feira")
+  const nomeDiaCompleto = format(data, 'EEEE', { locale: ptBR });
+  
+  // Pega as 3 primeiras letras e capitaliza a primeira
+  const nomeDiaAbreviado = nomeDiaCompleto.substring(0, 3);
+  const diaAbreviadoCapitalizado = nomeDiaAbreviado.charAt(0).toUpperCase() + nomeDiaAbreviado.slice(1);
+
+  // Formata o resto da data
+  const dataFormatada = format(data, 'dd/MM/yyyy');
+
+  // Retorna no formato "Seg., 25/07/2025"
+  return `${diaAbreviadoCapitalizado}., ${dataFormatada}`;
+});
+
+const displayDataLancamento = computed(() => {
+  // Se não houver data, não mostre nada.
+  if (!formReleases.value.dataLancamento) return 'Selecione...';
+
+  // Converte a string 'yyyy-MM-dd' do seu model para um objeto Date
+  const data = parseISO(formReleases.value.dataLancamento);
+
+  // Compara com a data atual e retorna o texto correspondente
+  if (isToday(data)) return 'Hoje';
+  if (isYesterday(data)) return 'Ontem';
+  if (isTomorrow(data)) return 'Amanhã';
+  
+  // Pega o nome do dia da semana (ex: "segunda-feira")
+  const nomeDiaCompleto = format(data, 'EEEE', { locale: ptBR });
+  
+  // Pega as 3 primeiras letras e capitaliza a primeira
+  const nomeDiaAbreviado = nomeDiaCompleto.substring(0, 3);
+  const diaAbreviadoCapitalizado = nomeDiaAbreviado.charAt(0).toUpperCase() + nomeDiaAbreviado.slice(1);
+
+  // Formata o resto da data
+  const dataFormatada = format(data, 'dd/MM/yyyy');
+
+  // Retorna no formato "Seg., 25/07/2025"
+  return `${diaAbreviadoCapitalizado}., ${dataFormatada}`;
+});
+
+const displayDataEfetivacao = computed(() => {
+  // Se não houver data, não mostre nada.
+  if (!formReleases.value.dataEfetivacao) return null;
+
+  // Converte a string 'yyyy-MM-dd' do seu model para um objeto Date
+  const data = parseISO(formReleases.value.dataEfetivacao);
+
+  // Compara com a data atual e retorna o texto correspondente
+  if (isToday(data)) return 'Hoje';
+  if (isYesterday(data)) return 'Ontem';
+  if (isTomorrow(data)) return 'Amanhã';
+  
+  // Pega o nome do dia da semana (ex: "segunda-feira")
+  const nomeDiaCompleto = format(data, 'EEEE', { locale: ptBR });
+  
+  // Pega as 3 primeiras letras e capitaliza a primeira
+  const nomeDiaAbreviado = nomeDiaCompleto.substring(0, 3);
+  const diaAbreviadoCapitalizado = nomeDiaAbreviado.charAt(0).toUpperCase() + nomeDiaAbreviado.slice(1);
+
+  // Formata o resto da data
+  const dataFormatada = format(data, 'dd/MM/yyyy');
+
+  // Retorna no formato "Seg., 25/07/2025"
+  return `${diaAbreviadoCapitalizado}., ${dataFormatada}`;
+});
 
 const isTodayVencimento = computed(() =>
   isToday(formReleases.value.dataVencimento)
 );
+console.log(isTodayVencimento);
 const isTodayLancamento = computed(() =>
   isToday(formReleases.value.dataLancamento)
 );
@@ -477,8 +627,8 @@ const formReleases = ref<Lancamento>({
   periodicidade: props.releases?.periodicidade || undefined,
   dataVencimento: validateDate(props.releases?.dataVencimento),
   status: props.releases?.status || "Pendente",
-  categoria: props.releases?.categoria || "",
-  subcategoria: props.releases?.subcategoria || "",
+  categoria: props.releases?.categoria || "Outros",
+  subcategoria: props.releases?.subcategoria || "Outros",
   conta: props.releases?.conta || contasNames.value[0],
   dataLancamento: validateDate(props.releases?.dataLancamento),
   dataEfetivacao: props.releases?.dataEfetivacao || null,
@@ -496,20 +646,45 @@ const detalheRecorrencia = computed(() => {
     );
     if (isNaN(valorInput) || valorInput <= 0) return "";
 
-    // Lógica para "Valor é o Total" (Já estava correta)
     if (tipoCalculoParcela.value === 'total') {
       const valorParcela = valorInput / formReleases.value.numParcelas;
-      return `Em ${formReleases.value.numParcelas}x de R$ ${formatValue(valorParcela)}`;
+      return `Em ${formReleases.value.numParcelas}x de R$ ${valorParcela}`;
     }
-    // Lógica CORRIGIDA para "Valor é da Parcela"
     else {
-      // O valor da parcela é o próprio valor do input.
-      // Apenas usamos ele na frase, sem calcular um novo total para exibição.
-      return `Em ${formReleases.value.numParcelas}x de R$ ${formatValue(valorInput)}`;
+      return `Em ${formReleases.value.numParcelas}x de R$ ${valorInput}`;
     }
   }
   return "";
 });
+
+// Busca a lista de categorias correta (Receita ou Despesa)
+const categoriesSource = computed(() => 
+  props.transactionType === "Receita"
+    ? useRevenues.revenuesData?.categories
+    : useExpenses.expensesData?.categories
+);
+
+// Encontra o objeto da categoria selecionada
+const selectedCategoryObject = computed(() =>
+  categoriesSource.value?.find(
+    (cat) => cat.name === formReleases.value.categoria
+  )
+);
+
+// Encontra o objeto da subcategoria selecionada
+const selectedSubcategoryObject = computed(() =>
+  selectedCategoryObject.value?.subcategories?.find(
+    (sub) => sub.name === formReleases.value.subcategoria
+  )
+);
+
+// Retorna o ícone e a cor para a CATEGORIA
+const categoriaIcon = computed(() => selectedCategoryObject.value?.icon || 'mdi-scatter-plot');
+const categoriaColorClass = computed(() => selectedCategoryObject.value?.color || '');
+
+// Retorna o ícone e a cor para a SUBCATEGORIA
+const subcategoriaIcon = computed(() => selectedSubcategoryObject.value?.icon || 'mdi-scatter-plot');
+const subcategoriaColorClass = computed(() => selectedSubcategoryObject.value?.color || '');
 
 watch(
   () => formReleases.value.status,
@@ -658,6 +833,10 @@ const selecionarRecorrencia = (item: "Não recorrente" | "Fixa" | "Parcelado") =
 const salvarLancamentos = async () => {
   errorStore.unsetError();
 
+  if (!validFormLancamentos.value) {
+    return;
+  }
+
   // const payload = { ...formReleases.value };
   // if (
   //   payload.recorrencia === 'Parcelado' &&
@@ -712,7 +891,25 @@ const salvarLancamentos = async () => {
   }
 };
 
-// ... (Resto do script, como rules, formatValueSave, etc., sem grandes alterações)
+const clearInputs = () => {
+  formReleases.value = {
+    id: null,
+    descricao: "",
+    valor: "0,00",
+    tipo: "Não recorrente",
+    numParcelas: 0,
+    periodicidade: null,
+    dataVencimento: new Date().toISOString().split("T")[0],
+    status: "Pendente",
+    categoria: "",
+    subcategoria: "",
+    conta: "",
+    // mesReferencia: props.mesReferencia,
+    dataLancamento: new Date().toISOString().split("T")[0],
+    dataEfetivacao: new Date().toISOString().split("T")[0],
+  };
+  errorsForm.value = {};
+};
 
 const rules = {
   requiredDescricao: (value: string) =>
@@ -961,9 +1158,10 @@ h2 {
   color: white;
   margin-bottom: 30px;
 }
-.custom-input-container {
+.custom__input__container {
   position: relative;
-  padding-bottom: 8px; /* Espaço antes da linha de baixo */
+  padding-top: 20px;
+  padding-bottom: 4px; /* Espaço antes da linha de baixo */
 }
 
 .custom-input-label {
@@ -991,7 +1189,7 @@ h2 {
 }
 
 /* Linha de baixo do input */
-.custom-underline {
+.custom__underline {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -1021,5 +1219,14 @@ h2 {
   background-color: #77d08e;
   color: #121212 !important; /* Cor do texto do botão ativo */
   font-weight: bold;
+}
+
+.custom__display__input {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.7);
+  padding: 8px 0;
+  cursor: pointer;
+  color: #fff;
 }
 </style>
