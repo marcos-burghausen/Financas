@@ -411,7 +411,7 @@ import { formatValue } from "@/utils/formatValue";
 import type { AxiosError } from "axios";
 import { computed, ref, watch } from "vue";
 import { format as formatDate, isValid } from "date-fns";
-import { isToday, isYesterday, isTomorrow, parseISO, format } from 'date-fns';
+import { isYesterday, isTomorrow, parseISO, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const useWallets = useWalletsStore();
@@ -530,7 +530,7 @@ const displayDataVencimento = computed(() => {
   // Se não houver data, não mostre nada.
   if (!formReleases.value.dataVencimento) return 'Selecione...';
 
-  // Converte a string 'yyyy-MM-dd' do seu model para um objeto Date
+  if (typeof formReleases.value.dataVencimento !== 'string') return '';
   const data = parseISO(formReleases.value.dataVencimento);
 
   // Compara com a data atual e retorna o texto correspondente
@@ -556,7 +556,7 @@ const displayDataLancamento = computed(() => {
   // Se não houver data, não mostre nada.
   if (!formReleases.value.dataLancamento) return 'Selecione...';
 
-  // Converte a string 'yyyy-MM-dd' do seu model para um objeto Date
+  if (typeof formReleases.value.dataLancamento !== 'string') return '';
   const data = parseISO(formReleases.value.dataLancamento);
 
   // Compara com a data atual e retorna o texto correspondente
@@ -582,7 +582,7 @@ const displayDataEfetivacao = computed(() => {
   // Se não houver data, não mostre nada.
   if (!formReleases.value.dataEfetivacao) return null;
 
-  // Converte a string 'yyyy-MM-dd' do seu model para um objeto Date
+  if (typeof formReleases.value.dataEfetivacao !== 'string') return '';
   const data = parseISO(formReleases.value.dataEfetivacao);
 
   // Compara com a data atual e retorna o texto correspondente
@@ -770,9 +770,9 @@ const inicializarValoresTemporarios = () => {
 
 const cancelarConfiguracaoRepeticao = () => {
   // Retorna tipo para "Não recorrente"
-  formReleases.value.tipo = "Não recorrente";
-  formReleases.value.numParcelas = 0;
-  formReleases.value.periodicidade = "";
+  formReleases.value.recorrencia = "Não recorrente";
+  formReleases.value.numParcelas = null;
+  formReleases.value.periodicidade = null;
 
   // Fecha o modal
   openParcelas.value = false;
@@ -782,7 +782,7 @@ const concluirParcelas = () => {
   // Salva os valores temporários nos valores finais
   parcelaInicial.value = tempParcelaInicial.value;
   formReleases.value.numParcelas = tempNumParcelas.value;
-  formReleases.value.periodicidade = tempPeriodicidade.value;
+  formReleases.value.periodicidade = tempPeriodicidade.value || null;
 
   // Fecha o modal
   openParcelas.value = false;
@@ -803,8 +803,8 @@ const selecionarRecorrencia = (item: "Não recorrente" | "Fixa" | "Parcelado") =
     openParcelas.value = true;
   } else {
     // Reseta os dados de parcela se não for "Parcelado"
-    formReleases.value.numParcelas = undefined;
-    formReleases.value.periodicidade = undefined;
+    formReleases.value.numParcelas = null;
+    formReleases.value.periodicidade = null;
   }
 };
 
@@ -896,7 +896,7 @@ const clearInputs = () => {
     id: null,
     descricao: "",
     valor: "0,00",
-    tipo: "Não recorrente",
+    recorrencia: "Não recorrente",
     numParcelas: 0,
     periodicidade: null,
     dataVencimento: new Date().toISOString().split("T")[0],

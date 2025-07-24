@@ -172,14 +172,23 @@ interface ApiError {
   };
 }
 
-const getIconForRevenue = (revenue) => {
+const getIconForRevenue = (revenue: Lancamento) => {
   if (revenue.status === 'Efetivada') {
     return 'mdi-check';
   }
 
   if (revenue.status === 'Pendente') {
-    // É importante usar parseISO para evitar problemas de fuso horário com as datas
-    const dataVencimento = parseISO(revenue.dataVencimento);
+    if (!revenue.dataVencimento) {
+      return 'mdi-calendar-question';
+    }
+
+    let dataVencimento: Date;
+    if (typeof revenue.dataVencimento === 'string') {
+      dataVencimento = parseISO(revenue.dataVencimento);
+    } else {
+      dataVencimento = revenue.dataVencimento;
+    }
+    
     const hoje = new Date();
 
     const diffEmDias = differenceInCalendarDays(dataVencimento, hoje);
@@ -198,14 +207,23 @@ const getIconForRevenue = (revenue) => {
   }
 };
 
-const getClassForRevenue = (revenue) => {
+const getClassForRevenue = (revenue: Lancamento) => {
   if (revenue.status === 'Efetivada') {
     return 'paga';
   }
 
   if (revenue.status === 'Pendente') {
-    // É importante usar parseISO para evitar problemas de fuso horário com as datas
-    const dataVencimento = parseISO(revenue.dataVencimento);
+    if (!revenue.dataVencimento) {
+      return 'pendente';
+    }
+
+    let dataVencimento: Date;
+    if (typeof revenue.dataVencimento === 'string') {
+      dataVencimento = parseISO(revenue.dataVencimento);
+    } else {
+      dataVencimento = revenue.dataVencimento; // Já é um objeto Date
+    }
+    
     const hoje = new Date();
 
     const diffEmDias = differenceInCalendarDays(dataVencimento, hoje);
