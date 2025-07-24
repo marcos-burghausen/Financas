@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreign('user_id')->references('id')->on('users')->constrained()->onDelete('cascade');
             $table->string('descricao', 50);
             $table->integer('valor');
-            $table->enum('tipo', ['Não recorrente', 'Parcelada', 'Fixa mensal']);
+            $table->enum('recorrencia', ['Não recorrente', 'Parcelada', 'Fixa mensal']);
             $table->integer('numParcelas')->nullable()->default(1);
             $table->enum('periodicidade', ['Mensal', 'Diario', 'Semanal', 'Quinzenal', 'Trimenstral', 'Anual'])->nullable()->default(null);
             $table->date('dataVencimento');

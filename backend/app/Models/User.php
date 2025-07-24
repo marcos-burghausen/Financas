@@ -385,11 +385,17 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(Lancamento::class);
     }
 
-    // public function revenues()
-    // {
-    //     //hasMany (tem muitos)
-    //     return $this->hasMany(Revenue::class);
-    // }
+    public function revenues()
+    {
+        //hasMany (tem muitos)
+        return $this->hasMany(Revenue::class);
+    }
+
+    public function expenses()
+    {
+        //hasMany (tem muitos)
+        return $this->hasMany(Expense::class);
+    }
 
     public function contas()
     {
@@ -410,21 +416,21 @@ class User extends Authenticatable implements JWTSubject
     //         ->sum('amount');
     // }
 
-    public function expenses()
-    {
-        $expenses = $this->lancamentos()
-            ->where('tipo', 'Despesa')
-            ->get();
-        return $expenses;
-    }
+    // public function expenses()
+    // {
+    //     $expenses = $this->lancamentos()
+    //         ->where('tipo', 'Despesa')
+    //         ->get();
+    //     return $expenses;
+    // }
 
-    public function revenues()
-    {
-        $revenues = $this->lancamentos()
-            ->where('tipo', 'Receita')
-            ->get();
-        return $revenues;
-    }
+    // public function revenues()
+    // {
+    //     $revenues = $this->lancamentos()
+    //         ->where('tipo', 'Receita')
+    //         ->get();
+    //     return $revenues;
+    // }
 
     // Rest omitted for brevity
 

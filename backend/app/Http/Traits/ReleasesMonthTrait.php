@@ -11,7 +11,6 @@ trait ReleasesMonthTrait
     {
         $mes = $data ?? date('Y-m');
         // $mes = DateTime::createFromFormat('Y-m', $data)->format('m');
-        // info('mes ' . $mes);
 
         // $lacamentosMes = $this->lancamentosMes($lacamentos, $mes);
         // info(['lacamentosMes ' => $lacamentosMes]);
@@ -189,15 +188,14 @@ trait ReleasesMonthTrait
     public function obterSaldoInicial(object $user, $mes = null): float
     {
         $mes = $mes ?? date('Y-m');
-        $user = auth()->user();
         $contas = $user->contas()->get();
         $somaSaldo = $user->contas()
             ->where('incluirEmSomaInicial', true)
             ->sum('saldoInicial');
         $saldoInicial = 0;
-        // $despesas = $user->expenses()->get();
-        // $receitas = $user->revenues()->get();
-
+        // // $despesas = $user->expenses()->get();
+        // // $receitas = $user->revenues()->get();
+        
         $dataLimite = (new DateTime("$mes-01"))->modify('-1 day')->format('Y-m-d');
 
         foreach ($contas as $conta) {

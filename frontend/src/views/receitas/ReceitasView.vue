@@ -45,42 +45,26 @@
       </div>
       <div
         v-if="revenuesMonth && revenuesMonth.length > 0"
-        class="container-fluid pt-15 mt-15 pb-8 mb-8"
+        class="container-fluid px-0 pt-15 mt-15 pb-8 mb-8"
       >
         <div
           v-for="revenue in revenuesMonth"
           :key="revenue.id ?? undefined"
           class="container__table"
         >
-          <div class="card__lancamento">
-            <v-card color="transparent" class="mdicon__card">
+          <div class="card__lancamento ps-2 pb-2">
+            <v-container
+              class="mdicon__card"
+              :class="getClassForRevenue(revenue)"
+            >
               <v-icon
-                :icon="
-                  revenue.status === 'Efetivada'
-                    ? 'mdi-check'
-                    : revenue.dataVencimento &&
-                      new Date() <= new Date(revenue.dataVencimento) &&
-                      revenue.status === 'Pendente'
-                    ? 'mdi-calendar-remove'
-                    : 'mdi-alert'
-                "
+                :icon="getIconForRevenue(revenue)"
                 class="mdicon__lacamento"
-                :class="{
-                  paga: revenue.status === 'Efetivada',
-                  atrasada:
-                    revenue.dataVencimento &&
-                    new Date() > new Date(revenue.dataVencimento) &&
-                    revenue.status === 'Pendente',
-                  pendente:
-                    revenue.dataVencimento &&
-                    new Date() <= new Date(revenue.dataVencimento) &&
-                    revenue.status === 'Pendente',
-                }"
                 size="30"
                 :disabled="revenue.status === 'Efetivada'"
                 @click="receiveRevenue(revenue.id!, revenue.conta!)"
               />
-            </v-card>
+            </v-container>
             <div style="width: 100%">
               <div class="header__visao_geral">
                 <span style="text-align: start; height: 22px">{{
@@ -119,13 +103,14 @@
                 </div>
               </div>
               <div style="display: flex; justify-content: space-between">
-                <span class="categoria">{{ revenue.descricao }}</span>
-                <span class="categoria">
+                <span class="descricao">{{ revenue.descricao }}</span>
+                <span class="descricao">
                   R$ {{ formatValue(Number(revenue.valor)) }}</span
                 >
               </div>
               <div>
                 <span class="sub__categoria px-3">{{ revenue.categoria }}</span>
+                <span v-if="revenue.subcategoria !== 'Outros'" class="sub__categoria px-3">{{ revenue.subcategoria }}</span>
               </div>
             </div>
           </div>
@@ -133,7 +118,7 @@
       </div>
       <NoDataComponent v-else />
     </div>
-    <div v-if="!formulario" class="fixed-bottom d-flex justify-end pe-5 pb-5">
+    <div v-if="!formulario" class="fixed-bottom d-flex justify-end pe-6 pb-6">
       <v-icon
         type="button"
         title="Adicionar nova receita"
@@ -164,6 +149,8 @@ import type { Lancamento, TransactionsData } from "@/types";
 
 import { formatValue } from "@/utils/formatValue";
 
+import { isToday, isPast, differenceInCalendarDays, parseISO } from 'date-fns';
+
 const useRevenues = useRevenuesStore();
 const useWallets = useWalletsStore();
 const useExpenses = useExpensesStore();
@@ -184,6 +171,58 @@ interface ApiError {
     };
   };
 }
+
+const getIconForRevenue = (revenue) => {
+  if (revenue.status === 'Efetivada') {
+    return 'mdi-check';
+  }
+
+  if (revenue.status === 'Pendente') {
+    // É importante usar parseISO para evitar problemas de fuso horário com as datas
+    const dataVencimento = parseISO(revenue.dataVencimento);
+    const hoje = new Date();
+
+    const diffEmDias = differenceInCalendarDays(dataVencimento, hoje);
+
+    if (diffEmDias < 0) {
+      return 'mdi-calendar-alert'; 
+    }
+
+    if (diffEmDias >= 0 && diffEmDias <= 3) {
+      return 'mdi-alert';
+    }
+
+    if (diffEmDias >= 4) {
+      return 'mdi-clock-outline';
+    }
+  }
+};
+
+const getClassForRevenue = (revenue) => {
+  if (revenue.status === 'Efetivada') {
+    return 'paga';
+  }
+
+  if (revenue.status === 'Pendente') {
+    // É importante usar parseISO para evitar problemas de fuso horário com as datas
+    const dataVencimento = parseISO(revenue.dataVencimento);
+    const hoje = new Date();
+
+    const diffEmDias = differenceInCalendarDays(dataVencimento, hoje);
+
+    if (diffEmDias < 0) {
+      return 'atrasada'; 
+    }
+
+    if (diffEmDias >= 0 && diffEmDias <= 3) {
+      return 'pendente';
+    }
+
+    if (diffEmDias >= 4) {
+      return 'em__dia';
+    }
+  }
+};
 
 const mesPorExtenso = computed(() => {
   if (!mesAnoReferencia.value) return "";
@@ -341,6 +380,7 @@ const receiveRevenue = async (revenueId: number, conta: string) => {
   width: 100%;
   display: flex;
   justify-content: space-around;
+  align-items: center;
   padding-top: 15px;
 }
 .mdicon {
@@ -361,33 +401,45 @@ const receiveRevenue = async (revenueId: number, conta: string) => {
   color: #bdbdbd;
 }
 .container__table {
-  margin-top: 15px;
+  margin-top: 5px;
 }
 .card__lancamento {
-  border-bottom: solid 1px #757575;
+  border-bottom: solid 1px #75757588;
   display: flex;
+
 }
 .mdicon__card {
-  padding-right: 10px;
+  padding-top: 7px;
   display: flex;
-  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  margin-top: 12px;
+  margin-right: 10px;
 }
 .mdicon__lacamento {
+  background: #1dbb01;
   border-radius: 50%;
   padding: 5px;
   margin-bottom: 5px;
+  background: transparent;
 }
 .paga {
-  color: #1dbb01 !important;
+  color: #00ff00 !important;
   background: #24cc0728 !important;
 }
 .atrasada {
-  color: #ff0000 !important;
+  color: #ff000093 !important;
   background: #ff000021 !important;
 }
 .pendente {
-  color: #e5ff00 !important;
+  color: #e5ff00c4 !important;
   background: #e5ff0021 !important;
+}
+.em__dia {
+  color: #727272ff !important;
+  background: #81818121 !important;
 }
 .header__visao_geral {
   display: flex;
@@ -398,8 +450,8 @@ const receiveRevenue = async (revenueId: number, conta: string) => {
 .color {
   color: #bdbdbd;
 }
-.categoria {
-  font-size: 20px;
+.descricao {
+  font-size: 16px;
   color: #bdbdbd;
   padding-right: 27px;
   height: 22px;
@@ -407,10 +459,10 @@ const receiveRevenue = async (revenueId: number, conta: string) => {
   align-items: center;
 }
 .sub__categoria {
-  font-size: 15px;
+  font-size: 12px;
   background: #1dbb01;
   margin-right: 5px;
-  padding-inline: 5px;
+  padding-inline: 2px;
   border-radius: 15px;
 }
 </style>

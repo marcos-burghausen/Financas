@@ -21,17 +21,17 @@ class RevenueController extends Controller
     public function saveRevenue(Request $request)
     {
         $data = $this->validateData($request);
-
-
+        
+        
         /** @var \App\Models\User $user */
         $user = auth()->user();
-
+        
         DB::beginTransaction();
         $revenue = new Revenue;
         $revenue->user_id        = $user->id;
         $revenue->descricao      = $data['descricao'];
         $revenue->valor          = str_replace([',', '.'], '', $data['valor']);
-        $revenue->tipo           = $data['tipo'];
+        $revenue->recorrencia    = $data['recorrencia'];
         $revenue->numParcelas    = $data['numParcelas'] ?? null;
         $revenue->periodicidade  = $data['periodicidade'] ?? null;
         $revenue->dataVencimento = $data['dataVencimento'];
@@ -42,29 +42,37 @@ class RevenueController extends Controller
         $revenue->dataEfetivacao = $data['dataEfetivacao'] ?? null;
         $revenue->conta          = $data['conta'];
         $saved = $revenue->save();
-
+        
         if ($saved && $data['numParcelas'] > 1) {
             $lastLancamento = Lancamento::latest('id')->first();
             $saved = $this->criarParcelas($data, $lastLancamento->id);
         }
-
+        
         if ($data['status'] === 'Efetivada') {
             $conta = Conta::where('user_id', $user->id)
-                ->where('name', $data['conta'])
-                ->first();
-
+            ->where('name', $data['conta'])
+            ->first();
+            
             if ($conta) {
                 $conta->saldo += $revenue->valor;
                 $conta->save();
             }
         }
-
+        
         if (!$saved) {
             DB::rollBack();
             return response()->json(Errors::ERROR_REGISTERING_REVENUE->response(), 422);
         }
-
+        
         DB::commit();
+        
+        info($saved);
+        $revenues = $user->revenues()
+            ->where('status', 'Pendente')
+            ->where('dataLancamento', '>=', date('Y-m-01'))
+            ->where('dataLancamento', '<=', date('Y-m-t'))
+            ->get();
+        info($revenues);
 
         $revenuesData = $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data['mesReferencia']);
         $walletsData = [
@@ -275,19 +283,19 @@ class RevenueController extends Controller
     {
         return $request->validate(
             [
-                'id'              => 'nullable | integer',
-                'descricao'       => 'required | string | max:50',
-                'valor'           => 'required | min:0.01',
-                'tipo'            => 'string | in:Não recorrente,Parcelada,Fixa mensal',
+                'id'             => 'nullable | integer',
+                'descricao'      => 'required | string | max:50',
+                'valor'          => 'required | min:0.01',
+                'recorrencia'    => 'string | in:Não recorrente,Parcelada,Fixa mensal',
                 'numParcelas'    => 'nullable | integer | min:2',
-                'periodicidade'   => 'nullable | string | in:Mensal,Diario,Semanal,Quinzenal,Trimestral,Anual',
+                'periodicidade'  => 'nullable | string | in:Mensal,Diario,Semanal,Quinzenal,Trimestral,Anual',
                 'dataVencimento' => 'required | date',
-                'status'          => 'required | string | in:Pendente,Efetivada',
-                'categoria'       => 'required | string | max:30',
-                'subcategoria'    => 'required | string | max:30',
+                'status'         => 'required | string | in:Pendente,Efetivada',
+                'categoria'      => 'required | string | max:30',
+                'subcategoria'   => 'required | string | max:30',
                 'dataLancamento' => 'required | date',
                 'dataEfetivacao' => 'nullable | date',
-                'conta'           => 'required | string | max:30',
+                'conta'          => 'required | string | max:30',
                 'mesReferencia'  => 'required | string | regex:/^\d{4}-\d{2}$/',
             ],
             [

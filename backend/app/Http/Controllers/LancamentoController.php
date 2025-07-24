@@ -20,7 +20,6 @@ class LancamentoController extends Controller
     {
         $data = $this->validateData($request);
 
-
         /** @var \App\Models\User $user */
         $user = auth()->user();
 
@@ -273,29 +272,29 @@ class LancamentoController extends Controller
     {
         return $request->validate(
             [
-                'id'              => 'nullable | integer',
-                'descricao'       => 'required | string | max:50',
-                'valor'           => 'required | min:0.01',
-                'tipo'            => 'string | in:Receita,Despesa,CartaoCredito',
+                'id'             => 'nullable | integer',
+                'descricao'      => 'required | string | max:50',
+                'valor'          => 'required | min:0.01',
+                'tipo'           => 'string | in:Receita,Despesa,CartaoCredito',
                 'numParcelas'    => 'nullable | integer | min:2',
-                'periodicidade'   => 'nullable | string | in:Mensal,Diario,Semanal,Quinzenal,Trimestral,Anual',
+                'periodicidade'  => 'nullable | string | in:Mensal,Diario,Semanal,Quinzenal,Trimestral,Anual',
                 'dataVencimento' => 'required | date',
-                'status'          => 'required | string | in:Pendente,Efetivada',
-                'categoria'       => 'required | string | max:30',
-                'subcategoria'    => 'required | string | max:30',
+                'status'         => 'required | string | in:Pendente,Efetivada',
+                'categoria'      => 'required | string | max:30',
+                'subcategoria'   => 'required | string | max:30',
                 'dataLancamento' => 'required | date',
                 'dataEfetivacao' => 'nullable | date',
-                'conta'           => 'required | string | max:30',
+                'conta'          => 'required | string | max:30',
                 'mesReferencia'  => 'required | string | regex:/^\d{4}-\d{2}$/',
             ],
             [
-                'required'             => 'O campo :attribute é obrigatório',
-                'integer'              => 'O campo :attribute deve ser um número',
-                'string'               => 'O campo :attribute deve conter apenas letras',
-                'max'                  => 'O campo :attribute deve conter no máximo :max caracteres',
-                'min'                  => 'O campo :attribute deve ser maior que :min',
-                'in'                   => 'O campo :attribute não corresponde ao valor esperado',
-                'date'                 => 'O campo :attribute nâo é uma data valida',
+                'required'            => 'O campo :attribute é obrigatório',
+                'integer'             => 'O campo :attribute deve ser um número',
+                'string'              => 'O campo :attribute deve conter apenas letras',
+                'max'                 => 'O campo :attribute deve conter no máximo :max caracteres',
+                'min'                 => 'O campo :attribute deve ser maior que :min',
+                'in'                  => 'O campo :attribute não corresponde ao valor esperado',
+                'date'                => 'O campo :attribute nâo é uma data valida',
                 'mesReferencia.regex' => 'O campo mesReferencia deve estar no formato YYYY-MM (ex: 2025-04)',
             ]
         );

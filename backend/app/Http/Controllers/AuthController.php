@@ -308,17 +308,15 @@ class AuthController extends Controller
             $categoria->subcategories = $subcategories; // Assign to a custom attribute
         }
 
-
-
         return [
             'expenses' => [
-                ...$this->classifiesReleases($user->expenses(), 'Expenses'),
+                ...$this->classifiesReleases($user->expenses()->get(), 'Expenses'),
                 "categories" => [
                     ...$categoriasDespesas,
                 ],
             ],
             "revenues" => [
-                ...$this->classifiesReleases($user->revenues(), 'Revenues'),
+                ...$this->classifiesReleases($user->revenues()->get(), 'Revenues'),
                 "categories" => [
                     ...$categoriasReceitas,
                 ],
