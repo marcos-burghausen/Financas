@@ -66,13 +66,11 @@ class RevenueController extends Controller
         
         DB::commit();
         
-        info($saved);
         $revenues = $user->revenues()
             ->where('status', 'Pendente')
             ->where('dataLancamento', '>=', date('Y-m-01'))
             ->where('dataLancamento', '<=', date('Y-m-t'))
             ->get();
-        info($revenues);
 
         $revenuesData = $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data['mesReferencia']);
         $walletsData = [
@@ -109,18 +107,18 @@ class RevenueController extends Controller
         $oldConta = $revenue->conta;
 
 
-        $revenue->descricao       = $data['descricao'];
-        $revenue->valor           = str_replace([',', '.'], '', $data['valor']);
-        $revenue->tipo            = $data['tipo'] ?? 'Não recorrente';
+        $revenue->descricao      = $data['descricao'];
+        $revenue->valor          = str_replace([',', '.'], '', $data['valor']);
+        $revenue->recorrencia    = $data['recorrencia'] ?? 'Não recorrente';
         $revenue->numParcelas    = $data['numParcelas'] ?? null;
-        $revenue->periodicidade   = $data['periodicidade'] ?? null;
+        $revenue->periodicidade  = $data['periodicidade'] ?? null;
         $revenue->dataVencimento = $data['dataVencimento'];
-        $revenue->status          = $data['status'];
-        $revenue->categoria       = $data['categoria'];
-        $revenue->subcategoria    = $data['subcategoria'];
+        $revenue->status         = $data['status'];
+        $revenue->categoria      = $data['categoria'];
+        $revenue->subcategoria   = $data['subcategoria'];
         $revenue->dataLancamento = $data['dataLancamento'];
         $revenue->dataEfetivacao = $data['dataEfetivacao'] ?? null;
-        $revenue->conta           = $data['conta'];
+        $revenue->conta          = $data['conta'];
         $saved = $revenue->save();
 
         if (!$saved) {
@@ -188,6 +186,11 @@ class RevenueController extends Controller
         if (!$revenue) {
             DB::rollBack();
             return response()->json(['error' => 'Receita não encontrada'], 404);
+        }
+
+        if ($revenue->status === 'Efetivada') {
+            DB::rollBack();
+            return response()->json(['error' => 'Receita já está efetivada'], 422);
         }
 
         $revenue->status = 'Efetivada';

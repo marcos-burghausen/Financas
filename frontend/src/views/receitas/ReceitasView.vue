@@ -273,8 +273,8 @@ const openCreateForm = () => {
 };
 
 const editRevenue = (revenue: Lancamento) => {
-  console.log(revenue);
   selectedRelease.value = { ...revenue };
+
   formulario.value = true;
 };
 
@@ -318,9 +318,9 @@ const buscarDadosMes = async (data: string) => {
     useRevenues.setRevenuesData(res.data.revenuesData);
     useWallets.setWalletsData(res.data.walletsData);
     mesAnoReferencia.value = res.data.walletsData.mes_ano_referencia;
-    revenuesMonth.value = res.data.revenuesData.RevenuesMonth;
+    revenuesMonth.value = res.data.revenuesData.byMonth;
     valueTotalRevenuesMonth.value =
-      res.data.revenuesData.ValueTotalRevenuesMonth;
+      res.data.revenuesData.valueTotalMonth;
   } catch (error) {
     const apiError = error as ApiError;
     console.error("Erro ao buscar dados do mês::", apiError.response?.data);
@@ -333,8 +333,9 @@ const deletar = async (id: number) => {
       data: { mesReferencia: mesAnoReferencia.value },
     });
     useRevenues.setRevenuesData(res.data.revenuesData);
-    valueTotalRevenuesMonth.value = res.data.revenuesData.valueTotalMonth;
     revenuesMonth.value = res.data.revenuesData.byMonth;
+    useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
+    useWallets.setContas(res.data.walletsData.wallets);
   } catch (error: unknown) {
     const apiError = error as ApiError;
     console.error("Erro ao deletar receita:", apiError.response?.data);
@@ -349,10 +350,9 @@ const receiveRevenue = async (revenueId: number, conta: string) => {
     };
     const res = await http.patch(`/revenue/${revenueId}`, payload);
     useRevenues.setRevenuesData(res.data.revenuesData);
+    revenuesMonth.value = res.data.revenuesData.byMonth;
     useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
     useWallets.setContas(res.data.walletsData.wallets);
-    console.log(res.data.walletsData.wallets);
-    // Update UI or emit event
   } catch (error) {
     const apiError = error as ApiError;
     console.error("Erro ao receber receita:", apiError.response?.data);

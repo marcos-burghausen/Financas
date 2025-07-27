@@ -297,7 +297,7 @@
 
       <v-autocomplete
         v-model="formReleases.subcategoria"
-        :items="subcategoriesNames"
+        :items="subcategoriasDaCategoriaSelecionada"
         label="Subcategoria"
         variant="underlined"
         class="mb-6 imput"
@@ -409,7 +409,7 @@ import {
 import type { Lancamento, ApiErrorResponse } from "@/types";
 import { formatValue } from "@/utils/formatValue";
 import type { AxiosError } from "axios";
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, watchEffect  } from "vue";
 import { format as formatDate, isValid } from "date-fns";
 import { isYesterday, isTomorrow, parseISO, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -502,6 +502,7 @@ const categoriasNames = computed(() => {
     return useExpenses.expensesData?.categories.map((cat) => cat.name) || [];
   }
 });
+
 
 const contasNames = ref(useWallets.walletsData.contasNames);
 const isEditMode = computed(() => !!props.releases?.id);
@@ -607,7 +608,7 @@ const displayDataEfetivacao = computed(() => {
 const isTodayVencimento = computed(() =>
   isToday(formReleases.value.dataVencimento)
 );
-console.log(isTodayVencimento);
+
 const isTodayLancamento = computed(() =>
   isToday(formReleases.value.dataLancamento)
 );
@@ -621,7 +622,7 @@ const formReleases = ref<Lancamento>({
   id: props.releases?.id || null,
   descricao: props.releases?.descricao || "",
   valor: formatValue(Number(props.releases?.valor)) || "0,00",
-  tipo: props.transactionType,
+  // tipo: props.transactionType,
   recorrencia: props.releases?.recorrencia || "Não recorrente",
   numParcelas: props.releases?.numParcelas || null,
   periodicidade: props.releases?.periodicidade || null,
@@ -665,11 +666,11 @@ const categoriesSource = computed(() =>
 );
 
 // Encontra o objeto da categoria selecionada
-const selectedCategoryObject = computed(() =>
-  categoriesSource.value?.find(
-    (cat) => cat.name === formReleases.value.categoria
-  )
-);
+const selectedCategoryObject = computed(() => {
+  return categoriesSource.value.find(
+    (cat) => cat.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === formReleases.value.categoria.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+  );
+});
 
 // Encontra o objeto da subcategoria selecionada
 const selectedSubcategoryObject = computed(() =>
@@ -678,8 +679,10 @@ const selectedSubcategoryObject = computed(() =>
   )
 );
 
+
 // Retorna o ícone e a cor para a CATEGORIA
 const categoriaIcon = computed(() => selectedCategoryObject.value?.icon || 'mdi-scatter-plot');
+console.log(categoriaIcon.value);
 const categoriaColorClass = computed(() => selectedCategoryObject.value?.color || '');
 
 // Retorna o ícone e a cor para a SUBCATEGORIA
@@ -697,29 +700,27 @@ watch(
   }
 );
 
-watch(
-  () => formReleases.value.categoria,
-  (newCategoria) => {
-    const categoriesSource =
-      props.transactionType === "Receita"
-        ? useRevenues.revenuesData?.categories
-        : useExpenses.expensesData?.categories;
+const subcategoriasDaCategoriaSelecionada = computed(() => {
+  // Decide se estamos a trabalhar com receitas ou despesas
+  // const categoriesSource = props.transactionType === "Receita"
+  //   ? useRevenues.revenuesData?.categories
+  //   : useExpenses.expensesData?.categories;
 
-    const selectedCategory = categoriesSource?.find(
-      (cat) => cat.name === newCategoria
-    );
-    if (selectedCategory) {
-      subcategoriesNames.value =
-        selectedCategory.subcategories?.map((sub) => sub.name) || [];
-      // Define a primeira subcategoria como padrão, se houver
-      formReleases.value.subcategoria = subcategoriesNames.value[0] || "";
-    } else {
-      subcategoriesNames.value = [];
-      formReleases.value.subcategoria = "";
-    }
-  },
-  { immediate: true } // Executa o watch imediatamente ao criar o componente
-);
+  if (!categoriesSource.value) {
+    return [];
+  }
+
+  const selectedCategory = categoriesSource.value.find(
+    (cat) => cat.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === formReleases.value.categoria.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+  );
+
+  if (selectedCategory && selectedCategory.subcategories) {
+    return subcategoriesNames.value = selectedCategory.subcategories.map((sub) => sub.name);
+  }
+
+  return [];
+});
+
 
 const formatDateOnWatch = (newValue: any) => {
   if (newValue instanceof Date) {
@@ -808,27 +809,6 @@ const selecionarRecorrencia = (item: "Não recorrente" | "Fixa" | "Parcelado") =
   }
 };
 
-// const selecionarTipo = (item: string) => {
-//   formReleases.value.tipo = item;
-//   openTipoLancamento.value = false;
-
-//   if (item === "Parcelada") {
-//     inicializarValoresTemporarios();
-
-//     if (formReleases.value.numParcelas > 0) {
-//       tempNumParcelas.value = formReleases.value.numParcelas;
-//     }
-
-//     if (formReleases.value.periodicidade) {
-//       tempPeriodicidade.value = formReleases.value.periodicidade;
-//     }
-
-//     openParcelas.value = true;
-//   } else {
-//     formReleases.value.numParcelas = 0;
-//     formReleases.value.periodicidade = "Mensal";
-//   }
-// };
 
 const salvarLancamentos = async () => {
   errorStore.unsetError();
@@ -860,7 +840,7 @@ const salvarLancamentos = async () => {
   //   const res = await method(url, payload); 
 
 
-
+  console.log(formReleases.value);
   try {
     loading.value = true;
     const method = isEditMode.value ? http.put : http.post;
