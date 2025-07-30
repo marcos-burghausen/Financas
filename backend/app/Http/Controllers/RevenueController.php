@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\Errors;
 use App\Http\Traits\GroupReleasesTrait;
 use App\Http\Traits\ReleasesMonthTrait;
+use App\Http\Traits\UserDataTrait;
 use App\Mail\NotificationMail;
 use App\Models\Conta;
 use App\Models\Lancamento;
@@ -16,7 +17,7 @@ use Illuminate\Support\Facades\Mail;
 
 class RevenueController extends Controller
 {
-    use ReleasesMonthTrait;
+    use ReleasesMonthTrait, UserDataTrait;
 
     public function saveRevenue(Request $request)
     {
@@ -72,19 +73,21 @@ class RevenueController extends Controller
             ->where('dataLancamento', '<=', date('Y-m-t'))
             ->get();
 
-        $revenuesData = $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data['mesReferencia']);
-        $walletsData = [
-            'contas'       => $user->contas()->get(['id', 'name', 'icon', 'saldo', 'saldoInicial', 'descricao', 'tipo', 'incluirEmSomaInicial']),
-            'saldoInicial' => $this->obterSaldoInicial($user, $data['mesReferencia'] ?? date('Y-m')),
-        ];
+        // $revenuesData = $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data['mesReferencia']);
+        // $walletsData = [
+        //     'contas'       => $user->contas()->get(['id', 'name', 'icon', 'saldo', 'saldoInicial', 'descricao', 'tipo', 'incluirEmSomaInicial']),
+        //     'saldoInicial' => $this->obterSaldoInicial($user, $data['mesReferencia'] ?? date('Y-m')),
+        // ];
 
         Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Receita', $revenue->descricao));
+        $data = $this->getUserData($user);
 
         return response()->json([
             'success' => 'Receita cadastrada com sucesso',
-            'revenuesData' => $revenuesData,
-            'walletsData' => $walletsData,
-            "mesAno" => $data['mesReferencia'],
+            // 'revenuesData' => $revenuesData,
+            // 'walletsData' => $walletsData,
+            // "mesAno" => $data['mesReferencia'],
+            'data' => $data
         ], 201);
     }
 
@@ -157,18 +160,20 @@ class RevenueController extends Controller
 
         DB::commit();
 
-        $revenuesData = $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data['mesReferencia'] ?? date('Y-m'));
-        $walletsData = [
-            'wallets' => $user->contas()->get(),
-            'saldoInicial' => $this->obterSaldoInicial($user, $data['mesReferencia'] ?? date('Y-m')),
-        ];
+        // $revenuesData = $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data['mesReferencia'] ?? date('Y-m'));
+        // $walletsData = [
+        //     'wallets' => $user->contas()->get(),
+        //     'saldoInicial' => $this->obterSaldoInicial($user, $data['mesReferencia'] ?? date('Y-m')),
+        // ];
+        $data = $this->getUserData($user);
 
         Mail::to($user->email)->queue(new NotificationMail($user, 'Edição', 'Receita', $revenue->descricao));
 
         return response()->json([
             'msg' => 'Receita editada com sucesso',
-            'revenuesData' => $revenuesData,
-            'walletsData' => $walletsData,
+            // 'revenuesData' => $revenuesData,
+            // 'walletsData' => $walletsData,
+            'data' => $data
         ], 200);
     }
 
@@ -213,18 +218,20 @@ class RevenueController extends Controller
 
         DB::commit();
 
-        $revenuesData = $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data['mesReferencia'] ?? date('Y-m'));
-        $walletsData = [
-            'wallets' => $user->contas()->get(),
-            'saldoInicial' => $this->obterSaldoInicial($user, $data['mesReferencia'] ?? date('Y-m')),
-        ];
+        // $revenuesData = $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data['mesReferencia'] ?? date('Y-m'));
+        // $walletsData = [
+        //     'wallets' => $user->contas()->get(),
+        //     'saldoInicial' => $this->obterSaldoInicial($user, $data['mesReferencia'] ?? date('Y-m')),
+        // ];
+        $data = $this->getUserData($user);
 
         Mail::to($user->email)->queue(new NotificationMail($user, 'Recebimento', 'Receita', $revenue->descricao));
 
         return response()->json([
             'success' => 'Receita recebida com sucesso',
-            'revenuesData' => $revenuesData,
-            'walletsData' => $walletsData,
+            // 'revenuesData' => $revenuesData,
+            // 'walletsData' => $walletsData,
+            'data' => $data
         ], 200);
     }
 
@@ -261,18 +268,20 @@ class RevenueController extends Controller
 
         DB::commit();
 
-        $revenuesData = $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data['mesReferencia'] ?? date('Y-m'));
-        $walletsData = [
-            'wallets' => $user->contas()->get(),
-            'saldoInicial' => $this->obterSaldoInicial($user, $data['mesReferencia'] ?? date('Y-m')),
-        ];
+        // $revenuesData = $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data['mesReferencia'] ?? date('Y-m'));
+        // $walletsData = [
+        //     'wallets' => $user->contas()->get(),
+        //     'saldoInicial' => $this->obterSaldoInicial($user, $data['mesReferencia'] ?? date('Y-m')),
+        // ];
+        $data = $this->getUserData($user);
 
         Mail::to($user->email)->queue(new NotificationMail($user, 'Exclusão', 'Receita', $revenue->descricao));
 
         return response()->json([
             'msg' => 'Receita excluída com sucesso',
-            'revenuesData' => $revenuesData,
-            'walletsData' => $walletsData,
+            // 'revenuesData' => $revenuesData,
+            // 'walletsData' => $walletsData,
+            'data' => $data
         ], 200);
     }
 

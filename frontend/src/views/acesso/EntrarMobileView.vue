@@ -94,14 +94,13 @@ const errorStore = useErrorStore();
 const router = useRouter();
 const useAuth = useAuthStore();
 
-// CORREÇÃO: Removidos os dados de usuário hardcoded.
 const user = ref<FormLogin>({
   email: "",
   password: "",
 });
 
 let validForm = ref(false);
-let mostrarSenha = ref(false); // Mudado para false para começar com a senha oculta
+let mostrarSenha = ref(false);
 let loading = ref(false);
 
 async function initiateFacebookLogin() {
@@ -112,7 +111,7 @@ async function initiateFacebookLogin() {
     window.location.href = response.data.redirect_url;
   } catch (error) {
     console.error("Erro ao iniciar login do Facebook", error);
-    loading.value = false; // Garante que o loading para em caso de erro
+    loading.value = false;
   }
 }
 
@@ -125,7 +124,6 @@ const login = async () => {
       "/auth",
       user.value
     );
-    // SUGESTÃO: Esta lógica poderia ser movida para uma única ação na store, como useAuth.loginAndFetchData(...)
     useAuth.setToken(response.data.token);
     useUser.setUserData(response.data.userData);
     useUser.setMesAno(response.data.data.mesAno);
@@ -152,7 +150,6 @@ const rules = {
 };
 </script>
 <style scoped>
-/* SEU CSS AQUI (sem alterações) */
 .box {
   display: flex;
   padding: 0;

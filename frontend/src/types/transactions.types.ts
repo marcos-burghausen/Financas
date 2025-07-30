@@ -5,7 +5,9 @@ export interface Lancamento {
   valor: string;
   tipo?: "Receita" | "Despesa";
   recorrencia?: "Não recorrente" | "Fixa" | "Parcelado";
+  parcelaAtual: number | null;
   numParcelas: number | null;
+  tipoParcela: "total" | "parcela" | null;
   periodicidade: "Mensal" | "Diario" | "Semanal" | "Quinzenal" | "Trimenstral" | "Anual" | null;
   dataVencimento?: string | Date;
   status?: "Efetivada" | "Pendente";

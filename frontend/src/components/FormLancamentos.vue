@@ -432,14 +432,24 @@ const props = defineProps<{
 }>();
 
 const validateDate = (date: string | Date | undefined): string => {
-  if (!date) return formatDate(new Date(), "yyyy-MM-dd");
-  const parsedDate = new Date(date);
+  if (!date) {
+    console.log(`Date inválida: ${date}`);
+    return formatDate(new Date(), "yyyy-MM-dd");
+  }
+  let parsedDate: Date;
+  if (typeof date === 'string') {
+    const parts = date.split('-').map(Number);
+    parsedDate = new Date(date + 'T00:00:00');
+  } else {
+    parsedDate = date;
+  }
   if (!isValid(parsedDate)) {
     return formatDate(new Date(), "yyyy-MM-dd");
   }
   return formatDate(parsedDate, "yyyy-MM-dd");
 };
 
+let valorParcela = ref<string | null>(null);
 let informacoes = ref(false);
 let subcategoriesNames = ref<string[]>([]);
 const parcelaInicial = ref<number | null>(null);
@@ -624,7 +634,9 @@ const formReleases = ref<Lancamento>({
   valor: formatValue(Number(props.releases?.valor)) || "0,00",
   // tipo: props.transactionType,
   recorrencia: props.releases?.recorrencia || "Não recorrente",
+  parcelaAtual: props.releases?.parcelaAtual || null,
   numParcelas: props.releases?.numParcelas || null,
+  tipoParcela: props.releases?.tipoParcela || null,
   periodicidade: props.releases?.periodicidade || null,
   dataVencimento: validateDate(props.releases?.dataVencimento),
   status: props.releases?.status || "Pendente",
@@ -647,12 +659,19 @@ const detalheRecorrencia = computed(() => {
     );
     if (isNaN(valorInput) || valorInput <= 0) return "";
 
+    // Opções de formatação para garantir 2 casas decimais
+    const opcoesDeFormatacao = {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    };
+
     if (tipoCalculoParcela.value === 'total') {
       const valorParcela = valorInput / formReleases.value.numParcelas;
-      return `Em ${formReleases.value.numParcelas}x de R$ ${valorParcela}`;
-    }
-    else {
-      return `Em ${formReleases.value.numParcelas}x de R$ ${valorInput}`;
+      const valorFormatado = valorParcela.toLocaleString('pt-BR', opcoesDeFormatacao);
+      return `Em ${formReleases.value.numParcelas}x de R$ ${valorFormatado}`;
+    } else {
+      const valorFormatado = valorInput.toLocaleString('pt-BR', opcoesDeFormatacao);
+      return `Em ${formReleases.value.numParcelas}x de R$ ${valorFormatado}`;
     }
   }
   return "";
@@ -682,7 +701,7 @@ const selectedSubcategoryObject = computed(() =>
 
 // Retorna o ícone e a cor para a CATEGORIA
 const categoriaIcon = computed(() => selectedCategoryObject.value?.icon || 'mdi-scatter-plot');
-console.log(categoriaIcon.value);
+
 const categoriaColorClass = computed(() => selectedCategoryObject.value?.color || '');
 
 // Retorna o ícone e a cor para a SUBCATEGORIA
@@ -817,32 +836,20 @@ const salvarLancamentos = async () => {
     return;
   }
 
-  // const payload = { ...formReleases.value };
-  // if (
-  //   payload.recorrencia === 'Parcelado' &&
-  //   tipoCalculoParcela.value === 'parcela' &&
-  //   payload.numParcelas
-  // ) {
-  //   const valorParcela = parseFloat(payload.valor.replace(/\./g, "").replace(",", "."));
-  //   const valorTotalReal = valorParcela * payload.numParcelas;
-  //   // Atualiza o valor no payload para ser o total
-  //   payload.valor = String(valorTotalReal);
-  // }
-  // // FIM DA PARTE NOVA
-
-  // try {
-  //   loading.value = true;
-  //   const method = isEditMode.value ? http.put : http.post;
-  //   const url = isEditMode.value
-  //     ? `/${props.rota}/${payload.id}`
-  //     : `/${props.rota}`;
-  //   // Use o 'payload' modificado aqui
-  //   const res = await method(url, payload); 
-
-
-  console.log(formReleases.value);
   try {
     loading.value = true;
+    // Cria uma cópia do formulário para poder modificá-la sem afetar a interface
+    const payload = { ...formReleases.value };
+
+    // **LÓGICA DO VALOR DA PARCELA**
+    // Se for parcelado e o utilizador inseriu o "Valor da Parcela"
+    console.log(tipoCalculoParcela.value);
+    if (
+      payload.recorrencia === 'Parcelado' ) {
+      formReleases.value.tipoParcela = tipoCalculoParcela.value;
+      formReleases.value.parcelaAtual = parcelaInicial.value;
+    }
+
     const method = isEditMode.value ? http.put : http.post;
     const url = isEditMode.value
       ? `/${props.rota}/${formReleases.value.id}`
@@ -850,13 +857,11 @@ const salvarLancamentos = async () => {
     const res = await method(url, formReleases.value);
 
     if (props.transactionType === "Receita") {
-      useRevenues.setRevenuesData(res.data.revenuesData);
-      emit("updateData", res.data.revenuesData);
+      emit("updateData", res.data.data.revenues);
     } else {
-      useExpenses.setExpensesData(res.data.expensesData);
-      emit("updateData", res.data.expensesData);
+      emit("updateData", res.data.data.expenses);
     }
-    useWallets.setWalletsData(res.data.walletsData);
+    useWallets.setWalletsData(res.data.data.wallets);
 
     closeForm();
   } catch (error) {

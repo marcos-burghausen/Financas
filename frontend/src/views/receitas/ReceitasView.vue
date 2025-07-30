@@ -332,10 +332,10 @@ const deletar = async (id: number) => {
     const res = await http.delete(`/revenue/${id}`, {
       data: { mesReferencia: mesAnoReferencia.value },
     });
-    useRevenues.setRevenuesData(res.data.revenuesData);
-    revenuesMonth.value = res.data.revenuesData.byMonth;
-    useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
-    useWallets.setContas(res.data.walletsData.wallets);
+    useRevenues.setRevenuesData(res.data.data.revenues);
+    revenuesMonth.value = res.data.data.revenues.byMonth;
+    useWallets.setSaldoInicial(res.data.data.wallets.saldoInicial);
+    useWallets.setWalletsData(res.data.data.wallets);
   } catch (error: unknown) {
     const apiError = error as ApiError;
     console.error("Erro ao deletar receita:", apiError.response?.data);
@@ -349,13 +349,14 @@ const receiveRevenue = async (revenueId: number, conta: string) => {
       mesReferencia: mesAnoReferencia.value,
     };
     const res = await http.patch(`/revenue/${revenueId}`, payload);
-    useRevenues.setRevenuesData(res.data.revenuesData);
-    revenuesMonth.value = res.data.revenuesData.byMonth;
-    useWallets.setSaldoInicial(res.data.walletsData.saldoInicial);
-    useWallets.setContas(res.data.walletsData.wallets);
+    useRevenues.setRevenuesData(res.data.data.revenues);
+    valueTotalRevenuesMonth.value = res.data.data.revenues.valueTotalMonth;
+    revenuesMonth.value = res.data.data.revenues.byMonth;
+    useWallets.setSaldoInicial(res.data.data.wallets.saldoInicial);
+    useWallets.setWalletsData(res.data.data.wallets);
   } catch (error) {
     const apiError = error as ApiError;
-    console.error("Erro ao receber receita:", apiError.response?.data);
+    console.error("Erro ao receber receita:", apiError);
   }
 };
 </script>
