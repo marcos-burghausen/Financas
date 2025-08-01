@@ -10,12 +10,15 @@ class Revenue extends Model
     use HasFactory;
 
     protected $primaryKey = 'id';
-    protected $filable = [
+    protected $fillable = [
         'user_id',
+        'installment_group_id',
         'descricao',
         'valor',
-        'tipo',
+        'recorrencia',
         'numParcelas',
+        'parcelaAtual',
+        'tipoParcela',
         'periodicidade',
         'dataVencimento',
         'status',

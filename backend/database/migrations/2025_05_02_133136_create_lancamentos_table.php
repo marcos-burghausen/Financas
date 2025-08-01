@@ -13,12 +13,16 @@ return new class extends Migration
     {
         Schema::create('lancamentos', function (Blueprint $table) {
             $table->id();
+            $table->uuid('installment_group_id')->nullable();
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->constrained()->onDelete('cascade');
             $table->string('descricao', 30);
             $table->integer('valor');
             $table->enum('tipo', ['Receita', 'Despesa', 'CartaoCredito']);
+            $table->enum('recorrencia', ['Não recorrente', 'Parcelado', 'Fixa']);
             $table->integer('numParcelas')->nullable()->default(1);
+            $table->integer('parcelaAtual')->nullable()->default(1);
+            $table->enum('tipoParcela', ['total', 'parcela'])->nullable()->default('total');
             $table->enum('periodicidade', ['Mensal', 'Diario', 'Semanal', 'Quinzenal', 'Trimenstral', 'Anual'])->nullable()->default(null);
             $table->date('dataVencimento');
             $table->enum('status', ['Efetivada', 'Pendente'])->default('Pendente');

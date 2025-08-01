@@ -3,80 +3,167 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Errors;
+use App\Http\Traits\GroupReleasesTrait;
 use App\Http\Traits\ReleasesMonthTrait;
+use App\Http\Traits\UserDataTrait;
 use App\Mail\NotificationMail;
 use App\Models\Conta;
 use App\Models\Lancamento;
-use App\Models\Parcela;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use DateTime;
 
 class LancamentoController extends Controller
 {
-    use ReleasesMonthTrait;
+    use ReleasesMonthTrait, UserDataTrait;
 
     public function saveLancamento(Request $request)
     {
-        $data = $this->validateData($request);
+        try {
+            $data = $this->validateData($request);
+            
+            /** @var \App\Models\User $user */
+            $user = auth()->user();
 
-        /** @var \App\Models\User $user */
-        $user = auth()->user();
+            DB::beginTransaction();
 
-        DB::beginTransaction();
-        $lancamento                 = new Lancamento();
-        $lancamento->user_id        = $user->id;
-        $lancamento->descricao      = $data['descricao'];
-        $lancamento->valor          = str_replace([',', '.'], '', $data['valor']);
-        $lancamento->tipo           = $data['tipo'];
-        $lancamento->numParcelas    = $data['numParcelas'] ?? null;
-        $lancamento->periodicidade  = $data['periodicidade'] ?? null;
-        $lancamento->dataVencimento = $data['dataVencimento'];
-        $lancamento->status         = $data['status'];
-        $lancamento->categoria      = $data['categoria'];
-        $lancamento->subcategoria   = $data['subcategoria'];
-        $lancamento->dataLancamento = $data['dataLancamento'];
-        $lancamento->dataEfetivacao = $data['dataEfetivacao'] ?? null;
-        $lancamento->conta          = $data['conta'];
-        $saved = $lancamento->save();
+            $recorrencia = $data['recorrencia'] ?? 'Não recorrente';
+            $valorInputEmCentavos = (int) str_replace([',', '.'], '', $data['valor']);
+            $statusInicial = $data['status'];
 
-        if ($saved && $data['numParcelas'] > 1) {
-            $lastLancamento = Lancamento::latest('id')->first();
-            $saved = $this->criarParcelas($data, $lastLancamento->id);
-        }
+            $conta = Conta::where('user_id', $user->id)->where('name', $data['conta'])->first();
 
-        if ($data['status'] === 'Efetivada') {
-            $conta = Conta::where('user_id', $user->id)
-                ->where('name', $data['conta'])
-                ->first();
-
-            if ($conta) {
-                $conta->saldo += $lancamento->valor;
-                $conta->save();
+            if (!$conta) {
+               DB::rollBack();
+                return response()->json(['error' => 'Conta não encontrada'], 404);
             }
-        }
 
-        if (!$saved) {
+            // CASO 1: Lançamento Parcelado
+            if ($recorrencia === 'Parcelado' && isset($data['numParcelas']) && $data['numParcelas'] > 1) {
+
+                $numParcelas = (int) $data['numParcelas'];
+                $groupId = Str::uuid();
+                $parcelaInicial = $data['parcelaAtual'] ?? 1;
+
+                if (isset($data['tipoParcela']) && $data['tipoParcela'] === 'total') {
+                    $valorBaseParcela = floor($valorInputEmCentavos / $numParcelas);
+                    $resto = $valorInputEmCentavos % $numParcelas;
+                } else {
+                    $valorBaseParcela = $valorInputEmCentavos;
+                    $resto = 0;
+                }
+
+                $dataVencimentoBase = new DateTime($data['dataVencimento']);
+                $diaOriginal = (int)$dataVencimentoBase->format('d');
+
+                for ($i = $parcelaInicial; $i <= $numParcelas; $i++) {
+                    $valorDaParcelaAtual = $valorBaseParcela;
+                    if ($data['tipoParcela'] === 'total' && $i === $parcelaInicial) {
+                        $valorDaParcelaAtual += $resto;
+                    }
+
+                    $offsetMeses = $i - $parcelaInicial;
+                    $dataBaseLoop = (new DateTime($dataVencimentoBase->format('Y-m-01')))->modify("+$offsetMeses month");
+                    $ultimoDiaDoMesCalculado = (int)$dataBaseLoop->format('t');
+                    $diaDaParcela = min($diaOriginal, $ultimoDiaDoMesCalculado);
+                    $dataVencimentoParcela = $dataBaseLoop->format("Y-m-{$diaDaParcela}");
+
+                    Lancamento::create([
+                        'user_id'              => $user->id,
+                        'installment_group_id' => $groupId,
+                        'descricao'            => $data['descricao'] . " (" . $i . "/" . $numParcelas . ")",
+                        'valor'                => $valorDaParcelaAtual,
+                        'recorrencia'          => 'Parcelado',
+                        'numParcelas'          => $numParcelas,
+                        'parcelaAtual'         => $i,
+                        'dataVencimento'       => $dataVencimentoParcela,
+                        'status'               => $statusInicial, // Usa o status inicial para todas as parcelas
+                        'categoria'            => $data['categoria'],
+                        'subcategoria'         => $data['subcategoria'],
+                        'dataLancamento'       => $data['dataLancamento'],
+                        'conta'                => $data['conta'],
+                        'tipoParcela'          => $data['tipoParcela'] ?? 'total',
+                        'periodicidade'        => $data['periodicidade'] ?? null,
+                    ]);
+                }
+
+                // **LÓGICA DE SALDO PARA PARCELADO**
+                if ($statusInicial === 'Efetivada') {
+                    $primeiraParcela = $valorBaseParcela + $resto;
+                    $conta->saldo += $primeiraParcela;
+                    $conta->save();
+                }
+
+            // CASO 2: Lançamento Fixo
+            } elseif ($recorrencia === 'Fixa') {
+
+                $groupId = Str::uuid();
+                $dataVencimentoBase = new DateTime($data['dataVencimento']);
+                $diaOriginal = (int)$dataVencimentoBase->format('d');
+                for ($i = 1; $i <= 12; $i++) {
+                    $offsetMeses = $i - 1;
+                    $dataBaseLoop = (new DateTime($dataVencimentoBase->format('Y-m-01')))->modify("+$offsetMeses month");
+                    $ultimoDiaDoMesCalculado = (int)$dataBaseLoop->format('t');
+                    $diaDaParcela = min($diaOriginal, $ultimoDiaDoMesCalculado);
+                    $dataVencimentoParcela = $dataBaseLoop->format("Y-m-{$diaDaParcela}");
+                    
+                    Lancamento::create([
+                        'user_id'              => $user->id,
+                        'installment_group_id' => $groupId,
+                        'descricao'            => $data['descricao'],
+                        'valor'                => $valorInputEmCentavos,
+                        'recorrencia'          => 'Fixa',
+                        'numParcelas'          => $data['numParcelas'],
+                        'parcelaAtual'         => $i,
+                        'dataVencimento'       => $dataVencimentoParcela,
+                        'status'               => $statusInicial,
+                        'categoria'            => $data['categoria'],
+                        'subcategoria'         => $data['subcategoria'],
+                        'dataLancamento'       => $data['dataLancamento'],
+                        'conta'                => $data['conta'],
+                        'tipoParcela'          => $data['tipoParcela'] ?? 'total',
+                        'periodicidade'        => $data['periodicidade'] ?? null,
+                    ]);
+                }
+
+                // **LÓGICA DE SALDO PARA FIXA MENSAL**
+                if ($statusInicial === 'Efetivada') {
+                    $conta->saldo += $valorInputEmCentavos;
+                    $conta->save();
+                }
+
+            // CASO 3: Lançamento Único (Não recorrente)
+            } else {
+
+                $Lancamento = new Lancamento;
+                $Lancamento->fill($data); // Preenche o modelo com os dados validados
+                $Lancamento->user_id = $user->id;
+                $Lancamento->valor = $valorInputEmCentavos;
+                $saved = $Lancamento->save();
+
+                // **LÓGICA DE SALDO PARA NÃO RECORRENTE**
+                if ($saved && $statusInicial === 'Efetivada') {
+                    $conta->saldo += $Lancamento->valor;
+                    $conta->save();
+                }
+            }
+
+            DB::commit();
+
+            Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Receita', $data['descricao']));
+            $data = $this->getUserData($user);
+
+            return response()->json([
+                'success' => 'Receita cadastrada com sucesso',
+                'data' => $data
+            ], 201);
+        } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(Errors::ERROR_REGISTERING_LANCAMENTO->response(), 422);
+            \Illuminate\Support\Facades\Log::error('Erro ao salvar receita: ' . $e->getMessage());
+            return response()->json(Errors::ERROR_REGISTERING_LANCAMENTO->response(), 500);
         }
-
-        DB::commit();
-
-        $lancamentoData = $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data['mesReferencia']);
-        $walletsData = [
-            'contas'       => $user->contas()->get(['id', 'name', 'icon', 'saldo', 'saldoInicial', 'descricao', 'tipo', 'incluirEmSomaInicial']),
-            'saldoInicial' => $this->obterSaldoInicial($user, $data['mesReferencia'] ?? date('Y-m')),
-        ];
-
-        Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', $data['tipo'], $lancamento->descricao));
-
-        return response()->json([
-            'success'         => "{$data['tipo']} cadastrada com sucesso",
-            "{$data['tipo']}" => $lancamentoData,
-            'walletsData'     => $walletsData,
-            "mesAno"          => $data['mesReferencia'],
-        ], 201);
     }
 
     public function editRevenue(Request $request, $id)
@@ -272,49 +359,36 @@ class LancamentoController extends Controller
     {
         return $request->validate(
             [
-                'id'             => 'nullable | integer',
-                'descricao'      => 'required | string | max:50',
-                'valor'          => 'required | min:0.01',
-                'tipo'           => 'string | in:Receita,Despesa,CartaoCredito',
-                'numParcelas'    => 'nullable | integer | min:2',
-                'periodicidade'  => 'nullable | string | in:Mensal,Diario,Semanal,Quinzenal,Trimestral,Anual',
-                'dataVencimento' => 'required | date',
-                'status'         => 'required | string | in:Pendente,Efetivada',
-                'categoria'      => 'required | string | max:30',
-                'subcategoria'   => 'required | string | max:30',
-                'dataLancamento' => 'required | date',
-                'dataEfetivacao' => 'nullable | date',
-                'conta'          => 'required | string | max:30',
-                'mesReferencia'  => 'required | string | regex:/^\d{4}-\d{2}$/',
+                'id'                   => 'nullable | integer',
+                'installment_group_id' => 'nullable | uuid',
+                'descricao'            => 'required | string | max:50',
+                'valor'                => 'required | min:0.01',
+                'tipo'                 => 'required | string | in:Receita,Despesa,CartaoCredito',
+                'recorrencia'          => 'string | in:Não recorrente,Parcelado,Fixa',
+                'numParcelas'          => 'nullable | integer | min:2',
+                'parcelaAtual'         => 'nullable|integer|min:1',
+                'tipoParcela'          => 'nullable|string|in:total,parcela',
+                'periodicidade'        => 'nullable | string | in:Mensal,Diario,Semanal,Quinzenal,Trimestral,Anual',
+                'dataVencimento'       => 'required | date',
+                'status'               => 'required | string | in:Pendente,Efetivada',
+                'categoria'            => 'required | string | max:30',
+                'subcategoria'         => 'required | string | max:30',
+                'dataLancamento'       => 'required | date',
+                'dataEfetivacao'       => 'nullable | date',
+                'conta'                => 'required | string | max:30',
+                'mesReferencia'        => 'required | string | regex:/^\d{4}-\d{2}$/',
             ],
             [
-                'required'            => 'O campo :attribute é obrigatório',
-                'integer'             => 'O campo :attribute deve ser um número',
-                'string'              => 'O campo :attribute deve conter apenas letras',
-                'max'                 => 'O campo :attribute deve conter no máximo :max caracteres',
-                'min'                 => 'O campo :attribute deve ser maior que :min',
-                'in'                  => 'O campo :attribute não corresponde ao valor esperado',
-                'date'                => 'O campo :attribute nâo é uma data valida',
-                'mesReferencia.regex' => 'O campo mesReferencia deve estar no formato YYYY-MM (ex: 2025-04)',
+                'required'             => 'O campo :attribute é obrigatório',
+                'integer'              => 'O campo :attribute deve ser um número',
+                'string'               => 'O campo :attribute deve conter apenas letras',
+                'max'                  => 'O campo :attribute deve conter no máximo :max caracteres',
+                'min'                  => 'O campo :attribute deve ser maior que :min',
+                'in'                   => 'O campo :attribute não corresponde ao valor esperado',
+                'date'                 => 'O campo :attribute nâo é uma data valida',
+                'mesReferencia.regex'  => 'O campo mesReferencia deve estar no formato YYYY-MM (ex: 2025-04)',
             ]
         );
     }
 
-    protected function criarParcelas($data, $lancamentoId)
-    {
-        $valorParcela = $data['valor'] / $data['numParcelas'];
-        $dataVencimento = $data['dataVencimento'];
-
-        for ($i = 1; $i <= $data['numParcelas']; $i++) {
-            Parcela::create([
-                'lacamentos_id'   => $lancamentoId,
-                'numero'          => $i,
-                'valor'           => str_replace([',', '.'], '', $valorParcela),
-                'dataVencimento' => date('Y-m-d', strtotime($dataVencimento . " + " . ($i - 1) . " month")),
-                'dataLancamento' => $data['dataLancamento'],
-                'dataEfetivacao' => $data['dataEfetivacao'] ?? null,
-                'status'          => 'Pendente',
-            ]);
-        }
-    }
 }

@@ -46,11 +46,11 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('/edit-expense', [ExpenseController::class, 'editExpense']);
     Route::post('/delete-expense', [ExpenseController::class, 'deleteExpense']);
 
-    Route::get('/revenue', [RevenueController::class, 'getRevenue']);
-    Route::post('/revenue', [RevenueController::class, 'saveRevenue']);
-    Route::put('/revenue/{id}', [RevenueController::class, 'editRevenue']);
-    Route::patch('/revenue/{id}', [RevenueController::class, 'receivedRevenue']);
-    Route::delete('/revenue/{id}', [RevenueController::class, 'deleteRevenue']);
+    Route::get('/lancamentos', [LancamentoController::class, 'getLancamento']);
+    Route::post('/lancamentos', [LancamentoController::class, 'saveLancamento']);
+    Route::put('/lancamentos/{id}', [LancamentoController::class, 'editLancamento']);
+    Route::patch('/lancamentos/{id}', [LancamentoController::class, 'receivedLancamento']);
+    Route::delete('/lancamentos/{id}', [LancamentoController::class, 'deleteLancamento']);
 
     Route::post('/save-wallet', [WalletsController::class, 'saveWallet']);
     Route::post('/edit-wallets', [WalletsController::class, 'editWallets']);

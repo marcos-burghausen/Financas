@@ -15,10 +15,12 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->constrained()->onDelete('cascade');
-            $table->string('descricao', 30);
+            $table->string('descricao', 50);
             $table->integer('valor');
-            $table->enum('tipo', ['Não recorrente', 'Parcelada', 'Fixa']);
+            $table->enum('recorrencia', ['Não recorrente', 'Parcelado', 'Fixa mensal']);
             $table->integer('numParcelas')->nullable()->default(1);
+            $table->integer('parcelaAtual')->nullable()->default(1);
+            $table->enum('tipoParcela', ['total', 'parcela'])->nullable()->default('total');
             $table->enum('periodicidade', ['Mensal', 'Diario', 'Semanal', 'Quinzenal', 'Trimenstral', 'Anual'])->nullable()->default(null);
             $table->date('dataVencimento');
             $table->enum('status', ['Efetivada', 'Pendente'])->default('Pendente');

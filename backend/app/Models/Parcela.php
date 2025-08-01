@@ -10,8 +10,9 @@ class Parcela extends Model
     use HasFactory;
     protected $primaryKey = 'id';
     protected $fillable = [
-        'lancamento_id',
-        'numero',
+        'revenue_id',
+        'parcela',
+        'totalParcelas',
         'valor',
         'dataVencimento',
         'dataLancamento',

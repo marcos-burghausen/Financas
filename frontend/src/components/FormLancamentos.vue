@@ -632,7 +632,7 @@ const formReleases = ref<Lancamento>({
   id: props.releases?.id || null,
   descricao: props.releases?.descricao || "",
   valor: formatValue(Number(props.releases?.valor)) || "0,00",
-  // tipo: props.transactionType,
+  tipo: props.transactionType,
   recorrencia: props.releases?.recorrencia || "Não recorrente",
   parcelaAtual: props.releases?.parcelaAtual || null,
   numParcelas: props.releases?.numParcelas || null,
@@ -838,12 +838,8 @@ const salvarLancamentos = async () => {
 
   try {
     loading.value = true;
-    // Cria uma cópia do formulário para poder modificá-la sem afetar a interface
     const payload = { ...formReleases.value };
 
-    // **LÓGICA DO VALOR DA PARCELA**
-    // Se for parcelado e o utilizador inseriu o "Valor da Parcela"
-    console.log(tipoCalculoParcela.value);
     if (
       payload.recorrencia === 'Parcelado' ) {
       formReleases.value.tipoParcela = tipoCalculoParcela.value;
@@ -852,8 +848,8 @@ const salvarLancamentos = async () => {
 
     const method = isEditMode.value ? http.put : http.post;
     const url = isEditMode.value
-      ? `/${props.rota}/${formReleases.value.id}`
-      : `/${props.rota}`;
+      ? `/lancamentos/${formReleases.value.id}`
+      : `/lancamentos`;
     const res = await method(url, formReleases.value);
 
     if (props.transactionType === "Receita") {
@@ -889,7 +885,6 @@ const clearInputs = () => {
     categoria: "",
     subcategoria: "",
     conta: "",
-    // mesReferencia: props.mesReferencia,
     dataLancamento: new Date().toISOString().split("T")[0],
     dataEfetivacao: new Date().toISOString().split("T")[0],
   };

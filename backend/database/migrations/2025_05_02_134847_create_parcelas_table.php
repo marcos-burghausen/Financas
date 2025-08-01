@@ -13,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('parcelas', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('lacamentos_id');
-            $table->foreign('lacamentos_id')->references('id')->on('lancamentos')->constrained()->onDelete('cascade');
-            $table->integer('numero');
+            $table->unsignedBigInteger('revenue_id');
+            $table->foreign('revenue_id')->references('id')->on('revenues')->constrained()->onDelete('cascade');
+            $table->integer('parcela');
+            $table->integer('totalParcelas');
             $table->integer('valor');
             $table->date('dataVencimento');
             $table->date('dataLancamento');
