@@ -317,7 +317,7 @@ const buscarDadosMes = async (data: string) => {
     useExpenses.setExpensesData(res.data.expensesData);
     useRevenues.setRevenuesData(res.data.revenuesData);
     useWallets.setWalletsData(res.data.walletsData);
-    mesAnoReferencia.value = res.data.walletsData.mes_ano_referencia;
+    mesAnoReferencia.value = res.data.mes_ano_referencia;
     revenuesMonth.value = res.data.revenuesData.byMonth;
     valueTotalRevenuesMonth.value =
       res.data.revenuesData.valueTotalMonth;
@@ -348,12 +348,14 @@ const receiveRevenue = async (revenueId: number, conta: string) => {
       conta,
       mesReferencia: mesAnoReferencia.value,
     };
-    const res = await http.patch(`/revenue/${revenueId}`, payload);
-    useRevenues.setRevenuesData(res.data.data.revenues);
-    valueTotalRevenuesMonth.value = res.data.data.revenues.valueTotalMonth;
-    revenuesMonth.value = res.data.data.revenues.byMonth;
-    useWallets.setSaldoInicial(res.data.data.wallets.saldoInicial);
-    useWallets.setWalletsData(res.data.data.wallets);
+    const res = await http.patch(`/lancamentos/${revenueId}`, payload);
+    useRevenues.setRevenuesData(res.data.revenues);
+    valueTotalRevenuesMonth.value = res.data.revenues.valueTotalMonth;
+    revenuesMonth.value = res.data.revenues.byMonth;
+    useWallets.setSaldoInicial(res.data.wallets.saldoInicial);
+    useWallets.setWalletsData(res.data.wallets);
+    useUser.setMesAno(res.data.mes_ano_referencia);
+    mesAnoReferencia.value = res.data.mes_ano_referencia;
   } catch (error) {
     const apiError = error as ApiError;
     console.error("Erro ao receber receita:", apiError);

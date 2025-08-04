@@ -216,6 +216,31 @@ trait ReleasesMonthTrait
         }
 
         return $saldoInicial; // Retorna o saldo inicial formatado
+        // $dataLimite = (new DateTime("$mes-01"))->format('Y-m-d');
+
+        // // 1. Começa com a soma dos saldos iniciais das contas
+        // $saldoInicial = $user->contas()
+        //     ->where('incluirEmSomaInicial', true)
+        //     ->sum('saldoInicial');
+
+        // // 2. Soma todas as RECEITAS efetivadas ANTES do mês de referência
+        // $totalReceitasAnteriores = $user->lancamentos()
+        //     ->where('tipo', 'Receita')
+        //     ->where('status', 'Efetivada')
+        //     ->where('dataEfetivacao', '<', $dataLimite)
+        //     ->sum('valor');
+
+        // // 3. Subtrai todas as DESPESAS efetivadas ANTES do mês de referência
+        // $totalDespesasAnteriores = $user->lancamentos()
+        //     ->where('tipo', 'Despesa')
+        //     ->where('status', 'Efetivada')
+        //     ->where('dataEfetivacao', '<', $dataLimite)
+        //     ->sum('valor');
+        
+        // // 4. Calcula o saldo final
+        // $saldoFinal = $saldoInicial + $totalReceitasAnteriores - $totalDespesasAnteriores;
+
+        // return $saldoFinal;
     }
 
     public function obterSaldoAtual(object $user, $mes = null): float

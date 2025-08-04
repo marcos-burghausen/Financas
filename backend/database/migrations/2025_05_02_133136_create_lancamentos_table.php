@@ -16,7 +16,7 @@ return new class extends Migration
             $table->uuid('installment_group_id')->nullable();
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->constrained()->onDelete('cascade');
-            $table->string('descricao', 30);
+            $table->string('descricao', 50);
             $table->integer('valor');
             $table->enum('tipo', ['Receita', 'Despesa', 'CartaoCredito']);
             $table->enum('recorrencia', ['Não recorrente', 'Parcelado', 'Fixa']);

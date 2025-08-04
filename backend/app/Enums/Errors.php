@@ -38,10 +38,10 @@ enum Errors: string
 
 
     case ERROR_REGISTERING_LANCAMENTO   = "SP300";          //Erro ao cadastrar lançamento.
-    case ERROR_DELETING_EXPENSE         = "SP301";          //Erro ao excluir despesa.
-    case ERROR_UPDATING_EXPENSE         = "SP302";          //Erro ao atualizar despesa.
-    case ERROR_FETCHING_EXPENSE         = "SP303";          //Erro ao buscar despesa.
-    case ERROR_PAY_EXPENSE              = "SP304";          //Erro ao pagar despesa.
+    case ERROR_DELETING_LANCAMENTO      = "SP301";          //Erro ao excluir lançamento.
+    case ERROR_UPDATING_LANCAMENTO      = "SP302";          //Erro ao atualizar lançamento.
+    case ERROR_FETCHING_LANCAMENTO      = "SP303";          //Erro ao buscar lançamento.
+    case ERROR_PAY_LANCAMENTO           = "SP304";          //Erro ao pagar lançamento.
 
     case ERROR_REGISTERING_REVENUE      = "SP400";          //Erro ao cadastrar receita.
     case ERROR_DELETING_REVENUE         = "SP401";          //Erro ao excluir receita.

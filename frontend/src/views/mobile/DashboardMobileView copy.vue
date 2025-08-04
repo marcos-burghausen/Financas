@@ -6,7 +6,6 @@
           <v-icon icon="mdi-menu" class="mdicon" size="30" />
         </v-app-bar-nav-icon>
 
-        <!-- <v-toolbar-title> -->
         <div class="container__mes">
           <v-icon
             icon="mdi-chevron-left"
@@ -22,7 +21,6 @@
             @click="proximoMes"
           />
         </div>
-        <!-- </v-toolbar-title> -->
 
         <v-spacer />
 
@@ -248,7 +246,7 @@ const router = useRouter();
 let valueTotalExpensesMonth = ref(useExpenses.expensesData?.valueTotalMonth);
 let valueTotalRevenuesMonth = ref(useRevenues.revenuesData?.valueTotalMonth);
 let totalByCategoryExpenses = ref(useExpenses.expensesData?.byCategory);
-let mesAnoReferencia = ref(useUser.mesAno);
+const mesAnoReferencia = ref<string>(useUser.mesAno || "");
 let valuePendingRevenues = ref(useRevenues.revenuesData?.valuePending);
 let valuePendingExpenses = ref(useExpenses.expensesData?.valuePending);
 let valueReceived = ref(useRevenues.revenuesData?.valuePay);
@@ -413,64 +411,53 @@ const mesPorExtenso = computed(() => {
 });
 
 const mesAnterior = () => {
-  if (mesAnoReferencia.value) {
     const [ano, mes] = mesAnoReferencia.value.split("-").map(Number);
     const dataAtual = new Date(ano, mes - 1);
     dataAtual.setMonth(dataAtual.getMonth() - 1);
     mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
       dataAtual.getMonth() + 1
     ).padStart(2, "0")}`;
-    buscarDadosMes(mesAnoReferencia.value, "anterior");
-  }
+    buscarDadosMes(mesAnoReferencia.value);
 };
 
 const proximoMes = () => {
-  if (mesAnoReferencia.value) {
     const [ano, mes] = mesAnoReferencia.value.split("-").map(Number);
     const dataAtual = new Date(ano, mes - 1);
     dataAtual.setMonth(dataAtual.getMonth() + 1);
     mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
       dataAtual.getMonth() + 1
     ).padStart(2, "0")}`;
-    buscarDadosMes(mesAnoReferencia.value, "proximo");
-  }
+    buscarDadosMes(mesAnoReferencia.value);
 };
 
-const buscarDadosMes = async (data: string, buscar: string) => {
+const buscarDadosMes = async (data: string) => {
   try {
-    const response = await http.post("/buscar-dados-mes", {
-      mes: data,
-      buscar: buscar,
-    });
-    useUser.setMesAno(response.data.walletsData.mes_ano_referencia);
-    useExpenses.setExpensesData(response.data.expensesData);
-    useRevenues.setRevenuesData(response.data.revenuesData);
-    useWallets.setWalletsData(response.data.walletsData);
+    const res = await http.post("/buscar-dados-mes", { mes: data });
+    useUser.setMesAno(res.data.mes_ano_referencia);
+    useExpenses.setExpensesData(res.data.expensesData);
+    useRevenues.setRevenuesData(res.data.revenuesData);
+    useWallets.setWalletsData(res.data.walletsData);
 
-    mesAnoReferencia.value = response.data.walletsData.mes_ano_referencia;
+    mesAnoReferencia.value = res.data.mes_ano_referencia;
 
-    saldoInicial.value = response.data.walletsData.saldoInicial;
-    totalBalance.value = response.data.walletsData.wallets[0].saldo;
+    saldoInicial.value = res.data.walletsData.saldoInicial;
+    totalBalance.value = res.data.walletsData.wallets[0].saldo;
 
-    valueTotalExpensesMonth.value =
-      response.data.expensesData.valueTotalExpensesMonth;
-    valueTotalRevenuesMonth.value =
-      response.data.revenuesData.valueTotalRevenuesMonth;
+    valueTotalExpensesMonth.value = res.data.expensesData.valueTotalMonth;
+    valueTotalRevenuesMonth.value = res.data.revenuesData.valueTotalMonth;
 
     valorPrevisto.value =
       saldoInicial.value +
       valueTotalRevenuesMonth.value -
       valueTotalExpensesMonth.value;
 
-    valuePay.value = response.data.expensesData.valuePayExpenses;
-    valueReceived.value = response.data.revenuesData.valueReceivedRevenues;
+    valuePay.value = res.data.expensesData.valuePay;
+    valueReceived.value = res.data.revenuesData.valuePay;
 
-    totalByCategoryExpenses.value = response.data.expensesData.byCategory;
+    totalByCategoryExpenses.value = res.data.expensesData.byCategory;
 
-    valuePendingRevenues.value =
-      response.data.revenuesData.valuePendingRevenues;
-    valuePendingExpenses.value =
-      response.data.expensesData.valuePendingExpenses;
+    valuePendingRevenues.value = res.data.revenuesData.valuePending;
+    valuePending.value = res.data.expensesData.valuePending;
   } catch (error) {
     //
   }

@@ -25,7 +25,6 @@ class RevenueController extends Controller
     {
         try {
             $data = $this->validateData($request);
-           
             
             /** @var \App\Models\User $user */
             $user = auth()->user();
@@ -63,8 +62,16 @@ class RevenueController extends Controller
 
                 for ($i = $parcelaInicial; $i <= $numParcelas; $i++) {
                     $valorDaParcelaAtual = $valorBaseParcela;
-                    if ($data['tipoParcela'] === 'total' && $i === $parcelaInicial) {
+
+                    // Adiciona o resto apenas à primeira parcela (se o parcelamento começar do 1)
+                    if ($data['tipoParcela'] === 'total' && $i === 1 && $parcelaInicial === 1) {
                         $valorDaParcelaAtual += $resto;
+                    }
+
+                    // Define o status desta parcela específica.
+                    $statusDaParcela = 'Pendente';
+                    if ($statusInicial === 'Efetivada' && $i === $parcelaInicial) {
+                        $statusDaParcela = 'Efetivada';
                     }
 
                     $offsetMeses = $i - $parcelaInicial;
@@ -73,7 +80,7 @@ class RevenueController extends Controller
                     $diaDaParcela = min($diaOriginal, $ultimoDiaDoMesCalculado);
                     $dataVencimentoParcela = $dataBaseLoop->format("Y-m-{$diaDaParcela}");
 
-                    Revenue::create([
+                    Lancamento::create([
                         'user_id'              => $user->id,
                         'installment_group_id' => $groupId,
                         'descricao'            => $data['descricao'] . " (" . $i . "/" . $numParcelas . ")",
@@ -82,75 +89,76 @@ class RevenueController extends Controller
                         'numParcelas'          => $numParcelas,
                         'parcelaAtual'         => $i,
                         'dataVencimento'       => $dataVencimentoParcela,
-                        'status'               => $statusInicial, // Usa o status inicial para todas as parcelas
+                        'status'               => $statusDaParcela,
                         'categoria'            => $data['categoria'],
                         'subcategoria'         => $data['subcategoria'],
                         'dataLancamento'       => $data['dataLancamento'],
                         'conta'                => $data['conta'],
                         'tipoParcela'          => $data['tipoParcela'] ?? 'total',
                         'periodicidade'        => $data['periodicidade'] ?? null,
+                        'dataEfetivacao'       => $statusDaParcela === 'Efetivada' ? date('Y-m-d') : null,
                     ]);
                 }
 
                 // **LÓGICA DE SALDO PARA PARCELADO**
                 if ($statusInicial === 'Efetivada') {
                     $primeiraParcela = $valorBaseParcela + $resto;
-                    $conta->saldo += $primeiraParcela;
-                    $conta->save();
+                    $this->atualizarSaldo($conta, $primeiraParcela, $data['tipo']);
                 }
 
-            // CASO 2: Lançamento Fixo Mensal
-            } elseif ($recorrencia === 'Fixa mensal') {
+            // CASO 2: Lançamento Fixo
+            } elseif ($recorrencia === 'Fixa') {
 
                 $groupId = Str::uuid();
                 $dataVencimentoBase = new DateTime($data['dataVencimento']);
                 $diaOriginal = (int)$dataVencimentoBase->format('d');
 
                 for ($i = 1; $i <= 12; $i++) {
-                        $offsetMeses = $i - 1;
+                    $offsetMeses = $i - 1;
                     $dataBaseLoop = (new DateTime($dataVencimentoBase->format('Y-m-01')))->modify("+$offsetMeses month");
                     $ultimoDiaDoMesCalculado = (int)$dataBaseLoop->format('t');
                     $diaDaParcela = min($diaOriginal, $ultimoDiaDoMesCalculado);
                     $dataVencimentoParcela = $dataBaseLoop->format("Y-m-{$diaDaParcela}");
 
-                    Revenue::create([
+                    $statusDaParcelaFixa = ($statusInicial === 'Efetivada' && $i === 1) ? 'Efetivada' : 'Pendente';
+                    
+                    Lancamento::create([
                         'user_id'              => $user->id,
                         'installment_group_id' => $groupId,
-                        'descricao'            => $data['descricao'] . " (" . $i . "/" . $numParcelas . ")",
-                        'valor'                => $valorDaParcelaAtual,
-                        'recorrencia'          => 'Parcelado',
-                        'numParcelas'          => $numParcelas,
+                        'descricao'            => $data['descricao'],
+                        'valor'                => $valorInputEmCentavos,
+                        'recorrencia'          => 'Fixa',
+                        'numParcelas'          => $data['numParcelas'],
                         'parcelaAtual'         => $i,
                         'dataVencimento'       => $dataVencimentoParcela,
-                        'status'               => $statusInicial, // Usa o status inicial para todas as parcelas
+                        'status'               => $statusDaParcelaFixa,
                         'categoria'            => $data['categoria'],
                         'subcategoria'         => $data['subcategoria'],
                         'dataLancamento'       => $data['dataLancamento'],
                         'conta'                => $data['conta'],
                         'tipoParcela'          => $data['tipoParcela'] ?? 'total',
                         'periodicidade'        => $data['periodicidade'] ?? null,
+                        'dataEfetivacao'       => $statusDaParcelaFixa === 'Efetivada' ? date('Y-m-d') : null,
                     ]);
                 }
 
                 // **LÓGICA DE SALDO PARA FIXA MENSAL**
                 if ($statusInicial === 'Efetivada') {
-                    $conta->saldo += $valorInputEmCentavos;
-                    $conta->save();
+                    $this->atualizarSaldo($conta, $valorInputEmCentavos, $data['tipo']);
                 }
 
             // CASO 3: Lançamento Único (Não recorrente)
             } else {
 
-                $revenue = new Revenue;
-                $revenue->fill($data); // Preenche o modelo com os dados validados
-                $revenue->user_id = $user->id;
-                $revenue->valor = $valorInputEmCentavos;
-                $saved = $revenue->save();
+                $Lancamento = new Lancamento;
+                $Lancamento->fill($data); // Preenche o modelo com os dados validados
+                $Lancamento->user_id = $user->id;
+                $Lancamento->valor = $valorInputEmCentavos;
+                $saved = $Lancamento->save();
 
                 // **LÓGICA DE SALDO PARA NÃO RECORRENTE**
                 if ($saved && $statusInicial === 'Efetivada') {
-                    $conta->saldo += $revenue->valor;
-                    $conta->save();
+                    $this->atualizarSaldo($conta, $valorInputEmCentavos, $data['tipo']);
                 }
             }
 
@@ -166,7 +174,7 @@ class RevenueController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             \Illuminate\Support\Facades\Log::error('Erro ao salvar receita: ' . $e->getMessage());
-            return response()->json(Errors::ERROR_REGISTERING_REVENUE->response(), 500);
+            return response()->json(Errors::ERROR_REGISTERING_LANCAMENTO->response(), 500);
         }
     }
 

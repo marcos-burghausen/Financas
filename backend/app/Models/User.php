@@ -385,27 +385,22 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(Lancamento::class);
     }
 
+    /**
+     * RELAÇÃO FILTRADA: Retorna a query para os lançamentos do tipo 'Despesa'.
+     */
     public function expenses()
     {
         return $this->lancamentos()->where('tipo', 'Despesa');
     }
 
+    /**
+     * RELAÇÃO FILTRADA: Retorna a query para os lançamentos do tipo 'Receita'.
+     */
     public function revenues()
     {
         return $this->lancamentos()->where('tipo', 'Receita');
     }
 
-    // public function revenues()
-    // {
-    //     //hasMany (tem muitos)
-    //     return $this->hasMany(Revenue::class);
-    // }
-
-    // public function expenses()
-    // {
-    //     //hasMany (tem muitos)
-    //     return $this->hasMany(Expense::class);
-    // }
 
     public function contas()
     {

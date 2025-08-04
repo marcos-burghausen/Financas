@@ -59,8 +59,10 @@
       >
       </v-text-field>
 
-      <div class="custom__input__container mb-3">
-        
+      <div
+        v-if="props.releases?.recorrencia === 'Não recorrente' || !isEditMode"
+        class="custom__input__container mb-3">
+
         <!-- <div class="custom-input-label">Recorrência</div> -->
         <div class="custom-input-content" @click="openRecorrenciaModal = true">
           <v-icon icon="mdi-refresh" class="me-2" />
@@ -391,6 +393,33 @@
         </v-menu>
       </div>
     </v-form>
+    <v-dialog v-model="showEditOptionsModal" persistent max-width="320">
+        <v-card class="modal-recorrente-card">
+            <v-card-title class="headline">
+            {{ formReleases.recorrencia === 'Parcelado' ? 'Receita Recorrente' : 'Alterar o valor' }}
+            </v-card-title>
+
+            <v-card-text v-if="formReleases.recorrencia === 'Fixa'">
+            {{ formReleases.recorrencia === 'Fixa' ? 'Essa é uma transação fixa. Você pode escolher como deseja considerar a alteração do valor.' : '' }}
+            </v-card-text>
+
+            <v-card-actions class="d-flex flex-column align-stretch">
+            <!-- Opções para Lançamento Parcelado -->
+                <template v-if="formReleases.recorrencia === 'Parcelado'">
+                    <v-btn block class="modal-option-btn" @click="handleEditScopeSelection('apenas esta')">Atualizar apenas esta</v-btn>
+                    <v-btn block class="modal-option-btn" @click="handleEditScopeSelection('esta e as próximas')">Atualizar esta e as próximas</v-btn>
+                    <v-btn block class="modal-option-btn" @click="handleEditScopeSelection('todas')">Atualizar todas</v-btn>
+                </template>
+
+                <!-- Opções para Lançamento Fixo -->
+                <template v-if="formReleases.recorrencia === 'Fixa'">
+                    <v-btn block class="modal-option-btn" @click="handleEditScopeSelection('apenas este mês')">Apenas este mês</v-btn>
+                    <v-btn block class="modal-option-btn" @click="handleEditScopeSelection('mês atual e os próximos')">Mês atual e os próximos</v-btn>
+                </template>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+    
   </div>
   <ErrorsForm />
   <ErrorMessage />
@@ -418,6 +447,8 @@ const useWallets = useWalletsStore();
 const useRevenues = useRevenuesStore();
 const useExpenses = useExpensesStore();
 const errorStore = useErrorStore();
+const showEditOptionsModal = ref(false);
+const editScope = ref<'apenas esta' | 'esta e as próximas' | 'todas' | 'apenas este mês' | 'mês atual e os próximos'>('apenas esta');
 
 const emit = defineEmits(["updateData", "closeForm"]);
 const menuDataVencimento = ref(false);
@@ -516,6 +547,7 @@ const categoriasNames = computed(() => {
 
 const contasNames = ref(useWallets.walletsData.contasNames);
 const isEditMode = computed(() => !!props.releases?.id);
+console.log(props.releases?.recorrencia);
 
 const isToday = (dateValue: string | Date | undefined | null): boolean => {
   if (!dateValue) return false;
@@ -836,31 +868,60 @@ const salvarLancamentos = async () => {
     return;
   }
 
-  try {
-    loading.value = true;
-    const payload = { ...formReleases.value };
+  // Se for um lançamento recorrente no modo de edição, mostra o modal primeiro.
+  if (isEditMode.value && (formReleases.value.recorrencia === 'Parcelado' || formReleases.value.recorrencia === 'Fixa')) {
+    showEditOptionsModal.value = true;
+    return; // Para a execução aqui e espera a escolha do utilizador
+  }
 
-    if (
-      payload.recorrencia === 'Parcelado' ) {
-      formReleases.value.tipoParcela = tipoCalculoParcela.value;
-      formReleases.value.parcelaAtual = parcelaInicial.value;
+  // Se não for recorrente, executa a lógica de salvar diretamente
+  await proceedWithSave();
+};
+
+
+const handleEditScopeSelection = async (scope: any) => {
+  editScope.value = scope;
+  showEditOptionsModal.value = false;
+  await proceedWithSave();
+};
+
+const proceedWithSave = async () => {
+  loading.value = true;
+  const payload = { 
+    ...formReleases.value,
+    editScope: editScope.value
+  };
+  try {
+    
+    if (formReleases.value.recorrencia === 'Parcelado'  ) {
+      if (props.releases?.recorrencia === 'Parcelado' || props.releases?.recorrencia === 'Fixa') {
+        payload.tipoParcela = props.releases?.tipoParcela;
+        payload.parcelaAtual = props.releases?.parcelaAtual;
+      } else {
+        payload.tipoParcela = tipoCalculoParcela.value;
+        payload.parcelaAtual = parcelaInicial.value;
+      }
     }
+    console.log(payload);
+    // return
 
     const method = isEditMode.value ? http.put : http.post;
     const url = isEditMode.value
-      ? `/lancamentos/${formReleases.value.id}`
+      ? `/lancamentos/${payload.id}`
       : `/lancamentos`;
-    const res = await method(url, formReleases.value);
+    console.log(payload);
+    const res = await method(url, payload);
 
     if (props.transactionType === "Receita") {
-      emit("updateData", res.data.data.revenues);
+      emit("updateData", res.data.revenues);
     } else {
-      emit("updateData", res.data.data.expenses);
+      emit("updateData", res.data.expenses);
     }
-    useWallets.setWalletsData(res.data.data.wallets);
+    useWallets.setWalletsData(res.data.wallets);
 
     closeForm();
   } catch (error) {
+    console.log(error);
     const axiosError = error as AxiosError<ApiErrorResponse>;
     if (axiosError.response?.data.errors) {
       errorStore.setErrorFromForm(axiosError);
@@ -1208,5 +1269,18 @@ h2 {
   padding: 8px 0;
   cursor: pointer;
   color: #fff;
+}
+
+.modal-recorrente-card {
+  background-color: #2c2c2e;
+  color: white;
+  border-radius: 16px;
+}
+.modal-option-btn {
+  text-transform: none;
+  justify-content: start;
+  padding: 12px 16px !important;
+  min-height: 48px;
+  color: #77d08e;
 }
 </style>

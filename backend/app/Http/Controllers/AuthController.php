@@ -82,7 +82,7 @@ class AuthController extends Controller
                 'email' => $user->email,
                 'type'  => $user->user_type,
             ],
-            'data' => $data
+            ...$data
         ]);
     }
 
