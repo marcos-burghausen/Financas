@@ -13,34 +13,26 @@ class BuscaDadosMesCntroller extends Controller
     public function buscarDadosMes(Request $request)
     {
         $user = auth()->user();
-        $userData = $this->getUserData($user, $request->mes, $request->buscar);
-        return response()->json($userData);
-
-        return response()->json([
-            'userData' => $userData
+        $userData = $this->getUserData($user, $request->mesAno, [
+            'expenses',
+            'revenues',
+            'wallets'
         ]);
-
-
-        $mes = $request->mes;
-        $ano = $request->ano;
-        $dados = [
-            'mes' => $mes,
-            'ano' => $ano
-        ];
+        return response()->json($userData);
     }
 
-    private function getUserData(object $user, string $data): array
-    {
-        return [
-            'expensesData' => $this->classifiesReleases($user->expenses()->get(), 'Expenses', $data),
-            'revenuesData' => $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data),
-            'walletsData' => [
-                'wallets' => $user->contas()->get(),
-                'walletsNames' => $user->contas()->pluck("name"),
-                'saldoInicial' => $this->obterSaldoInicial($user, $data),
-                'saldoAtual' => $this->obterSaldoAtual($user, $data),
-            ],
-            'mes_ano_referencia' => $data,
-        ];
-    }
+    // private function getUserData(object $user, string $mesAno): array
+    // {
+    //     return [
+    //         'expensesData' => $this->classifiesReleases($user->expenses()->get(), 'Expenses', $mesAno),
+    //         'revenuesData' => $this->classifiesReleases($user->revenues()->get(), 'Revenues', $mesAno),
+    //         'walletsData' => [
+    //             'wallets' => $user->contas()->get(),
+    //             'walletsNames' => $user->contas()->pluck("name"),
+    //             'saldoInicial' => $this->obterSaldoInicial($user, $mesAno),
+    //             'saldoAtual' => $this->obterSaldoAtual($user, $mesAno),
+    //         ],
+    //         'mesAno' => $mesAno,
+    //     ];
+    // }
 }

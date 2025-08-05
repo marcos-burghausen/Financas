@@ -4,19 +4,25 @@
       v-if="formulario"
       :releases="selectedRelease"
       rota="expense"
-      :mes-referencia="mesAnoReferencia"
+      :mes-ano="mesAno"
       transaction-type="Despesa"
       @update-data="updateData"
       @close-form="closeForm"
     />
-    <div v-if="!formulario" class="receitas">
+    <div
+      v-if="!formulario"
+      class="receitas"
+    >
       <div class="header fixed-top">
         <div class="d-flex justify-content-between">
           <router-link
             class="link me-7 d-flex align-items-center opaco"
             :to="{ name: 'dashboard' }"
           >
-            <v-icon icon="mdi-arrow-left" size="25" />
+            <v-icon
+              icon="mdi-arrow-left"
+              size="25"
+            />
           </router-link>
           <div class="header__items">
             <div class="d-flex flex-column">
@@ -71,7 +77,11 @@
                 <div>
                   <span>{{ expense.dataVencimento }}</span>
                   <span>
-                    <v-icon icon="mdi-dots-vertical" class="mdicon" size="25" />
+                    <v-icon
+                      icon="mdi-dots-vertical"
+                      class="mdicon"
+                      size="25"
+                    />
                     <v-menu
                       activator="parent"
                       location="bottom end"
@@ -93,7 +103,7 @@
                         <v-list-item
                           title="Excluir"
                           link
-                          @click="deletar(expense.id!)"
+                          @click="deletar(expense)"
                         />
                       </v-list>
                     </v-menu>
@@ -102,13 +112,14 @@
               </div>
               <div style="display: flex; justify-content: space-between">
                 <span class="descricao">{{ expense.descricao }}</span>
-                <span class="descricao"
-                  >R$ {{ formatValue(Number(expense.valor)) }}</span
-                >
+                <span class="descricao">R$ {{ formatValue(Number(expense.valor)) }}</span>
               </div>
               <div>
                 <span class="sub__categoria">{{ expense.categoria }}</span>
-                <span v-if="expense.subcategoria !== 'Outros'" class="sub__categoria px-3">{{ expense.subcategoria }}</span>
+                <span
+                  v-if="expense.subcategoria !== 'Outros'"
+                  class="sub__categoria px-3"
+                >{{ expense.subcategoria }}</span>
               </div>
             </div>
           </div>
@@ -116,7 +127,10 @@
       </div>
       <NoDataComponent v-else />
     </div>
-    <div v-if="!formulario" class="fixed-bottom d-flex justify-end pe-6 pb-6">
+    <div
+      v-if="!formulario"
+      class="fixed-bottom d-flex justify-end pe-6 pb-6"
+    >
       <v-icon
         type="button"
         title="Adicionar nova despesa"
@@ -148,7 +162,7 @@ import type { Lancamento, TransactionsData } from "@/types";
 
 import { formatValue } from "@/utils/formatValue";
 
-import { isToday, isPast, differenceInCalendarDays, parseISO } from 'date-fns';
+import { isToday, isPast, differenceInCalendarDays, parseISO } from "date-fns";
 
 const useRevenues = useRevenuesStore();
 const useWallets = useWalletsStore();
@@ -157,7 +171,7 @@ const useUser = useUserStore();
 
 const formulario = ref(false);
 const selectedRelease = ref<Lancamento | undefined>(undefined);
-const mesAnoReferencia = ref<string>(useUser.mesAno || "");
+const mesAno = ref<string>(useUser.mesAno || "");
 const valueTotalExpensesMonth = ref(useExpenses.expensesData?.valueTotalMonth);
 const expensesMonth = ref<Lancamento[]>(useExpenses.expensesData?.byMonth || []);
 
@@ -170,17 +184,17 @@ interface ApiError {
 }
 
 const getIconForExpense = (expense: Lancamento) => {
-  if (expense.status === 'Efetivada') {
-    return 'mdi-check';
+  if (expense.status === "Efetivada") {
+    return "mdi-check";
   }
 
-  if (expense.status === 'Pendente') {
+  if (expense.status === "Pendente") {
     if (!expense.dataVencimento) {
-      return 'mdi-calendar-question';
+      return "mdi-calendar-question";
     }
 
     let dataVencimento: Date;
-    if (typeof expense.dataVencimento === 'string') {
+    if (typeof expense.dataVencimento === "string") {
       dataVencimento = parseISO(expense.dataVencimento);
     } else {
       dataVencimento = expense.dataVencimento;
@@ -191,31 +205,31 @@ const getIconForExpense = (expense: Lancamento) => {
     const diffEmDias = differenceInCalendarDays(dataVencimento, hoje);
 
     if (diffEmDias < 0) {
-      return 'mdi-calendar-alert'; 
+      return "mdi-calendar-alert"; 
     }
 
     if (diffEmDias >= 0 && diffEmDias <= 3) {
-      return 'mdi-alert';
+      return "mdi-alert";
     }
 
     if (diffEmDias >= 4) {
-      return 'mdi-clock-outline';
+      return "mdi-clock-outline";
     }
   }
 };
 
 const getClassForExpense = (expense: Lancamento) => {
-  if (expense.status === 'Efetivada') {
-    return 'paga';
+  if (expense.status === "Efetivada") {
+    return "paga";
   }
 
-  if (expense.status === 'Pendente') {
+  if (expense.status === "Pendente") {
     if (!expense.dataVencimento) {
-      return 'pendente';
+      return "pendente";
     }
 
     let dataVencimento: Date;
-    if (typeof expense.dataVencimento === 'string') {
+    if (typeof expense.dataVencimento === "string") {
       dataVencimento = parseISO(expense.dataVencimento);
     } else {
       dataVencimento = expense.dataVencimento;
@@ -226,22 +240,22 @@ const getClassForExpense = (expense: Lancamento) => {
     const diffEmDias = differenceInCalendarDays(dataVencimento, hoje);
 
     if (diffEmDias < 0) {
-      return 'atrasada'; 
+      return "atrasada"; 
     }
 
     if (diffEmDias >= 0 && diffEmDias <= 3) {
-      return 'pendente';
+      return "pendente";
     }
 
     if (diffEmDias >= 4) {
-      return 'em__dia';
+      return "em__dia";
     }
   }
 };
 
 const mesPorExtenso = computed(() => {
-  if (!mesAnoReferencia.value) return "";
-  const [ano, mes] = mesAnoReferencia.value.split("-");
+  if (!mesAno.value) return "";
+  const [ano, mes] = mesAno.value.split("-");
   const anoAtual = new Date().getFullYear();
   const mesesPorExtenso = [
     "Janeiro",
@@ -287,45 +301,48 @@ const updateData = (newData: TransactionsData) => {
 };
 
 const mesAnterior = () => {
-  const [ano, mes] = mesAnoReferencia.value.split("-").map(Number);
+  const [ano, mes] = mesAno.value.split("-").map(Number);
   const dataAtual = new Date(ano, mes - 1);
   dataAtual.setMonth(dataAtual.getMonth() - 1);
-  mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
+  mesAno.value = `${dataAtual.getFullYear()}-${String(
     dataAtual.getMonth() + 1
   ).padStart(2, "0")}`;
-  buscarDadosMes(mesAnoReferencia.value);
+  buscarDadosMes(mesAno.value);
 };
 
 const proximoMes = () => {
-  const [ano, mes] = mesAnoReferencia.value.split("-").map(Number);
+  const [ano, mes] = mesAno.value.split("-").map(Number);
   const dataAtual = new Date(ano, mes - 1);
   dataAtual.setMonth(dataAtual.getMonth() + 1);
-  mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
+  mesAno.value = `${dataAtual.getFullYear()}-${String(
     dataAtual.getMonth() + 1
   ).padStart(2, "0")}`;
-  buscarDadosMes(mesAnoReferencia.value);
+  buscarDadosMes(mesAno.value);
 };
 
 const buscarDadosMes = async (data: string) => {
   try {
     const res = await http.post("/buscar-dados-mes", { mes: data });
-    useUser.setMesAno(res.data.mes_ano_referencia);
-    useExpenses.setExpensesData(res.data.expensesData);
-    useRevenues.setRevenuesData(res.data.revenuesData);
-    useWallets.setWalletsData(res.data.walletsData);
-    mesAnoReferencia.value = res.data.mes_ano_referencia;
-    expensesMonth.value = res.data.expensesData.byMonth || [];
-    valueTotalExpensesMonth.value = res.data.expensesData.valueTotalMonth;
+    useUser.setMesAno(res.data.mesAno);
+    useExpenses.setExpensesData(res.data.expenses);
+    useRevenues.setRevenuesData(res.data.revenues);
+    useWallets.setWalletsData(res.data.wallets);
+    mesAno.value = res.data.mesAno;
+    expensesMonth.value = res.data.expenses.byMonth || [];
+    valueTotalExpensesMonth.value = res.data.expenses.valueTotalMonth;
   } catch (error) {
     const apiError = error as ApiError;
     console.error("Erro ao buscar dados do mês::", apiError.response?.data);
   }
 };
 
-const deletar = async (id: number) => {
+const deletar = async (expense: Lancamento) => {
   try {
-    const res = await http.delete(`/lancamentos/${id}`, {
-      data: { mesReferencia: mesAnoReferencia.value },
+    const res = await http.delete(`/lancamentos/${expense.id}`, {
+      data: {
+        mesAno: mesAno.value,
+        tipo: expense.tipo
+      },
     });
     useExpenses.setExpensesData(res.data.expenses);
     expensesMonth.value = res.data.expenses.byMonth || [];
@@ -341,7 +358,7 @@ const payExpense = async (expenseId: number, conta: string) => {
   try {
     const payload = {
       conta,
-      mesReferencia: mesAnoReferencia.value,
+      mesAno: mesAno.value,
     };
     const res = await http.patch(`/lancamentos/${expenseId}`, payload);
     useExpenses.setExpensesData(res.data.expenses);
@@ -349,8 +366,8 @@ const payExpense = async (expenseId: number, conta: string) => {
     expensesMonth.value = res.data.expenses.byMonth || [];
     useWallets.setSaldoInicial(res.data.wallets.saldoInicial);
     useWallets.setWalletsData(res.data.wallets);
-    useUser.setMesAno(res.data.mes_ano_referencia);
-    mesAnoReferencia.value = res.data.mes_ano_referencia;
+    useUser.setMesAno(res.data.mesAno);
+    mesAno.value = res.data.mesAno;
   } catch (error) {
     const apiError = error as ApiError;
     console.error("Erro ao pagar despesa:", apiError.response?.data);

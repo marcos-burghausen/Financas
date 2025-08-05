@@ -16,7 +16,6 @@ export interface Lancamento {
   conta?: string;
   dataLancamento?: string | Date;
   dataEfetivacao: string | Date | null;
-  mesReferencia?: string;
 }
 
 // export interface RevenuesData {

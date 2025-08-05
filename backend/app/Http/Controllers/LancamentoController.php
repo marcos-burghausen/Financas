@@ -23,7 +23,7 @@ class LancamentoController extends Controller
     {
         try {
             $data = $this->validateData($request);
-            
+
             /** @var \App\Models\User $user */
             $user = auth()->user();
 
@@ -36,7 +36,7 @@ class LancamentoController extends Controller
             $conta = Conta::where('user_id', $user->id)->where('name', $data['conta'])->first();
 
             if (!$conta) {
-               DB::rollBack();
+                DB::rollBack();
                 return response()->json(['error' => 'Conta não encontrada'], 404);
             }
 
@@ -104,7 +104,7 @@ class LancamentoController extends Controller
                     $this->atualizarSaldo($conta, $primeiraParcela, $data['tipo']);
                 }
 
-            // CASO 2: Lançamento Fixo
+                // CASO 2: Lançamento Fixo
             } elseif ($recorrencia === 'Fixa') {
 
                 $groupId = Str::uuid();
@@ -119,7 +119,7 @@ class LancamentoController extends Controller
                     $dataVencimentoParcela = $dataBaseLoop->format("Y-m-{$diaDaParcela}");
 
                     $statusDaParcelaFixa = ($statusInicial === 'Efetivada' && $i === 1) ? 'Efetivada' : 'Pendente';
-                    
+
                     Lancamento::create([
                         'user_id'              => $user->id,
                         'installment_group_id' => $groupId,
@@ -145,7 +145,7 @@ class LancamentoController extends Controller
                     $this->atualizarSaldo($conta, $valorInputEmCentavos, $data['tipo']);
                 }
 
-            // CASO 3: Lançamento Único (Não recorrente)
+                // CASO 3: Lançamento Único (Não recorrente)
             } else {
 
                 $Lancamento = new Lancamento;
@@ -163,7 +163,7 @@ class LancamentoController extends Controller
             DB::commit();
 
             Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Receita', $data['descricao']));
-            $data = $this->getUserData($user, $data['mesReferencia'], [($data['tipo'] === 'Receita') ? 'revenues' : 'expenses', 'wallets']);
+            $data = $this->getUserData($user, $data['mesAno'], [($data['tipo'] === 'Receita') ? 'revenues' : 'expenses', 'wallets']);
 
             return response()->json([
                 'success' => "lançamento cadastrada com sucesso",
@@ -195,13 +195,13 @@ class LancamentoController extends Controller
 
             if ($lancamentoPrincipal->installment_group_id && $editScope !== 'apenas esta' && $editScope !== 'apenas este mês') {
                 $query = Lancamento::where('installment_group_id', $lancamentoPrincipal->installment_group_id)
-                                ->where('user_id', $user->id);
+                    ->where('user_id', $user->id);
 
                 if ($editScope === 'esta e as próximas' || $editScope === 'mês atual e os próximos') {
                     $query->where('parcelaAtual', '>=', $lancamentoPrincipal->parcelaAtual);
                 }
                 // Para 'todas', a query já busca todas por padrão
-                
+
                 $lancamentosParaAtualizar = $query->get();
             } else {
                 // Se for 'apenas esta' ou um lançamento não recorrente, a coleção conterá apenas o principal
@@ -255,15 +255,14 @@ class LancamentoController extends Controller
                     }
                 }
             }
-            
+
             DB::commit();
 
-            $data = $this->getUserData($user, $data['mesReferencia'], [($data['tipo'] === 'Receita') ? 'revenues' : 'expenses', 'wallets']);
+            $data = $this->getUserData($user, $data['mesAno'], [($data['tipo'] === 'Receita') ? 'revenues' : 'expenses', 'wallets']);
             return response()->json([
                 'success' => 'Lançamento(s) editado(s) com sucesso',
                 ...$data
             ], 200);
-
         } catch (\Exception $e) {
             DB::rollBack();
             \Illuminate\Support\Facades\Log::error('Erro ao editar lançamento: ' . $e->getMessage() . ' no ficheiro ' . $e->getFile() . ' na linha ' . $e->getLine());
@@ -276,7 +275,7 @@ class LancamentoController extends Controller
         try {
             $data = $request->validate([
                 'conta'         => 'required|string|max:100',
-                'mesReferencia' => 'nullable|string|regex:/^\d{4}-\d{2}$/',
+                'mesAno' => 'nullable|string|regex:/^\d{4}-\d{2}$/',
             ]);
 
             $user = auth()->user();
@@ -308,7 +307,7 @@ class LancamentoController extends Controller
             DB::commit();
 
             $secoesParaRetorno = [($lancamento->tipo === 'Receita') ? 'revenues' : 'expenses', 'wallets'];
-            $data = $this->getUserData($user, $data['mesReferencia'], $secoesParaRetorno);
+            $data = $this->getUserData($user, $data['mesAno'], $secoesParaRetorno);
 
             $isReceita = $lancamento->tipo === 'Receita';
             $successMessage = $isReceita ? 'Receita recebida com sucesso' : 'Despesa paga com sucesso';
@@ -321,7 +320,6 @@ class LancamentoController extends Controller
                 'success' => $successMessage,
                 ...$data
             ], 200);
-
         } catch (\Exception $e) {
             DB::rollBack();
             \Illuminate\Support\Facades\Log::error('Erro ao receber receita: ' . $e->getMessage());
@@ -331,45 +329,59 @@ class LancamentoController extends Controller
 
     public function deleteLancamento(Request $request, $id)
     {
-        $data = $request->validate([
-            'mesReferencia' => 'nullable|string|regex:/^\d{4}-\d{2}$/',
-        ]);
+        try {
+            $data = $request->validate(
+                [
+                    'mesAno' => 'nullable|string|regex:/^\d{4}-\d{2}$/',
+                    'tipo'   => 'required|string|in:Receita,Despesa,CartaoCredito',
+                ],
+                [
+                    'required'             => 'O campo :attribute é obrigatório',
+                    'in'                   => 'O campo :attribute não corresponde ao valor esperado',
+                    'mesAno.regex'         => 'O campo mesAno deve estar no formato YYYY-MM (ex: 2025-04)',
+                ]
+            );
 
-        $user = auth()->user();
+            $user = auth()->user();
 
-        DB::beginTransaction();
-        $lancamento = Lancamento::where('id', $id)->where('user_id', $user->id)->first();
-        if (!$lancamento) {
-            DB::rollBack();
-            return response()->json(['error' => 'Receita não encontrada'], 404);
-        }
-
-        if ($lancamento->status === 'Efetivada') {
-            $conta = Conta::where('user_id', $user->id)
-                ->where('name', $lancamento->conta)
-                ->first();
-            if ($conta) {
-                $conta->saldo -= $lancamento->valor;
-                $conta->save();
+            DB::beginTransaction();
+            $lancamento = Lancamento::where('id', $id)->where('user_id', $user->id)->first();
+            if (!$lancamento) {
+                DB::rollBack();
+                return response()->json(['error' => 'Receita não encontrada'], 404);
             }
-        }
 
-        $deleted = $lancamento->delete();
-        if (!$deleted) {
+            $deleted = $lancamento->delete();
+            if (!$deleted) {
+                DB::rollBack();
+                return response()->json(Errors::ERROR_DELETING_LANCAMENTO->response(), 422);
+            }
+
+            if ($lancamento->status === 'Efetivada') {
+                $conta = Conta::where('user_id', $user->id)
+                    ->where('name', $lancamento->conta)
+                    ->first();
+                if ($conta) {
+                    $this->atualizarSaldo($conta, $lancamento->valor, $lancamento->tipo, 'remover');
+                }
+            }
+
+
+            DB::commit();
+
+            $data = $this->getUserData($user, $data['mesAno'], [($data['tipo'] === 'Receita') ? 'revenues' : 'expenses', 'wallets']);
+
+            Mail::to($user->email)->queue(new NotificationMail($user, 'Exclusão', 'Receita', $lancamento->descricao));
+
+            return response()->json([
+                'msg' => 'Receita excluída com sucesso',
+                ...$data
+            ], 200);
+        } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(Errors::ERROR_DELETING_LANCAMENTO->response(), 422);
+            \Illuminate\Support\Facades\Log::error('Erro ao excluir receita: ' . $e->getMessage());
+            return response()->json(Errors::ERROR_DELETING_LANCAMENTO->response(), 500);
         }
-
-        DB::commit();
-
-        $data = $this->getUserData($user, $data['mesReferencia'], [($data['tipo'] === 'Receita') ? 'revenues' : 'expenses', 'wallets']);
-
-        Mail::to($user->email)->queue(new NotificationMail($user, 'Exclusão', 'Receita', $lancamento->descricao));
-
-        return response()->json([
-            'msg' => 'Receita excluída com sucesso',
-            ...$data
-        ], 200);
     }
 
     public function getLancamento()
@@ -409,8 +421,8 @@ class LancamentoController extends Controller
                 'dataLancamento'       => 'required | date',
                 'dataEfetivacao'       => 'nullable | date',
                 'conta'                => 'required | string | max:30',
-                'mesReferencia'        => 'required | string | regex:/^\d{4}-\d{2}$/',
-                'editScope' => 'nullable|string|in:apenas esta,esta e as próximas,todas,apenas este mês,mês atual e os próximos',
+                'mesAno'               => 'required | string | regex:/^\d{4}-\d{2}$/',
+                'editScope'            => 'nullable|string|in:apenas esta,esta e as próximas,todas,apenas este mês,mês atual e os próximos',
             ],
             [
                 'required'             => 'O campo :attribute é obrigatório',
@@ -420,9 +432,8 @@ class LancamentoController extends Controller
                 'min'                  => 'O campo :attribute deve ser maior que :min',
                 'in'                   => 'O campo :attribute não corresponde ao valor esperado',
                 'date'                 => 'O campo :attribute nâo é uma data valida',
-                'mesReferencia.regex'  => 'O campo mesReferencia deve estar no formato YYYY-MM (ex: 2025-04)',
+                'mesAno.regex'         => 'O campo mesAno deve estar no formato YYYY-MM (ex: 2025-04)',
             ]
         );
     }
-
 }
