@@ -52,38 +52,22 @@
           :key="expense.id ?? undefined"
           class="container__table"
         >
-          <div class="card__lancamento">
-            <v-card color="transparent" class="mdicon__card">
+          <div class="card__lancamento ps-2 pb-2">
+            <v-container
+              class="mdicon__card"
+              :class="getClassForExpense(expense)"
+            >
               <v-icon
-                :icon="
-                  expense.status === 'Efetivada'
-                    ? 'mdi-check'
-                    : expense.dataVencimento &&
-                      new Date() <= new Date(expense.dataVencimento) &&
-                      expense.status === 'Pendente'
-                    ? 'mdi-calendar-remove'
-                    : 'mdi-alert'
-                "
-                class="mdicon__lacamento"
-                :class="{
-                  paga: expense.status === 'Efetivada',
-                  atrasada:
-                    expense.dataVencimento &&
-                    new Date() > new Date(expense.dataVencimento) &&
-                    expense.status === 'Pendente',
-                  pendente:
-                    expense.dataVencimento &&
-                    new Date() <= new Date(expense.dataVencimento) &&
-                    expense.status === 'Pendente',
-                }"
+                :icon="getIconForExpense(expense)"
+                class="mdicon__lancamento"
                 size="30"
                 :disabled="expense.status === 'Efetivada'"
                 @click="payExpense(expense.id!, expense.conta!)"
               />
-            </v-card>
+            </v-container>
             <div style="width: 100%">
               <div class="header__visao_geral">
-                <span style="text-align: start">{{ expense.conta }}</span>
+                <span style="text-align: start; height: 22px">{{ expense.conta }}</span>
                 <div>
                   <span>{{ expense.dataVencimento }}</span>
                   <span>
@@ -117,13 +101,14 @@
                 </div>
               </div>
               <div style="display: flex; justify-content: space-between">
-                <span class="categoria">{{ expense.descricao }}</span>
-                <span class="categoria"
+                <span class="descricao">{{ expense.descricao }}</span>
+                <span class="descricao"
                   >R$ {{ formatValue(Number(expense.valor)) }}</span
                 >
               </div>
               <div>
                 <span class="sub__categoria">{{ expense.categoria }}</span>
+                <span v-if="expense.subcategoria !== 'Outros'" class="sub__categoria px-3">{{ expense.subcategoria }}</span>
               </div>
             </div>
           </div>
@@ -131,7 +116,7 @@
       </div>
       <NoDataComponent v-else />
     </div>
-    <div v-if="!formulario" class="fixed-bottom d-flex justify-end pe-5 pb-5">
+    <div v-if="!formulario" class="fixed-bottom d-flex justify-end pe-6 pb-6">
       <v-icon
         type="button"
         title="Adicionar nova despesa"
@@ -160,7 +145,10 @@ import {
 } from "@/store";
 
 import type { Lancamento, TransactionsData } from "@/types";
+
 import { formatValue } from "@/utils/formatValue";
+
+import { isToday, isPast, differenceInCalendarDays, parseISO } from 'date-fns';
 
 const useRevenues = useRevenuesStore();
 const useWallets = useWalletsStore();
@@ -169,14 +157,9 @@ const useUser = useUserStore();
 
 const formulario = ref(false);
 const selectedRelease = ref<Lancamento | undefined>(undefined);
-const mesAnoReferencia = ref<string>(useUser.getMesAno() || "");
-
-// CORREÇÃO: Usando storeToRefs e computed para manter a reatividade com a store
-const { expensesData } = storeToRefs(useExpenses);
-const valueTotalExpensesMonth = computed(
-  () => expensesData.value?.valueTotalMonth
-);
-const expensesMonth = computed(() => expensesData.value?.byMonth || []);
+const mesAnoReferencia = ref<string>(useUser.mesAno || "");
+const valueTotalExpensesMonth = ref(useExpenses.expensesData?.valueTotalMonth);
+const expensesMonth = ref<Lancamento[]>(useExpenses.expensesData?.byMonth || []);
 
 interface ApiError {
   response?: {
@@ -186,19 +169,99 @@ interface ApiError {
   };
 }
 
+const getIconForExpense = (expense: Lancamento) => {
+  if (expense.status === 'Efetivada') {
+    return 'mdi-check';
+  }
+
+  if (expense.status === 'Pendente') {
+    if (!expense.dataVencimento) {
+      return 'mdi-calendar-question';
+    }
+
+    let dataVencimento: Date;
+    if (typeof expense.dataVencimento === 'string') {
+      dataVencimento = parseISO(expense.dataVencimento);
+    } else {
+      dataVencimento = expense.dataVencimento;
+    }
+    
+    const hoje = new Date();
+
+    const diffEmDias = differenceInCalendarDays(dataVencimento, hoje);
+
+    if (diffEmDias < 0) {
+      return 'mdi-calendar-alert'; 
+    }
+
+    if (diffEmDias >= 0 && diffEmDias <= 3) {
+      return 'mdi-alert';
+    }
+
+    if (diffEmDias >= 4) {
+      return 'mdi-clock-outline';
+    }
+  }
+};
+
+const getClassForExpense = (expense: Lancamento) => {
+  if (expense.status === 'Efetivada') {
+    return 'paga';
+  }
+
+  if (expense.status === 'Pendente') {
+    if (!expense.dataVencimento) {
+      return 'pendente';
+    }
+
+    let dataVencimento: Date;
+    if (typeof expense.dataVencimento === 'string') {
+      dataVencimento = parseISO(expense.dataVencimento);
+    } else {
+      dataVencimento = expense.dataVencimento;
+    }
+    
+    const hoje = new Date();
+
+    const diffEmDias = differenceInCalendarDays(dataVencimento, hoje);
+
+    if (diffEmDias < 0) {
+      return 'atrasada'; 
+    }
+
+    if (diffEmDias >= 0 && diffEmDias <= 3) {
+      return 'pendente';
+    }
+
+    if (diffEmDias >= 4) {
+      return 'em__dia';
+    }
+  }
+};
+
 const mesPorExtenso = computed(() => {
   if (!mesAnoReferencia.value) return "";
   const [ano, mes] = mesAnoReferencia.value.split("-");
-  const data = new Date(parseInt(ano, 10), parseInt(mes, 10) - 1);
   const anoAtual = new Date().getFullYear();
-
-  if (data.getFullYear() === anoAtual) {
-    return new Intl.DateTimeFormat("pt-BR", { month: "long" }).format(data);
+  const mesesPorExtenso = [
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
+  ];
+  if (parseInt(ano, 10) === anoAtual) {
+    return mesesPorExtenso[parseInt(mes, 10) - 1];
   }
-  return new Intl.DateTimeFormat("pt-BR", {
-    month: "short",
-    year: "2-digit",
-  }).format(data);
+  const mesAbreviado = mesesPorExtenso[parseInt(mes, 10) - 1].slice(0, 3);
+  return `${mesAbreviado}./${ano.slice(2)}`;
 });
 
 const openCreateForm = () => {
@@ -218,39 +281,41 @@ const closeForm = () => {
 
 const updateData = (newData: TransactionsData) => {
   useExpenses.setExpensesData(newData);
-  // Os refs locais foram removidos, as propriedades computadas serão atualizadas automaticamente
+  valueTotalExpensesMonth.value = newData.valueTotalMonth;
+  expensesMonth.value = newData.byMonth || [];
   closeForm();
 };
 
 const mesAnterior = () => {
   const [ano, mes] = mesAnoReferencia.value.split("-").map(Number);
-  const dataAtual = new Date(ano, mes - 1, 1);
+  const dataAtual = new Date(ano, mes - 1);
   dataAtual.setMonth(dataAtual.getMonth() - 1);
-  const novoMes = `${dataAtual.getFullYear()}-${String(
+  mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
     dataAtual.getMonth() + 1
   ).padStart(2, "0")}`;
-  buscarDadosMes(novoMes);
+  buscarDadosMes(mesAnoReferencia.value);
 };
 
 const proximoMes = () => {
   const [ano, mes] = mesAnoReferencia.value.split("-").map(Number);
-  const dataAtual = new Date(ano, mes - 1, 1);
+  const dataAtual = new Date(ano, mes - 1);
   dataAtual.setMonth(dataAtual.getMonth() + 1);
-  const novoMes = `${dataAtual.getFullYear()}-${String(
+  mesAnoReferencia.value = `${dataAtual.getFullYear()}-${String(
     dataAtual.getMonth() + 1
   ).padStart(2, "0")}`;
-  buscarDadosMes(novoMes);
+  buscarDadosMes(mesAnoReferencia.value);
 };
 
 const buscarDadosMes = async (data: string) => {
   try {
     const res = await http.post("/buscar-dados-mes", { mes: data });
-    // A store já atualiza os dados, o `computed` vai refletir as mudanças
-    useUser.setMesAno(res.data.data.mesAno);
-    useExpenses.setExpensesData(res.data.data.expenses);
-    useRevenues.setRevenuesData(res.data.data.revenues);
-    useWallets.setWalletsData(res.data.data.wallets);
-    mesAnoReferencia.value = res.data.data.mesAno;
+    useUser.setMesAno(res.data.mes_ano_referencia);
+    useExpenses.setExpensesData(res.data.expensesData);
+    useRevenues.setRevenuesData(res.data.revenuesData);
+    useWallets.setWalletsData(res.data.walletsData);
+    mesAnoReferencia.value = res.data.mes_ano_referencia;
+    expensesMonth.value = res.data.expensesData.byMonth || [];
+    valueTotalExpensesMonth.value = res.data.expensesData.valueTotalMonth;
   } catch (error) {
     const apiError = error as ApiError;
     console.error("Erro ao buscar dados do mês::", apiError.response?.data);
@@ -259,11 +324,13 @@ const buscarDadosMes = async (data: string) => {
 
 const deletar = async (id: number) => {
   try {
-    const res = await http.delete(`/expense/${id}`, {
+    const res = await http.delete(`/lancamentos/${id}`, {
       data: { mesReferencia: mesAnoReferencia.value },
     });
-    // A store já atualiza os dados
-    useExpenses.setExpensesData(res.data.expensesData);
+    useExpenses.setExpensesData(res.data.expenses);
+    expensesMonth.value = res.data.expenses.byMonth || [];
+    useWallets.setSaldoInicial(res.data.wallets.saldoInicial);
+    useWallets.setWalletsData(res.data.wallets);
   } catch (error: unknown) {
     const apiError = error as ApiError;
     console.error("Erro ao deletar despesa:", apiError.response?.data);
@@ -276,27 +343,22 @@ const payExpense = async (expenseId: number, conta: string) => {
       conta,
       mesReferencia: mesAnoReferencia.value,
     };
-    const res = await http.patch(`/expense/${expenseId}`, payload);
-    // Atualiza todas as stores relevantes
-    useExpenses.setExpensesData(res.data.expensesData);
-    useRevenues.setRevenuesData(res.data.revenuesData);
-    useWallets.setWalletsData(res.data.walletsData);
+    const res = await http.patch(`/lancamentos/${expenseId}`, payload);
+    useExpenses.setExpensesData(res.data.expenses);
+    valueTotalExpensesMonth.value = res.data.expenses.valueTotalMonth;
+    expensesMonth.value = res.data.expenses.byMonth || [];
+    useWallets.setSaldoInicial(res.data.wallets.saldoInicial);
+    useWallets.setWalletsData(res.data.wallets);
+    useUser.setMesAno(res.data.mes_ano_referencia);
+    mesAnoReferencia.value = res.data.mes_ano_referencia;
   } catch (error) {
     const apiError = error as ApiError;
     console.error("Erro ao pagar despesa:", apiError.response?.data);
   }
 };
-
-// CORREÇÃO: Usando watch para atualizar o mesAnoReferencia se ele mudar na store (ex: login)
-watch(useUser.getMesAno, (newVal) => {
-  if (newVal) {
-    mesAnoReferencia.value = newVal;
-  }
-});
 </script>
 
 <style scoped>
-/* SEU CSS AQUI (sem alterações) */
 .receitas {
   display: flex;
   flex-direction: column;
@@ -334,6 +396,7 @@ watch(useUser.getMesAno, (newVal) => {
   width: 100%;
   display: flex;
   justify-content: space-around;
+  align-items: center;
   padding-top: 15px;
 }
 .mdicon {
@@ -346,7 +409,7 @@ watch(useUser.getMesAno, (newVal) => {
   cursor: pointer;
   padding: 10px;
   border-radius: 50px;
-  background-color: #ff0000;
+  background-color: #d45959ff;
   color: #fefefe;
 }
 .mes {
@@ -354,33 +417,45 @@ watch(useUser.getMesAno, (newVal) => {
   color: #bdbdbd;
 }
 .container__table {
-  margin-top: 15px;
+  margin-top: 5px;
 }
 .card__lancamento {
-  border-bottom: solid 1px #757575;
+  border-bottom: solid 1px #75757588;
   display: flex;
+
 }
 .mdicon__card {
-  padding-right: 10px;
+  padding-top: 7px;
   display: flex;
-  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  margin-top: 12px;
+  margin-right: 10px;
 }
 .mdicon__lacamento {
+  background: #1dbb01;
   border-radius: 50%;
   padding: 5px;
   margin-bottom: 5px;
+  background: transparent;
 }
 .paga {
-  color: #1dbb01 !important;
+  color: #00ff00 !important;
   background: #24cc0728 !important;
 }
 .atrasada {
-  color: #ff0000 !important;
+  color: #ff000093 !important;
   background: #ff000021 !important;
 }
 .pendente {
-  color: #e5ff00 !important;
+  color: #e5ff00c4 !important;
   background: #e5ff0021 !important;
+}
+.em__dia {
+  color: #727272ff !important;
+  background: #81818121 !important;
 }
 .header__visao_geral {
   display: flex;
@@ -391,8 +466,8 @@ watch(useUser.getMesAno, (newVal) => {
 .color {
   color: #bdbdbd;
 }
-.categoria {
-  font-size: 20px;
+.descricao {
+  font-size: 16px;
   color: #bdbdbd;
   padding-right: 27px;
   height: 22px;
@@ -400,10 +475,10 @@ watch(useUser.getMesAno, (newVal) => {
   align-items: center;
 }
 .sub__categoria {
-  font-size: 15px;
+  font-size: 12px;
   background: #1dbb01;
   margin-right: 5px;
-  padding-inline: 5px;
+  padding-inline: 2px;
   border-radius: 15px;
 }
 </style>

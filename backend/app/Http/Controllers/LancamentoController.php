@@ -83,6 +83,7 @@ class LancamentoController extends Controller
                         'installment_group_id' => $groupId,
                         'descricao'            => $data['descricao'] . " (" . $i . "/" . $numParcelas . ")",
                         'valor'                => $valorDaParcelaAtual,
+                        'tipo'                 => $data['tipo'],
                         'recorrencia'          => 'Parcelado',
                         'numParcelas'          => $numParcelas,
                         'parcelaAtual'         => $i,
@@ -124,6 +125,7 @@ class LancamentoController extends Controller
                         'installment_group_id' => $groupId,
                         'descricao'            => $data['descricao'],
                         'valor'                => $valorInputEmCentavos,
+                        'tipo'                 => $data['tipo'],
                         'recorrencia'          => 'Fixa',
                         'numParcelas'          => $data['numParcelas'],
                         'parcelaAtual'         => $i,
@@ -161,10 +163,10 @@ class LancamentoController extends Controller
             DB::commit();
 
             Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Receita', $data['descricao']));
-            $data = $this->getUserData($user, $data['mesReferencia'], ['revenues', 'wallets']);
+            $data = $this->getUserData($user, $data['mesReferencia'], [($data['tipo'] === 'Receita') ? 'revenues' : 'expenses', 'wallets']);
 
             return response()->json([
-                'success' => 'Receita cadastrada com sucesso',
+                'success' => "lançamento cadastrada com sucesso",
                 ...$data
             ], 201);
         } catch (\Exception $e) {
@@ -255,7 +257,8 @@ class LancamentoController extends Controller
             }
             
             DB::commit();
-            $data = $this->getUserData($user, $data['mesReferencia'], ['revenues', 'wallets']);
+
+            $data = $this->getUserData($user, $data['mesReferencia'], [($data['tipo'] === 'Receita') ? 'revenues' : 'expenses', 'wallets']);
             return response()->json([
                 'success' => 'Lançamento(s) editado(s) com sucesso',
                 ...$data
@@ -270,52 +273,63 @@ class LancamentoController extends Controller
 
     public function receivedLancamento(Request $request, $id)
     {
-        info('Recebendo lançamento com ID: ' . $id);
-        $data = $request->validate([
-            'conta'         => 'required|string|max:100',
-            'mesReferencia' => 'nullable|string|regex:/^\d{4}-\d{2}$/',
-        ]);
+        try {
+            $data = $request->validate([
+                'conta'         => 'required|string|max:100',
+                'mesReferencia' => 'nullable|string|regex:/^\d{4}-\d{2}$/',
+            ]);
 
-        $user = auth()->user();
+            $user = auth()->user();
 
-        DB::beginTransaction();
-        $revenue = Lancamento::where('id', $id)->where('user_id', $user->id)->first();
-        if (!$revenue) {
+            DB::beginTransaction();
+            $lancamento = Lancamento::where('id', $id)->where('user_id', $user->id)->first();
+            if (!$lancamento) {
+                DB::rollBack();
+                return response()->json(['error' => 'Lançamento não encontrado'], 404);
+            }
+
+            $lancamento->status = 'Efetivada';
+            $lancamento->dataEfetivacao = date('Y-m-d');
+            $saved = $lancamento->save();
+
+            if (!$saved) {
+                DB::rollBack();
+                return response()->json(Errors::ERROR_PAY_LANCAMENTO->response(), 422);
+            }
+
+            $conta = Conta::where('user_id', $user->id)
+                ->where('name', $data['conta'])
+                ->first();
+
+            if ($conta) {
+                $this->atualizarSaldo($conta, $lancamento->valor, $lancamento->tipo, 'adicionar');
+            }
+
+            DB::commit();
+
+            $secoesParaRetorno = [($lancamento->tipo === 'Receita') ? 'revenues' : 'expenses', 'wallets'];
+            $data = $this->getUserData($user, $data['mesReferencia'], $secoesParaRetorno);
+
+            $isReceita = $lancamento->tipo === 'Receita';
+            $successMessage = $isReceita ? 'Receita recebida com sucesso' : 'Despesa paga com sucesso';
+            $mailAction = $isReceita ? 'Recebimento' : 'Pagamento';
+
+            Mail::to($user->email)->queue(new NotificationMail($user, $mailAction, $lancamento->tipo, $lancamento->descricao));
+
+
+            return response()->json([
+                'success' => $successMessage,
+                ...$data
+            ], 200);
+
+        } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['error' => 'Receita não encontrada'], 404);
+            \Illuminate\Support\Facades\Log::error('Erro ao receber receita: ' . $e->getMessage());
+            return response()->json(Errors::ERROR_PAY_LANCAMENTO->response(), 500);
         }
-
-        $revenue->status = 'Efetivada';
-        $revenue->dataEfetivacao = date('Y-m-d');
-        $saved = $revenue->save();
-
-        if (!$saved) {
-            DB::rollBack();
-            return response()->json(Errors::ERROR_PAY_REVENUE->response(), 422);
-        }
-
-        $conta = Conta::where('user_id', $user->id)
-            ->where('name', $data['conta'])
-            ->first();
-
-        if ($conta) {
-            $conta->saldo += $revenue->valor;
-            $conta->save();
-        }
-
-        DB::commit();
-
-        $data = $this->getUserData($user, $data['mesReferencia'], ['revenues', 'wallets']);
-
-        Mail::to($user->email)->queue(new NotificationMail($user, 'Recebimento', 'Receita', $revenue->descricao));
-
-        return response()->json([
-            'success' => 'Receita recebida com sucesso',
-            ...$data
-        ], 200);
     }
 
-    public function deleteRevenue(Request $request, $id)
+    public function deleteLancamento(Request $request, $id)
     {
         $data = $request->validate([
             'mesReferencia' => 'nullable|string|regex:/^\d{4}-\d{2}$/',
@@ -324,46 +338,41 @@ class LancamentoController extends Controller
         $user = auth()->user();
 
         DB::beginTransaction();
-        $revenue = Lancamneto::where('id', $id)->where('user_id', $user->id)->first();
-        if (!$revenue) {
+        $lancamento = Lancamento::where('id', $id)->where('user_id', $user->id)->first();
+        if (!$lancamento) {
             DB::rollBack();
             return response()->json(['error' => 'Receita não encontrada'], 404);
         }
 
-        if ($revenue->status === 'Efetivada') {
+        if ($lancamento->status === 'Efetivada') {
             $conta = Conta::where('user_id', $user->id)
-                ->where('name', $revenue->conta)
+                ->where('name', $lancamento->conta)
                 ->first();
             if ($conta) {
-                $conta->saldo -= $revenue->valor;
+                $conta->saldo -= $lancamento->valor;
                 $conta->save();
             }
         }
 
-        $deleted = $revenue->delete();
+        $deleted = $lancamento->delete();
         if (!$deleted) {
             DB::rollBack();
-            return response()->json(Errors::ERROR_DELETING_REVENUE->response(), 422);
+            return response()->json(Errors::ERROR_DELETING_LANCAMENTO->response(), 422);
         }
 
         DB::commit();
 
-        $revenuesData = $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data['mesReferencia'] ?? date('Y-m'));
-        $walletsData = [
-            'wallets' => $user->contas()->get(),
-            'saldoInicial' => $this->obterSaldoInicial($user, $data['mesReferencia'] ?? date('Y-m')),
-        ];
+        $data = $this->getUserData($user, $data['mesReferencia'], [($data['tipo'] === 'Receita') ? 'revenues' : 'expenses', 'wallets']);
 
-        Mail::to($user->email)->queue(new NotificationMail($user, 'Exclusão', 'Receita', $revenue->descricao));
+        Mail::to($user->email)->queue(new NotificationMail($user, 'Exclusão', 'Receita', $lancamento->descricao));
 
         return response()->json([
             'msg' => 'Receita excluída com sucesso',
-            'revenuesData' => $revenuesData,
-            'walletsData' => $walletsData,
+            ...$data
         ], 200);
     }
 
-    public function getRevenue()
+    public function getLancamento()
     {
         $revenues = auth()->user()->revenues()->get();
         return response()->json(['revenues' => $revenues], 200);

@@ -98,7 +98,7 @@
             </span>
             <div style="display: flex; align-items: center">
               <span
-                :style="{ color: saldoInicial < 0 ? 'red' : '#757575' }"
+                :style="{ color: saldoInicial < 0 ? '#d45959ff' : saldoInicial > 0 ? 'green' : '#757575' }"
                 style="font-size: 13px"
               >
                 R$ {{ formatValue(saldoInicial) }}
@@ -125,7 +125,7 @@
                 :style="{
                   color:
                     totalBalance < 0
-                      ? 'red'
+                      ? '#d45959ff'
                       : totalBalance > 0
                       ? 'green'
                       : '#757575',
@@ -146,7 +146,7 @@
             </span>
             <div style="display: flex; align-items: center">
               <span
-                :style="{ color: valorPrevisto < 0 ? 'red' : '#757575' }"
+                :style="{ color: valorPrevisto < 0 ? '#d45959ff' : '#757575' }"
                 style="font-size: 13px"
               >
                 R$ {{ formatValue(valorPrevisto) }}

@@ -67,9 +67,7 @@
             </v-container>
             <div style="width: 100%">
               <div class="header__visao_geral">
-                <span style="text-align: start; height: 22px">{{
-                  revenue.conta
-                }}</span>
+                <span style="text-align: start; height: 22px">{{ revenue.conta }}</span>
                 <div>
                   <span>{{ revenue.dataVencimento }}</span>
                   <span>
@@ -313,14 +311,13 @@ const proximoMes = () => {
 const buscarDadosMes = async (data: string) => {
   try {
     const res = await http.post("/buscar-dados-mes", { mes: data });
-    useUser.setMesAno(res.data.walletsData.mes_ano_referencia);
+    useUser.setMesAno(res.data.mes_ano_referencia);
     useExpenses.setExpensesData(res.data.expensesData);
     useRevenues.setRevenuesData(res.data.revenuesData);
     useWallets.setWalletsData(res.data.walletsData);
     mesAnoReferencia.value = res.data.mes_ano_referencia;
     revenuesMonth.value = res.data.revenuesData.byMonth;
-    valueTotalRevenuesMonth.value =
-      res.data.revenuesData.valueTotalMonth;
+    valueTotalRevenuesMonth.value = res.data.revenuesData.valueTotalMonth;
   } catch (error) {
     const apiError = error as ApiError;
     console.error("Erro ao buscar dados do mês::", apiError.response?.data);
@@ -329,13 +326,13 @@ const buscarDadosMes = async (data: string) => {
 
 const deletar = async (id: number) => {
   try {
-    const res = await http.delete(`/revenue/${id}`, {
+    const res = await http.delete(`/lancamentos/${id}`, {
       data: { mesReferencia: mesAnoReferencia.value },
     });
-    useRevenues.setRevenuesData(res.data.data.revenues);
-    revenuesMonth.value = res.data.data.revenues.byMonth;
-    useWallets.setSaldoInicial(res.data.data.wallets.saldoInicial);
-    useWallets.setWalletsData(res.data.data.wallets);
+    useRevenues.setRevenuesData(res.data.revenues);
+    revenuesMonth.value = res.data.revenues.byMonth;
+    useWallets.setSaldoInicial(res.data.wallets.saldoInicial);
+    useWallets.setWalletsData(res.data.wallets);
   } catch (error: unknown) {
     const apiError = error as ApiError;
     console.error("Erro ao deletar receita:", apiError.response?.data);

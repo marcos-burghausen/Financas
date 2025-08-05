@@ -433,6 +433,7 @@ import {
   useExpensesStore,
   useRevenuesStore,
   useWalletsStore,
+  useUserStore,
   useErrorStore,
 } from "@/store";
 import type { Lancamento, ApiErrorResponse } from "@/types";
@@ -446,6 +447,7 @@ import { ptBR } from 'date-fns/locale';
 const useWallets = useWalletsStore();
 const useRevenues = useRevenuesStore();
 const useExpenses = useExpensesStore();
+const useUser = useUserStore();
 const errorStore = useErrorStore();
 const showEditOptionsModal = ref(false);
 const editScope = ref<'apenas esta' | 'esta e as próximas' | 'todas' | 'apenas este mês' | 'mês atual e os próximos'>('apenas esta');
@@ -902,16 +904,15 @@ const proceedWithSave = async () => {
         payload.parcelaAtual = parcelaInicial.value;
       }
     }
-    console.log(payload);
-    // return
 
     const method = isEditMode.value ? http.put : http.post;
     const url = isEditMode.value
       ? `/lancamentos/${payload.id}`
       : `/lancamentos`;
-    console.log(payload);
+      
     const res = await method(url, payload);
 
+    useUser.setMesAno(res.data.mesAno);
     if (props.transactionType === "Receita") {
       emit("updateData", res.data.revenues);
     } else {
