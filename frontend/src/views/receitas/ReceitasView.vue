@@ -67,7 +67,9 @@
             </v-container>
             <div style="width: 100%">
               <div class="header__visao_geral">
-                <span style="text-align: start; height: 22px">{{ revenue.conta }}</span>
+                <span style="text-align: start; height: 22px">{{
+                  revenue.conta
+                }}</span>
                 <div>
                   <span>{{ revenue.dataVencimento }}</span>
                   <span>
@@ -108,7 +110,11 @@
               </div>
               <div>
                 <span class="sub__categoria px-3">{{ revenue.categoria }}</span>
-                <span v-if="revenue.subcategoria !== 'Outros'" class="sub__categoria px-3">{{ revenue.subcategoria }}</span>
+                <span
+                  v-if="revenue.subcategoria !== 'Outros'"
+                  class="sub__categoria px-3"
+                  >{{ revenue.subcategoria }}</span
+                >
               </div>
             </div>
           </div>
@@ -147,7 +153,7 @@ import type { Lancamento, TransactionsData } from "@/types";
 
 import { formatValue } from "@/utils/formatValue";
 
-import { isToday, isPast, differenceInCalendarDays, parseISO } from 'date-fns';
+import { isToday, isPast, differenceInCalendarDays, parseISO } from "date-fns";
 
 const useRevenues = useRevenuesStore();
 const useWallets = useWalletsStore();
@@ -171,71 +177,71 @@ interface ApiError {
 }
 
 const getIconForRevenue = (revenue: Lancamento) => {
-  if (revenue.status === 'Efetivada') {
-    return 'mdi-check';
+  if (revenue.status === "Efetivada") {
+    return "mdi-check";
   }
 
-  if (revenue.status === 'Pendente') {
+  if (revenue.status === "Pendente") {
     if (!revenue.dataVencimento) {
-      return 'mdi-calendar-question';
+      return "mdi-calendar-question";
     }
 
     let dataVencimento: Date;
-    if (typeof revenue.dataVencimento === 'string') {
+    if (typeof revenue.dataVencimento === "string") {
       dataVencimento = parseISO(revenue.dataVencimento);
     } else {
       dataVencimento = revenue.dataVencimento;
     }
-    
+
     const hoje = new Date();
 
     const diffEmDias = differenceInCalendarDays(dataVencimento, hoje);
 
     if (diffEmDias < 0) {
-      return 'mdi-calendar-alert'; 
+      return "mdi-calendar-alert";
     }
 
     if (diffEmDias >= 0 && diffEmDias <= 3) {
-      return 'mdi-alert';
+      return "mdi-alert";
     }
 
     if (diffEmDias >= 4) {
-      return 'mdi-clock-outline';
+      return "mdi-clock-outline";
     }
   }
 };
 
 const getClassForRevenue = (revenue: Lancamento) => {
-  if (revenue.status === 'Efetivada') {
-    return 'paga';
+  if (revenue.status === "Efetivada") {
+    return "paga";
   }
 
-  if (revenue.status === 'Pendente') {
+  if (revenue.status === "Pendente") {
     if (!revenue.dataVencimento) {
-      return 'pendente';
+      return "pendente";
     }
 
     let dataVencimento: Date;
-    if (typeof revenue.dataVencimento === 'string') {
+    if (typeof revenue.dataVencimento === "string") {
       dataVencimento = parseISO(revenue.dataVencimento);
     } else {
       dataVencimento = revenue.dataVencimento; // Já é um objeto Date
     }
-    
+
     const hoje = new Date();
 
     const diffEmDias = differenceInCalendarDays(dataVencimento, hoje);
 
     if (diffEmDias < 0) {
-      return 'atrasada'; 
+      return "atrasada";
     }
 
     if (diffEmDias >= 0 && diffEmDias <= 3) {
-      return 'pendente';
+      return "pendente";
     }
 
     if (diffEmDias >= 4) {
-      return 'em__dia';
+      return "em__dia";
     }
   }
 };
@@ -326,9 +332,11 @@ const buscarDadosMes = async (data: string) => {
 
 const deletar = async (id: number) => {
   try {
-    const res = await http.delete(`/lancamentos/${id}`, {
-      data: { mesReferencia: mesAnoReferencia.value },
-    });
+    const payload = {
+      tipo: "Receita",
+      mesReferencia: mesAnoReferencia.value,
+    };
+    const res = await http.delete(`/lancamentos/${id}`, payload);
     useRevenues.setRevenuesData(res.data.revenues);
     revenuesMonth.value = res.data.revenues.byMonth;
     useWallets.setSaldoInicial(res.data.wallets.saldoInicial);
@@ -351,8 +359,8 @@ const receiveRevenue = async (revenueId: number, conta: string) => {
     revenuesMonth.value = res.data.revenues.byMonth;
     useWallets.setSaldoInicial(res.data.wallets.saldoInicial);
     useWallets.setWalletsData(res.data.wallets);
-    useUser.setMesAno(res.data.mes_ano_referencia);
-    mesAnoReferencia.value = res.data.mes_ano_referencia;
+    useUser.setMesAno(res.data.mesAno);
+    mesAnoReferencia.value = res.data.mesAno;
   } catch (error) {
     const apiError = error as ApiError;
     console.error("Erro ao receber receita:", apiError);
@@ -424,7 +432,6 @@ const receiveRevenue = async (revenueId: number, conta: string) => {
 .card__lancamento {
   border-bottom: solid 1px #75757588;
   display: flex;
-
 }
 .mdicon__card {
   padding-top: 7px;
