@@ -287,7 +287,9 @@
                 <span>Data de vencimento</span>
               </div>
               <v-spacer class="m-0 p-0" />
-              <span class="font-weight-medium">{{ displayDataVencimento }}</span>
+              <span class="font-weight-medium">{{
+                displayDataVencimento
+              }}</span>
             </div>
           </template>
 
@@ -413,7 +415,9 @@
                 <span>Data de lançamento</span>
               </div>
               <v-spacer />
-              <span class="font-weight-medium">{{ displayDataLancamento }}</span>
+              <span class="font-weight-medium">{{
+                displayDataLancamento
+              }}</span>
             </div>
           </template>
 
@@ -422,6 +426,7 @@
             color="#77d08e"
             hide-header
             show-adjacent-months
+            @update:model-value="menuDataLancamento = false"
             @update:model-value="menuDataLancamento = false"
           />
         </v-menu>
@@ -450,7 +455,9 @@
                 <span>Data de efetivação</span>
               </div>
               <v-spacer />
-              <span class="font-weight-medium">{{ displayDataEfetivacao }}</span>
+              <span class="font-weight-medium">{{
+                displayDataEfetivacao
+              }}</span>
             </div>
           </template>
 
@@ -459,6 +466,7 @@
             color="#77d08e"
             hide-header
             show-adjacent-months
+            @update:model-value="menuDataEfetivacao = false"
             @update:model-value="menuDataEfetivacao = false"
           />
         </v-menu>
@@ -478,6 +486,31 @@
           {{ formReleases.recorrencia === 'Fixa' ? 'Essa é uma transação fixa. Você pode escolher como deseja considerar a alteração do valor.' : '' }}
         </v-card-text>
 
+        <v-card-actions class="d-flex flex-column align-stretch">
+          <!-- Opções para Lançamento Parcelado -->
+          <template v-if="formReleases.recorrencia === 'Parcelado'">
+            <v-btn
+              block
+              class="modal-option-btn"
+              @click="handleEditScopeSelection('apenas esta')"
+            >
+              Atualizar apenas esta
+            </v-btn>
+            <v-btn
+              block
+              class="modal-option-btn"
+              @click="handleEditScopeSelection('esta e as próximas')"
+            >
+              Atualizar esta e as próximas
+            </v-btn>
+            <v-btn
+              block
+              class="modal-option-btn"
+              @click="handleEditScopeSelection('todas')"
+            >
+              Atualizar todas
+            </v-btn>
+          </template>
         <v-card-actions class="d-flex flex-column align-stretch">
           <!-- Opções para Lançamento Parcelado -->
           <template v-if="formReleases.recorrencia === 'Parcelado'">
@@ -523,6 +556,25 @@
           </template>
         </v-card-actions>
       </v-card>
+          <!-- Opções para Lançamento Fixo -->
+          <template v-if="formReleases.recorrencia === 'Fixa'">
+            <v-btn
+              block
+              class="modal-option-btn"
+              @click="handleEditScopeSelection('apenas este mês')"
+            >
+              Apenas este mês
+            </v-btn>
+            <v-btn
+              block
+              class="modal-option-btn"
+              @click="handleEditScopeSelection('mês atual e os próximos')"
+            >
+              Mês atual e os próximos
+            </v-btn>
+          </template>
+        </v-card-actions>
+      </v-card>
     </v-dialog>
   </div>
   <ErrorsForm />
@@ -543,8 +595,10 @@ import {
 import type { Lancamento, ApiErrorResponse } from "@/types";
 import { formatValue } from "@/utils/formatValue";
 import type { AxiosError } from "axios";
-import { computed, ref, watch, watchEffect  } from "vue";
+import { computed, ref, watch, watchEffect } from "vue";
 import { format as formatDate, isValid } from "date-fns";
+import { isYesterday, isTomorrow, parseISO, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { isYesterday, isTomorrow, parseISO, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -574,6 +628,9 @@ const validateDate = (date: string | Date | undefined): string => {
     return formatDate(new Date(), "yyyy-MM-dd");
   }
   let parsedDate: Date;
+  if (typeof date === "string") {
+    const parts = date.split("-").map(Number);
+    parsedDate = new Date(date + "T00:00:00");
   if (typeof date === "string") {
     const parts = date.split("-").map(Number);
     parsedDate = new Date(date + "T00:00:00");
@@ -636,7 +693,10 @@ const formatValueSave = () => {
   const decimalPart = digits.slice(-2);
 
   // 5. Formata a parte inteira com pontos como separadores de milhar
-  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  const formattedIntegerPart = integerPart.replace(
+    /\B(?=(\d{3})+(?!\d))/g,
+    "."
+  );
 
   // 6. Monta o valor final formatado
   formReleases.value.valor = `${formattedIntegerPart},${decimalPart}`;
@@ -649,7 +709,6 @@ const categoriasNames = computed(() => {
     return useExpenses.expensesData?.categories.map((cat) => cat.name) || [];
   }
 });
-
 
 const contasNames = ref(useWallets.walletsData.contasNames);
 const isEditMode = computed(() => !!props.releases?.id);
@@ -678,7 +737,9 @@ const isToday = (dateValue: string | Date | undefined | null): boolean => {
 const displayDataVencimento = computed(() => {
   // Se não houver data, não mostre nada.
   if (!formReleases.value.dataVencimento) return "Selecione...";
+  if (!formReleases.value.dataVencimento) return "Selecione...";
 
+  if (typeof formReleases.value.dataVencimento !== "string") return "";
   if (typeof formReleases.value.dataVencimento !== "string") return "";
   const data = parseISO(formReleases.value.dataVencimento);
 
@@ -692,9 +753,11 @@ const displayDataVencimento = computed(() => {
   
   // Pega as 3 primeiras letras e capitaliza a primeira
   const nomeDiaAbreviado = nomeDiaCompleto.substring(0, 3);
-  const diaAbreviadoCapitalizado = nomeDiaAbreviado.charAt(0).toUpperCase() + nomeDiaAbreviado.slice(1);
+  const diaAbreviadoCapitalizado =
+    nomeDiaAbreviado.charAt(0).toUpperCase() + nomeDiaAbreviado.slice(1);
 
   // Formata o resto da data
+  const dataFormatada = format(data, "dd/MM/yyyy");
   const dataFormatada = format(data, "dd/MM/yyyy");
 
   // Retorna no formato "Seg., 25/07/2025"
@@ -704,7 +767,9 @@ const displayDataVencimento = computed(() => {
 const displayDataLancamento = computed(() => {
   // Se não houver data, não mostre nada.
   if (!formReleases.value.dataLancamento) return "Selecione...";
+  if (!formReleases.value.dataLancamento) return "Selecione...";
 
+  if (typeof formReleases.value.dataLancamento !== "string") return "";
   if (typeof formReleases.value.dataLancamento !== "string") return "";
   const data = parseISO(formReleases.value.dataLancamento);
 
@@ -718,9 +783,11 @@ const displayDataLancamento = computed(() => {
   
   // Pega as 3 primeiras letras e capitaliza a primeira
   const nomeDiaAbreviado = nomeDiaCompleto.substring(0, 3);
-  const diaAbreviadoCapitalizado = nomeDiaAbreviado.charAt(0).toUpperCase() + nomeDiaAbreviado.slice(1);
+  const diaAbreviadoCapitalizado =
+    nomeDiaAbreviado.charAt(0).toUpperCase() + nomeDiaAbreviado.slice(1);
 
   // Formata o resto da data
+  const dataFormatada = format(data, "dd/MM/yyyy");
   const dataFormatada = format(data, "dd/MM/yyyy");
 
   // Retorna no formato "Seg., 25/07/2025"
@@ -731,6 +798,7 @@ const displayDataEfetivacao = computed(() => {
   // Se não houver data, não mostre nada.
   if (!formReleases.value.dataEfetivacao) return null;
 
+  if (typeof formReleases.value.dataEfetivacao !== "string") return "";
   if (typeof formReleases.value.dataEfetivacao !== "string") return "";
   const data = parseISO(formReleases.value.dataEfetivacao);
 
@@ -744,9 +812,11 @@ const displayDataEfetivacao = computed(() => {
   
   // Pega as 3 primeiras letras e capitaliza a primeira
   const nomeDiaAbreviado = nomeDiaCompleto.substring(0, 3);
-  const diaAbreviadoCapitalizado = nomeDiaAbreviado.charAt(0).toUpperCase() + nomeDiaAbreviado.slice(1);
+  const diaAbreviadoCapitalizado =
+    nomeDiaAbreviado.charAt(0).toUpperCase() + nomeDiaAbreviado.slice(1);
 
   // Formata o resto da data
+  const dataFormatada = format(data, "dd/MM/yyyy");
   const dataFormatada = format(data, "dd/MM/yyyy");
 
   // Retorna no formato "Seg., 25/07/2025"
@@ -764,6 +834,7 @@ const isTodayEfetivacao = computed(() =>
   isToday(formReleases.value.dataEfetivacao)
 );
 
+const tipoCalculoParcela = ref<"total" | "parcela">("total");
 const tipoCalculoParcela = ref<"total" | "parcela">("total");
 
 const formReleases = ref<Lancamento>({
@@ -803,6 +874,7 @@ const detalheRecorrencia = computed(() => {
     };
 
     if (tipoCalculoParcela.value === "total") {
+    if (tipoCalculoParcela.value === "total") {
       const valorParcela = valorInput / formReleases.value.numParcelas;
       const valorFormatado = valorParcela.toLocaleString("pt-BR", opcoesDeFormatacao);
       return `Em ${formReleases.value.numParcelas}x de R$ ${valorFormatado}`;
@@ -815,7 +887,7 @@ const detalheRecorrencia = computed(() => {
 });
 
 // Busca a lista de categorias correta (Receita ou Despesa)
-const categoriesSource = computed(() => 
+const categoriesSource = computed(() =>
   props.transactionType === "Receita"
     ? useRevenues.revenuesData?.categories
     : useExpenses.expensesData?.categories
@@ -824,7 +896,11 @@ const categoriesSource = computed(() =>
 // Encontra o objeto da categoria selecionada
 const selectedCategoryObject = computed(() => {
   return categoriesSource.value.find(
-    (cat) => cat.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === formReleases.value.categoria.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    (cat) =>
+      cat.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "") ===
+      formReleases.value.categoria
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
   );
 });
 
@@ -834,7 +910,6 @@ const selectedSubcategoryObject = computed(() =>
     (sub) => sub.name === formReleases.value.subcategoria
   )
 );
-
 
 // Retorna o ícone e a cor para a CATEGORIA
 const categoriaIcon = computed(() => selectedCategoryObject.value?.icon || "mdi-scatter-plot");
@@ -867,16 +942,21 @@ const subcategoriasDaCategoriaSelecionada = computed(() => {
   }
 
   const selectedCategory = categoriesSource.value.find(
-    (cat) => cat.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === formReleases.value.categoria.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    (cat) =>
+      cat.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "") ===
+      formReleases.value.categoria
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
   );
 
   if (selectedCategory && selectedCategory.subcategories) {
-    return subcategoriesNames.value = selectedCategory.subcategories.map((sub) => sub.name);
+    return (subcategoriesNames.value = selectedCategory.subcategories.map(
+      (sub) => sub.name
+    ));
   }
 
   return [];
 });
-
 
 const formatDateOnWatch = (newValue: any) => {
   if (newValue instanceof Date) {
@@ -951,7 +1031,9 @@ const closeForm = () => {
 };
 
 // CORREÇÃO: Nova função para lidar com a seleção de recorrência
-const selecionarRecorrencia = (item: "Não recorrente" | "Fixa" | "Parcelado") => {
+const selecionarRecorrencia = (
+  item: "Não recorrente" | "Fixa" | "Parcelado"
+) => {
   formReleases.value.recorrencia = item;
   openRecorrenciaModal.value = false;
 
@@ -964,7 +1046,6 @@ const selecionarRecorrencia = (item: "Não recorrente" | "Fixa" | "Parcelado") =
     formReleases.value.periodicidade = null;
   }
 };
-
 
 const salvarLancamentos = async () => {
   errorStore.unsetError();
@@ -983,7 +1064,6 @@ const salvarLancamentos = async () => {
   await proceedWithSave();
 };
 
-
 const handleEditScopeSelection = async (scope: any) => {
   editScope.value = scope;
   showEditOptionsModal.value = false;
@@ -992,7 +1072,7 @@ const handleEditScopeSelection = async (scope: any) => {
 
 const proceedWithSave = async () => {
   loading.value = true;
-  const payload = { 
+  const payload = {
     ...formReleases.value,
     editScope: editScope.value,
     mesAno: props.mesAno
@@ -1153,15 +1233,15 @@ const rules = {
   display: flex;
   align-items: center;
   /* Remove o justify-content para que o lápis fique ao lado do texto */
-  
+
   color: #b0b0b0; /* Cor mais suave para o texto de detalhe */
-  
+
   /* Ajuste fino na margem para ficar logo abaixo do campo, sem sobrepor */
   margin-top: 2px;
   padding-bottom: 8px; /* Espaçamento abaixo da linha de detalhe */
 
   /* Alinha o texto com o início do input (após o ícone) */
-  margin-left: 40px; 
+  margin-left: 40px;
   font-size: 14px;
   height: 24px; /* Garante altura consistente */
 }
@@ -1348,7 +1428,7 @@ h2 {
 .parcela-toggle {
   display: flex;
   border-radius: 10px;
-  border: 1px solid #4F4F4F;
+  border: 1px solid #4f4f4f;
   background-color: transparent;
   overflow: hidden;
 }

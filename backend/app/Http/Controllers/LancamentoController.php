@@ -348,7 +348,17 @@ class LancamentoController extends Controller
             $lancamento = Lancamento::where('id', $id)->where('user_id', $user->id)->first();
             if (!$lancamento) {
                 DB::rollBack();
-                return response()->json(['error' => 'Receita não encontrada'], 404);
+                return response()->json(['error' => 'Lançamento não encontrado'], 404);
+            }
+
+            if ($lancamento->status === 'Efetivada') {
+                $conta = Conta::where('user_id', $user->id)
+                    ->where('name', $lancamento->conta)
+                    ->first();
+                if ($conta) {
+                    $conta->saldo -= $lancamento->valor;
+                    $conta->save();
+                }
             }
 
             $deleted = $lancamento->delete();
@@ -369,17 +379,22 @@ class LancamentoController extends Controller
 
             DB::commit();
 
-            $data = $this->getUserData($user, $data['mesAno'], [($data['tipo'] === 'Receita') ? 'revenues' : 'expenses', 'wallets']);
+            $secoesParaRetorno = [($lancamento->tipo === 'Receita') ? 'revenues' : 'expenses', 'wallets'];
+            $data = $this->getUserData($user, $data['mesReferencia'], $secoesParaRetorno);
 
-            Mail::to($user->email)->queue(new NotificationMail($user, 'Exclusão', 'Receita', $lancamento->descricao));
+            $isReceita = $lancamento->tipo === 'Receita';
+            $successMessage = $isReceita ? 'Receita apagada com sucesso' : 'Despesa apagada com sucesso';
+            $mailAction = "Exclusão";
+
+            Mail::to($user->email)->queue(new NotificationMail($user, $mailAction, $lancamento->tipo, $lancamento->descricao));
 
             return response()->json([
-                'msg' => 'Receita excluída com sucesso',
+                'msg' => $successMessage,
                 ...$data
             ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
-            \Illuminate\Support\Facades\Log::error('Erro ao excluir receita: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Erro ao deletar receita: ' . $e->getMessage());
             return response()->json(Errors::ERROR_DELETING_LANCAMENTO->response(), 500);
         }
     }
