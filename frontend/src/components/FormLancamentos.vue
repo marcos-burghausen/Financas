@@ -44,7 +44,8 @@
         :rules="[rules.requiredDescricao]"
         rows="1"
         prepend-inner-icon="mdi-text-long"
-      />
+      >
+      </v-textarea>
 
       <v-text-field
         v-model="formReleases.valor"
@@ -55,27 +56,19 @@
         :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
         prepend-inner-icon="mdi-currency-usd"
         @input="formatValueSave"
-      />
+      >
+      </v-text-field>
 
       <div
         v-if="props.releases?.recorrencia === 'Não recorrente' || !isEditMode"
-        class="custom__input__container mb-3"
-      >
+        class="custom__input__container mb-3">
+
         <!-- <div class="custom-input-label">Recorrência</div> -->
-        <div
-          class="custom-input-content"
-          @click="openRecorrenciaModal = true"
-        >
-          <v-icon
-            icon="mdi-refresh"
-            class="me-2"
-          />
+        <div class="custom-input-content" @click="openRecorrenciaModal = true">
+          <v-icon icon="mdi-refresh" class="me-2" />
           <div class="d-flex flex-column">
             <span>{{ formReleases.recorrencia }}</span>
-            <span
-              v-if="detalheRecorrencia"
-              class="detalhe-parcela-interno"
-            >
+            <span v-if="detalheRecorrencia" class="detalhe-parcela-interno">
               {{ detalheRecorrencia }}
             </span>
           </div>
@@ -96,29 +89,14 @@
           class="parcela-toggle mt-4"
           variant="flat"
         >
-          <v-btn
-            class="toggle-btn"
-            value="total"
-            rounded="lg"
-          >
-            Valor total
-          </v-btn>
-          <v-btn
-            class="toggle-btn"
-            value="parcela"
-            rounded="lg"
-          >
-            Valor parcela
-          </v-btn>
+          <v-btn class="toggle-btn" value="total" rounded="lg">Valor total</v-btn>
+          <v-btn class="toggle-btn" value="parcela" rounded="lg">Valor parcela</v-btn>
         </v-btn-toggle>
 
         <div class="custom__underline" />
       </div>
 
-      <div
-        v-if="openRecorrenciaModal"
-        class="tipo"
-      >
+      <div v-if="openRecorrenciaModal" class="tipo">
         <div
           class="d-flex flex-column align-start justify-space-around modal__tipo"
         >
@@ -141,23 +119,14 @@
         </div>
       </div>
 
-      <div
-        v-if="openParcelas"
-        class="parcelas"
-      >
+      <div v-if="openParcelas" class="parcelas">
         <div class="container__parcelas">
           <div class="p-3">
-            <h2 class="mb-4 text-center">
-              Configurar parcelas
-            </h2>
+            <h2 class="mb-4 text-center">Configurar parcelas</h2>
 
             <div class="py-2">
               <div class="d-flex align-center justify-space-between">
-                <v-icon
-                  class="pe-3"
-                  icon="mdi-arrow-right"
-                  size="24"
-                />
+                <v-icon class="pe-3" icon="mdi-arrow-right" size="24" />
                 <span class="item-label"> Parcela inicial </span>
                 <div class="item-value">
                   <div class="number-stepper">
@@ -174,7 +143,7 @@
                       type="number"
                       class="stepper-input"
                       min="1"
-                    >
+                    />
                     <v-btn
                       prepend-icon="mdi-chevron-up"
                       flat
@@ -196,9 +165,7 @@
                   size="24"
                   class="pe-3"
                 />
-                <div class="item-label">
-                  Quantidade
-                </div>
+                <div class="item-label">Quantidade</div>
                 <div class="item-value">
                   <div class="number-stepper">
                     <v-btn
@@ -213,7 +180,7 @@
                       type="number"
                       class="stepper-input"
                       min="2"
-                    >
+                    />
                     <v-btn
                       class="stepper-btn"
                       prepend-icon="mdi-chevron-up"
@@ -229,14 +196,8 @@
 
             <div class="">
               <div class="d-flex align-center justify-space-between">
-                <v-icon
-                  icon="mdi-calendar-blank"
-                  size="24"
-                  class="pe-3"
-                />
-                <div class="item-label">
-                  Periodicidade
-                </div>
+                <v-icon icon="mdi-calendar-blank" size="24" class="pe-3" />
+                <div class="item-label">Periodicidade</div>
                 <div class="item-value pb-2">
                   <v-select
                     v-model="tempPeriodicidade"
@@ -251,16 +212,10 @@
           </div>
 
           <div class="d-flex justify-space-between align-center p-3">
-            <v-btn
-              class="btn-cancelar"
-              @click="cancelarConfiguracaoRepeticao"
-            >
+            <v-btn class="btn-cancelar" @click="cancelarConfiguracaoRepeticao">
               Cancelar
             </v-btn>
-            <v-btn
-              class="btn-concluido"
-              @click="concluirParcelas"
-            >
+            <v-btn class="btn-concluido" @click="concluirParcelas">
               Concluído
             </v-btn>
           </div>
@@ -275,30 +230,22 @@
           offset-y
         >
           <template #activator="{ props }">
-            <div
-              class="custom__display__input"
-              v-bind="props"
-            >
+            <div class="custom__display__input" v-bind="props">
               <div class="d-flex align-center text-grey">
-                <v-icon
-                  icon="mdi-calendar"
-                  class="me-3"
-                />
+                <v-icon icon="mdi-calendar" class="me-3" />
                 <span>Data de vencimento</span>
               </div>
               <v-spacer class="m-0 p-0" />
-              <span class="font-weight-medium">{{
-                displayDataVencimento
-              }}</span>
+              <span class="font-weight-medium">{{ displayDataVencimento }}</span>
             </div>
           </template>
 
           <v-date-picker
             v-model="formReleases.dataVencimento"
+            @update:modelValue="menuDataVencimento = false"
             color="#77d08e"
             hide-header
             show-adjacent-months
-            @update:model-value="menuDataVencimento = false"
           />
         </v-menu>
       </div>
@@ -346,10 +293,7 @@
         class="mb-6 imput"
       >
         <template #prepend-inner>
-          <v-icon
-            :icon="categoriaIcon"
-            :class="categoriaColorClass"
-          />
+          <v-icon :icon="categoriaIcon" :class="categoriaColorClass" />
         </template>
       </v-autocomplete>
 
@@ -361,10 +305,7 @@
         class="mb-6 imput"
       >
         <template #prepend-inner>
-          <v-icon
-            :icon="subcategoriaIcon"
-            :class="subcategoriaColorClass"
-          />
+          <v-icon :icon="subcategoriaIcon" :class="subcategoriaColorClass" />
         </template>
       </v-autocomplete>
 
@@ -394,8 +335,7 @@
 
       <div
         v-if="informacoes"
-        class="mb-6"
-      >
+        class="mb-6">
         <v-menu
           v-model="menuDataLancamento"
           :close-on-content-click="false"
@@ -403,39 +343,29 @@
           offset-y
         >
           <template #activator="{ props }">
-            <div
-              class="custom__display__input"
-              v-bind="props"
-            >
+            <div class="custom__display__input" v-bind="props">
               <div class="d-flex align-center text-grey">
-                <v-icon
-                  icon="mdi-calendar"
-                  class="me-3"
-                />
+                <v-icon icon="mdi-calendar" class="me-3" />
                 <span>Data de lançamento</span>
               </div>
               <v-spacer />
-              <span class="font-weight-medium">{{
-                displayDataLancamento
-              }}</span>
+              <span class="font-weight-medium">{{ displayDataLancamento }}</span>
             </div>
           </template>
 
           <v-date-picker
             v-model="formReleases.dataLancamento"
+            @update:modelValue="menuDataLancamento = false"
             color="#77d08e"
             hide-header
             show-adjacent-months
-            @update:model-value="menuDataLancamento = false"
-            @update:model-value="menuDataLancamento = false"
           />
         </v-menu>
       </div>
       
       <div
         v-if="informacoes"
-        class="mb-1"
-      >
+        class="mb-1">
         <v-menu
           v-model="menuDataEfetivacao"
           :close-on-content-click="false"
@@ -443,139 +373,53 @@
           offset-y
         >
           <template #activator="{ props }">
-            <div
-              class="custom__display__input"
-              v-bind="props"
-            >
+            <div class="custom__display__input" v-bind="props">
               <div class="d-flex align-center text-grey">
-                <v-icon
-                  icon="mdi-calendar"
-                  class="me-3"
-                />
+                <v-icon icon="mdi-calendar" class="me-3" />
                 <span>Data de efetivação</span>
               </div>
               <v-spacer />
-              <span class="font-weight-medium">{{
-                displayDataEfetivacao
-              }}</span>
+              <span class="font-weight-medium">{{ displayDataEfetivacao }}</span>
             </div>
           </template>
 
           <v-date-picker
             v-model="formReleases.dataEfetivacao"
+            @update:modelValue="menuDataEfetivacao = false"
             color="#77d08e"
             hide-header
             show-adjacent-months
-            @update:model-value="menuDataEfetivacao = false"
-            @update:model-value="menuDataEfetivacao = false"
           />
         </v-menu>
       </div>
     </v-form>
-    <v-dialog
-      v-model="showEditOptionsModal"
-      persistent
-      max-width="320"
-    >
-      <v-card class="modal-recorrente-card">
-        <v-card-title class="headline">
-          {{ formReleases.recorrencia === 'Parcelado' ? 'Receita Recorrente' : 'Alterar o valor' }}
-        </v-card-title>
+    <v-dialog v-model="showEditOptionsModal" persistent max-width="320">
+        <v-card class="modal-recorrente-card">
+            <v-card-title class="headline">
+            {{ formReleases.recorrencia === 'Parcelado' ? 'Receita Recorrente' : 'Alterar o valor' }}
+            </v-card-title>
 
-        <v-card-text v-if="formReleases.recorrencia === 'Fixa'">
-          {{ formReleases.recorrencia === 'Fixa' ? 'Essa é uma transação fixa. Você pode escolher como deseja considerar a alteração do valor.' : '' }}
-        </v-card-text>
+            <v-card-text v-if="formReleases.recorrencia === 'Fixa'">
+            {{ formReleases.recorrencia === 'Fixa' ? 'Essa é uma transação fixa. Você pode escolher como deseja considerar a alteração do valor.' : '' }}
+            </v-card-text>
 
-        <v-card-actions class="d-flex flex-column align-stretch">
-          <!-- Opções para Lançamento Parcelado -->
-          <template v-if="formReleases.recorrencia === 'Parcelado'">
-            <v-btn
-              block
-              class="modal-option-btn"
-              @click="handleEditScopeSelection('apenas esta')"
-            >
-              Atualizar apenas esta
-            </v-btn>
-            <v-btn
-              block
-              class="modal-option-btn"
-              @click="handleEditScopeSelection('esta e as próximas')"
-            >
-              Atualizar esta e as próximas
-            </v-btn>
-            <v-btn
-              block
-              class="modal-option-btn"
-              @click="handleEditScopeSelection('todas')"
-            >
-              Atualizar todas
-            </v-btn>
-          </template>
-        <v-card-actions class="d-flex flex-column align-stretch">
-          <!-- Opções para Lançamento Parcelado -->
-          <template v-if="formReleases.recorrencia === 'Parcelado'">
-            <v-btn
-              block
-              class="modal-option-btn"
-              @click="handleEditScopeSelection('apenas esta')"
-            >
-              Atualizar apenas esta
-            </v-btn>
-            <v-btn
-              block
-              class="modal-option-btn"
-              @click="handleEditScopeSelection('esta e as próximas')"
-            >
-              Atualizar esta e as próximas
-            </v-btn>
-            <v-btn
-              block
-              class="modal-option-btn"
-              @click="handleEditScopeSelection('todas')"
-            >
-              Atualizar todas
-            </v-btn>
-          </template>
+            <v-card-actions class="d-flex flex-column align-stretch">
+            <!-- Opções para Lançamento Parcelado -->
+                <template v-if="formReleases.recorrencia === 'Parcelado'">
+                    <v-btn block class="modal-option-btn" @click="handleEditScopeSelection('apenas esta')">Atualizar apenas esta</v-btn>
+                    <v-btn block class="modal-option-btn" @click="handleEditScopeSelection('esta e as próximas')">Atualizar esta e as próximas</v-btn>
+                    <v-btn block class="modal-option-btn" @click="handleEditScopeSelection('todas')">Atualizar todas</v-btn>
+                </template>
 
-          <!-- Opções para Lançamento Fixo -->
-          <template v-if="formReleases.recorrencia === 'Fixa'">
-            <v-btn
-              block
-              class="modal-option-btn"
-              @click="handleEditScopeSelection('apenas este mês')"
-            >
-              Apenas este mês
-            </v-btn>
-            <v-btn
-              block
-              class="modal-option-btn"
-              @click="handleEditScopeSelection('mês atual e os próximos')"
-            >
-              Mês atual e os próximos
-            </v-btn>
-          </template>
-        </v-card-actions>
-      </v-card>
-          <!-- Opções para Lançamento Fixo -->
-          <template v-if="formReleases.recorrencia === 'Fixa'">
-            <v-btn
-              block
-              class="modal-option-btn"
-              @click="handleEditScopeSelection('apenas este mês')"
-            >
-              Apenas este mês
-            </v-btn>
-            <v-btn
-              block
-              class="modal-option-btn"
-              @click="handleEditScopeSelection('mês atual e os próximos')"
-            >
-              Mês atual e os próximos
-            </v-btn>
-          </template>
-        </v-card-actions>
-      </v-card>
+                <!-- Opções para Lançamento Fixo -->
+                <template v-if="formReleases.recorrencia === 'Fixa'">
+                    <v-btn block class="modal-option-btn" @click="handleEditScopeSelection('apenas este mês')">Apenas este mês</v-btn>
+                    <v-btn block class="modal-option-btn" @click="handleEditScopeSelection('mês atual e os próximos')">Mês atual e os próximos</v-btn>
+                </template>
+            </v-card-actions>
+        </v-card>
     </v-dialog>
+    
   </div>
   <ErrorsForm />
   <ErrorMessage />
@@ -595,12 +439,10 @@ import {
 import type { Lancamento, ApiErrorResponse } from "@/types";
 import { formatValue } from "@/utils/formatValue";
 import type { AxiosError } from "axios";
-import { computed, ref, watch, watchEffect } from "vue";
+import { computed, ref, watch, watchEffect  } from "vue";
 import { format as formatDate, isValid } from "date-fns";
-import { isYesterday, isTomorrow, parseISO, format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { isYesterday, isTomorrow, parseISO, format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { isYesterday, isTomorrow, parseISO, format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const useWallets = useWalletsStore();
 const useRevenues = useRevenuesStore();
@@ -608,7 +450,7 @@ const useExpenses = useExpensesStore();
 const useUser = useUserStore();
 const errorStore = useErrorStore();
 const showEditOptionsModal = ref(false);
-const editScope = ref<"apenas esta" | "esta e as próximas" | "todas" | "apenas este mês" | "mês atual e os próximos">("apenas esta");
+const editScope = ref<'apenas esta' | 'esta e as próximas' | 'todas' | 'apenas este mês' | 'mês atual e os próximos'>('apenas esta');
 
 const emit = defineEmits(["updateData", "closeForm"]);
 const menuDataVencimento = ref(false);
@@ -621,6 +463,7 @@ const props = defineProps<{
   mesAno: string;
   transactionType: "Receita" | "Despesa";
 }>();
+console.log(props);
 
 const validateDate = (date: string | Date | undefined): string => {
   if (!date) {
@@ -628,12 +471,9 @@ const validateDate = (date: string | Date | undefined): string => {
     return formatDate(new Date(), "yyyy-MM-dd");
   }
   let parsedDate: Date;
-  if (typeof date === "string") {
-    const parts = date.split("-").map(Number);
-    parsedDate = new Date(date + "T00:00:00");
-  if (typeof date === "string") {
-    const parts = date.split("-").map(Number);
-    parsedDate = new Date(date + "T00:00:00");
+  if (typeof date === 'string') {
+    const parts = date.split('-').map(Number);
+    parsedDate = new Date(date + 'T00:00:00');
   } else {
     parsedDate = date;
   }
@@ -693,10 +533,7 @@ const formatValueSave = () => {
   const decimalPart = digits.slice(-2);
 
   // 5. Formata a parte inteira com pontos como separadores de milhar
-  const formattedIntegerPart = integerPart.replace(
-    /\B(?=(\d{3})+(?!\d))/g,
-    "."
-  );
+  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
   // 6. Monta o valor final formatado
   formReleases.value.valor = `${formattedIntegerPart},${decimalPart}`;
@@ -710,6 +547,7 @@ const categoriasNames = computed(() => {
   }
 });
 
+
 const contasNames = ref(useWallets.walletsData.contasNames);
 const isEditMode = computed(() => !!props.releases?.id);
 console.log(props.releases?.recorrencia);
@@ -722,7 +560,7 @@ const isToday = (dateValue: string | Date | undefined | null): boolean => {
 
   let selectedDateStr: string;
 
-  if (typeof dateValue === "string") {
+  if (typeof dateValue === 'string') {
     // Se o valor já for uma string (ex: '2025-07-23'), 
     // usamos apenas os 10 primeiros caracteres para evitar problemas de fuso horário.
     selectedDateStr = dateValue.substring(0, 10);
@@ -736,29 +574,25 @@ const isToday = (dateValue: string | Date | undefined | null): boolean => {
 
 const displayDataVencimento = computed(() => {
   // Se não houver data, não mostre nada.
-  if (!formReleases.value.dataVencimento) return "Selecione...";
-  if (!formReleases.value.dataVencimento) return "Selecione...";
+  if (!formReleases.value.dataVencimento) return 'Selecione...';
 
-  if (typeof formReleases.value.dataVencimento !== "string") return "";
-  if (typeof formReleases.value.dataVencimento !== "string") return "";
+  if (typeof formReleases.value.dataVencimento !== 'string') return '';
   const data = parseISO(formReleases.value.dataVencimento);
 
   // Compara com a data atual e retorna o texto correspondente
-  if (isToday(data)) return "Hoje";
-  if (isYesterday(data)) return "Ontem";
-  if (isTomorrow(data)) return "Amanhã";
+  if (isToday(data)) return 'Hoje';
+  if (isYesterday(data)) return 'Ontem';
+  if (isTomorrow(data)) return 'Amanhã';
   
   // Pega o nome do dia da semana (ex: "segunda-feira")
-  const nomeDiaCompleto = format(data, "EEEE", { locale: ptBR });
+  const nomeDiaCompleto = format(data, 'EEEE', { locale: ptBR });
   
   // Pega as 3 primeiras letras e capitaliza a primeira
   const nomeDiaAbreviado = nomeDiaCompleto.substring(0, 3);
-  const diaAbreviadoCapitalizado =
-    nomeDiaAbreviado.charAt(0).toUpperCase() + nomeDiaAbreviado.slice(1);
+  const diaAbreviadoCapitalizado = nomeDiaAbreviado.charAt(0).toUpperCase() + nomeDiaAbreviado.slice(1);
 
   // Formata o resto da data
-  const dataFormatada = format(data, "dd/MM/yyyy");
-  const dataFormatada = format(data, "dd/MM/yyyy");
+  const dataFormatada = format(data, 'dd/MM/yyyy');
 
   // Retorna no formato "Seg., 25/07/2025"
   return `${diaAbreviadoCapitalizado}., ${dataFormatada}`;
@@ -766,29 +600,25 @@ const displayDataVencimento = computed(() => {
 
 const displayDataLancamento = computed(() => {
   // Se não houver data, não mostre nada.
-  if (!formReleases.value.dataLancamento) return "Selecione...";
-  if (!formReleases.value.dataLancamento) return "Selecione...";
+  if (!formReleases.value.dataLancamento) return 'Selecione...';
 
-  if (typeof formReleases.value.dataLancamento !== "string") return "";
-  if (typeof formReleases.value.dataLancamento !== "string") return "";
+  if (typeof formReleases.value.dataLancamento !== 'string') return '';
   const data = parseISO(formReleases.value.dataLancamento);
 
   // Compara com a data atual e retorna o texto correspondente
-  if (isToday(data)) return "Hoje";
-  if (isYesterday(data)) return "Ontem";
-  if (isTomorrow(data)) return "Amanhã";
+  if (isToday(data)) return 'Hoje';
+  if (isYesterday(data)) return 'Ontem';
+  if (isTomorrow(data)) return 'Amanhã';
   
   // Pega o nome do dia da semana (ex: "segunda-feira")
-  const nomeDiaCompleto = format(data, "EEEE", { locale: ptBR });
+  const nomeDiaCompleto = format(data, 'EEEE', { locale: ptBR });
   
   // Pega as 3 primeiras letras e capitaliza a primeira
   const nomeDiaAbreviado = nomeDiaCompleto.substring(0, 3);
-  const diaAbreviadoCapitalizado =
-    nomeDiaAbreviado.charAt(0).toUpperCase() + nomeDiaAbreviado.slice(1);
+  const diaAbreviadoCapitalizado = nomeDiaAbreviado.charAt(0).toUpperCase() + nomeDiaAbreviado.slice(1);
 
   // Formata o resto da data
-  const dataFormatada = format(data, "dd/MM/yyyy");
-  const dataFormatada = format(data, "dd/MM/yyyy");
+  const dataFormatada = format(data, 'dd/MM/yyyy');
 
   // Retorna no formato "Seg., 25/07/2025"
   return `${diaAbreviadoCapitalizado}., ${dataFormatada}`;
@@ -798,26 +628,23 @@ const displayDataEfetivacao = computed(() => {
   // Se não houver data, não mostre nada.
   if (!formReleases.value.dataEfetivacao) return null;
 
-  if (typeof formReleases.value.dataEfetivacao !== "string") return "";
-  if (typeof formReleases.value.dataEfetivacao !== "string") return "";
+  if (typeof formReleases.value.dataEfetivacao !== 'string') return '';
   const data = parseISO(formReleases.value.dataEfetivacao);
 
   // Compara com a data atual e retorna o texto correspondente
-  if (isToday(data)) return "Hoje";
-  if (isYesterday(data)) return "Ontem";
-  if (isTomorrow(data)) return "Amanhã";
+  if (isToday(data)) return 'Hoje';
+  if (isYesterday(data)) return 'Ontem';
+  if (isTomorrow(data)) return 'Amanhã';
   
   // Pega o nome do dia da semana (ex: "segunda-feira")
-  const nomeDiaCompleto = format(data, "EEEE", { locale: ptBR });
+  const nomeDiaCompleto = format(data, 'EEEE', { locale: ptBR });
   
   // Pega as 3 primeiras letras e capitaliza a primeira
   const nomeDiaAbreviado = nomeDiaCompleto.substring(0, 3);
-  const diaAbreviadoCapitalizado =
-    nomeDiaAbreviado.charAt(0).toUpperCase() + nomeDiaAbreviado.slice(1);
+  const diaAbreviadoCapitalizado = nomeDiaAbreviado.charAt(0).toUpperCase() + nomeDiaAbreviado.slice(1);
 
   // Formata o resto da data
-  const dataFormatada = format(data, "dd/MM/yyyy");
-  const dataFormatada = format(data, "dd/MM/yyyy");
+  const dataFormatada = format(data, 'dd/MM/yyyy');
 
   // Retorna no formato "Seg., 25/07/2025"
   return `${diaAbreviadoCapitalizado}., ${dataFormatada}`;
@@ -834,8 +661,7 @@ const isTodayEfetivacao = computed(() =>
   isToday(formReleases.value.dataEfetivacao)
 );
 
-const tipoCalculoParcela = ref<"total" | "parcela">("total");
-const tipoCalculoParcela = ref<"total" | "parcela">("total");
+const tipoCalculoParcela = ref<'total' | 'parcela'>('total');
 
 const formReleases = ref<Lancamento>({
   id: props.releases?.id || null,
@@ -854,6 +680,7 @@ const formReleases = ref<Lancamento>({
   conta: props.releases?.conta || contasNames.value[0],
   dataLancamento: validateDate(props.releases?.dataLancamento),
   dataEfetivacao: props.releases?.dataEfetivacao || null,
+  mesAno: props.mesAno,
 });
 
 const detalheRecorrencia = computed(() => {
@@ -873,13 +700,12 @@ const detalheRecorrencia = computed(() => {
       maximumFractionDigits: 2,
     };
 
-    if (tipoCalculoParcela.value === "total") {
-    if (tipoCalculoParcela.value === "total") {
+    if (tipoCalculoParcela.value === 'total') {
       const valorParcela = valorInput / formReleases.value.numParcelas;
-      const valorFormatado = valorParcela.toLocaleString("pt-BR", opcoesDeFormatacao);
+      const valorFormatado = valorParcela.toLocaleString('pt-BR', opcoesDeFormatacao);
       return `Em ${formReleases.value.numParcelas}x de R$ ${valorFormatado}`;
     } else {
-      const valorFormatado = valorInput.toLocaleString("pt-BR", opcoesDeFormatacao);
+      const valorFormatado = valorInput.toLocaleString('pt-BR', opcoesDeFormatacao);
       return `Em ${formReleases.value.numParcelas}x de R$ ${valorFormatado}`;
     }
   }
@@ -887,7 +713,7 @@ const detalheRecorrencia = computed(() => {
 });
 
 // Busca a lista de categorias correta (Receita ou Despesa)
-const categoriesSource = computed(() =>
+const categoriesSource = computed(() => 
   props.transactionType === "Receita"
     ? useRevenues.revenuesData?.categories
     : useExpenses.expensesData?.categories
@@ -896,11 +722,7 @@ const categoriesSource = computed(() =>
 // Encontra o objeto da categoria selecionada
 const selectedCategoryObject = computed(() => {
   return categoriesSource.value.find(
-    (cat) =>
-      cat.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "") ===
-      formReleases.value.categoria
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
+    (cat) => cat.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === formReleases.value.categoria.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
   );
 });
 
@@ -911,14 +733,15 @@ const selectedSubcategoryObject = computed(() =>
   )
 );
 
-// Retorna o ícone e a cor para a CATEGORIA
-const categoriaIcon = computed(() => selectedCategoryObject.value?.icon || "mdi-scatter-plot");
 
-const categoriaColorClass = computed(() => selectedCategoryObject.value?.color || "");
+// Retorna o ícone e a cor para a CATEGORIA
+const categoriaIcon = computed(() => selectedCategoryObject.value?.icon || 'mdi-scatter-plot');
+
+const categoriaColorClass = computed(() => selectedCategoryObject.value?.color || '');
 
 // Retorna o ícone e a cor para a SUBCATEGORIA
-const subcategoriaIcon = computed(() => selectedSubcategoryObject.value?.icon || "mdi-scatter-plot");
-const subcategoriaColorClass = computed(() => selectedSubcategoryObject.value?.color || "");
+const subcategoriaIcon = computed(() => selectedSubcategoryObject.value?.icon || 'mdi-scatter-plot');
+const subcategoriaColorClass = computed(() => selectedSubcategoryObject.value?.color || '');
 
 watch(
   () => formReleases.value.status,
@@ -942,21 +765,16 @@ const subcategoriasDaCategoriaSelecionada = computed(() => {
   }
 
   const selectedCategory = categoriesSource.value.find(
-    (cat) =>
-      cat.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "") ===
-      formReleases.value.categoria
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
+    (cat) => cat.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === formReleases.value.categoria.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
   );
 
   if (selectedCategory && selectedCategory.subcategories) {
-    return (subcategoriesNames.value = selectedCategory.subcategories.map(
-      (sub) => sub.name
-    ));
+    return subcategoriesNames.value = selectedCategory.subcategories.map((sub) => sub.name);
   }
 
   return [];
 });
+
 
 const formatDateOnWatch = (newValue: any) => {
   if (newValue instanceof Date) {
@@ -1031,9 +849,7 @@ const closeForm = () => {
 };
 
 // CORREÇÃO: Nova função para lidar com a seleção de recorrência
-const selecionarRecorrencia = (
-  item: "Não recorrente" | "Fixa" | "Parcelado"
-) => {
+const selecionarRecorrencia = (item: "Não recorrente" | "Fixa" | "Parcelado") => {
   formReleases.value.recorrencia = item;
   openRecorrenciaModal.value = false;
 
@@ -1047,6 +863,7 @@ const selecionarRecorrencia = (
   }
 };
 
+
 const salvarLancamentos = async () => {
   errorStore.unsetError();
 
@@ -1055,7 +872,7 @@ const salvarLancamentos = async () => {
   }
 
   // Se for um lançamento recorrente no modo de edição, mostra o modal primeiro.
-  if (isEditMode.value && (formReleases.value.recorrencia === "Parcelado" || formReleases.value.recorrencia === "Fixa")) {
+  if (isEditMode.value && (formReleases.value.recorrencia === 'Parcelado' || formReleases.value.recorrencia === 'Fixa')) {
     showEditOptionsModal.value = true;
     return; // Para a execução aqui e espera a escolha do utilizador
   }
@@ -1063,6 +880,7 @@ const salvarLancamentos = async () => {
   // Se não for recorrente, executa a lógica de salvar diretamente
   await proceedWithSave();
 };
+
 
 const handleEditScopeSelection = async (scope: any) => {
   editScope.value = scope;
@@ -1072,15 +890,14 @@ const handleEditScopeSelection = async (scope: any) => {
 
 const proceedWithSave = async () => {
   loading.value = true;
-  const payload = {
+  const payload = { 
     ...formReleases.value,
-    editScope: editScope.value,
-    mesAno: props.mesAno
+    editScope: editScope.value
   };
   try {
     
-    if (formReleases.value.recorrencia === "Parcelado"  ) {
-      if (props.releases?.recorrencia === "Parcelado" || props.releases?.recorrencia === "Fixa") {
+    if (formReleases.value.recorrencia === 'Parcelado'  ) {
+      if (props.releases?.recorrencia === 'Parcelado' || props.releases?.recorrencia === 'Fixa') {
         payload.tipoParcela = props.releases?.tipoParcela;
         payload.parcelaAtual = props.releases?.parcelaAtual;
       } else {
@@ -1092,7 +909,7 @@ const proceedWithSave = async () => {
     const method = isEditMode.value ? http.put : http.post;
     const url = isEditMode.value
       ? `/lancamentos/${payload.id}`
-      : "/lancamentos";
+      : `/lancamentos`;
       
     const res = await method(url, payload);
 
@@ -1233,15 +1050,15 @@ const rules = {
   display: flex;
   align-items: center;
   /* Remove o justify-content para que o lápis fique ao lado do texto */
-
+  
   color: #b0b0b0; /* Cor mais suave para o texto de detalhe */
-
+  
   /* Ajuste fino na margem para ficar logo abaixo do campo, sem sobrepor */
   margin-top: 2px;
   padding-bottom: 8px; /* Espaçamento abaixo da linha de detalhe */
 
   /* Alinha o texto com o início do input (após o ícone) */
-  margin-left: 40px;
+  margin-left: 40px; 
   font-size: 14px;
   height: 24px; /* Garante altura consistente */
 }
@@ -1428,7 +1245,7 @@ h2 {
 .parcela-toggle {
   display: flex;
   border-radius: 10px;
-  border: 1px solid #4f4f4f;
+  border: 1px solid #4F4F4F;
   background-color: transparent;
   overflow: hidden;
 }

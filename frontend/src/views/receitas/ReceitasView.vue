@@ -67,9 +67,7 @@
             </v-container>
             <div style="width: 100%">
               <div class="header__visao_geral">
-                <span style="text-align: start; height: 22px">{{
-                  revenue.conta
-                }}</span>
+                <span style="text-align: start; height: 22px">{{ revenue.conta }}</span>
                 <div>
                   <span>{{ revenue.dataVencimento }}</span>
                   <span>
@@ -104,17 +102,14 @@
               </div>
               <div style="display: flex; justify-content: space-between">
                 <span class="descricao">{{ revenue.descricao }}</span>
-                <span class="descricao">
-                  R$ {{ formatValue(Number(revenue.valor)) }}</span
-                >
+                <span class="descricao">R$ {{ formatValue(Number(revenue.valor)) }}</span>
               </div>
               <div>
                 <span class="sub__categoria px-3">{{ revenue.categoria }}</span>
                 <span
                   v-if="revenue.subcategoria !== 'Outros'"
                   class="sub__categoria px-3"
-                  >{{ revenue.subcategoria }}</span
-                >
+                  >{{ revenue.subcategoria }}</span>
               </div>
             </div>
           </div>
@@ -135,7 +130,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 
 import FormLancamentos from "@/components/FormLancamentos.vue";
 import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
@@ -154,7 +149,6 @@ import type { Lancamento, TransactionsData } from "@/types";
 import { formatValue } from "@/utils/formatValue";
 
 import { isToday, isPast, differenceInCalendarDays, parseISO } from "date-fns";
-import { isToday, isPast, differenceInCalendarDays, parseISO } from "date-fns";
 
 const useRevenues = useRevenuesStore();
 const useWallets = useWalletsStore();
@@ -165,9 +159,7 @@ const formulario = ref(false);
 const selectedRelease = ref<Lancamento | undefined>(undefined);
 const mesAno = ref<string>(useUser.mesAno || "");
 const valueTotalRevenuesMonth = ref(useRevenues.revenuesData?.valueTotalMonth);
-const revenuesMonth = ref<Lancamento[]>(
-  useRevenues.revenuesData?.byMonth || []
-);
+const revenuesMonth = ref<Lancamento[]>(useRevenues.revenuesData?.byMonth || []);
 
 interface ApiError {
   response?: {
@@ -180,19 +172,14 @@ interface ApiError {
 const getIconForRevenue = (revenue: Lancamento) => {
   if (revenue.status === "Efetivada") {
     return "mdi-check";
-  if (revenue.status === "Efetivada") {
-    return "mdi-check";
   }
 
   if (revenue.status === "Pendente") {
-  if (revenue.status === "Pendente") {
     if (!revenue.dataVencimento) {
-      return "mdi-calendar-question";
       return "mdi-calendar-question";
     }
 
     let dataVencimento: Date;
-    if (typeof revenue.dataVencimento === "string") {
     if (typeof revenue.dataVencimento === "string") {
       dataVencimento = parseISO(revenue.dataVencimento);
     } else {
@@ -209,11 +196,9 @@ const getIconForRevenue = (revenue: Lancamento) => {
 
     if (diffEmDias >= 0 && diffEmDias <= 3) {
       return "mdi-alert";
-      return "mdi-alert";
     }
 
     if (diffEmDias >= 4) {
-      return "mdi-clock-outline";
       return "mdi-clock-outline";
     }
   }
@@ -222,19 +207,14 @@ const getIconForRevenue = (revenue: Lancamento) => {
 const getClassForRevenue = (revenue: Lancamento) => {
   if (revenue.status === "Efetivada") {
     return "paga";
-  if (revenue.status === "Efetivada") {
-    return "paga";
   }
 
   if (revenue.status === "Pendente") {
-  if (revenue.status === "Pendente") {
     if (!revenue.dataVencimento) {
-      return "pendente";
       return "pendente";
     }
 
     let dataVencimento: Date;
-    if (typeof revenue.dataVencimento === "string") {
     if (typeof revenue.dataVencimento === "string") {
       dataVencimento = parseISO(revenue.dataVencimento);
     } else {
@@ -251,11 +231,9 @@ const getClassForRevenue = (revenue: Lancamento) => {
 
     if (diffEmDias >= 0 && diffEmDias <= 3) {
       return "pendente";
-      return "pendente";
     }
 
     if (diffEmDias >= 4) {
-      return "em__dia";
       return "em__dia";
     }
   }
@@ -293,7 +271,6 @@ const openCreateForm = () => {
 
 const editRevenue = (revenue: Lancamento) => {
   selectedRelease.value = { ...revenue };
-
   formulario.value = true;
 };
 
@@ -349,10 +326,13 @@ const deletar = async (revenue: Lancamento) => {
   try {
     const payload = {
       tipo: "Receita",
-      mesReferencia: mesAnoReferencia.value,
+      mesAno: mesAno.value,
     };
-    const res = await http.delete(`/lancamentos/${id}`, payload);
+    const res = await http.delete(`/lancamentos/${revenue.id}`, {
+      data: payload
+      });
     useRevenues.setRevenuesData(res.data.revenues);
+    valueTotalRevenuesMonth.value = res.data.revenues.valueTotalMonth;
     revenuesMonth.value = res.data.revenues.byMonth;
     useWallets.setSaldoInicial(res.data.wallets.saldoInicial);
     useWallets.setWalletsData(res.data.wallets);

@@ -9,24 +9,18 @@
       @update-data="updateData"
       @close-form="closeForm"
     />
-    <div
-      v-if="!formulario"
-      class="receitas"
-    >
+    <div v-if="!formulario" class="receitas">
       <div class="header fixed-top">
         <div class="d-flex justify-content-between">
           <router-link
             class="link me-7 d-flex align-items-center opaco"
             :to="{ name: 'dashboard' }"
           >
-            <v-icon
-              icon="mdi-arrow-left"
-              size="25"
-            />
+            <v-icon icon="mdi-arrow-left" size="25" />
           </router-link>
           <div class="header__items">
             <div class="d-flex flex-column">
-              <span class="fs-5">despesas</span>
+              <span class="fs-5">Despesas</span>
               <span class="valor">
                 R$ {{ formatValue(Number(valueTotalExpensesMonth)) }}
               </span>
@@ -51,7 +45,7 @@
       </div>
       <div
         v-if="expensesMonth && expensesMonth.length > 0"
-        class="container-fluid pt-15 mt-15 pb-8 mb-8"
+        class="container-fluid px-0 pt-15 mt-15 pb-8 mb-8"
       >
         <div
           v-for="expense in expensesMonth"
@@ -77,11 +71,7 @@
                 <div>
                   <span>{{ expense.dataVencimento }}</span>
                   <span>
-                    <v-icon
-                      icon="mdi-dots-vertical"
-                      class="mdicon"
-                      size="25"
-                    />
+                    <v-icon icon="mdi-dots-vertical" class="mdicon" size="25" />
                     <v-menu
                       activator="parent"
                       location="bottom end"
@@ -127,10 +117,7 @@
       </div>
       <NoDataComponent v-else />
     </div>
-    <div
-      v-if="!formulario"
-      class="fixed-bottom d-flex justify-end pe-6 pb-6"
-    >
+    <div v-if="!formulario" class="fixed-bottom d-flex justify-end pe-6 pb-6">
       <v-icon
         type="button"
         title="Adicionar nova despesa"
@@ -144,7 +131,6 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { storeToRefs } from "pinia";
 
 import FormLancamentos from "@/components/FormLancamentos.vue";
 import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
@@ -322,13 +308,13 @@ const proximoMes = () => {
 
 const buscarDadosMes = async (data: string) => {
   try {
-    const res = await http.post("/buscar-dados-mes", { mes: data });
+    const res = await http.post("/buscar-dados-mes", { mesAno: data });
     useUser.setMesAno(res.data.mesAno);
     useExpenses.setExpensesData(res.data.expenses);
     useRevenues.setRevenuesData(res.data.revenues);
     useWallets.setWalletsData(res.data.wallets);
     mesAno.value = res.data.mesAno;
-    expensesMonth.value = res.data.expenses.byMonth || [];
+    expensesMonth.value = res.data.expenses.byMonth;
     valueTotalExpensesMonth.value = res.data.expenses.valueTotalMonth;
   } catch (error) {
     const apiError = error as ApiError;
@@ -338,14 +324,16 @@ const buscarDadosMes = async (data: string) => {
 
 const deletar = async (expense: Lancamento) => {
   try {
+    const payload = {
+      tipo: "Despesa",
+      mesAno: mesAno.value,
+    };
     const res = await http.delete(`/lancamentos/${expense.id}`, {
-      data: {
-        mesAno: mesAno.value,
-        tipo: expense.tipo
-      },
+      data: payload
     });
     useExpenses.setExpensesData(res.data.expenses);
-    expensesMonth.value = res.data.expenses.byMonth || [];
+    valueTotalExpensesMonth.value = res.data.expenses.valueTotalMonth;
+    expensesMonth.value = res.data.expenses.byMonth;
     useWallets.setSaldoInicial(res.data.wallets.saldoInicial);
     useWallets.setWalletsData(res.data.wallets);
   } catch (error: unknown) {

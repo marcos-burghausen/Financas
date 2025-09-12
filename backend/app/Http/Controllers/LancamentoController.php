@@ -351,15 +351,6 @@ class LancamentoController extends Controller
                 return response()->json(['error' => 'Lançamento não encontrado'], 404);
             }
 
-            if ($lancamento->status === 'Efetivada') {
-                $conta = Conta::where('user_id', $user->id)
-                    ->where('name', $lancamento->conta)
-                    ->first();
-                if ($conta) {
-                    $conta->saldo -= $lancamento->valor;
-                    $conta->save();
-                }
-            }
 
             $deleted = $lancamento->delete();
             if (!$deleted) {
@@ -380,7 +371,7 @@ class LancamentoController extends Controller
             DB::commit();
 
             $secoesParaRetorno = [($lancamento->tipo === 'Receita') ? 'revenues' : 'expenses', 'wallets'];
-            $data = $this->getUserData($user, $data['mesReferencia'], $secoesParaRetorno);
+            $data = $this->getUserData($user, $data['mesAno'], $secoesParaRetorno);
 
             $isReceita = $lancamento->tipo === 'Receita';
             $successMessage = $isReceita ? 'Receita apagada com sucesso' : 'Despesa apagada com sucesso';
