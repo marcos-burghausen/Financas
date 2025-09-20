@@ -11,56 +11,56 @@ export interface Token {
 }
 
 export interface User {
-id: number;
-name: string;
-email: string;
-type: string;
+  id: number;
+  name: string;
+  email: string;
+  type: string;
 }
 
 export interface LoginResponse {
-    token: Token;
-    userData: User;
-    
-    data: {
-      expenses: {
-        valuePay: number;
-        valuePending: number;
-        valueTotalMonth: number;
-        byMonth: Lancamento[];
-        totalDay: number;
-        byCategory: Lancamento[];
-        categories: CategoryData[];
-      };
-      revenues: {
-        valuePay: number;
-        valuePending: number;
-        valueTotalMonth: number;
-        byMonth: Lancamento[];
-        totalDay: number;
-        byCategory: Lancamento[];
-        categories: CategoryData[];
-      };
-      wallets: WalletData
-      mesAno: string;
-    };
-  }
+  token: Token;
+  userData: User;
 
-  
-  // Form for login submission
+  data: {
+    expenses: {
+      valuePay: number;
+      valuePending: number;
+      valueTotalMonth: number;
+      byMonth: Lancamento[];
+      totalDay: number;
+      byCategory: Lancamento[];
+      categories: CategoryData[];
+    };
+    revenues: {
+      valuePay: number;
+      valuePending: number;
+      valueTotalMonth: number;
+      byMonth: Lancamento[];
+      totalDay: number;
+      categories: CategoryData[];
+      byCategory: Lancamento[];
+    };
+    wallets: WalletData;
+    mesAno: string;
+  };
+}
+
+
+// Form for login submission
 export interface FormLogin {
-    email: string;
-    password: string;
-  }
-  
-  // Form for user registration
+  email: string;
+  password: string;
+}
+
+// Form for user registration
 export interface FormCadastro {
-    name?: string;
-    email?: string;
-    password?: string;
-    confirmPassword?: string;
-  }
-  
-  // User data (replacing User and UserDAta)
+  name?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+}
+
+// User data (replacing User and UserDAta)
 // export interface UserDAta {
 //     id: number;
 //     name: string;

@@ -126,10 +126,10 @@ const login = async () => {
     );
     useAuth.setToken(response.data.token);
     useUser.setUserData(response.data.userData);
-    useUser.setMesAno(response.data.mesAno);
-    useExpenses.setExpensesData(response.data.expenses);
-    useRevenues.setRevenuesData(response.data.revenues);
-    useWallets.setWalletsData(response.data.wallets);
+    useUser.setMesAno(response.data.data.mesAno);
+    useExpenses.setExpensesData(response.data.data.expenses);
+    useRevenues.setRevenuesData(response.data.data.revenues);
+    useWallets.setWalletsData(response.data.data.wallets);
 
     router.push({ name: "dashboard" });
   } catch (error) {

@@ -680,7 +680,7 @@ const formReleases = ref<Lancamento>({
   conta: props.releases?.conta || contasNames.value[0],
   dataLancamento: validateDate(props.releases?.dataLancamento),
   dataEfetivacao: props.releases?.dataEfetivacao || null,
-  mesAno: props.mesAno,
+  // mesAno: props.mesAno,
 });
 
 const detalheRecorrencia = computed(() => {
@@ -722,7 +722,7 @@ const categoriesSource = computed(() =>
 // Encontra o objeto da categoria selecionada
 const selectedCategoryObject = computed(() => {
   return categoriesSource.value.find(
-    (cat) => cat.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === formReleases.value.categoria.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    (cat) => cat.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === (formReleases.value.categoria || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "")
   );
 });
 
@@ -765,7 +765,7 @@ const subcategoriasDaCategoriaSelecionada = computed(() => {
   }
 
   const selectedCategory = categoriesSource.value.find(
-    (cat) => cat.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === formReleases.value.categoria.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    (cat) => cat.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === (formReleases.value.categoria || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "")
   );
 
   if (selectedCategory && selectedCategory.subcategories) {
@@ -892,7 +892,8 @@ const proceedWithSave = async () => {
   loading.value = true;
   const payload = { 
     ...formReleases.value,
-    editScope: editScope.value
+    editScope: editScope.value,
+    mesAno: props.mesAno,
   };
   try {
     
@@ -940,16 +941,19 @@ const clearInputs = () => {
     id: null,
     descricao: "",
     valor: "0,00",
+    tipo: props.transactionType,
     recorrencia: "Não recorrente",
-    numParcelas: 0,
+    parcelaAtual: null,
+    numParcelas: null,
+    tipoParcela: null,
     periodicidade: null,
     dataVencimento: new Date().toISOString().split("T")[0],
     status: "Pendente",
-    categoria: "",
-    subcategoria: "",
-    conta: "",
+    categoria: "Outros",
+    subcategoria: "Outros",
+    conta: contasNames.value[0] || "",
     dataLancamento: new Date().toISOString().split("T")[0],
-    dataEfetivacao: new Date().toISOString().split("T")[0],
+    dataEfetivacao: null,
   };
   errorsForm.value = {};
 };
