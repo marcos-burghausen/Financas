@@ -5,7 +5,7 @@
         <ul class="ul__local">
           <span class="me-3 text-white">
             <router-link class="link" :to="{ name: 'dashboard' }">
-              <mdicon name="arrow-left" size="20" />
+              <v-icon icon="mdi-arrow-left" size="20" />
             </router-link>
           </span>
           <li class="opaco">categorias</li>
@@ -65,14 +65,14 @@
             <div class="cor__forma" :class="categoria.color" />
           </td>
           <td class="text-white text-center">
-            <mdicon v-if="categoria.icon" :name="categoria.icon" />
+            <v-icon v-if="categoria.icon" :icon="categoria.icon" />
           </td>
-          <td class="d-flex py-0 justify-content-center">
+          <td class="d-flex py-0 justify-content-center" v-if ="categoria.editable === true">
             <button
               class="btn btn-outline-table p-0 text-white fs-4 bi bi-pencil mx-2"
               title="editar"
             >
-              <mdicon name="pencil-outline" />
+              <v-icon icon="mdi-pencil-outline" size="25" />
             </button>
             <button
               v-if="categoria.editable === true"
@@ -81,7 +81,7 @@
               title="apagar"
               @click="deleteCategory(categoria)"
             >
-              <mdicon name="trash-can-outline" />
+              <v-icon icon="mdi-trash-can-outline" size="25" />
             </button>
             <!-- <button @click="" style="color: #fefefe;"
                             class="btn btn-outline-table p-0 fs-4 bi bi-check2-circle border-0 mx-2 " title="relatório">
@@ -111,7 +111,7 @@
             <div class="cor__forma" :class="categoria.color" />
           </td>
           <td class="text-white text-center">
-            <mdicon v-if="categoria.icon" :name="categoria.icon" />
+            <v-icon v-if="categoria.icon" :icon="categoria.icon" />
           </td>
           <td class="d-flex py-0 justify-content-center">
             <!-- <button @click="" style="color: #fefefe;"
@@ -123,7 +123,7 @@
               class="btn btn-outline-table p-0 text-white fs-4 bi bi-pencil mx-2"
               title="editar"
             >
-              <mdicon name="pencil-outline" />
+              <v-icon icon="mdi-pencil-outline" />
             </button>
             <button
               v-if="categoria.editable === true"
@@ -132,7 +132,7 @@
               title="apagar"
               @click="deleteCategory(categoria)"
             >
-              <mdicon name="trash-can-outline" />
+              <v-icon icon="mdi-trash-can-outline" />
             </button>
           </td>
         </tr>

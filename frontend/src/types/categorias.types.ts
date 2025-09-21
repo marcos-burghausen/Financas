@@ -2,21 +2,21 @@
 // Represents a financial category (expenses, revenues, or wallets)
 
 export interface CategoryData {
-    id: number;
-    name: string;
-    color: string;
-    icon: string;
-    editable: boolean;
-    type: "despesa" | "receita" | "ambas" | "contas";
-    subcategories?: Subcategory[];
-  }
-  
-  // Represents a subcategory within a category
-  export interface Subcategory {
-    id: number;
-    name: string;
-    color: string;
-    icon: string;
-    editable: boolean;
-    type: "despesa" | "receita" | "ambas";
-  }
+  color: string;
+  editable: boolean;
+  icon: string;
+  id: number;
+  name: string;
+  subcategories?: Subcategory[];
+  type: "despesa" | "receita" | "ambas" | "contas";
+}
+
+// Represents a subcategory within a category
+export interface Subcategory {
+  color: string;
+  editable: boolean;
+  icon: string;
+  id: number;
+  name: string;
+  type: "despesa" | "receita" | "ambas";
+}

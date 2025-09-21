@@ -5,10 +5,7 @@
         class="link me-7 d-flex align-items-center opaco"
         :to="{ name: 'dashboard' }"
       >
-        <mdicon
-          name="arrow-left"
-          size="25"
-        />
+      <v-icon icon="mdi-arrow-left" size="25" />
       </router-link>
       <div class="header__items">
         <div class="d-flex flex-column">
@@ -22,15 +19,15 @@
     </div>
 
     <div class="container__mes">
-      <mdicon
-        name="chevron-left"
+      <v-icon
+        icon="mdi-chevron-left"
         class="mdicon text-white"
         size="30"
         @click="$emit('mesAnterior')"
       />
       <span class="mes text-white fs-3"> {{ mesPorExtenso }} </span>
-      <mdicon
-        name="chevron-right"
+      <v-icon
+        icon="mdi-chevron-right"
         class="mdicon text-white"
         size="30"
         @click="$emit('proximoMes')"
@@ -56,16 +53,16 @@
         <div class="header__carteira">
           <div class="container__detalhes">
             <span class="icon">
-              <mdicon
-                :name="wallet.icon"
+              <v-icon
+                :icon="wallet.icon"
                 size="50"
               />
             </span>
             {{ wallet.name }}
           </div>
           <button class="btn__opcoes">
-            <mdicon
-              name="dots-vertical"
+            <v-icon
+              icon="mdi-dots-vertical"
               size="25"
             />
           </button>
@@ -94,8 +91,8 @@
         class="btn__nova__conta"
       >
         <!-- @click="formStoreRevenue = !formStoreRevenue" -->
-        <mdicon
-          name="plus"
+        <v-icon
+          icon="mdi-plus"
           class="mdicon"
           size="30"
         />
@@ -165,33 +162,35 @@ import { ref } from "vue";
 const useWallets = useWalletsStore();
 const useUser = useUserStore();
 let wallets = ref(useWallets.walletsData.contas);
-let mesAnoReferencia = ref(useUser.getMesAno());
+const mesAno = ref<string>(useUser.mesAno || "");
 
 // const updateContas = (novoValor) => {
 //     wallets.value = novoValor;
 // };
 
 const mesPorExtenso = computed(() => {
-    if (!mesAnoReferencia.value) return "";
-
-    const [mes] = mesAnoReferencia.value.split("-");
-
-    const mesesPorExtenso = [
-        "Janeiro",
-        "Fevereiro",
-        "Março",
-        "Abril",
-        "Maio",
-        "Junho",
-        "Julho",
-        "Agosto",
-        "Setembro",
-        "Outubro",
-        "Novembro",
-        "Dezembro",
-    ];
-
+  if (!mesAno.value) return "";
+  const [ano, mes] = mesAno.value.split("-");
+  const anoAtual = new Date().getFullYear();
+  const mesesPorExtenso = [
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
+  ];
+  if (parseInt(ano, 10) === anoAtual) {
     return mesesPorExtenso[parseInt(mes, 10) - 1];
+  }
+  const mesAbreviado = mesesPorExtenso[parseInt(mes, 10) - 1].slice(0, 3);
+  return `${mesAbreviado}./${ano.slice(2)}`;
 });
 </script>
 

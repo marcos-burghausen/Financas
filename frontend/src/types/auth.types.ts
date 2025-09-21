@@ -3,46 +3,43 @@
 import type { CategoryData, Lancamento, WalletData } from "./index";
 
 export interface Token {
-  token: string;
-  tokenType: string;
+  expires: number;
   expiresIn: number;
   iat: number;
-  expires: number;
+  token: string;
+  tokenType: string;
 }
 
 export interface User {
+  email: string;
   id: number;
   name: string;
-  email: string;
   type: string;
 }
 
 export interface LoginResponse {
+  expenses: {
+    byCategory: Lancamento[];
+    byMonth: Lancamento[];
+    categories: CategoryData[];
+    totalDay: number;
+    valuePay: number;
+    valuePending: number;
+    valueTotalMonth: number;
+  };
+  mesAno: string;
+  revenues: {
+    byCategory: Lancamento[];
+    byMonth: Lancamento[];
+    categories: CategoryData[];
+    totalDay: number;
+    valuePay: number;
+    valuePending: number;
+    valueTotalMonth: number;
+  };
   token: Token;
   userData: User;
-
-  data: {
-    expenses: {
-      valuePay: number;
-      valuePending: number;
-      valueTotalMonth: number;
-      byMonth: Lancamento[];
-      totalDay: number;
-      byCategory: Lancamento[];
-      categories: CategoryData[];
-    };
-    revenues: {
-      valuePay: number;
-      valuePending: number;
-      valueTotalMonth: number;
-      byMonth: Lancamento[];
-      totalDay: number;
-      categories: CategoryData[];
-      byCategory: Lancamento[];
-    };
-    wallets: WalletData;
-    mesAno: string;
-  };
+  wallets: WalletData;
 }
 
 

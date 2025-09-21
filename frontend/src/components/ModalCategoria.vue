@@ -1,8 +1,8 @@
 <template>
-  <mdicon
+  <v-icon
     type="button"
     title="adcionar nova categoria"
-    name="plus"
+    icon="mdi-plus"
     class="mdicon"
     :class="props.color"
     @click="openModal = true"
@@ -15,10 +15,10 @@
     <div class="modal">
       <header class="header__modal">
         <span class="title">Cadastrar nova categoria</span>
-        <mdicon
+        <v-icon
           class="mdicon__close"
           type="buttom"
-          name="close"
+          icon="mdi-close"
           @click="openModal = false; selectedIcon = ''; selectedColor = ''; nameCategory = ''"
         />
       </header>
@@ -63,9 +63,9 @@
             <span>
               icone da categoria
             </span>
-            <mdicon
+            <v-icon
               v-if="selectedIcon"
-              :name="selectedIcon"
+              :icon="selectedIcon"
             />
           </div>
           <ModalIcons

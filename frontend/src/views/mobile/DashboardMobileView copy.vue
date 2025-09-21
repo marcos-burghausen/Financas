@@ -355,14 +355,22 @@ const itensSideBar = ref([
     traderOnly: false,
     action: () => router.push({ name: "despesas" }),
   },
-  {
-    name: "Categorias",
-    icon: "mdi-bookmark-minus-outline",
-    route: "categorias",
-    adminOnly: false,
-    traderOnly: false,
-    action: () => router.push({ name: "categorias" }),
-  },
+  // {
+  //   name: "Categorias",
+  //   icon: "mdi-bookmark-minus-outline",
+  //   route: "categorias",
+  //   adminOnly: false,
+  //   traderOnly: false,
+  //   action: () => router.push({ name: "categorias" }),
+  // },
+  // {
+  //   name: "Cartões de crédito",
+  //   icon: "mdi-bookmark-minus-outline",
+  //   route: "cartoes",
+  //   adminOnly: false,
+  //   traderOnly: false,
+  //   action: () => router.push({ name: "cartoes" }),
+  // },
   // { name: "Mais Opçõs", icon: "dots-horizontal", route: "dashboard" },
 ]);
 
