@@ -1,65 +1,472 @@
 <template>
-  <div class="clearfix" />
-
   <div class="content-wrapper">
-    <div class="pagetitle">
-      <nav class="d-flex justify-content-between mb-3">
-        <ol class="breadcrumb bg-transparent">
-          <li class="breadcrumb-item text-white">
-            Dashboard
-          </li>
-          <li class="breadcrumb-item text-white">
-            cartão de credito
-          </li>
-          <li class="breadcrumb-item">
-            cadastrar de despesa
-          </li>
-          <li class="breadcrumb-item">
-            editar de despesa
-          </li>
-        </ol>
-        <div>
-          <button class="btn btn-danger text-whit">
-            fatura fechada
-          </button>
-          <button class="btn btn-danger text-whit">
-            fatura aberta
-          </button>
-          <button class="btn btn-danger text-whit">
-            nova despesa
-          </button>
-        </div>
-      </nav>
-    </div>
-
-
-
-
-
-    <div class="container-fluid d-flex">
-      <div style="width: 75%; display: flex;">
-        <div style="height: 280px; width: 400px; border: 1px solid red;border-radius: 30px; margin-right: 15px;" />
-        <div style="height: 280px; width: 400px; border: 1px solid red;border-radius: 30px;" />
-      </div>
-
-      <div>
-        <div style="height: 95px; width: 380px; border: 1px solid red;border-radius: 20px;" />
-        <div
-          style="backgrownd: height: 95px; width: 380px; border: 1px solid red;border-radius: 30px; padding: 15px 30px; color: aliceblue;"
-        >
-          <p>limite disponivel</p>
-          <p>R$ 000000,00</p>
-        </div>
-        <div style="height: 95px; width: 380px;color: aliceblue; padding: 15px 30px;">
-          <p>valor total</p>
-          <p>R$ 000000,00</p>
+    <div class="header">
+      <router-link
+        class="link me-7 d-flex align-items-center opaco"
+        :to="{ name: 'dashboard' }"
+      >
+        <v-icon
+          icon="mdi-arrow-left"
+          size="25"
+        />
+      </router-link>
+      <div class="header__items">
+        <div class="d-flex flex-column">
+          <span class="fs-5"> Contas </span>
+          <span class="valor">
+            R$ {{ formatValue(valueTotalRevenuesMonth) }}
+          </span>
         </div>
       </div>
     </div>
+
+    <div class="container__mes">
+      <v-icon
+        icon="mdi-chevron-left"
+        class="mdicon text-white"
+        size="30"
+        @click="$emit('mesAnterior')"
+      />
+      <span class="mes text-white fs-3"> {{ mesPorExtenso }} </span>
+      <v-icon
+        icon="mdi-chevron-right"
+        class="mdicon text-white"
+        size="30"
+        @click="$emit('proximoMes')"
+      />
+    </div>
+
+    <div class="container__cards">
+      <!-- v-for="(wallet, index) in wallets" -->
+      <!-- :key="index" -->
+      <div
+        class="__card mb-2"
+      >
+        <div class="header__carteira">
+          <div class="container__detalhes d-flex">
+            <!-- <span > -->
+            <v-icon
+              icon="mdi-card"
+              size="60"
+              class="icon"
+            />
+            <div class="d-flex row">
+              <span class="pt-2">
+                Sicredi
+              </span>
+              <div class="card__type">
+                <v-icon
+                  icon="mdi-card"
+                  size="20"
+                  class="icon__mini ms-2"
+                />
+                <span class="fs-6">mastercard</span>
+              </div>
+            </div>
+          </div>
+          <button class="btn__opcoes">
+            <v-icon
+              icon="mdi-dots-vertical"
+              size="25"
+            />
+          </button>
+        </div>
+
+        <div class="body__carteira">
+          <div class="saldo">
+            <div class="d-flex row">
+              <span class="saldo__atual">Limite</span>
+              <span class="valor"> R$ 0,00 </span>
+            </div>
+            <div class="d-flex row">
+              <span class="saldo__atual">Em Aberto</span>
+              <span class="valor"> R$ 0,00 </span>
+            </div>
+            <div class="d-flex row">
+              <span class="saldo__atual">Lim. Disponível</span>
+              <span class="valor"> R$ 0,00 </span>
+            </div>
+          </div>
+          <div class="saldo">
+            <span class="saldo__atual">saldo previsto</span>
+            <span class="valor">R$ 130,00</span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="__card"
+      >
+        <div class="header__carteira">
+          <div class="container__detalhes">
+            <span class="icon">
+              <v-icon
+                icon="mdi-card"
+                size="50"
+              />
+            </span>
+            Sicredi
+          </div>
+          <button class="btn__opcoes">
+            <v-icon
+              icon="mdi-dots-vertical"
+              size="25"
+            />
+          </button>
+        </div>
+        <div class="body__carteira">
+          <div class="saldo">
+            <span class="saldo__atual">saldo atual</span>
+            <span class="valor"> R$ 0,00 </span>
+          </div>
+          <div class="saldo">
+            <span class="saldo__atual">saldo previsto</span>
+            <span class="valor">R$ 130,00</span>
+          </div>
+        </div>
+      </div>
+      <button
+        class="btn__nova__conta"
+      >
+        <!-- @click="formStoreRevenue = !formStoreRevenue" -->
+        <v-icon
+          icon="mdi-plus"
+          class="mdicon"
+          size="30"
+        />
+      </button>
+    </div>
+
+    <!-- <div class="pc">
+      <div class="container__cards">
+        <div class="card__new__conta">
+          <div class="btn__new__conta">
+            <div class="plus">
+              <mdicon name="plus" size="35" />
+              <ModalNovaConta />
+            </div>
+            <span class="add__conta">Criar conta</span>
+          </div>
+        </div>
+        <div class="carteira">
+          <div class="header__carteira">
+            <div class="container__detalhes">
+              <span class="icon">
+                <mdicon name="cash" size="35" />
+              </span>
+              carteira
+            </div>
+            <button class="btn__opcoes">
+              <mdicon name="dots-vertical" size="35" />
+            </button>
+          </div>
+          <div class="body__carteira">
+            <div class="saldo">
+              <span class="saldo__atual">saldo atual</span>
+              <span class="valor">R$ 130,00</span>
+            </div>
+            <div class="saldo">
+              <span class="saldo__atual">saldo saldo previsto</span>
+              <span class="valor">R$ 130,00</span>
+            </div>
+          </div>
+          <div class="footer__carteira">
+            <button class="btn__add__despesa">ADICIONAR DESPESA</button>
+          </div>
+        </div>
+      </div>
+      <div class="container__card__atual_previsto">
+        <div class="card__valor">
+          <span class="saldo__card">Saldo atual</span>
+          <span class="valor__card">R$ 130,00</span>
+        </div>
+        <div class="card__valor">
+          <span class="saldo__card">Saldo previsto</span>
+          <span class="valor__card">R$ 130,00</span>
+        </div>
+      </div>
+    </div> -->
   </div>
 </template>
 
 <script setup lang="ts">
+// import ModalNovaConta from "@/components/ModalNovaConta.vue";
+import { formatValue } from "@/utils/formatValue";
+import { computed } from "vue";
 
+import { useUserStore, useWalletsStore } from "@/store";
+import { ref } from "vue";
+
+const useWallets = useWalletsStore();
+const useUser = useUserStore();
+let wallets = ref(useWallets.walletsData.contas);
+const mesAno = ref<string>(useUser.mesAno || "");
+
+// const updateContas = (novoValor) => {
+//     wallets.value = novoValor;
+// };
+
+const mesPorExtenso = computed(() => {
+  if (!mesAno.value) return "";
+  const [ano, mes] = mesAno.value.split("-");
+  const anoAtual = new Date().getFullYear();
+  const mesesPorExtenso = [
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
+  ];
+  if (parseInt(ano, 10) === anoAtual) {
+    return mesesPorExtenso[parseInt(mes, 10) - 1];
+  }
+  const mesAbreviado = mesesPorExtenso[parseInt(mes, 10) - 1].slice(0, 3);
+  return `${mesAbreviado}./${ano.slice(2)}`;
+});
 </script>
-<style scoped></style>
+
+<style scoped>
+.teste {
+  margin-top: -10px
+}
+.content-wrapper {
+  position: relative;
+  height: 100%;
+}
+.header {
+  display: flex;
+  padding: 10px;
+  color: #bdbdbd;
+}
+.link {
+  text-decoration: none;
+  color: #fefefe;
+}
+.opaco {
+  color: #6c757d !important;
+}
+.header__items {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+.valor {
+  font-size: 13px;
+}
+.container__mes {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-block: 20px;
+}
+.mdicon {
+  cursor: pointer;
+  /* padding: 10px; */
+  /* box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23; */
+  border-radius: 20px;
+}
+
+.container__cards {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding-inline: 15px;
+}
+.__card {
+  padding: 5px;
+  /* width: 100%; */
+  border: 1px solid red;
+  background: rgba(150, 150, 150, 0.02);
+}
+.card__new__conta {
+  height: 248px;
+  width: 49%;
+  margin-block: 10px;
+  border-radius: 15px;
+  box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.btn__new__conta {
+  background: transparent;
+  height: 50%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  color: #77d08e;
+  font-weight: 100;
+}
+.plus {
+  height: 68px;
+  width: 68px;
+  border: solid 1px #77d08e;
+  border-radius: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.add__conta {
+  font-size: 20px;
+  font-weight: 400;
+  color: #77d08e;
+}
+.carteira {
+  box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+  height: 248px;
+  width: 49%;
+  margin-block: 10px;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  padding-inline: 10px;
+}
+.header__carteira {
+  height: 25%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.container__detalhes {
+  width: 320px;
+  height: 52px;
+  background: transparent;
+  color: #fefefe;
+  font-size: 20px;
+  cursor: pointer;
+}
+.icon {
+  color: #77d08e;
+}
+span {
+  color: #77d08e;
+  margin-top: -5px;
+}
+.card__type {
+  all: unset;
+  display: inline-block;
+  line-height: 1;
+  margin-top: -10px;
+}
+.btn__opcoes {
+  height: 52px;
+  width: 52px;
+  border-radius: 30px;
+  color: white;
+}
+.btn__opcoes:hover {
+  background-color: rgba(254, 254, 254, 0.1);
+}
+.body__carteira {
+  height: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding-inline: 15px;
+}
+.saldo {
+  display: flex;
+  justify-content: space-around;
+}
+.saldo__atual {
+  font-size: 12px;
+  color: #fefefe;
+}
+.valor {
+  font-size: 12px;
+  color: #06bb64;
+}
+.footer__carteira {
+  height: 25%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.btn__add__despesa {
+  color: #77d08e;
+  padding: 10px;
+  border-radius: 25px;
+}
+.btn__add__despesa:hover {
+  background-color: rgba(254, 254, 254, 0.1);
+}
+.container__card__atual_previsto {
+  width: 33%;
+  height: 248px;
+  margin-block: 10px;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.card__valor {
+  box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
+  height: 110px;
+  width: 100%;
+  border-radius: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-inline: 15px;
+}
+.saldo__card {
+  color: #fefefe;
+  font-size: 25px;
+}
+.valor__card {
+  color: #06bb64;
+  font-size: 25px;
+}
+.pc {
+  display: flex;
+}
+.btn__nova__conta {
+  position: fixed;
+  /* Calcula a posição relativa ao centro do #app */
+  /* right: calc(
+    (100vw - 500px) / 2 + 55px
+  ); */
+  right: 15px;
+  bottom: 15px;
+  background-color: #1dbb01;
+  border: none;
+  border-radius: 50%;
+  padding: 10px;
+  color: #fefefe;
+}
+
+@media screen and (max-width: 600px) {
+  .pc {
+    display: none;
+  }
+  .carteira {
+    height: 150px;
+    width: 95%;
+    margin: 20px 10px 0 10px;
+    padding: 20px 10px;
+  }
+  .btn__new__conta {
+    height: 80px;
+    width: 100%;
+    margin-block: 10px;
+    padding: 0 10px;
+    display: flex;
+    justify-content: center;
+    align-items: end;
+  }
+  .body__carteira {
+    margin: 20px 0 30px 0;
+  }
+}
+</style>
