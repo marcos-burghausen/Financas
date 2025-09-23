@@ -39,91 +39,113 @@
     <div class="container__cards">
       <!-- v-for="(wallet, index) in wallets" -->
       <!-- :key="index" -->
-      <div
-        class="__card mb-2"
-      >
-        <div class="header__carteira">
-          <div class="container__detalhes d-flex">
-            <!-- <span > -->
-            <v-icon
-              icon="mdi-card"
-              size="60"
-              class="icon"
-            />
-            <div class="d-flex row">
-              <span class="pt-2">
-                Sicredi
-              </span>
-              <div class="card__type">
-                <v-icon
-                  icon="mdi-card"
-                  size="20"
-                  class="icon__mini ms-2"
-                />
-                <span class="fs-6">mastercard</span>
+      <div class="__card">
+        <div class="card__header">
+          <div class="card__title">
+            <IconeSicredi class="logo__sicredi" />
+            <!-- <v-icon
+              color="#222"
+              class="brand__icon"
+              size="32"
+            >
+              mdi-clover
+            </v-icon> -->
+            <div class="card__details">
+              <span>Sicredi</span>
+              <div class="type__card d-flex align-items-center">
+              <IconeMastercard class="logo__mastercard" />
+                <!-- <v-icon
+                  size="18"
+                  class="me-1"
+                  color="#a0a0a0"
+                >
+                  mdi-credit-card
+                </v-icon> -->
+                <small>MasterCard</small>
               </div>
             </div>
           </div>
-          <button class="btn__opcoes">
-            <v-icon
-              icon="mdi-dots-vertical"
-              size="25"
+          <div class="card-actions">
+            <v-icon>mdi-plus</v-icon>
+            <v-icon>mdi-magnify</v-icon>
+            <v-icon>mdi-dots-vertical</v-icon>
+          </div>
+        </div>
+        
+        <div class="card__body">
+          <div class="info-row">
+            <div class="info-item">
+              <span class="label">Limite</span>
+              <span class="value">R$ 9.000,00</span>
+            </div>
+            <div class="info-item text-center">
+              <span class="label">Em aberto</span>
+              <span class="value">R$ 7.449,86</span>
+            </div>
+            <div class="info-item text-right">
+              <span class="label">Lim. disponível</span>
+              <span class="value">R$ 1.550,14</span>
+            </div>
+          </div>
+
+          <div class="progress__bar__container">
+            <v-progress-linear
+              model-value="83"
+              color="#32c770"
+              height="15"
+              rounded
             />
-          </button>
+            <span class="progress-label">83%</span>
+          </div>
+          <v-divider></v-divider>
+          <div class="info-row mt-3">
+            <div class="info-item">
+              <span class="label">Conta</span>
+              <span class="value-small">Sicredi</span>
+            </div>
+            <div class="info-item text-center">
+              <span class="label">Fechamento</span>
+              <span class="value-small">10/SET.</span>
+            </div>
+            <div class="info-item text-right">
+              <span class="label">Vencimento</span>
+              <span class="value-small">25/SET.</span>
+            </div>
+          </div>
         </div>
 
-        <div class="body__carteira">
-          <div class="saldo">
-            <div class="d-flex row">
-              <span class="saldo__atual">Limite</span>
-              <span class="valor"> R$ 0,00 </span>
-            </div>
-            <div class="d-flex row">
-              <span class="saldo__atual">Em Aberto</span>
-              <span class="valor"> R$ 0,00 </span>
-            </div>
-            <div class="d-flex row">
-              <span class="saldo__atual">Lim. Disponível</span>
-              <span class="valor"> R$ 0,00 </span>
-            </div>
+        <div class="card__footer">
+          <div class="fatura-info">
+            <span class="fatura-label">Fatura</span>
+            <span class="fatura-value">R$ 2.767,95</span>
           </div>
-          <div class="saldo">
-            <span class="saldo__atual">saldo previsto</span>
-            <span class="valor">R$ 130,00</span>
-          </div>
-        </div>
-      </div>
-      <div
-        class="__card"
-      >
-        <div class="header__carteira">
-          <div class="container__detalhes">
-            <span class="icon">
+          <div class="fatura-actions">
+            <span class="status-fechada">
               <v-icon
-                icon="mdi-card"
-                size="50"
-              />
+                size="14"
+                class="me-1"
+              >
+                mdi-lock
+              </v-icon>
+              Fechada
             </span>
-            Sicredi
-          </div>
-          <button class="btn__opcoes">
-            <v-icon
-              icon="mdi-dots-vertical"
-              size="25"
-            />
-          </button>
-        </div>
-        <div class="body__carteira">
-          <div class="saldo">
-            <span class="saldo__atual">saldo atual</span>
-            <span class="valor"> R$ 0,00 </span>
-          </div>
-          <div class="saldo">
-            <span class="saldo__atual">saldo previsto</span>
-            <span class="valor">R$ 130,00</span>
+            <a
+              href="#"
+              class="register-payment"
+            >
+              <v-icon
+                size="18"
+                color="#3d8eff"
+                class="me-1"
+              >
+                mdi-check-circle
+              </v-icon>
+              Registrar pagamento
+            </a>
           </div>
         </div>
       </div>
+      
       <button
         class="btn__nova__conta"
       >
@@ -136,59 +158,13 @@
       </button>
     </div>
 
-    <!-- <div class="pc">
-      <div class="container__cards">
-        <div class="card__new__conta">
-          <div class="btn__new__conta">
-            <div class="plus">
-              <mdicon name="plus" size="35" />
-              <ModalNovaConta />
-            </div>
-            <span class="add__conta">Criar conta</span>
-          </div>
-        </div>
-        <div class="carteira">
-          <div class="header__carteira">
-            <div class="container__detalhes">
-              <span class="icon">
-                <mdicon name="cash" size="35" />
-              </span>
-              carteira
-            </div>
-            <button class="btn__opcoes">
-              <mdicon name="dots-vertical" size="35" />
-            </button>
-          </div>
-          <div class="body__carteira">
-            <div class="saldo">
-              <span class="saldo__atual">saldo atual</span>
-              <span class="valor">R$ 130,00</span>
-            </div>
-            <div class="saldo">
-              <span class="saldo__atual">saldo saldo previsto</span>
-              <span class="valor">R$ 130,00</span>
-            </div>
-          </div>
-          <div class="footer__carteira">
-            <button class="btn__add__despesa">ADICIONAR DESPESA</button>
-          </div>
-        </div>
-      </div>
-      <div class="container__card__atual_previsto">
-        <div class="card__valor">
-          <span class="saldo__card">Saldo atual</span>
-          <span class="valor__card">R$ 130,00</span>
-        </div>
-        <div class="card__valor">
-          <span class="saldo__card">Saldo previsto</span>
-          <span class="valor__card">R$ 130,00</span>
-        </div>
-      </div>
-    </div> -->
+    
   </div>
 </template>
 
 <script setup lang="ts">
+import IconeMastercard from '@/assets/icons/mastercard.svg'
+import IconeSicredi from '@/assets/icons/sicredi35.svg'
 // import ModalNovaConta from "@/components/ModalNovaConta.vue";
 import { formatValue } from "@/utils/formatValue";
 import { computed } from "vue";
@@ -232,13 +208,173 @@ const mesPorExtenso = computed(() => {
 </script>
 
 <style scoped>
-.teste {
-  margin-top: -10px
-}
 .content-wrapper {
   position: relative;
+  width: 100%;
   height: 100%;
 }
+.card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.card__title {
+  display: flex;
+  align-items: center;
+}
+.brand__icon {
+  background-color: #fefefe;
+  border-radius: 50%;
+  padding: 4px;
+  margin-right: 12px;
+}
+.card__details {
+  display: flex;
+  flex-direction: column;
+}
+.card__details span {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #fefefe;
+  margin-top: 0;
+}
+
+.card__details small {
+  font-size: 0.9rem;
+  color: #a0a0a0;
+}
+.logo__sicredi {
+  width: 35px;
+  height: 35px;
+  margin-right: 5px;
+}
+.type__card {
+  margin-top: -5px;
+}
+.card-actions {
+  display: flex;
+  gap: 16px;
+  color: #a0a0a0;
+}
+
+.card__body {
+  margin-top: 15px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  flex-basis: 33%;
+}
+
+.text-center {
+  text-align: center;
+}
+.text-right {
+  text-align: right;
+}
+
+.label {
+  font-size: 0.8rem;
+  color: #a0a0a0;
+  margin-bottom: 4px;
+}
+
+.value {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #fefefe;
+}
+
+.value-small {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #fefefe;
+}
+
+.progress__bar__container {
+  margin-top: 5px;
+  position: relative;
+}
+
+/* .progress-bar {
+  background-color: #444;
+  border-radius: 5px;
+  height: 10px;
+  width: 100%;
+}
+
+.progress {
+  background-color: #32c770;
+  border-radius: 5px;
+  height: 100%;
+  width: 83%;
+} */
+
+.progress-label {
+  position: absolute;
+  right: 8px;
+  top: 80%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  font-weight: bold;
+  color: #92999eff;
+}
+
+.card__footer {
+  border-top: 1px solid #444;
+  margin-top: 10px;
+  padding-top: 10px;
+}
+
+.fatura-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fatura-label {
+  font-size: 1rem;
+  color: #fefefe;
+}
+
+.fatura-value {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #fefefe;
+}
+
+.fatura-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.status-fechada {
+  background-color: #d33a3a;
+  padding: 4px 10px;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+}
+
+.register-payment {
+  color: #3d8eff;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+
 .header {
   display: flex;
   padding: 10px;
@@ -260,6 +396,52 @@ const mesPorExtenso = computed(() => {
 .valor {
   font-size: 13px;
 }
+.__limite {
+  width: 33%;
+}
+.__em_aberto {
+  width: 33%;
+}
+.__limite_disponivel {
+  width: 33%;
+}
+.descricao__limite {
+  font-size: 13px;
+  padding: 0;
+}
+.descricao__em_aberto {
+  font-size: 13px;
+  text-align: center;
+}
+.descricao__limite_disponivel {
+  font-size: 13px;
+  padding: 0;
+  text-align: end;
+}
+.valor__limite {
+  font-size: 13px;
+  padding: 0;
+}
+.valor__em_aberto {
+  font-size: 13px;
+  text-align: center;
+}
+.valor__limite_disponivel {
+  font-size: 13px;
+  padding: 0;
+  text-align: end;
+}
+.porcentagem__utilizado {
+  border: 1px solid red;
+  height: 8px;
+  margin-top: 5px;
+  border-radius: 5px;
+}
+.porcentagem__barra {
+  height: 100%;
+  background: #77d08e;
+  border-radius: 5px;
+}
 .container__mes {
   display: flex;
   justify-content: space-around;
@@ -278,13 +460,16 @@ const mesPorExtenso = computed(() => {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  padding-inline: 15px;
+  padding-inline: 10px;
 }
 .__card {
-  padding: 5px;
-  /* width: 100%; */
-  border: 1px solid red;
-  background: rgba(150, 150, 150, 0.02);
+  /* background: rgba(150, 150, 150, 0.02); */
+  width: 100%;
+  background-color: #2a2d30;
+  border-radius: 12px;
+  padding: 10px;
+  color: #fff;
+  font-family: sans-serif;
 }
 .card__new__conta {
   height: 248px;
@@ -333,7 +518,7 @@ const mesPorExtenso = computed(() => {
   padding-inline: 10px;
 }
 .header__carteira {
-  height: 25%;
+  height: 45px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -369,11 +554,11 @@ span {
   background-color: rgba(254, 254, 254, 0.1);
 }
 .body__carteira {
-  height: 50%;
+  /* height: 50%; */
   display: flex;
   flex-direction: column;
   justify-content: space-around;
-  padding-inline: 15px;
+  padding-inline: 5px;
 }
 .saldo {
   display: flex;

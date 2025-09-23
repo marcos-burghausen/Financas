@@ -45,6 +45,7 @@
     "terser": "^5.44.0",
     "typescript": "^5.8.3",
     "vite": "^6.3.3",
+    "vite-svg-loader": "^5.1.0",
     "vue-tsc": "^2.2.10"
   }
 }
