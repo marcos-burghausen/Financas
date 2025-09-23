@@ -20,6 +20,10 @@ class Conta extends Model
         'descricao',
         'tipo',
         'status',
+        'bandeira',
+        'limite',
+        'dia_fechamento',
+        'dia_vencimento',
     ];
 
     public function users()

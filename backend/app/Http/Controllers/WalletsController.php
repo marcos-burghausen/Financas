@@ -13,6 +13,7 @@ class WalletsController extends Controller
 {
     public function saveWallet(Request $request)
     {
+
         $data = $request->validate(
             [
                 'valor' => [
@@ -38,6 +39,10 @@ class WalletsController extends Controller
                     'max:20',
                     'regex:/^[a-zA-ZÀ-ÿ\s]+$/',
                 ],
+                'bandeira' => 'required_if:tipo,Pessoal|string|nullable',
+                'limite' => 'required_if:tipo,Pessoal|nullable|regex:/^[0-9,.]+$/',
+                'dia_fechamento' => 'required_if:tipo,Pessoal|integer|min:1|max:31|nullable',
+                'dia_vencimento' => 'required_if:tipo,Pessoal|integer|min:1|max:31|nullable',
             ],
             [
                 'valor.max'                      => 'O campo Valor deve ter no máiximo 40 caracteres',
@@ -53,22 +58,36 @@ class WalletsController extends Controller
                 'tipoConta.min'                  => 'O campo Tipo de conta deve ter pelo menos 2 caracteres',
                 'tipoConta.min'                  => 'O campo Tipo de conta deve ter no máiximo 20 caracteres',
                 'tipoConta.regex'                => 'O campo noTipo de contame deve conter apenas letras',
+                'bandeira.required_if' => 'A bandeira é obrigatória para cartões de crédito.',
+                'limite.required_if' => 'O limite é obrigatório para cartões de crédito.',
             ]
         );
 
         $user = auth()->user();
 
         try {
-            $carteira                    = new Conta();
-            $carteira->user_id           = $request->user_id;
-            $carteira->name              = $request->instituicaoFinanceira;
+            DB::beginTransaction();
+
+            $conta                    = new Conta();
+            $conta->user_id           = $request->user_id;
+            $conta->name              = $request->instituicaoFinanceira;
             if ($request->valor) {
-                $carteira->saldo         = str_replace([',', '.'], '', $request->valor);
-                $carteira->saldo_inicial = str_replace([',', '.'], '', $request->valor);
+                $conta->saldo         = (int) str_replace([',', '.'], '', $request->valor);
+                $conta->saldo_inicial = (int) str_replace([',', '.'], '', $request->valor);
             }
-            $carteira->descricao         = $request->descricao;
-            $carteira->tipo              = $request->tipoConta;
-            $carteira->save();
+            $conta->descricao         = $request->descricao;
+            $conta->tipo              = $request->tipoConta;
+
+            if ($request->tipoConta === 'Pessoal') {
+                $conta->bandeira = $request->bandeira;
+                $conta->dia_fechamento = $request->dia_fechamento;
+                $conta->dia_vencimento = $request->dia_vencimento;
+            
+                if ($request->limite) {
+                    $conta->limite = (int) str_replace([',', '.'], '', $request->limite);
+                }
+            }
+            $conta->save();
 
             DB::commit();
         } catch (\Throwable $e) {

@@ -1,6 +1,15 @@
 <template>
   <div class="content-wrapper">
-    <div class="header">
+    <FormCartaoCredito
+      v-if="formulario"
+      :releases="selectedRelease"
+      rota="expense"
+      :mes-ano="mesAno"
+      transaction-type="Despesa"
+      @update-data="updateData"
+      @close-form="closeForm"
+    />
+    <div v-if="!formulario" class="header">
       <router-link
         class="link me-7 d-flex align-items-center opaco"
         :to="{ name: 'dashboard' }"
@@ -146,18 +155,16 @@
         </div>
       </div>
       
-      <button
-        class="btn__nova__conta"
-      >
-        <!-- @click="formStoreRevenue = !formStoreRevenue" -->
-        <v-icon
-          icon="mdi-plus"
-          class="mdicon"
-          size="30"
-        />
-      </button>
     </div>
-
+    <div v-if="!formulario" class="fixed-bottom d-flex justify-end pe-6 pb-6">
+      <v-icon
+        type="button"
+        title="Adicionar nova despesa"
+        icon="mdi-plus"
+        class="mdicon__add"
+        @click="openCreateForm"
+      />
+    </div>
     
   </div>
 </template>
@@ -165,6 +172,8 @@
 <script setup lang="ts">
 import IconeMastercard from '@/assets/icons/mastercard.svg'
 import IconeSicredi from '@/assets/icons/sicredi35.svg'
+
+import FormCartaoCredito from "@/components/FormCartaoCredito.vue";
 // import ModalNovaConta from "@/components/ModalNovaConta.vue";
 import { formatValue } from "@/utils/formatValue";
 import { computed } from "vue";
@@ -176,6 +185,7 @@ const useWallets = useWalletsStore();
 const useUser = useUserStore();
 let wallets = ref(useWallets.walletsData.contas);
 const mesAno = ref<string>(useUser.mesAno || "");
+const formulario = ref(false);
 
 // const updateContas = (novoValor) => {
 //     wallets.value = novoValor;
@@ -205,6 +215,18 @@ const mesPorExtenso = computed(() => {
   const mesAbreviado = mesesPorExtenso[parseInt(mes, 10) - 1].slice(0, 3);
   return `${mesAbreviado}./${ano.slice(2)}`;
 });
+
+const openCreateForm = () => {
+  console.log("formulario", formulario.value);
+  // selectedRelease.value = undefined;
+  formulario.value = true;
+  console.log("formulario", formulario.value);
+};
+
+const closeForm = () => {
+  formulario.value = false;
+  selectedRelease.value = undefined;
+};
 </script>
 
 <style scoped>
@@ -238,7 +260,15 @@ const mesPorExtenso = computed(() => {
   color: #fefefe;
   margin-top: 0;
 }
-
+.mdicon__add {
+  height: 45px;
+  width: 45px;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 50px;
+  background-color: #5370eeff;
+  color: #fefefe;
+}
 .card__details small {
   font-size: 0.9rem;
   color: #a0a0a0;
