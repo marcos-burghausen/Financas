@@ -1,53 +1,117 @@
 <template>
   <div class="container__modal">
-    <form @submit.prevent="submitForm">
-    <div class="mb-3">
-      <label for="tipo_conta" class="form-label">Tipo de Conta</label>
-      <select class="form-select" id="tipo_conta" v-model="form.tipo_conta">
-        <option value="Conta Corrente">Conta Corrente</option>
-        <option value="Carteira">Carteira</option>
-        <option value="Poupança">Poupança</option>
-        <option value="Cartão de Crédito">Cartão de Crédito</option>
-      </select>
-    </div>
-
-    <div v-if="form.tipo_conta === 'Cartão de Crédito'">
+    <v-form
+      class="w-100"
+      @submit.prevent="submitForm"
+    >
       <div class="mb-3">
-        <label for="bandeira" class="form-label">Bandeira</label>
-        <input type="text" class="form-control" id="bandeira" v-model="form.bandeira">
+        <label
+          for="tipo_conta"
+          class="form-label"
+        >Tipo de Conta</label>
+        <select
+          id="tipo_conta"
+          v-model="form.tipo_conta"
+          class="form-select"
+        >
+          <option value="Conta Corrente">
+            Conta Corrente
+          </option>
+          <option value="Carteira">
+            Carteira
+          </option>
+          <option value="Poupança">
+            Poupança
+          </option>
+          <option value="Cartão de Crédito">
+            Cartão de Crédito
+          </option>
+        </select>
       </div>
-      <div class="mb-3">
-        <label for="limite" class="form-label">Limite</label>
-        <input type="number" step="0.01" class="form-control" id="limite" v-model="form.limite">
-      </div>
-      <div class="row">
-        <div class="col-md-6 mb-3">
-          <label for="dia_fechamento" class="form-label">Dia de Fechamento</label>
-          <input type="number" class="form-control" id="dia_fechamento" v-model="form.dia_fechamento">
-        </div>
-        <div class="col-md-6 mb-3">
-          <label for="dia_vencimento" class="form-label">Dia de Vencimento</label>
-          <input type="number" class="form-control" id="dia_vencimento" v-model="form.dia_vencimento">
-        </div>
-      </div>
-    </div>
-    
-    <div class="mb-3">
-        <label for="saldo" class="form-label">{{ form.tipo_conta === 'Cartão de Crédito' ? 'Fatura Atual' : 'Saldo Inicial' }}</label>
-        <input type="number" step="0.01" class="form-control" id="saldo" v-model="form.saldo">
-    </div>
 
-    <button type="submit" class="btn btn-primary">Salvar</button>
-  </form>
+      <div v-if="form.tipo_conta === 'Cartão de Crédito'">
+        <div class="mb-3">
+          <label
+            for="bandeira"
+            class="form-label"
+          >Bandeira</label>
+          <input
+            id="bandeira"
+            v-model="form.bandeira"
+            type="text"
+            class="form-control"
+          >
+        </div>
+        <div class="mb-3">
+          <label
+            for="limite"
+            class="form-label"
+          >Limite</label>
+          <input
+            id="limite"
+            v-model="form.limite"
+            type="number"
+            step="0.01"
+            class="form-control"
+          >
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label
+              for="dia_fechamento"
+              class="form-label"
+            >Dia de Fechamento</label>
+            <input
+              id="dia_fechamento"
+              v-model="form.dia_fechamento"
+              type="number"
+              class="form-control"
+            >
+          </div>
+          <div class="col-md-6 mb-3">
+            <label
+              for="dia_vencimento"
+              class="form-label"
+            >Dia de Vencimento</label>
+            <input
+              id="dia_vencimento"
+              v-model="form.dia_vencimento"
+              type="number"
+              class="form-control"
+            >
+          </div>
+        </div>
+      </div>
     
+      <div class="mb-3">
+        <label
+          for="saldo"
+          class="form-label"
+        >{{ form.tipo_conta === 'Cartão de Crédito' ? 'Fatura Atual' : 'Saldo Inicial' }}</label>
+        <input
+          id="saldo"
+          v-model="form.saldo"
+          type="number"
+          step="0.01"
+          class="form-control"
+        >
+      </div>
+
+      <button
+        type="submit"
+        class="btn btn-primary"
+      >
+        Salvar
+      </button>
+    </v-form>
   </div>
-  <ErrorsForm />
-  <ErrorMessage />
+  <!-- <ErrorsForm />
+  <ErrorMessage /> -->
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
 import { useWalletsStore } from "@/store/wallets";
+import { ref } from "vue";
 
 const useWallets = useWalletsStore();
 const form = ref({
@@ -63,7 +127,7 @@ const form = ref({
 const submitForm = async () => {
   // O saldo para o cartão de crédito representa a fatura em aberto
   // e deve ser negativo para ser tratado como despesa.
-  if (form.value.tipo_conta === 'Cartão de Crédito' && form.value.saldo > 0) {
+  if (form.value.tipo_conta === "Cartão de Crédito" && form.value.saldo > 0) {
       form.value.saldo = form.value.saldo * -1;
   }
     

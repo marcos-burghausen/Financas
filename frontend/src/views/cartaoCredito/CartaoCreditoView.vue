@@ -2,14 +2,16 @@
   <div class="content-wrapper">
     <FormCartaoCredito
       v-if="formulario"
-      :releases="selectedRelease"
       rota="expense"
       :mes-ano="mesAno"
-      transaction-type="Despesa"
+      wallet-type="Cartão"
       @update-data="updateData"
       @close-form="closeForm"
     />
-    <div v-if="!formulario" class="header">
+    <div
+      v-if="!formulario"
+      class="header"
+    >
       <router-link
         class="link me-7 d-flex align-items-center opaco"
         :to="{ name: 'dashboard' }"
@@ -21,7 +23,7 @@
       </router-link>
       <div class="header__items">
         <div class="d-flex flex-column">
-          <span class="fs-5"> Contas </span>
+          <span class="title__page fs-5"> Cartão de Crédito </span>
           <span class="valor">
             R$ {{ formatValue(valueTotalRevenuesMonth) }}
           </span>
@@ -62,7 +64,7 @@
             <div class="card__details">
               <span>Sicredi</span>
               <div class="type__card d-flex align-items-center">
-              <IconeMastercard class="logo__mastercard" />
+                <IconeMastercard class="logo__mastercard" />
                 <!-- <v-icon
                   size="18"
                   class="me-1"
@@ -106,7 +108,7 @@
             />
             <span class="progress-label">83%</span>
           </div>
-          <v-divider></v-divider>
+          <v-divider />
           <div class="info-row mt-3">
             <div class="info-item">
               <span class="label">Conta</span>
@@ -154,9 +156,11 @@
           </div>
         </div>
       </div>
-      
     </div>
-    <div v-if="!formulario" class="fixed-bottom d-flex justify-end pe-6 pb-6">
+    <div
+      v-if="!formulario"
+      class="fixed-bottom d-flex justify-end pe-6 pb-6"
+    >
       <v-icon
         type="button"
         title="Adicionar nova despesa"
@@ -165,13 +169,12 @@
         @click="openCreateForm"
       />
     </div>
-    
   </div>
 </template>
 
 <script setup lang="ts">
-import IconeMastercard from '@/assets/icons/mastercard.svg'
-import IconeSicredi from '@/assets/icons/sicredi35.svg'
+import IconeMastercard from "@/assets/icons/mastercard.svg";
+import IconeSicredi from "@/assets/icons/sicredi35.svg";
 
 import FormCartaoCredito from "@/components/FormCartaoCredito.vue";
 // import ModalNovaConta from "@/components/ModalNovaConta.vue";
@@ -234,6 +237,9 @@ const closeForm = () => {
   position: relative;
   width: 100%;
   height: 100%;
+}
+.title__page {
+  color: #fefefe;
 }
 .card__header {
   display: flex;
