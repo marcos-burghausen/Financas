@@ -1,10 +1,10 @@
 import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
+import { VColorInput } from 'vuetify/labs/VColorInput';
 import { VDateInput } from "vuetify/labs/VDateInput";
 import "vuetify/styles";
 import "./assets/bootstrap.css";
-import { defineComponent } from 'vue';
 
 import "@mdi/font/css/materialdesignicons.css";
 import * as mdijs from "@mdi/js";
@@ -23,6 +23,7 @@ const vuetify = createVuetify({
     components: {
         ...components,
         VDateInput,
+        VColorInput,
     },
     directives,
     icons: {
