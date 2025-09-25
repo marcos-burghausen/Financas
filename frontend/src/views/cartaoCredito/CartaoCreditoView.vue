@@ -176,7 +176,7 @@
 import IconeMastercard from "@/assets/icons/mastercard.svg";
 import IconeSicredi from "@/assets/icons/sicredi35.svg";
 
-import FormCartaoCredito from "@/components/FormContaCartao.vue";
+import FormCartaoCredito from "@/components/FormContaCartao-copy.vue";
 // import ModalNovaConta from "@/components/ModalNovaConta.vue";
 import { formatValue } from "@/utils/formatValue";
 import { computed } from "vue";

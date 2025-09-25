@@ -71,21 +71,17 @@
               :rules="[rules.required]"
             >
               <template #prepend-inner>
-                <v-icon
-                  icon="mdi-text"
-                />
+                <v-icon icon="mdi-text" />
               </template>
-              <template
-                #append-inner
-              >
+              <template #append-inner>
                 <v-menu
                   v-model="menu"
                   :close-on-content-click="false"
                   location="end"
                 >
                   <template #activator="{ props }">
-                    <div 
-                      v-bind="props" 
+                    <div
+                      v-bind="props"
                       class="color-input-activator"
                       :style="{ backgroundColor: form.color }"
                     />
@@ -121,7 +117,7 @@
                 </v-menu>
               </template>
             </v-text-field>
-          
+
             <v-text-field
               v-model="form.limite"
               label="Limite do Cartão"
@@ -132,12 +128,10 @@
               :rules="[rules.required, rules.positive]"
             >
               <template #prepend-inner>
-                <v-icon
-                  icon="mdi-currency-usd"
-                />
+                <v-icon icon="mdi-currency-usd" />
               </template>
             </v-text-field>
-          
+
             <v-text-field
               v-model="form.saldo"
               label="Fatura Atual"
@@ -148,30 +142,37 @@
               :rules="[rules.required, rules.positive]"
             >
               <template #prepend-inner>
-                <v-icon
-                  icon="mdi-currency-usd"
-                />
+                <v-icon icon="mdi-currency-usd" />
               </template>
             </v-text-field>
 
+            <!-- BANDEIRA (ícone antes do nome no valor e nos itens) -->
             <v-select
               v-model="form.bandeira"
               :items="bandeiras"
+              item-title="title"
+              item-value="value"
               label="Bandeira"
               variant="underlined"
               class="imput"
               :rules="[rules.required]"
             >
               <template #prepend-inner>
-                <v-icon
-                  icon="mdi-credit-card-outline"
-                />
+                <v-icon icon="mdi-credit-card-outline" />
               </template>
-              <template #chip="{ props, item }">
-                <v-chip
-                  v-bind="props"
-                  :prepend-icon="item.raw.avatar"
-                />
+
+              <!-- Valor selecionado -->
+              <template #selection="{ item }">
+                <div class="d-flex align-center text-truncate">
+                  <!-- <component
+                    :is="isMdiIcon(item.raw.icon) ? 'v-icon' : 'v-img'"
+                    v-bind="isMdiIcon(item.raw.icon)
+                      ? { icon: item.raw.icon, size: 20, class: 'mr-2' }
+                      : { src: item.raw.icon, width: 20, height: 20, class: 'mr-2', cover: true, alt: '' }"
+                  /> -->
+                  
+                  <span class="text-truncate">{{ item.title }}</span>
+                </div>
               </template>
               <template #append-inner>
                 <component
@@ -180,22 +181,70 @@
                   class="brand-icon"
                 />
               </template>
+
+              <!-- Itens do menu -->
+              <!-- <template #item="{ props, item }">
+                <v-list-item v-bind="props">
+                  <template #prepend>
+                    <component
+                      :is="isMdiIcon(item.raw.icon) ? 'v-icon' : 'v-img'"
+                      v-bind="isMdiIcon(item.raw.icon)
+                        ? { icon: item.raw.icon, size: 20 }
+                        : { src: item.raw.icon, width: 20, height: 20, cover: true, alt: '' }"
+                    />
+                  </template>
+                  <v-list-item-title>{{ item.title }}</v-list-item-title>
+                </v-list-item>
+              </template> -->
             </v-select>
 
+            <!-- CONTA (ícone antes do nome no valor e nos itens) -->
             <v-select
               v-model="form.conta"
-              :items="bandeiras"
+              :items="contas"
+              item-title="title"
+              item-value="value"
               label="Conta"
               variant="underlined"
               class="imput"
               :rules="[rules.required]"
             >
-              <template #prepend-inner>
-                <v-icon
-                  icon="mdi-bank-outline"
-                />
+              <!-- <template #prepend-inner>
+                <v-icon icon="mdi-bank-outline" />
+              </template> -->
+
+              <template #selection="{ item }">
+                <div class="d-flex align-center text-truncate">
+                  <!-- <component
+                    :is="isMdiIcon(item.raw.icon) ? 'v-icon' : 'v-img'"
+                    v-bind="isMdiIcon(item.raw.icon)
+                      ? { icon: item.raw.icon, size: 20, class: 'mr-2' }
+                      : { src: item.raw.icon, width: 20, height: 20, class: 'mr-2', cover: true, alt: '' }"
+                  /> -->
+                  <v-icon
+                    :icon="item.raw.icon"
+                    size="25"
+                    class="mr-2"
+                  />
+                  <span class="text-truncate">{{ item.title }}</span>
+                </div>
               </template>
+
+              <!-- <template #item="{ props, item }">
+                <v-list-item v-bind="props">
+                  <template #prepend>
+                    <component
+                      :is="isMdiIcon(item.raw.icon) ? 'v-icon' : 'v-img'"
+                      v-bind="isMdiIcon(item.raw.icon)
+                        ? { icon: item.raw.icon, size: 20 }
+                        : { src: item.raw.icon, width: 20, height: 20, cover: true, alt: '' }"
+                    />
+                  </template>
+                  <v-list-item-title>{{ item.title }}</v-list-item-title>
+                </v-list-item>
+              </template> -->
             </v-select>
+
             <v-text-field
               v-model="form.dia_fechamento"
               label="Dia de Fechamento"
@@ -205,9 +254,7 @@
               :rules="[rules.required, rules.dayOfMonth]"
             >
               <template #prepend-inner>
-                <v-icon
-                  icon="mdi-calendar-remove-outline"
-                />
+                <v-icon icon="mdi-calendar-remove-outline" />
               </template>
             </v-text-field>
             <v-text-field
@@ -219,9 +266,7 @@
               :rules="[rules.required, rules.dayOfMonth]"
             >
               <template #prepend-inner>
-                <v-icon
-                  icon="mdi-calendar-today-outline"
-                />
+                <v-icon icon="mdi-calendar-today-outline" />
               </template>
             </v-text-field>
           </div>
@@ -248,57 +293,16 @@
 
 <script setup lang="ts">
 import { useWalletsStore } from "@/store/wallets";
-import { computed, ref, watch } from "vue";
-// 1. IMPORTAR OS MODAIS
+import { computed, ref } from "vue";
 
+// Assets das bandeiras
+import CaixaIcon from "@/assets/icons/caixa.svg";
 import MastercardIcon from "@/assets/icons/mastercard.svg";
+import NubankIcon from "@/assets/icons/nubank.svg";
+import SicrediIcon from "@/assets/icons/sicredi.svg";
 import VisaIcon from "@/assets/icons/visa.svg";
 
 const menu = ref(false);
-const selectedColor = ref("#4CAF50"); // Cor inicial
-
-
-
-
-
-  const srcs = {
-    1: "https://cdn.vuetifyjs.com/images/lists/1.jpg",
-    2: "https://cdn.vuetifyjs.com/images/lists/2.jpg",
-    3: "https://cdn.vuetifyjs.com/images/lists/3.jpg",
-    4: "https://cdn.vuetifyjs.com/images/lists/4.jpg",
-    5: "https://cdn.vuetifyjs.com/images/lists/5.jpg",
-  };
-  const cards = [
-    { name: "mastercard", avatar: MastercardIcon },
-    { name: "visa", avatar: VisaIcon },
-    { name: "Trevor Hansen", avatar: "mdi-credit-card-outline" },
-    { name: "Tucker Smith", avatar: "mdi-credit-card-outline" },
-    { name: "Britta Holt", avatar: "mdi-credit-card-outline" },
-    { name: "Jane Smith ", avatar: "mdi-credit-card-outline" },
-    { name: "John Smith", avatar: "mdi-credit-card-outline" },
-    { name: "Sandra Williams", avatar: "mdi-credit-card-outline" },
-  ];
-
-  const autoUpdate = ref(true);
-  const friends = ref(["mastercard"]);
-  const isUpdating = ref(false);
-  const name = ref("Midnight Crew");
-  const title = ref("The summer breeze");
-
-  let timeout = -1;
-  watch(isUpdating, val => {
-    clearTimeout(timeout);
-    if (val) {
-      timeout = setTimeout(() => (isUpdating.value = false), 3000);
-    }
-  });
-
-
-
-
-
-
-
 
 // --- PROPS E EMITS ---
 const props = defineProps({
@@ -309,31 +313,45 @@ const props = defineProps({
 });
 const emit = defineEmits(["closeForm", "updateData"]);
 
+// Helper: decide se usa <v-icon> (mdi-*) ou <v-img> (URL/asset)
+const isMdiIcon = (val: unknown): val is string =>
+  typeof val === "string" && val.startsWith("mdi-");
+
+// Listas
 const bandeiras = [
   { title: "Mastercard", value: "Mastercard", icon: MastercardIcon },
   { title: "Visa", value: "Visa", icon: VisaIcon },
-  { title: "Elo", value: "Elo", icon: "mdi-credit-card-outline" }, // Usando MDI como fallback
+  { title: "Elo", value: "Elo", icon: "mdi-credit-card-outline" }, // fallback MDI
   { title: "American Express", value: "American Express", icon: "mdi-credit-card-outline" },
   { title: "Outra", value: "Outra", icon: "mdi-credit-card-outline" },
 ];
 
-const selectedBrandIcon = computed(() => {
-  const brand = bandeiras.find(b => b.value === form.value.bandeira);
-  return brand ? brand.icon : null;
-});
+const contas = [
+  { title: "Nenhuma", value: "Nenhuma", icon: MastercardIcon },
+  { title: "Sicredi", value: "sicredi", icon: SicrediIcon },
+  { title: "Nubank", value: "nubank", icon: NubankIcon },
+  { title: "Caixa", value: "caixa", icon: CaixaIcon },
+  { title: "Bradesco", value: "bradesco", icon: "mdi-bank" },
+  { title: "Banco do Brasil", value: "bb", icon: "mdi-bank" },
+  // Exemplos com imagem
+  // { title: "Nubank", value: "nubank", icon: new URL('@/assets/banks/nubank.svg', import.meta.url).href },
+  // { title: "Itaú", value: "itau", icon: new URL('@/assets/banks/itau.svg', import.meta.url).href },
+  // { title: "Bradesco", value: "bradesco", icon: new URL('@/assets/banks/bradesco.svg', import.meta.url).href },
+  // { title: "Banco do Brasil", value: "bb", icon: new URL('@/assets/banks/bb.svg', import.meta.url).href },
+];
 
 // --- STATE MANAGEMENT ---
 const useWallets = useWalletsStore();
 const loading = ref(false);
 
-// 2. ADICIONAR CONTROLES DE VISIBILIDADE DOS MODAIS
+// 2. CONTROLES DE VISIBILIDADE DOS MODAIS
 const showIconModal = ref(false);
 const showColorModal = ref(false);
 
 const form = ref({
   name: "",
-  icon: "mdi-wallet", // Ícone padrão
-  color: "#163dc0", // Cor padrão
+  icon: "mdi-wallet",
+  color: "#163dc0",
   tipo: props.walletType === "Conta" ? "Conta Corrente" : "Cartão de Crédito",
   saldoInicial: null,
   incluirEmSomaInicial: true,
@@ -344,7 +362,12 @@ const form = ref({
   dia_vencimento: null,
 });
 
-// --- VALIDAÇÃO (sem alterações) ---
+const selectedBrandIcon = computed(() => {
+  const brand = bandeiras.find(b => b.value === form.value.bandeira);
+  return brand ? brand.icon : null;
+});
+
+// --- VALIDAÇÃO ---
 const rules = {
   required: (value: any) => !!value || "Campo obrigatório.",
   positive: (value: number) => value > 0 || "O valor deve ser positivo.",
@@ -356,8 +379,10 @@ const isFormValid = computed(() => {
     return !!form.value.name && !!form.value.tipo;
   }
   if (props.walletType === "Cartão") {
-    const diaFechamentoValido = form.value.dia_fechamento && form.value.dia_fechamento >= 1 && form.value.dia_fechamento <= 31;
-    const diaVencimentoValido = form.value.dia_vencimento && form.value.dia_vencimento >= 1 && form.value.dia_vencimento <= 31;
+    const diaFechamentoValido =
+      form.value.dia_fechamento && form.value.dia_fechamento >= 1 && form.value.dia_fechamento <= 31;
+    const diaVencimentoValido =
+      form.value.dia_vencimento && form.value.dia_vencimento >= 1 && form.value.dia_vencimento <= 31;
     return !!form.value.name && !!form.value.limite && !!form.value.bandeira && diaFechamentoValido && diaVencimentoValido;
   }
   return false;
@@ -365,14 +390,13 @@ const isFormValid = computed(() => {
 
 // --- MÉTODOS ---
 const submitForm = async () => {
-  // ... (lógica de submit sem alterações)
   if (!isFormValid.value) return;
   loading.value = true;
   try {
     const payload = {
-        ...form.value,
-        tipo: props.walletType === "Cartão" ? "Cartão de Crédito" : form.value.tipo,
-        saldo: form.value.saldoInicial,
+      ...form.value,
+      tipo: props.walletType === "Cartão" ? "Cartão de Crédito" : form.value.tipo,
+      saldo: form.value.saldoInicial,
     };
     await useWallets.store(payload);
     emit("updateData");
@@ -401,16 +425,11 @@ const handleColorSelect = (colorHex: string) => {
 </script>
 
 <style scoped>
-
 .color-input-activator {
   border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 50%;
-  /* padding: 8px; */
   width: 30px;
   height: 30px;
-  /* display: flex;
-  align-items: center;
-  justify-content: space-between; */
   cursor: pointer;
   background-color: transparent;
 }
@@ -425,13 +444,11 @@ const handleColorSelect = (colorHex: string) => {
   border-radius: 50%;
   border: 1px solid white;
 }
+
 .brand-icon {
-  height: 24px; /* Ajuste a altura conforme necessário */
+  height: 24px;
   width: auto;
 }
-
-
-
 
 .v_color_picker_modal {
   display: flex;
@@ -442,8 +459,9 @@ const handleColorSelect = (colorHex: string) => {
   top: 0;
   left: 0;
   background-color: rgba(0, 0, 0, 0.11);
-   z-index: 1000;
+  z-index: 1000;
 }
+
 .container__modal {
   background-color: #1e1e1e;
   color: white;
@@ -455,12 +473,10 @@ const handleColorSelect = (colorHex: string) => {
   background-color: #1e1e1e;
   width: 100%;
   z-index: 10;
-  /* Garante que o header fique sobre o conteúdo */
 }
 
 .form-body {
   padding: 120px 16px 16px 16px;
-  /* Padding no topo para não ficar embaixo do header */
 }
 
 .close {
@@ -478,6 +494,13 @@ const handleColorSelect = (colorHex: string) => {
 
 .imput {
   margin-top: 10px;
+}
+
+/* Ícone + label alinhados no valor selecionado */
+.text-truncate {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 /* Estilos para a seção de ícone e cor */
@@ -510,20 +533,4 @@ const handleColorSelect = (colorHex: string) => {
   border-radius: 50%;
   border: 1px solid white;
 }
-
 </style>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
