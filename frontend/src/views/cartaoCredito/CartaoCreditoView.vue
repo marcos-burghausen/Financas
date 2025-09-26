@@ -272,7 +272,7 @@ const closeForm = () => {
   cursor: pointer;
   padding: 10px;
   border-radius: 50px;
-  background-color: #5370eeff;
+  background-color: #0c99ed;
   color: #fefefe;
 }
 .card__details small {

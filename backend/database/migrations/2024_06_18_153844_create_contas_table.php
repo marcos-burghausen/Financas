@@ -23,10 +23,10 @@ return new class extends Migration
             $table->string('descricao', 50)->nullable();
             $table->enum('tipo', ['Pessoal', 'Empresarial', 'investimento'])->default('Pessoal');
             $table->enum('status', ['Ativo', 'Inativo'])->default('Ativo');
-            $table->string('bandeira')->nullable(); // Ex: Mastercard, Visa
+            $table->string('conta', 20)->nullable();
             $table->integer('limite')->nullable();
-            $table->integer('dia_fechamento')->nullable(); // Dia do mês (1-31)
-            $table->integer('dia_vencimento')->nullable(); // Dia do mês (1-31)
+            $table->integer('dia_fechamento')->nullable();
+            $table->integer('dia_vencimento')->nullable();
             $table->timestamps();
         });
     }

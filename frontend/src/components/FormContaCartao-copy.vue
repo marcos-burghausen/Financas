@@ -29,34 +29,63 @@
         <div class="form-body">
           <div v-if="walletType === 'Conta'">
             <v-text-field
-              v-model="form.saldoInicial"
-              label="Valor Inicial (Opcional)"
-              variant="underlined"
-              class="imput"
-              type="number"
-              prefix="R$"
-            />
-            <v-text-field
               v-model="form.name"
               label="Nome da Conta"
               variant="underlined"
               class="imput"
               :rules="[rules.required]"
-            />
+            >
+              <template #prepend-inner>
+                <v-icon icon="mdi-text" />
+              </template>
+            </v-text-field>
+
+            <v-text-field
+              v-model="form.saldoInicial"
+              label="Valor Inicial"
+              variant="underlined"
+              class="imput"
+              type="number"
+              prefix="R$"
+              :rules="[rules.required]"
+            >
+              <template #prepend-inner>
+                <v-icon icon="mdi-currency-usd" />
+              </template>
+            </v-text-field>
+            
+            <v-text-field
+              v-model="form.saldoInicial"
+              label="cheque especial"
+              variant="underlined"
+              class="imput"
+              type="number"
+              prefix="R$"
+              :rules="[rules.required]"
+            >
+              <template #prepend-inner>
+                <v-icon icon="mdi-currency-usd" />
+              </template>
+            </v-text-field>
+
             <v-select
               v-model="form.tipo"
-              :items="['Conta Corrente', 'Poupança', 'Investimento', 'Outro']"
+              :items="['Carteira', 'Conta Corrente', 'Poupança', 'Investimento', 'Outro']"
               label="Tipo de Conta"
               variant="underlined"
               class="imput"
               :rules="[rules.required]"
-            />
+            >
+              <template #prepend-inner>
+                <v-icon :icon="form.tipo === 'Carteira' ? 'mdi-wallet-outline' : form.tipo === 'Conta Corrente' ? 'mdi-bank-outline' : form.tipo === 'Poupança' ? 'mdi-piggy-bank' : form.tipo === 'Investimento' ? 'mdi-chart-line' : 'mdi-currency-usd'" />
+              </template>
+            </v-select>
+
             <div class="d-flex justify-content-between align-items-center mt-4">
               <span>Incluir na soma do total?</span>
               <v-switch
                 v-model="form.incluirEmSomaInicial"
-                color="success"
-                inset
+                color="primary"
                 hide-details
               />
             </div>
@@ -202,25 +231,14 @@
             <v-select
               v-model="form.conta"
               :items="contas"
-              item-title="title"
-              item-value="value"
               label="Conta"
               variant="underlined"
               class="imput"
               :rules="[rules.required]"
             >
-              <!-- <template #prepend-inner>
-                <v-icon icon="mdi-bank-outline" />
-              </template> -->
 
               <template #selection="{ item }">
                 <div class="d-flex align-center text-truncate">
-                  <!-- <component
-                    :is="isMdiIcon(item.raw.icon) ? 'v-icon' : 'v-img'"
-                    v-bind="isMdiIcon(item.raw.icon)
-                      ? { icon: item.raw.icon, size: 20, class: 'mr-2' }
-                      : { src: item.raw.icon, width: 20, height: 20, class: 'mr-2', cover: true, alt: '' }"
-                  /> -->
                   <v-icon
                     :icon="item.raw.icon"
                     size="25"
@@ -229,20 +247,14 @@
                   <span class="text-truncate">{{ item.title }}</span>
                 </div>
               </template>
+              <template v-slot:item="{ props, item }">
+                <v-list-item
+                  v-bind="props"
+                  :prepend-icon="item.raw.icon"
+                  :title="item.raw.title"
+                ></v-list-item>
+              </template>
 
-              <!-- <template #item="{ props, item }">
-                <v-list-item v-bind="props">
-                  <template #prepend>
-                    <component
-                      :is="isMdiIcon(item.raw.icon) ? 'v-icon' : 'v-img'"
-                      v-bind="isMdiIcon(item.raw.icon)
-                        ? { icon: item.raw.icon, size: 20 }
-                        : { src: item.raw.icon, width: 20, height: 20, cover: true, alt: '' }"
-                    />
-                  </template>
-                  <v-list-item-title>{{ item.title }}</v-list-item-title>
-                </v-list-item>
-              </template> -->
             </v-select>
 
             <v-text-field
@@ -257,6 +269,7 @@
                 <v-icon icon="mdi-calendar-remove-outline" />
               </template>
             </v-text-field>
+
             <v-text-field
               v-model="form.dia_vencimento"
               label="Dia de Vencimento"
@@ -271,20 +284,10 @@
             </v-text-field>
           </div>
 
-          <div class="d-flex justify-content-between mt-4">
-            <div
-              class="icon-color-selector"
-              @click="showIconModal = true"
-            >
-              <span class="label">Ícone</span>
-              <div class="selector-box">
-                <v-icon
-                  :icon="form.icon"
-                  size="24"
-                />
-              </div>
-            </div>
-          </div>
+          
+
+
+
         </div>
       </div>
     </v-form>
@@ -293,7 +296,7 @@
 
 <script setup lang="ts">
 import { useWalletsStore } from "@/store/wallets";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 
 // Assets das bandeiras
 import CaixaIcon from "@/assets/icons/caixa.svg";
@@ -301,6 +304,9 @@ import MastercardIcon from "@/assets/icons/mastercard.svg";
 import NubankIcon from "@/assets/icons/nubank.svg";
 import SicrediIcon from "@/assets/icons/sicredi.svg";
 import VisaIcon from "@/assets/icons/visa.svg";
+import BbIcon from "@/assets/icons/bb.svg";
+
+
 
 const menu = ref(false);
 
@@ -321,23 +327,17 @@ const isMdiIcon = (val: unknown): val is string =>
 const bandeiras = [
   { title: "Mastercard", value: "Mastercard", icon: MastercardIcon },
   { title: "Visa", value: "Visa", icon: VisaIcon },
-  { title: "Elo", value: "Elo", icon: "mdi-credit-card-outline" }, // fallback MDI
+  { title: "Elo", value: "Elo", icon: "mdi-credit-card-outline" },
   { title: "American Express", value: "American Express", icon: "mdi-credit-card-outline" },
   { title: "Outra", value: "Outra", icon: "mdi-credit-card-outline" },
 ];
 
 const contas = [
-  { title: "Nenhuma", value: "Nenhuma", icon: MastercardIcon },
+  { title: "Nenhuma", value: "Nenhuma", icon: props.walletType === "Conta" ? "mdi-bank" : "mdi-bank-off" },
   { title: "Sicredi", value: "sicredi", icon: SicrediIcon },
   { title: "Nubank", value: "nubank", icon: NubankIcon },
   { title: "Caixa", value: "caixa", icon: CaixaIcon },
-  { title: "Bradesco", value: "bradesco", icon: "mdi-bank" },
-  { title: "Banco do Brasil", value: "bb", icon: "mdi-bank" },
-  // Exemplos com imagem
-  // { title: "Nubank", value: "nubank", icon: new URL('@/assets/banks/nubank.svg', import.meta.url).href },
-  // { title: "Itaú", value: "itau", icon: new URL('@/assets/banks/itau.svg', import.meta.url).href },
-  // { title: "Bradesco", value: "bradesco", icon: new URL('@/assets/banks/bradesco.svg', import.meta.url).href },
-  // { title: "Banco do Brasil", value: "bb", icon: new URL('@/assets/banks/bb.svg', import.meta.url).href },
+  { title: "Banco do Brasil", value: "bb", icon: BbIcon },
 ];
 
 // --- STATE MANAGEMENT ---
@@ -350,9 +350,9 @@ const showColorModal = ref(false);
 
 const form = ref({
   name: "",
-  icon: "mdi-wallet",
-  color: "#163dc0",
-  tipo: props.walletType === "Conta" ? "Conta Corrente" : "Cartão de Crédito",
+  icon: props.walletType === "Conta" ? "mdi-bank" : "mdi-bank-off",
+  color: "#0c99ed",
+  tipo: props.walletType === "Conta" ? "Carteira" : "Cartão de Crédito",
   saldoInicial: null,
   incluirEmSomaInicial: true,
   limite: null,
@@ -486,7 +486,7 @@ const handleColorSelect = (colorHex: string) => {
 }
 
 .btn {
-  background-color: #77d08e;
+  background-color: #0c99ed;
   color: #1e1e1e;
   text-transform: none;
   font-weight: bold;

@@ -29,19 +29,19 @@
         <div class="form-body">
           <div v-if="walletType === 'Conta'">
             <v-text-field
-              v-model="form.saldoInicial"
-              label="Valor Inicial (Opcional)"
-              variant="underlined"
-              class="imput"
-              type="number"
-              prefix="R$"
-            />
-            <v-text-field
               v-model="form.name"
               label="Nome da Conta"
               variant="underlined"
               class="imput"
               :rules="[rules.required]"
+            />
+            <v-text-field
+              v-model="form.saldoInicial"
+              label="Valor Inicial"
+              variant="underlined"
+              class="imput"
+              type="number"
+              prefix="R$"
             />
             <v-select
               v-model="form.tipo"
@@ -154,7 +154,7 @@
               </template>
             </v-text-field>
 
-            <v-select
+            <v-sel
               v-model="form.bandeira"
               :items="bandeiras"
               label="Bandeira"
@@ -180,7 +180,7 @@
                   class="brand-icon"
                 />
               </template>
-            </v-select>
+            </v-sel>
 
             <v-select
               v-model="form.conta"

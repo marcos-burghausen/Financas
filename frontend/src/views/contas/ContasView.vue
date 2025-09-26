@@ -1,5 +1,13 @@
 <template>
   <div class="content-wrapper">
+    <FormCartaoCredito
+      v-if="formulario"
+      rota="expense"
+      :mes-ano="mesAno"
+      wallet-type="Conta"
+      @update-data="updateData"
+      @close-form="closeForm"
+    />
     <div class="header">
       <router-link
         class="link me-7 d-flex align-items-center opaco"
@@ -35,119 +43,72 @@
     </div>
 
     <div class="mobile">
-      <div class="body__carteira">
-        <div class="saldo">
-          <span class="saldo__atual">saldo atual</span>
-          <span class="valor">R$ 130,00</span>
-        </div>
-        <div class="saldo">
-          <span class="saldo__atual">saldo previsto</span>
-          <span class="valor">R$ 130,00</span>
-        </div>
-      </div>
       <div
         v-for="(wallet, index) in wallets"
         :key="index"
         class="carteira"
       >
-        <div class="header__carteira">
-          <div class="container__detalhes">
-            <span class="icon">
-              <v-icon
-                :icon="wallet.icon"
-                size="50"
-              />
-            </span>
-            {{ wallet.name }}
-          </div>
-          <button class="btn__opcoes">
+        <div class="container__icon pe-2">
+            <v-icon
+              icon="mdi-circle-outline"
+              size="60"
+              color="#77d08e"
+            />
+        </div>
+        <div class="descricao__carteira">
+          <span class="tipo__conta"> Conta Corrente </span>
+          <span class="nome__conta"> Sicredi </span>
+          <span class="tipo__conta"> Saldo Previsto </span>
+        </div>
+        <v-col class="saldo__carteira  p-0">
+          <div class="container__opcoes">
+            <v-icon
+              icon="mdi-menu"
+              size="25"
+              color="#fefefe"
+            />
             <v-icon
               icon="mdi-dots-vertical"
               size="25"
+              color="#fefefe"
             />
-          </button>
-        </div>
-        <div class="body__carteira">
+          </div>
           <div class="saldo">
-            <span class="saldo__atual">saldo atual</span>
             <span
               v-if="wallet.saldo == null"
-              class="valor"
+              class="saldo__atual"
+            > R$ 5.000,00 </span>
+            <span
+              v-else
+              class="saldo__atual"
+            >
+              R$ {{ formatValue(wallet.saldo) }}
+            </span>
+            <span
+              v-if="wallet.saldo == null"
+              class="saldo__previsto"
             > R$ 0,00 </span>
             <span
               v-else
-              class="valor"
+              class="saldo__previsto"
             >
               R$ {{ formatValue(wallet.saldo) }}
             </span>
           </div>
-          <div class="saldo">
-            <span class="saldo__atual">saldo previsto</span>
-            <span class="valor">R$ 130,00</span>
-          </div>
-        </div>
+        </v-col>
       </div>
       <button
         class="btn__nova__conta"
       >
-        <!-- @click="formStoreRevenue = !formStoreRevenue" -->
         <v-icon
           icon="mdi-plus"
           class="mdicon"
           size="30"
+          @click="openCreateForm"
         />
       </button>
     </div>
 
-    <!-- <div class="pc">
-      <div class="container__cards">
-        <div class="card__new__conta">
-          <div class="btn__new__conta">
-            <div class="plus">
-              <mdicon name="plus" size="35" />
-              <ModalNovaConta />
-            </div>
-            <span class="add__conta">Criar conta</span>
-          </div>
-        </div>
-        <div class="carteira">
-          <div class="header__carteira">
-            <div class="container__detalhes">
-              <span class="icon">
-                <mdicon name="cash" size="35" />
-              </span>
-              carteira
-            </div>
-            <button class="btn__opcoes">
-              <mdicon name="dots-vertical" size="35" />
-            </button>
-          </div>
-          <div class="body__carteira">
-            <div class="saldo">
-              <span class="saldo__atual">saldo atual</span>
-              <span class="valor">R$ 130,00</span>
-            </div>
-            <div class="saldo">
-              <span class="saldo__atual">saldo saldo previsto</span>
-              <span class="valor">R$ 130,00</span>
-            </div>
-          </div>
-          <div class="footer__carteira">
-            <button class="btn__add__despesa">ADICIONAR DESPESA</button>
-          </div>
-        </div>
-      </div>
-      <div class="container__card__atual_previsto">
-        <div class="card__valor">
-          <span class="saldo__card">Saldo atual</span>
-          <span class="valor__card">R$ 130,00</span>
-        </div>
-        <div class="card__valor">
-          <span class="saldo__card">Saldo previsto</span>
-          <span class="valor__card">R$ 130,00</span>
-        </div>
-      </div>
-    </div> -->
   </div>
 </template>
 
@@ -155,6 +116,7 @@
 // import ModalNovaConta from "@/components/ModalNovaConta.vue";
 import { formatValue } from "@/utils/formatValue";
 import { computed } from "vue";
+import FormCartaoCredito from "@/components/FormContaCartao-copy.vue";
 
 import { useUserStore, useWalletsStore } from "@/store";
 import { ref } from "vue";
@@ -163,6 +125,7 @@ const useWallets = useWalletsStore();
 const useUser = useUserStore();
 let wallets = ref(useWallets.walletsData.contas);
 const mesAno = ref<string>(useUser.mesAno || "");
+const formulario = ref(false);
 
 // const updateContas = (novoValor) => {
 //     wallets.value = novoValor;
@@ -192,12 +155,24 @@ const mesPorExtenso = computed(() => {
   const mesAbreviado = mesesPorExtenso[parseInt(mes, 10) - 1].slice(0, 3);
   return `${mesAbreviado}./${ano.slice(2)}`;
 });
+const openCreateForm = () => {
+  console.log("formulario", formulario.value);
+  // selectedRelease.value = undefined;
+  formulario.value = true;
+  console.log("formulario", formulario.value);
+};
+const closeForm = () => {
+  formulario.value = false;
+  // selectedRelease.value = undefined;
+};
 </script>
 
 <style scoped>
 .content-wrapper {
   position: relative;
   height: 100%;
+  width: 100%;
+  padding: 0 10px;
 }
 .header {
   display: flex;
@@ -277,29 +252,49 @@ const mesPorExtenso = computed(() => {
   color: #77d08e;
 }
 .carteira {
-  box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
-  height: 248px;
-  width: 49%;
-  margin-block: 10px;
-  border-radius: 15px;
+  width: 100%;
+  display: flex;
+  border-bottom: solid 1px #3e4247;
+  padding-bottom: 15px;
+}
+.descricao__carteira {
+  width: 50%;
   display: flex;
   flex-direction: column;
-  padding-inline: 10px;
-}
-.header__carteira {
-  height: 25%;
-  display: flex;
   align-items: center;
   justify-content: space-between;
 }
-.container__detalhes {
-  width: 320px;
-  height: 52px;
-  background: transparent;
+.tipo__conta {
+  font-size: 12px;
+  font-weight: 500;
+  color: #888181ff;
+  align-self: flex-start;
+}
+.nome__conta {
+  font-size: 20px;
   color: #fefefe;
-  font-size: 30px;
-  padding-left: 15px;
-  cursor: pointer;
+  align-self: flex-start;
+}
+.container__icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.container__opcoes {
+  display: flex;
+  justify-content: end;
+  align-items: center;
+  width: 100%;
+}
+.saldo__atual {
+  font-size: 15px;
+  color: #fefefe;
+  align-self: flex-end;
+}
+.saldo__previsto {
+  font-size: 12px;
+  color: #888181ff;
+  align-self: flex-end;
 }
 .icon {
   color: #77d08e;
@@ -322,11 +317,8 @@ const mesPorExtenso = computed(() => {
 }
 .saldo {
   display: flex;
-  justify-content: space-between;
-}
-.saldo__atual {
-  font-size: 20px;
-  color: #fefefe;
+  flex-direction: column;
+  /* justify-content: space-between; */
 }
 .valor {
   font-size: 20px;
@@ -384,14 +376,14 @@ const mesPorExtenso = computed(() => {
   ); */
   right: 15px;
   bottom: 15px;
-  background-color: #1dbb01;
+  background-color: #0c99ed;
   border: none;
   border-radius: 50%;
   padding: 10px;
   color: #fefefe;
 }
 
-@media screen and (max-width: 600px) {
+/* @media screen and (max-width: 600px) {
   .pc {
     display: none;
   }
@@ -416,5 +408,5 @@ const mesPorExtenso = computed(() => {
   .body__carteira {
     margin: 20px 0 30px 0;
   }
-}
+} */
 </style>
