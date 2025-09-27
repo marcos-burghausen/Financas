@@ -18,7 +18,7 @@ class Conta extends Model
         'saldoInicial',
         'incluirEmSomaInicial',
         'descricao',
-        'tipo',
+        'tipoConta',
         'status',
         'bandeira',
         'limite',

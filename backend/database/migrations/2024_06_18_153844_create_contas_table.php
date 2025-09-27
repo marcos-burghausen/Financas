@@ -21,7 +21,7 @@ return new class extends Migration
             $table->integer('saldoInicial')->default(0);
             $table->integer('incluirEmSomaInicial')->default(false);
             $table->string('descricao', 50)->nullable();
-            $table->enum('tipo', ['Pessoal', 'Empresarial', 'investimento'])->default('Pessoal');
+            $table->enum('tipoConta', ['Carteira', 'Conta Corrente', 'Poupança', 'Investimento', 'Outro', 'Cartão de Crédito'])->default('Carteira');
             $table->enum('status', ['Ativo', 'Inativo'])->default('Ativo');
             $table->string('conta', 20)->nullable();
             $table->integer('limite')->nullable();

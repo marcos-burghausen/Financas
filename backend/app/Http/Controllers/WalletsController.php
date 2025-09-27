@@ -8,25 +8,34 @@ use App\Models\Conta;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class WalletsController extends Controller
 {
     public function saveWallet(Request $request)
     {
-
         $data = $request->validate(
             [
-                'valor' => [
+                'name' => [
+                    'required',
+                    'min:2',
+                    'max:20',
+                    Rule::unique('contas')->where('tipoConta', $request->tipoConta),
+                    'regex:/^[a-zA-ZÀ-ÿ\s]+$/'
+                ],
+                'color' => 'nullable|string',
+                'conta' => 'nullable|string',
+                'icon' => 'nullable|string',
+                'incluirEmSomaInicial' => 'nullable|boolean',
+                'saldo' => [
                     'nullable',
                     'max:40',
                     'regex:/^[0-9,.]+$/'
                 ],
-                'instituicaoFinanceira' => [
-                    'required',
-                    'min:2',
-                    'max:20',
-                    'unique:contas,name',
-                    'regex:/^[a-zA-ZÀ-ÿ\s]+$/'
+                'saldoInicial' => [
+                    'nullable',
+                    'max:40',
+                    'regex:/^[0-9,.]+$/'
                 ],
                 'descricao' => [
                     "nullable",
@@ -39,29 +48,30 @@ class WalletsController extends Controller
                     'max:20',
                     'regex:/^[a-zA-ZÀ-ÿ\s]+$/',
                 ],
-                'bandeira' => 'required_if:tipo,Pessoal|string|nullable',
-                'limite' => 'required_if:tipo,Pessoal|nullable|regex:/^[0-9,.]+$/',
-                'dia_fechamento' => 'required_if:tipo,Pessoal|integer|min:1|max:31|nullable',
-                'dia_vencimento' => 'required_if:tipo,Pessoal|integer|min:1|max:31|nullable',
+                'bandeira' => 'required_if:tipo,Carteira|string|nullable',
+                'limite' => 'required_if:tipo,Carteira|nullable|regex:/^[0-9,.]+$/',
+                'dia_fechamento' => 'required_if:tipo,Carteira|integer|min:1|max:31|nullable',
+                'dia_vencimento' => 'required_if:tipo,Carteira|integer|min:1|max:31|nullable',
             ],
             [
-                'valor.max'                      => 'O campo Valor deve ter no máiximo 40 caracteres',
-                'valor.regex'                    => 'O campo Valor deve conter um valor monetário',
-                'instituicaoFinanceira.required' => 'O campo Instituição financeira é obrigatório',
-                'instituicaoFinanceira.min'      => 'O campo Instituição deve ter pelo menos 2 caracteres',
-                'instituicaoFinanceira.max'      => 'O campo Instituição deve ter no máiximo 20 caracteres',
-                'instituicaoFinanceira.regex'    => 'O campo Instituição deve conter apenas letras',
-                'instituicaoFinanceira.unique'   => 'Você ja possui uma conta com esse nome',
+                'saldo.max'                      => 'O campo saldo deve ter no máiximo 40 caracteres',
+                'saldo.regex'                    => 'O campo saldo deve conter um valor monetário',
+                'name.required' => 'O campo Nome é obrigatório',
+                'name.min'      => 'O campo Nome deve ter pelo menos 2 caracteres',
+                'name.max'      => 'O campo Nome deve ter no máiximo 20 caracteres',
+                'name.regex'    => 'O campo Nome deve conter apenas letras',
+                'name.unique'   => 'Você ja possui uma conta com esse nome',
                 'descricao.max'                  => 'O campo Descrição deve ter no máiximo 50 caracteres',
                 'descricao.regex'                => 'O campo Descricao deve conter apenas letras',
                 'tipoConta.required'             => 'O campo Tipo de conta é obrigatório',
                 'tipoConta.min'                  => 'O campo Tipo de conta deve ter pelo menos 2 caracteres',
                 'tipoConta.min'                  => 'O campo Tipo de conta deve ter no máiximo 20 caracteres',
-                'tipoConta.regex'                => 'O campo noTipo de contame deve conter apenas letras',
+                'tipoConta.regex'                => 'O campo Tipo de conta deve conter apenas letras',
                 'bandeira.required_if' => 'A bandeira é obrigatória para cartões de crédito.',
                 'limite.required_if' => 'O limite é obrigatório para cartões de crédito.',
             ]
         );
+        // return response()->json([$data], 200);
 
         $user = auth()->user();
 
@@ -69,22 +79,25 @@ class WalletsController extends Controller
             DB::beginTransaction();
 
             $conta                    = new Conta();
-            $conta->user_id           = $request->user_id;
-            $conta->name              = $request->instituicaoFinanceira;
-            if ($request->valor) {
-                $conta->saldo         = (int) str_replace([',', '.'], '', $request->valor);
-                $conta->saldo_inicial = (int) str_replace([',', '.'], '', $request->valor);
+            $conta->user_id           = $user->id;
+            $conta->name              = $data['name'];
+            if ($data['saldo']) {
+                $conta->saldo         = (int) str_replace([',', '.'], '', $data['saldo']);
+                $conta->saldoInicial = (int) str_replace([',', '.'], '', $data['saldo']);
             }
-            $conta->descricao         = $request->descricao;
-            $conta->tipo              = $request->tipoConta;
 
-            if ($request->tipoConta === 'Pessoal') {
-                $conta->bandeira = $request->bandeira;
-                $conta->dia_fechamento = $request->dia_fechamento;
-                $conta->dia_vencimento = $request->dia_vencimento;
-            
-                if ($request->limite) {
-                    $conta->limite = (int) str_replace([',', '.'], '', $request->limite);
+            if ($conta->descricao) {
+                $conta->descricao = $data['descricao'];
+            }
+            $conta->tipoConta = $data['tipoConta'];
+
+            if ($data['tipoConta'] === 'Cartão de Crédito') {
+                $conta->icon = $data['bandeira'];
+                $conta->dia_fechamento = $data['dia_fechamento'];
+                $conta->dia_vencimento = $data['dia_vencimento'];
+
+                if ($data['limite']) {
+                    $conta->limite = (int) str_replace([',', '.'], '', $data['limite']);
                 }
             }
             $conta->save();
@@ -98,14 +111,14 @@ class WalletsController extends Controller
         }
         // $user = User::find($request->user_id);
         // $carteiras = $user->carteiras;
-        $walletsData = Conta::select('name', 'icon', 'saldo', 'tipo')->get();
+        $walletsData = Conta::select('name', 'icon', 'saldo', 'tipoConta')->get();
         $wallets = [];
         foreach ($walletsData as $wallet) {
             $wallets[$wallet['name']] = [
                 'name' => $wallet['name'],
                 'icon' => $wallet['icon'],
-                'valor' => $wallet['valor'],
-                'tipo' => $wallet['tipo'],
+                'saldo' => $wallet['saldo'],
+                'tipoConta' => $wallet['tipoConta'],
             ];
         }
 

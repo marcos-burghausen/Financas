@@ -105,7 +105,7 @@ trait UserDataTrait
         // --- Seção de Carteiras (Wallets) ---
         if ($fetchAll || in_array('wallets', $sections)) {
             $dataToReturn['wallets'] = [
-                'contas'             => $user->contas()->get(['id', 'name', 'icon', 'saldo', 'saldoInicial', 'descricao', 'tipo', 'incluirEmSomaInicial']),
+                'contas'             => $user->contas()->get(['id', 'name', 'icon', 'saldo', 'saldoInicial', 'descricao', 'tipoConta', 'incluirEmSomaInicial']),
                 'contasNames'        => $user->contas()->pluck("name"),
                 'saldoInicial'       => $this->obterSaldoInicial($user, $mes),
                 'saldoAtual' => $this->obterSaldoAtual($user, $mes),

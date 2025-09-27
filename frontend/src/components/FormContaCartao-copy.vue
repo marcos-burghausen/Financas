@@ -69,7 +69,7 @@
             </v-text-field>
 
             <v-select
-              v-model="form.tipo"
+              v-model="form.tipoConta"
               :items="['Carteira', 'Conta Corrente', 'Poupança', 'Investimento', 'Outro']"
               label="Tipo de Conta"
               variant="underlined"
@@ -77,7 +77,7 @@
               :rules="[rules.required]"
             >
               <template #prepend-inner>
-                <v-icon :icon="form.tipo === 'Carteira' ? 'mdi-wallet-outline' : form.tipo === 'Conta Corrente' ? 'mdi-bank-outline' : form.tipo === 'Poupança' ? 'mdi-piggy-bank' : form.tipo === 'Investimento' ? 'mdi-chart-line' : 'mdi-currency-usd'" />
+                <v-icon :icon="form.tipoConta === 'Carteira' ? 'mdi-wallet-outline' : form.tipoConta === 'Conta Corrente' ? 'mdi-bank-outline' : form.tipoConta === 'Poupança' ? 'mdi-piggy-bank' : form.tipoConta === 'Investimento' ? 'mdi-chart-line' : 'mdi-currency-usd'" />
               </template>
             </v-select>
 
@@ -306,6 +306,8 @@ import SicrediIcon from "@/assets/icons/sicredi.svg";
 import VisaIcon from "@/assets/icons/visa.svg";
 import BbIcon from "@/assets/icons/bb.svg";
 
+import http from "@/services/http";
+
 
 
 const menu = ref(false);
@@ -352,7 +354,7 @@ const form = ref({
   name: "",
   icon: props.walletType === "Conta" ? "mdi-bank" : "mdi-bank-off",
   color: "#0c99ed",
-  tipo: props.walletType === "Conta" ? "Carteira" : "Cartão de Crédito",
+  tipoConta: props.walletType === "Conta" ? "Carteira" : "Cartão de Crédito",
   saldoInicial: null,
   incluirEmSomaInicial: true,
   limite: null,
@@ -376,7 +378,7 @@ const rules = {
 
 const isFormValid = computed(() => {
   if (props.walletType === "Conta") {
-    return !!form.value.name && !!form.value.tipo;
+    return !!form.value.name && !!form.value.tipoConta;
   }
   if (props.walletType === "Cartão") {
     const diaFechamentoValido =
@@ -389,16 +391,38 @@ const isFormValid = computed(() => {
 });
 
 // --- MÉTODOS ---
+async function create() {
+  errorStore.unsetError();
+  try {
+    loading.value = true;
+    await http.post("/create", user.value);
+    emits("nextStep");
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiErrorResponse>;
+    if (axiosError.response?.data.errors) {
+      errorStore.setErrorFromForm(axiosError);
+    } else {
+      errorStore.setErrorFromResponse(axiosError);
+    }
+  } finally {
+    loading.value = false;
+  }
+}
+
+
+
+
+
 const submitForm = async () => {
   if (!isFormValid.value) return;
   loading.value = true;
   try {
     const payload = {
       ...form.value,
-      tipo: props.walletType === "Cartão" ? "Cartão de Crédito" : form.value.tipo,
+      tipoConta: props.walletType === "Cartão" ? "Cartão de Crédito" : form.value.tipoConta,
       saldo: form.value.saldoInicial,
     };
-    await useWallets.store(payload);
+    const res = await http.post("/wallet", payload);
     emit("updateData");
     closeForm();
   } catch (error) {

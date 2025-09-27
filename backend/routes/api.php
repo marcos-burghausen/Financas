@@ -52,7 +52,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::patch('/lancamentos/{id}', [LancamentoController::class, 'receivedLancamento']);
     Route::delete('/lancamentos/{id}', [LancamentoController::class, 'deleteLancamento']);
 
-    Route::post('/save-wallet', [WalletsController::class, 'saveWallet']);
+    Route::post('/wallet', [WalletsController::class, 'saveWallet']);
     Route::post('/edit-wallets', [WalletsController::class, 'editWallets']);
     Route::post('/add-wallets', [WalletsController::class, 'addWallets']);
     Route::post('/delete-wallets', [WalletsController::class, 'deletWallets']);

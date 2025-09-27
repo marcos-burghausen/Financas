@@ -150,7 +150,7 @@ class AuthController extends Controller
                     'name' => $wallet['name'],
                     'valor' => $wallet['valor'],
                     'icon' => $wallet['icon'],
-                    'tipo' => $wallet['tipo'],
+                    'tipoConta' => $wallet['tipoConta'],
                 ];
             }
             // return response(['revenuesData' => $revenuesData, 'expensesData' => $expensesData]);
@@ -232,7 +232,7 @@ class AuthController extends Controller
                 $carteira->name      = "Pessoal";
                 $carteira->icon      = "cash";
                 $carteira->descricao = "Carteira de uso pessoal";
-                $carteira->tipo      = "Pessoal";
+                $carteira->tipoConta      = "Pessoal";
                 $carteira->save();
             }
             DB::commit();

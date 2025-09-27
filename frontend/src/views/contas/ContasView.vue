@@ -56,8 +56,8 @@
             />
         </div>
         <div class="descricao__carteira">
-          <span class="tipo__conta"> Conta Corrente </span>
-          <span class="nome__conta"> Sicredi </span>
+          <span class="tipo__conta"> {{ wallet.tipoConta }} </span>
+          <span class="nome__conta"> {{ wallet.name }} </span>
           <span class="tipo__conta"> Saldo Previsto </span>
         </div>
         <v-col class="saldo__carteira  p-0">
