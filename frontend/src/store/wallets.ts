@@ -13,6 +13,7 @@ export const useWalletsStore = defineStore("wallets", () => {
     function setWalletsData(wallets: WalletData): void {
         walletsData.value = {
             contas: wallets?.contas ?? walletsData.value.contas,
+            cartoes: wallets?.cartoes ?? walletsData.value.cartoes,
             contasNames: wallets?.contasNames ?? walletsData.value.contasNames,
             saldoInicial: wallets?.saldoInicial ?? walletsData.value.saldoInicial,
             categories: wallets?.categories ?? walletsData.value.categories,

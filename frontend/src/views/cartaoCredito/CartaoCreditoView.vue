@@ -1,166 +1,193 @@
 <template>
   <div class="content-wrapper">
     <FormCartaoCredito
-      v-if="formulario"
+      v-if="formCartao"
       rota="expense"
       :mes-ano="mesAno"
       wallet-type="Cartão"
       @update-data="updateData"
       @close-form="closeForm"
     />
-    <div
-      v-if="!formulario"
-      class="header"
-    >
-      <router-link
-        class="link me-7 d-flex align-items-center opaco"
-        :to="{ name: 'dashboard' }"
-      >
-        <v-icon
-          icon="mdi-arrow-left"
-          size="25"
-        />
-      </router-link>
-      <div class="header__items">
-        <div class="d-flex flex-column">
-          <span class="title__page fs-5"> Cartão de Crédito </span>
-          <span class="valor">
-            R$ {{ formatValue(valueTotalRevenuesMonth) }}
-          </span>
+    <FormLancamentos
+      v-if="formLancamentos"
+      :releases="selectedRelease"
+      rota="expense"
+      :mes-ano="mesAno"
+      transaction-type="Despesa"
+      @update-data="updateData"
+      @close-form="closeForm"
+    />
+    <div v-if="!formCartao" class="receitas">
+      <div class="header">
+        <router-link
+          class="link me-7 d-flex align-items-center opaco"
+          :to="{ name: 'dashboard' }"
+        >
+          <v-icon icon="mdi-arrow-left" size="25" />
+        </router-link>
+        <div class="header__items">
+          <div class="d-flex flex-column">
+            <span class="title__page fs-5"> Cartão de Crédito </span>
+            <span class="valor">
+              R$
+              <!-- {{ formatValue(valueTotalRevenuesMonth) }} -->
+            </span>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="container__mes">
-      <v-icon
-        icon="mdi-chevron-left"
-        class="mdicon text-white"
-        size="30"
-        @click="$emit('mesAnterior')"
-      />
-      <span class="mes text-white fs-3"> {{ mesPorExtenso }} </span>
-      <v-icon
-        icon="mdi-chevron-right"
-        class="mdicon text-white"
-        size="30"
-        @click="$emit('proximoMes')"
-      />
-    </div>
+      <div class="container__mes">
+        <v-icon
+          icon="mdi-chevron-left"
+          class="mdicon text-white"
+          size="30"
+          @click="$emit('mesAnterior')"
+        />
+        <span class="mes text-white fs-3"> {{ mesPorExtenso }} </span>
+        <v-icon
+          icon="mdi-chevron-right"
+          class="mdicon text-white"
+          size="30"
+          @click="$emit('proximoMes')"
+        />
+      </div>
 
-    <div class="container__cards">
-      <!-- v-for="(wallet, index) in wallets" -->
-      <!-- :key="index" -->
-      <div class="__card">
-        <div class="card__header">
-          <div class="card__title">
-            <IconeSicredi class="logo__sicredi" />
-            <!-- <v-icon
+      <div class="container__cards">
+        <div
+          v-for="(card, index) in creditCard"
+          :key="index"
+          class="__card mb-2"
+        >
+          <div class="card__header">
+            <div class="card__title">
+              <IconeSicredi class="logo__sicredi" />
+              <!-- <v-icon
               color="#222"
               class="brand__icon"
               size="32"
             >
               mdi-clover
             </v-icon> -->
-            <div class="card__details">
-              <span>Sicredi</span>
-              <div class="type__card d-flex align-items-center">
-                <IconeMastercard class="logo__mastercard" />
-                <!-- <v-icon
+              <div class="card__details">
+                <span> {{ card.name }}</span>
+                <div class="type__card d-flex align-items-center">
+                  <IconeMastercard class="logo__mastercard" />
+                  <!-- <v-icon
                   size="18"
                   class="me-1"
                   color="#a0a0a0"
                 >
                   mdi-credit-card
                 </v-icon> -->
-                <small>MasterCard</small>
+                  <small> {{ card.icon }}</small>
+                </div>
+              </div>
+            </div>
+            <div class="card-actions">
+              <v-icon>mdi-plus</v-icon>
+              <v-icon>mdi-magnify</v-icon>
+              <v-icon>mdi-dots-vertical</v-icon>
+            </div>
+          </div>
+
+          <div class="card__body">
+            <div class="info-row">
+              <div class="info-item">
+                <span class="label">Limite</span>
+                <span class="value">R$ {{ formatValue(card.limite) }}</span>
+              </div>
+              <div class="info-item text-center">
+                <span class="label">Em aberto</span>
+                <span class="value">R$ 7.449,86</span>
+              </div>
+              <div class="info-item text-right">
+                <span class="label">Lim. disponível</span>
+                <span class="value">R$ 1.550,14</span>
+              </div>
+            </div>
+
+            <div class="progress__bar__container">
+              <v-progress-linear
+                model-value="83"
+                color="#32c770"
+                height="15"
+                rounded
+              />
+              <span class="progress-label">83%</span>
+            </div>
+            <v-divider />
+            <div class="info-row mt-3">
+              <div class="info-item">
+                <span class="label">Conta</span>
+                <span class="value-small">{{ card.conta }}</span>
+              </div>
+              <div class="info-item text-center">
+                <span class="label">Fechamento</span>
+                <span class="value-small">{{ card.dia_fechamento }}</span>
+              </div>
+              <div class="info-item text-right">
+                <span class="label">Vencimento</span>
+                <span class="value-small">{{ card.dia_vencimento }}</span>
               </div>
             </div>
           </div>
-          <div class="card-actions">
-            <v-icon>mdi-plus</v-icon>
-            <v-icon>mdi-magnify</v-icon>
-            <v-icon>mdi-dots-vertical</v-icon>
-          </div>
-        </div>
-        
-        <div class="card__body">
-          <div class="info-row">
-            <div class="info-item">
-              <span class="label">Limite</span>
-              <span class="value">R$ 9.000,00</span>
-            </div>
-            <div class="info-item text-center">
-              <span class="label">Em aberto</span>
-              <span class="value">R$ 7.449,86</span>
-            </div>
-            <div class="info-item text-right">
-              <span class="label">Lim. disponível</span>
-              <span class="value">R$ 1.550,14</span>
-            </div>
-          </div>
 
-          <div class="progress__bar__container">
-            <v-progress-linear
-              model-value="83"
-              color="#32c770"
-              height="15"
-              rounded
-            />
-            <span class="progress-label">83%</span>
-          </div>
-          <v-divider />
-          <div class="info-row mt-3">
-            <div class="info-item">
-              <span class="label">Conta</span>
-              <span class="value-small">Sicredi</span>
+          <div class="card__footer">
+            <div class="fatura-info">
+              <span class="fatura-label">Fatura</span>
+              <span class="fatura-value">R$ 2.767,95</span>
             </div>
-            <div class="info-item text-center">
-              <span class="label">Fechamento</span>
-              <span class="value-small">10/SET.</span>
+            <div class="fatura-actions">
+              <span class="status-fechada">
+                <v-icon size="14" class="me-1"> mdi-lock </v-icon>
+                Fechada
+              </span>
+              <a href="#" class="register-payment">
+                <v-icon size="18" color="#3d8eff" class="me-1">
+                  mdi-check-circle
+                </v-icon>
+                Registrar pagamento
+              </a>
             </div>
-            <div class="info-item text-right">
-              <span class="label">Vencimento</span>
-              <span class="value-small">25/SET.</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="card__footer">
-          <div class="fatura-info">
-            <span class="fatura-label">Fatura</span>
-            <span class="fatura-value">R$ 2.767,95</span>
-          </div>
-          <div class="fatura-actions">
-            <span class="status-fechada">
-              <v-icon
-                size="14"
-                class="me-1"
-              >
-                mdi-lock
-              </v-icon>
-              Fechada
-            </span>
-            <a
-              href="#"
-              class="register-payment"
-            >
-              <v-icon
-                size="18"
-                color="#3d8eff"
-                class="me-1"
-              >
-                mdi-check-circle
-              </v-icon>
-              Registrar pagamento
-            </a>
           </div>
         </div>
       </div>
     </div>
-    <div
-      v-if="!formulario"
-      class="fixed-bottom d-flex justify-end pe-6 pb-6"
-    >
+
+
+
+
+
+
+
+
+
+        <v-bottom-sheet v-model="sheet" style="border: 1px solid green;">
+          <template v-slot:activator="{ props: activatorProps }">
+            <div class="text-center pa-8">
+              <v-btn
+                v-bind="activatorProps"
+                color="primary"
+                size="50"
+                class="btn__nova__conta"
+              >
+                <v-icon size="35">mdi-plus</v-icon>
+              </v-btn>
+            </div>
+          </template>
+
+          <v-list class="position-fixed rounded" style="bottom: 10px; right: 10px;">
+            <v-list-item
+              v-for="tile in tiles"
+              :key="tile.title"
+              :prepend-icon="tile.img"
+              :title="tile.title"
+              @click="sheet = false"
+            ></v-list-item>
+          </v-list>
+        </v-bottom-sheet>
+
+    <!-- <div v-if="!formCartao" class="fixed-bottom d-flex justify-end pe-6 pb-6">
       <v-icon
         type="button"
         title="Adicionar nova despesa"
@@ -168,7 +195,7 @@
         class="mdicon__add"
         @click="openCreateForm"
       />
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -182,13 +209,21 @@ import { formatValue } from "@/utils/formatValue";
 import { computed } from "vue";
 
 import { useUserStore, useWalletsStore } from "@/store";
-import { ref } from "vue";
+import { ref, shallowRef } from "vue";
+
+const sheet = shallowRef(false)
+  const tiles = [
+    { img: 'mdi-credit-card-plus-outline', title: 'Novo cartão' },
+    { img: 'mdi-gift-outline', title: 'Novo estorno' },
+    { img: 'mdi-credit-card-outline', title: 'Despesa cartão' },
+  ]
 
 const useWallets = useWalletsStore();
 const useUser = useUserStore();
-let wallets = ref(useWallets.walletsData.contas);
+let creditCard = ref(useWallets.walletsData.cartoes);
 const mesAno = ref<string>(useUser.mesAno || "");
-const formulario = ref(false);
+const formCartao = ref(false);
+const formLancamentos = ref(false);
 
 // const updateContas = (novoValor) => {
 //     wallets.value = novoValor;
@@ -220,14 +255,12 @@ const mesPorExtenso = computed(() => {
 });
 
 const openCreateForm = () => {
-  console.log("formulario", formulario.value);
   // selectedRelease.value = undefined;
-  formulario.value = true;
-  console.log("formulario", formulario.value);
+  formCartao.value = true;
 };
 
 const closeForm = () => {
-  formulario.value = false;
+  formCartao.value = false;
   // selectedRelease.value = undefined;
 };
 </script>
@@ -499,7 +532,6 @@ const closeForm = () => {
   padding-inline: 10px;
 }
 .__card {
-  /* background: rgba(150, 150, 150, 0.02); */
   width: 100%;
   background-color: #2a2d30;
   border-radius: 12px;

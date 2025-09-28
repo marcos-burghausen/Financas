@@ -18,7 +18,7 @@ trait UserDataTrait
      * @return array
      */
 
-    private function getUserData(object $user, string $date = null, array $sections = []): array
+    private function getUserData(object $user, $date = null, array $sections = []): array
     {
         $mes = $date ?? date('Y-m');
 
@@ -27,24 +27,6 @@ trait UserDataTrait
         $dataToReturn = [];
 
         // --- Seção de Despesas (Expenses) ---
-        // $categoriasDespesas = $user->categories()->whereIn('type', ['ambas', 'despesa'])->get(['id', 'name', 'color', 'icon', 'editable', 'type']);
-        // $subcategoriasDespesas = $user->subcategories()->whereIn('type', ['ambas', 'despesa'])->get(['id', 'category_id', 'name', 'color', 'icon', 'editable', 'type']);
-        // foreach ($categoriasDespesas as $categoria) {
-        //     $subcategories = [];
-        //     foreach ($subcategoriasDespesas as $subcategoria) {
-        //         if ($categoria->id == $subcategoria->category_id) {
-        //             $subcategories[] = [
-        //                 'id' => $subcategoria->id,
-        //                 'name' => $subcategoria->name,
-        //                 'color' => $subcategoria->color,
-        //                 'icon' => $subcategoria->icon,
-        //                 'editable' => $subcategoria->editable,
-        //                 'type' => $subcategoria->type
-        //             ];
-        //         }
-        //     }
-        //     $categoria->subcategories = $subcategories;
-        // }
         if ($fetchAll || in_array('expenses', $sections)) {
             $categoriasDespesas = $user->categories()->whereIn('type', ['ambas', 'despesa'])->get(['id', 'name', 'color', 'icon', 'editable', 'type']);
             $subcategoriasDespesas = $user->subcategories()->whereIn('type', ['ambas', 'despesa'])->get(['id', 'category_id', 'name', 'color', 'icon', 'editable', 'type']);
@@ -57,7 +39,7 @@ trait UserDataTrait
                 }
                 $categoria->subcategories = $subcategories;
             }
-            
+
             $dataToReturn['expenses'] = [
                 ...$this->classifiesReleases($user->expenses()->get(), 'Expenses', $mes),
                 "categories" => $categoriasDespesas,
@@ -83,63 +65,27 @@ trait UserDataTrait
                 "categories" => $categoriasReceitas,
             ];
         }
-        // $categoriasReceitas = $user->categories()->whereIn('type', ['ambas', 'receita'])->get(['id', 'name', 'color', 'icon', 'editable', 'type']);
-        // $subcategoriasReceitas = $user->subcategories()->whereIn('type', ['ambas', 'receita'])->get(['id', 'category_id', 'name', 'color', 'icon', 'editable', 'type']);
-        // foreach ($categoriasReceitas as $categoria) {
-        //     $subcategories = []; // Temporary array for subcategories
-        //     foreach ($subcategoriasReceitas as $subcategoria) {
-        //         if ($categoria->id == $subcategoria->category_id) {
-        //             $subcategories[] = [
-        //                 'id' => $subcategoria->id,
-        //                 'name' => $subcategoria->name,
-        //                 'color' => $subcategoria->color,
-        //                 'icon' => $subcategoria->icon,
-        //                 'editable' => $subcategoria->editable,
-        //                 'type' => $subcategoria->type
-        //             ];
-        //         }
-        //     }
-        //     $categoria->subcategories = $subcategories; // Assign to a custom attribute
-        // }
 
         // --- Seção de Carteiras (Wallets) ---
         if ($fetchAll || in_array('wallets', $sections)) {
             $dataToReturn['wallets'] = [
-                'contas'             => $user->contas()->get(['id', 'name', 'icon', 'saldo', 'saldoInicial', 'descricao', 'tipoConta', 'incluirEmSomaInicial']),
-                'contasNames'        => $user->contas()->pluck("name"),
-                'saldoInicial'       => $this->obterSaldoInicial($user, $mes),
+                'contas' => $user->contas()
+                    ->where('tipoConta', '!=', 'Cartão de Crédito')
+                    ->get(['id', 'name', 'icon', 'saldo', 'saldoInicial', 'descricao', 'tipoConta', 'incluirEmSomaInicial']),
+
+                'cartoes' => $user->contas()
+                    ->where('tipoConta', 'Cartão de Crédito')
+                    ->get(['id', 'name', 'icon', 'saldo', 'descricao', 'tipoConta', 'incluirEmSomaInicial', 'conta', 'limite', 'dia_fechamento', 'dia_vencimento']),
+
+                'contasNames' => $user->contas()->pluck("name"),
+                'saldoInicial' => $this->obterSaldoInicial($user, $mes),
                 'saldoAtual' => $this->obterSaldoAtual($user, $mes),
-                "categories"         => $user->categories()->where('type', 'contas')->get(['id', 'name', 'color', 'icon', 'editable', 'type']),
+                "categories" => $user->categories()->where('type', 'contas')->get(['id', 'name', 'color', 'icon', 'editable', 'type']),
             ];
         }
 
         $dataToReturn['mesAno'] = $mes;
 
-        // return [
-        //     'expenses' => [
-        //         ...$this->classifiesReleases($user->expenses()->get(), 'Expenses', $mes),
-        //         "categories" => [
-        //             ...$categoriasDespesas,
-        //         ],
-        //     ],
-        //     "revenues" => [
-        //         ...$this->classifiesReleases($user->revenues()->get(), 'Revenues', $mes),
-        //         "categories" => [
-        //             ...$categoriasReceitas,
-        //         ],
-        //     ],
-        //     'wallets'         => [
-        //         'contas'             => $user->contas()->get(['id', 'name', 'icon', 'saldo', 'saldoInicial', 'descricao', 'tipo', 'incluirEmSomaInicial']),
-        //         'contasNames'       => $user->contas()->pluck("name"),
-        //         'saldoInicial'       => $this->obterSaldoInicial($user, $mes),
-        //         // 'saldoAtual' => $this->obterSaldoAtual($user),
-        //         "categories" => [
-        //             ...$user->categories()->where('type', 'contas')->get(['id', 'name', 'color', 'icon', 'editable', 'type']),
-        //         ],
-        //     ],
-        //     'mesAno' => $mes,
-        // ];
         return $dataToReturn;
     }
-
 }

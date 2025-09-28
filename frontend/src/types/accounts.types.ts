@@ -16,6 +16,7 @@ export interface Account {
 export interface WalletData {
   categories: CategoryAccount[];
   contas: Account[];
+  cartoes: Account[];
   contasNames: string[];
   saldoAtual: number;
   saldoInicial: number;
