@@ -25,8 +25,6 @@ return new class extends Migration
             $table->enum('status', ['Ativo', 'Inativo'])->default('Ativo');
             $table->string('conta', 20)->nullable();
             $table->integer('limite')->nullable();
-            $table->integer('dia_fechamento')->nullable();
-            $table->integer('dia_vencimento')->nullable();
             $table->timestamps();
         });
     }

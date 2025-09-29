@@ -1,14 +1,20 @@
 // src/types/accounts.types.ts
 // Represents a user account (e.g., bank account, wallet)
 export interface Account {
-  descricao: string;
+  descricao?: string;
+  color: string;
   icon: string;
-  id: number;
+  id?: number;
   incluirEmSomaInicial: boolean;
   name: string;
-  saldo: number;
-  saldoInicial: number;
-  tipo: string;
+  saldo?: string;
+  limite: string;
+  saldoInicial?: string;
+  tipoConta: string;
+  conta: string;
+  bandeira: string;
+  dia_fechamento: number | null,
+  dia_vencimento: number | null,
   updatedAt?: string;
 }
 

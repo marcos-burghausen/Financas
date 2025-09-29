@@ -2,7 +2,6 @@
   <div class="content-wrapper">
     <FormCartaoCredito
       v-if="formCartao"
-      rota="expense"
       :mes-ano="mesAno"
       wallet-type="Cartão"
       @update-data="updateData"
@@ -17,13 +16,19 @@
       @update-data="updateData"
       @close-form="closeForm"
     />
-    <div v-if="!formCartao" class="receitas">
+    <div
+      v-if="!formCartao"
+      class="receitas"
+    >
       <div class="header">
         <router-link
           class="link me-7 d-flex align-items-center opaco"
           :to="{ name: 'dashboard' }"
         >
-          <v-icon icon="mdi-arrow-left" size="25" />
+          <v-icon
+            icon="mdi-arrow-left"
+            size="25"
+          />
         </router-link>
         <div class="header__items">
           <div class="d-flex flex-column">
@@ -52,7 +57,10 @@
         />
       </div>
 
-      <div class="container__cards">
+      <div
+        v-if="creditCard && creditCard.length > 0"
+        class="container__cards"
+      >
         <div
           v-for="(card, index) in creditCard"
           :key="index"
@@ -61,24 +69,10 @@
           <div class="card__header">
             <div class="card__title">
               <IconeSicredi class="logo__sicredi" />
-              <!-- <v-icon
-              color="#222"
-              class="brand__icon"
-              size="32"
-            >
-              mdi-clover
-            </v-icon> -->
               <div class="card__details">
                 <span> {{ card.name }}</span>
                 <div class="type__card d-flex align-items-center">
                   <IconeMastercard class="logo__mastercard" />
-                  <!-- <v-icon
-                  size="18"
-                  class="me-1"
-                  color="#a0a0a0"
-                >
-                  mdi-credit-card
-                </v-icon> -->
                   <small> {{ card.icon }}</small>
                 </div>
               </div>
@@ -98,22 +92,22 @@
               </div>
               <div class="info-item text-center">
                 <span class="label">Em aberto</span>
-                <span class="value">R$ 7.449,86</span>
+                <span class="value">R$ {{ formatValue(card.saldo) }}</span>
               </div>
               <div class="info-item text-right">
                 <span class="label">Lim. disponível</span>
-                <span class="value">R$ 1.550,14</span>
+                <span class="value">R$ {{ formatValue(card.limite - card.saldo) }}</span>
               </div>
             </div>
 
             <div class="progress__bar__container">
               <v-progress-linear
-                model-value="83"
+                :model-value="((card.limite - card.saldo) / card.limite * 100).toFixed(0)"
                 color="#32c770"
                 height="15"
                 rounded
               />
-              <span class="progress-label">83%</span>
+              <span class="progress-label">{{ ((card.limite - card.saldo) / card.limite * 100).toFixed(0) }}% </span>
             </div>
             <v-divider />
             <div class="info-row mt-3">
@@ -135,15 +129,25 @@
           <div class="card__footer">
             <div class="fatura-info">
               <span class="fatura-label">Fatura</span>
-              <span class="fatura-value">R$ 2.767,95</span>
+              <span class="fatura-value">R$ {{ formatValue(card.saldo) }}</span>
             </div>
             <div class="fatura-actions">
               <span class="status-fechada">
-                <v-icon size="14" class="me-1"> mdi-lock </v-icon>
+                <v-icon
+                  size="14"
+                  class="me-1"
+                > mdi-lock </v-icon>
                 Fechada
               </span>
-              <a href="#" class="register-payment">
-                <v-icon size="18" color="#3d8eff" class="me-1">
+              <a
+                href="#"
+                class="register-payment"
+              >
+                <v-icon
+                  size="18"
+                  color="#3d8eff"
+                  class="me-1"
+                >
                   mdi-check-circle
                 </v-icon>
                 Registrar pagamento
@@ -152,40 +156,43 @@
           </div>
         </div>
       </div>
+
+      <NoDataComponent v-else />
     </div>
 
+    <v-bottom-sheet
+      v-if="!formCartao"
+      v-model="sheet"
+      style="border: 1px solid green;"
+    >
+      <template #activator="{ props: activatorProps }">
+        <div class="text-center pa-8">
+          <v-btn
+            v-bind="activatorProps"
+            color="primary"
+            size="50"
+            class="btn__nova__conta"
+          >
+            <v-icon size="35">
+              mdi-plus
+            </v-icon>
+          </v-btn>
+        </div>
+      </template>
 
-
-
-
-
-
-
-
-        <v-bottom-sheet v-model="sheet" style="border: 1px solid green;">
-          <template v-slot:activator="{ props: activatorProps }">
-            <div class="text-center pa-8">
-              <v-btn
-                v-bind="activatorProps"
-                color="primary"
-                size="50"
-                class="btn__nova__conta"
-              >
-                <v-icon size="35">mdi-plus</v-icon>
-              </v-btn>
-            </div>
-          </template>
-
-          <v-list class="position-fixed rounded" style="bottom: 10px; right: 10px;">
-            <v-list-item
-              v-for="tile in tiles"
-              :key="tile.title"
-              :prepend-icon="tile.img"
-              :title="tile.title"
-              @click="sheet = false"
-            ></v-list-item>
-          </v-list>
-        </v-bottom-sheet>
+      <v-list
+        class="position-fixed rounded"
+        style="bottom: 10px; right: 10px;"
+      >
+        <v-list-item
+          v-for="tile in tiles"
+          :key="tile.title"
+          :prepend-icon="tile.img"
+          :title="tile.title"
+          @click="sheet = false, tile.action()"
+        />
+      </v-list>
+    </v-bottom-sheet>
 
     <!-- <div v-if="!formCartao" class="fixed-bottom d-flex justify-end pe-6 pb-6">
       <v-icon
@@ -204,6 +211,7 @@ import IconeMastercard from "@/assets/icons/mastercard.svg";
 import IconeSicredi from "@/assets/icons/sicredi35.svg";
 
 import FormCartaoCredito from "@/components/FormContaCartao-copy.vue";
+import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
 // import ModalNovaConta from "@/components/ModalNovaConta.vue";
 import { formatValue } from "@/utils/formatValue";
 import { computed } from "vue";
@@ -211,12 +219,12 @@ import { computed } from "vue";
 import { useUserStore, useWalletsStore } from "@/store";
 import { ref, shallowRef } from "vue";
 
-const sheet = shallowRef(false)
+const sheet = shallowRef(false);
   const tiles = [
-    { img: 'mdi-credit-card-plus-outline', title: 'Novo cartão' },
-    { img: 'mdi-gift-outline', title: 'Novo estorno' },
-    { img: 'mdi-credit-card-outline', title: 'Despesa cartão' },
-  ]
+    { img: "mdi-credit-card-plus-outline", title: "Novo cartão" },
+    { img: "mdi-gift-outline", title: "Novo estorno" },
+    { img: "mdi-credit-card-outline", title: "Despesa cartão", action: () => { openCreateForm(); } },
+  ];
 
 const useWallets = useWalletsStore();
 const useUser = useUserStore();
@@ -263,6 +271,13 @@ const closeForm = () => {
   formCartao.value = false;
   // selectedRelease.value = undefined;
 };
+
+// const updateData = (newData) => {
+//   useExpenses.setExpensesData(newData);
+//   valueTotalExpensesMonth.value = newData.valueTotalMonth;
+//   expensesMonth.value = newData.byMonth || [];
+//   closeForm();
+// };
 </script>
 
 <style scoped>

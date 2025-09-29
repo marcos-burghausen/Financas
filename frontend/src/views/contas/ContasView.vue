@@ -13,7 +13,10 @@
         class="link me-7 d-flex align-items-center opaco"
         :to="{ name: 'dashboard' }"
       >
-      <v-icon icon="mdi-arrow-left" size="25" />
+        <v-icon
+          icon="mdi-arrow-left"
+          size="25"
+        />
       </router-link>
       <div class="header__items">
         <div class="d-flex flex-column">
@@ -49,11 +52,11 @@
         class="carteira"
       >
         <div class="container__icon pe-2">
-            <v-icon
-              icon="mdi-circle-outline"
-              size="60"
-              color="#77d08e"
-            />
+          <v-icon
+            icon="mdi-circle-outline"
+            size="60"
+            color="#77d08e"
+          />
         </div>
         <div class="descricao__carteira">
           <span class="tipo__conta"> {{ wallet.tipoConta }} </span>
@@ -98,6 +101,7 @@
         </v-col>
       </div>
       <button
+        v-if="!formulario"
         class="btn__nova__conta"
       >
         <v-icon
@@ -108,15 +112,14 @@
         />
       </button>
     </div>
-
   </div>
 </template>
 
 <script setup lang="ts">
 // import ModalNovaConta from "@/components/ModalNovaConta.vue";
+import FormCartaoCredito from "@/components/FormContaCartao-copy.vue";
 import { formatValue } from "@/utils/formatValue";
 import { computed } from "vue";
-import FormCartaoCredito from "@/components/FormContaCartao-copy.vue";
 
 import { useUserStore, useWalletsStore } from "@/store";
 import { ref } from "vue";

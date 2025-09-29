@@ -47,7 +47,8 @@
               class="imput"
               type="number"
               prefix="R$"
-              :rules="[rules.required]"
+              :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
+              @input="formatValueSave"
             >
               <template #prepend-inner>
                 <v-icon icon="mdi-currency-usd" />
@@ -61,7 +62,8 @@
               class="imput"
               type="number"
               prefix="R$"
-              :rules="[rules.required]"
+              :rules="[rules.requiredValor]"
+              @input="formatValueSave"
             >
               <template #prepend-inner>
                 <v-icon icon="mdi-currency-usd" />
@@ -152,9 +154,10 @@
               label="Limite do Cartão"
               variant="underlined"
               class="imput"
-              type="number"
+              type="tel"
               prefix="R$"
-              :rules="[rules.required, rules.positive]"
+              :rules="[rules.requiredValor]"
+              @input="() => formatValueSave('limite')"
             >
               <template #prepend-inner>
                 <v-icon icon="mdi-currency-usd" />
@@ -166,9 +169,10 @@
               label="Fatura Atual"
               variant="underlined"
               class="imput"
-              type="number"
+              type="tel"
               prefix="R$"
-              :rules="[rules.required, rules.positive]"
+              :rules="[rules.requiredValor]"
+              @input="() => formatValueSave('saldo')"
             >
               <template #prepend-inner>
                 <v-icon icon="mdi-currency-usd" />
@@ -236,7 +240,6 @@
               class="imput"
               :rules="[rules.required]"
             >
-
               <template #selection="{ item }">
                 <div class="d-flex align-center text-truncate">
                   <v-icon
@@ -247,14 +250,13 @@
                   <span class="text-truncate">{{ item.title }}</span>
                 </div>
               </template>
-              <template v-slot:item="{ props, item }">
+              <template #item="{ props, item }">
                 <v-list-item
                   v-bind="props"
                   :prepend-icon="item.raw.icon"
                   :title="item.raw.title"
-                ></v-list-item>
+                />
               </template>
-
             </v-select>
 
             <v-text-field
@@ -283,11 +285,6 @@
               </template>
             </v-text-field>
           </div>
-
-          
-
-
-
         </div>
       </div>
     </v-form>
@@ -296,18 +293,19 @@
 
 <script setup lang="ts">
 import { useWalletsStore } from "@/store/wallets";
-import { computed, ref, watch } from "vue";
+import { computed, ref } from "vue";
 
 // Assets das bandeiras
+import BbIcon from "@/assets/icons/bb.svg";
 import CaixaIcon from "@/assets/icons/caixa.svg";
 import MastercardIcon from "@/assets/icons/mastercard.svg";
 import NubankIcon from "@/assets/icons/nubank.svg";
 import SicrediIcon from "@/assets/icons/sicredi.svg";
 import VisaIcon from "@/assets/icons/visa.svg";
-import BbIcon from "@/assets/icons/bb.svg";
+import type { Account } from "@/types/accounts.types";
+import { formatValue } from "@/utils/formatValue";
 
 import http from "@/services/http";
-
 
 
 const menu = ref(false);
@@ -319,7 +317,6 @@ const props = defineProps({
     required: true,
   },
 });
-const emit = defineEmits(["closeForm", "updateData"]);
 
 // Helper: decide se usa <v-icon> (mdi-*) ou <v-img> (URL/asset)
 const isMdiIcon = (val: unknown): val is string =>
@@ -350,14 +347,14 @@ const loading = ref(false);
 const showIconModal = ref(false);
 const showColorModal = ref(false);
 
-const form = ref({
+const form = ref<Account>({
   name: "",
   icon: props.walletType === "Conta" ? "mdi-bank" : "mdi-bank-off",
   color: "#0c99ed",
   tipoConta: props.walletType === "Conta" ? "Carteira" : "Cartão de Crédito",
-  saldoInicial: null,
+  saldo: formatValue(Number("0,00")) || "0,00",
   incluirEmSomaInicial: true,
-  limite: null,
+  limite: formatValue(Number("0,00")) || "0,00",
   conta: "Nenhuma",
   bandeira: "Mastercard",
   dia_fechamento: null,
@@ -366,14 +363,50 @@ const form = ref({
 
 const selectedBrandIcon = computed(() => {
   const brand = bandeiras.find(b => b.value === form.value.bandeira);
-  return brand ? brand.icon : null;
+  return brand?.icon ?? null;
 });
+
+type MoneyKeys = "saldo" | "limite";
+
+const formatValueSave = (campo: MoneyKeys) => {
+
+  const raw = String(form.value[campo] ?? "");
+  // 1. Pega apenas os dígitos do valor
+  let digits = raw.replace(/\D/g, "");
+
+  // 2. Remove zeros à esquerda, tratando o caso de ser tudo zero
+  digits = digits.replace(/^0+/, "") || "0";
+
+  // 3. Garante que o valor tenha pelo menos 3 dígitos para a formatação (ex: 50 vira 050)
+  while (digits.length < 3) {
+    digits = "0" + digits;
+  }
+
+  // 4. Separa a parte inteira e a decimal
+  const integerPart = digits.slice(0, -2);
+  const decimalPart = digits.slice(-2);
+
+  // 5. Formata a parte inteira com pontos como separadores de milhar
+  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+  // 6. Monta o valor final formatado
+  form.value[campo] = `${formattedIntegerPart},${decimalPart}`;
+};
 
 // --- VALIDAÇÃO ---
 const rules = {
   required: (value: any) => !!value || "Campo obrigatório.",
   positive: (value: number) => value > 0 || "O valor deve ser positivo.",
   dayOfMonth: (value: number) => (value >= 1 && value <= 31) || "Dia inválido.",
+  requiredValor: (value: string) => !!value || "O campo valor é obrigatório",
+  requiredValorMaiorQue0: (value: string) => {
+    if (!value) return "O campo valor é obrigatório";
+    const numericValue = parseFloat(value.replace(/\./g, "").replace(",", "."));
+    return (
+      (!isNaN(numericValue) && numericValue > 0) ||
+      "O campo valor deve ser maior que zero"
+    );
+  }
 };
 
 const isFormValid = computed(() => {
@@ -391,28 +424,7 @@ const isFormValid = computed(() => {
 });
 
 // --- MÉTODOS ---
-async function create() {
-  errorStore.unsetError();
-  try {
-    loading.value = true;
-    await http.post("/create", user.value);
-    emits("nextStep");
-  } catch (error) {
-    const axiosError = error as AxiosError<ApiErrorResponse>;
-    if (axiosError.response?.data.errors) {
-      errorStore.setErrorFromForm(axiosError);
-    } else {
-      errorStore.setErrorFromResponse(axiosError);
-    }
-  } finally {
-    loading.value = false;
-  }
-}
-
-
-
-
-
+const emit = defineEmits(["closeForm", "updateData"]);
 const submitForm = async () => {
   if (!isFormValid.value) return;
   loading.value = true;
@@ -420,9 +432,10 @@ const submitForm = async () => {
     const payload = {
       ...form.value,
       tipoConta: props.walletType === "Cartão" ? "Cartão de Crédito" : form.value.tipoConta,
-      saldo: form.value.saldoInicial,
+      // saldo: form.value.saldoInicial,
     };
     const res = await http.post("/wallet", payload);
+    console.log("Resposta do servidor:", res);
     emit("updateData");
     closeForm();
   } catch (error) {

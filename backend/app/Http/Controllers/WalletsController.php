@@ -9,9 +9,13 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use App\Http\Traits\ReleasesMonthTrait;
+use App\Http\Traits\UserDataTrait;
 
 class WalletsController extends Controller
 {
+    use ReleasesMonthTrait, UserDataTrait;
+
     public function saveWallet(Request $request)
     {
         $data = $request->validate(
@@ -111,22 +115,13 @@ class WalletsController extends Controller
         }
         // $user = User::find($request->user_id);
         // $carteiras = $user->carteiras;
-        $walletsData = Conta::select('name', 'icon', 'saldo', 'tipoConta')->get();
-        $wallets = [];
-        foreach ($walletsData as $wallet) {
-            $wallets[$wallet['name']] = [
-                'name' => $wallet['name'],
-                'icon' => $wallet['icon'],
-                'saldo' => $wallet['saldo'],
-                'tipoConta' => $wallet['tipoConta'],
-            ];
-        }
+        $data = $this->getUserData($user, 'wallets');
 
         LogController::addsLog($user->email, Actions::USER_CREATE_NEW_WALLET);
 
         return response()->json([
             'success' => 'Carteira add com sucesso.',
-            'wallets' => $wallets,
+            'wallets' => $data,
         ], 200);
     }
 
