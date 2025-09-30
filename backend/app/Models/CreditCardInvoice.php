@@ -11,10 +11,10 @@ class CreditCardInvoice extends Model
         'competencia',
         'data_fechamento',
         'data_vencimento',
-        'status',
-        'total_em_centavos',
-        'paid_at',
-        'payment_lancamento_id'
+        'status_fatura',
+        'total_fatura',
+        'pago_em',
+        'lancamento_pagamento_id'
     ];
 
     public function conta()

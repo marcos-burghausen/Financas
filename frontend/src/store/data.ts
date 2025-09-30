@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 
-export const userData = defineStore("data", {
+export const useDataStore = defineStore("data", {
     state: () => ({
         totalCreditCard: 0 as number,
         totalBalance: 0 as number,

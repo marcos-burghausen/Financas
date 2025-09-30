@@ -37,7 +37,7 @@ class WalletsController extends Controller
                 ],
                 'tipo_conta' => ['required', Rule::in(['Carteira', 'Conta Corrente', 'Poupança', 'Investimento', 'Outro', 'Cartão de Crédito'])],
                 'color' => 'nullable|string',
-                'conta' => 'nullable|string',
+                'conta_id' => 'nullable|integer|exists:contas,id',
                 'icon' => 'nullable|string',
                 'incluir_em_soma_inicial' => 'nullable|boolean',
                 'saldo' => [
@@ -84,21 +84,21 @@ class WalletsController extends Controller
                 'user_id' => $user->id,
                 'name' => $validatedData['name'],
                 'tipo_conta' => $validatedData['tipo_conta'],
-                'saldo_inicial' => $validatedData['saldo_inicial'] * 100,
+                // 'saldo_inicial' => $validatedData['saldo_inicial'] ?? $validatedData['saldo_inicial'] * 100 ?? 0,
+                'saldo' => (int) str_replace([',', '.'], '', $validatedData['saldo']),
                 'incluir_em_soma_inicial' => $validatedData['incluir_em_soma_inicial'],
                 'icon' => $validatedData['icon'] ?? 'default_icon',
-                'descricao' => $validatedData['descricao'],
+                // 'descricao' => $validatedData['descricao'],
                 'status_conta' => 'Ativo',
             ];
 
             if ($validatedData['tipo_conta'] === 'Cartão de Crédito') {
-                $dataToSave['limite'] = ($validatedData['limite'] ?? 0) * 100;
+                $dataToSave['limite'] = (int) str_replace([',', '.'], '', $validatedData['limite']);
                 $dataToSave['dia_vencimento'] = $validatedData['dia_vencimento'];
                 $dataToSave['dia_fechamento'] = $validatedData['dia_fechamento'];
-                $dataToSave['conta_pai_id'] = $validatedData['conta_pai_id'];
-                $dataToSave['saldo'] = 0;
+                $dataToSave['conta_pai_id'] = $validatedData['conta_id'];
             } else {
-                $dataToSave['saldo'] = $validatedData['saldo_inicial'] * 100;
+                $dataToSave['saldo'] = (int) str_replace([',', '.'], '', $validatedData['saldo_inicial']);
             }
 
             $conta = Conta::updateOrCreate(

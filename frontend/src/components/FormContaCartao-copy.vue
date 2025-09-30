@@ -233,28 +233,31 @@
 
             <!-- CONTA (ícone antes do nome no valor e nos itens) -->
             <v-select
-              v-model="form.conta"
-              :items="contas"
+              v-model="form.conta_id"
+              :items="wallets"
+              item-title="name"
+              item-value="id"
               label="Conta"
               variant="underlined"
               class="imput"
               :rules="[rules.required]"
+              clearable
             >
               <template #selection="{ item }">
                 <div class="d-flex align-center text-truncate">
                   <v-icon
-                    :icon="item.raw.icon"
+                    :icon="item?.raw?.icon ?? 'mdi-wallet-outline'"
                     size="25"
                     class="mr-2"
                   />
-                  <span class="text-truncate">{{ item.title }}</span>
+                  <span class="text-truncate">{{ item?.raw?.name ?? 'Nenhuma' }}</span>
                 </div>
               </template>
               <template #item="{ props, item }">
                 <v-list-item
                   v-bind="props"
-                  :prepend-icon="item.raw.icon"
-                  :title="item.raw.title"
+                  :prepend-icon="item.raw?.icon ?? 'mdi-wallet-outline'"
+                  :title="item.raw?.name ?? 'Nenhuma'"
                 />
               </template>
             </v-select>
@@ -293,7 +296,7 @@
 
 <script setup lang="ts">
 import { useWalletsStore } from "@/store/wallets";
-import { computed, ref } from "vue";
+import { computed, PropType, ref } from "vue";
 
 // Assets das bandeiras
 import BbIcon from "@/assets/icons/bb.svg";
@@ -316,7 +319,35 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  wallets: {
+    type: Array as PropType<Array<Account>>,
+    required: true,
+  }
 });
+console.log(props.wallets);
+
+/** Item padrão (nenhuma conta selecionada) */
+const DEFAULT_ITEM = { id: -1, name: "Nenhuma", icon: "mdi-wallet-outline" };
+
+/** Lista exibida no select: item padrão + carteiras reais */
+const walletItems = computed(() => [DEFAULT_ITEM, ...props.wallets]);
+
+/** Conta selecionada (objeto) a partir do id do form */
+const selectedWallet = computed<Account>(() => {
+  if (form.value.conta_id == null) return null;
+  return walletItems.value.find(w => w.id === form.value.conta_id) ?? null;
+});
+
+/** Ícone que aparece no input quando abrir/selecionar */
+
+const selectedIcon = computed(() => {
+  const w = walletItems.value.find(w => Number(w.id) === form.value.conta_id);
+  return w?.icon ?? "mdi-wallet-outline";
+});
+
+
+
+
 
 // Helper: decide se usa <v-icon> (mdi-*) ou <v-img> (URL/asset)
 const isMdiIcon = (val: unknown): val is string =>
@@ -351,11 +382,11 @@ const form = ref<Account>({
   name: "",
   icon: props.walletType === "Conta" ? "mdi-bank" : "mdi-bank-off",
   color: "#0c99ed",
-  tipoConta: props.walletType === "Conta" ? "Carteira" : "Cartão de Crédito",
+  tipo_conta: props.walletType === "Conta" ? "Carteira" : "Cartão de Crédito",
   saldo: formatValue(Number("0,00")) || "0,00",
-  incluirEmSomaInicial: true,
+  incluir_em_soma_inicial: true,
   limite: formatValue(Number("0,00")) || "0,00",
-  conta: "Nenhuma",
+  conta_id: DEFAULT_ITEM.id as number | null,
   bandeira: "Mastercard",
   dia_fechamento: null,
   dia_vencimento: null,
@@ -411,7 +442,7 @@ const rules = {
 
 const isFormValid = computed(() => {
   if (props.walletType === "Conta") {
-    return !!form.value.name && !!form.value.tipoConta;
+    return !!form.value.name && !!form.value.tipo_conta;
   }
   if (props.walletType === "Cartão") {
     const diaFechamentoValido =
@@ -425,13 +456,15 @@ const isFormValid = computed(() => {
 
 // --- MÉTODOS ---
 const emit = defineEmits(["closeForm", "updateData"]);
+
 const submitForm = async () => {
   if (!isFormValid.value) return;
   loading.value = true;
   try {
     const payload = {
       ...form.value,
-      tipoConta: props.walletType === "Cartão" ? "Cartão de Crédito" : form.value.tipoConta,
+      tipo_conta: props.walletType === "Cartão" ? "Cartão de Crédito" : form.value.tipo_conta,
+      conta_id: form.value.conta_id === DEFAULT_ITEM.id ? null : form.value.conta_id,
       // saldo: form.value.saldoInicial,
     };
     const res = await http.post("/wallet", payload);

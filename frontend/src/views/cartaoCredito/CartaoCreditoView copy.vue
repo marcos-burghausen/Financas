@@ -4,12 +4,12 @@
       v-if="formCartao"
       :mes-ano="mesAno"
       wallet-type="Cartão"
+      :wallets="wallets"
       @update-data="updateData"
       @close-form="closeForm"
     />
     <FormLancamentos
       v-if="formLancamentos"
-      :releases="selectedRelease"
       rota="expense"
       :mes-ano="mesAno"
       transaction-type="Despesa"
@@ -210,7 +210,7 @@
 import IconeMastercard from "@/assets/icons/mastercard.svg";
 import IconeSicredi from "@/assets/icons/sicredi35.svg";
 
-import FormCartaoCredito from "@/components/FormContaCartao.vue";
+import FormCartaoCredito from "@/components/FormContaCartao-copy.vue";
 import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
 // import ModalNovaConta from "@/components/ModalNovaConta.vue";
 import { formatValue } from "@/utils/formatValue";
@@ -221,14 +221,15 @@ import { ref, shallowRef } from "vue";
 
 const sheet = shallowRef(false);
   const tiles = [
-    { img: "mdi-credit-card-plus-outline", title: "Novo cartão" },
+    { img: "mdi-credit-card-plus-outline", title: "Novo cartão", action: () => { openCreateForm(); } },
     { img: "mdi-gift-outline", title: "Novo estorno" },
-    { img: "mdi-credit-card-outline", title: "Despesa cartão", action: () => { openCreateForm(); } },
+    { img: "mdi-credit-card-outline", title: "Despesa cartão" },
   ];
 
 const useWallets = useWalletsStore();
 const useUser = useUserStore();
 let creditCard = ref(useWallets.walletsData.cartoes);
+let wallets = ref(useWallets.walletsData.contas);
 const mesAno = ref<string>(useUser.mesAno || "");
 const formCartao = ref(false);
 const formLancamentos = ref(false);

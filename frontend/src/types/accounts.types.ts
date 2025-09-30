@@ -8,12 +8,13 @@ export interface Account {
   saldo_inicial?: string;
   incluir_em_soma_inicial: boolean;
   descricao?: string;
-  tipo_conta: 'Carteira' | 'Conta Corrente' | 'Poupança' | 'Investimento' | 'Outro' | 'Cartão de Crédito';
-  status_conta: 'Ativo' | 'Inativo';
+  tipo_conta: "Carteira" | "Conta Corrente" | "Poupança" | "Investimento" | "Outro" | "Cartão de Crédito";
+  status_conta: "Ativo" | "Inativo";
   color: string;
   limite: string;
   dia_fechamento?: number | null;
   dia_vencimento?: number | null;
+  conta_id?: number | null;
   conta_pai_id?: number | null;
   bandeira?: string;
   updatedAt?: string;

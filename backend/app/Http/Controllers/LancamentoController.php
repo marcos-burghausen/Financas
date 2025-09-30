@@ -33,13 +33,105 @@ class LancamentoController extends Controller
             $valorInputEmCentavos = (int) str_replace([',', '.'], '', $data['valor']);
             $statusInicial = $data['status'];
 
-            $conta = Conta::where('user_id', $user->id)->where('name', $data['conta'])->first();
+            $conta = Conta::where('user_id', $user->id)->where('name', $data['conta_id'])->first();
 
             if (!$conta) {
                 DB::rollBack();
                 return response()->json(['error' => 'Conta não encontrada'], 404);
             }
 
+            // ---- FLUXO ESPECIAL: CARTÃO DE CRÉDITO ----
+            if ($data['tipo'] === 'CartaoCredito') {
+                if ($conta->tipoConta !== 'Cartão de Crédito') {
+                    DB::rollBack();
+                    return response()->json(['error' => 'A conta selecionada não é um Cartão de Crédito'], 422);
+                }
+
+                $dataCompra = new DateTime($data['dataLancamento']);
+                $diaFechamento = (int) $conta->dia_fechamento;
+
+                if ($recorrencia === 'Parcelado' && isset($data['numParcelas']) && (int)$data['numParcelas'] > 1) {
+                    $numParcelas = (int) $data['numParcelas'];
+                    $groupId = Str::uuid();
+                    $tipoParcela = $data['tipoParcela'] ?? 'total';
+
+                    if ($tipoParcela === 'total') {
+                        $valorBaseParcela = intdiv($valorInputEmCentavos, $numParcelas);
+                        $resto = $valorInputEmCentavos % $numParcelas;
+                    } else {
+                        $valorBaseParcela = $valorInputEmCentavos;
+                        $resto = 0;
+                    }
+
+                    for ($i = 1; $i <= $numParcelas; $i++) {
+                        $competencia = $this->calcularCompetenciaFatura((clone $dataCompra)->modify('+' . ($i - 1) . ' month'), $diaFechamento);
+                        $fatura = $this->obterOuCriarFatura($conta, $competencia);
+                        $valorDaParcela = $valorBaseParcela + (($i === 1 && $resto > 0) ? $resto : 0);
+
+                        $l = Lancamento::create([
+                            'user_id' => $user->id,
+                            'installment_group_id' => $groupId,
+                            'descricao' => $data['descricao'] . " ($i/" . $numParcelas . ")",
+                            'valor' => $valorDaParcela,
+                            'tipo' => 'CartaoCredito',
+                            'is_estorno' => false,
+                            'recorrencia' => 'Parcelado',
+                            'numParcelas' => $numParcelas,
+                            'parcelaAtual' => $i,
+                            'tipoParcela' => $tipoParcela,
+                            'periodicidade' => $data['periodicidade'] ?? null,
+                            'dataVencimento' => $fatura->data_vencimento,
+                            'status' => $statusInicial,
+                            'categoria' => $data['categoria'],
+                            'subcategoria' => $data['subcategoria'],
+                            'dataLancamento' => $data['dataLancamento'],
+                            'conta_id' => $conta->id,
+                            'invoice_id' => $fatura->id,
+                        ]);
+
+                        if ($statusInicial === 'Efetivada') {
+                            $this->atualizarSaldoCartao($conta, $l->valor, 'compra');
+                        }
+                        $this->recalcInvoiceTotals($fatura, $user->id);
+                    }
+                } else {
+                    // À vista
+                    $competencia = $this->calcularCompetenciaFatura(clone $dataCompra, $diaFechamento);
+                    $fatura = $this->obterOuCriarFatura($conta, $competencia);
+
+                    $l = Lancamento::create([
+                        'user_id' => $user->id,
+                        'descricao' => $data['descricao'],
+                        'valor' => $valorInputEmCentavos,
+                        'tipo' => 'CartaoCredito',
+                        'is_estorno' => false,
+                        'recorrencia' => 'Não recorrente',
+                        'dataVencimento' => $fatura->data_vencimento,
+                        'status' => $statusInicial,
+                        'categoria' => $data['categoria'],
+                        'subcategoria' => $data['subcategoria'],
+                        'dataLancamento' => $data['dataLancamento'],
+                        'conta_id' => $conta->id,
+                        'invoice_id' => $fatura->id,
+                    ]);
+
+                    if ($statusInicial === 'Efetivada') {
+                        $this->atualizarSaldoCartao($conta, $l->valor, 'compra');
+                    }
+                    $this->recalcInvoiceTotals($fatura, $user->id);
+                }
+
+                DB::commit();
+                Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Cartão de Crédito', $data['descricao']));
+
+                $dataResp = $this->getUserData($user, $data['mesAno'], ['expenses', 'wallets']);
+                return response()->json([
+                    'success' => "Lançamento de cartão cadastrado com sucesso",
+                    ...$dataResp
+                ], 201);
+            }
+
+            // ---- FLUXO PADRÃO: RECEITA / DESPESA ---
             // CASO 1: Lançamento Parcelado
             if ($recorrencia === 'Parcelado' && isset($data['numParcelas']) && $data['numParcelas'] > 1) {
 

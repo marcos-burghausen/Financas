@@ -1,15 +1,14 @@
 // frontend/src/store/creditCard.ts
-import http from '@/services/http'
-import type { CreditCardInvoice } from '@/types/transactions.types'
-import { defineStore } from 'pinia'
-import { useData } from './data'
+import http from "@/services/http";
+import type { CreditCardInvoice } from "@/types/transactions.types";
+import { defineStore } from "pinia";
 
 interface CreditCardState {
   invoices: CreditCardInvoice[]
   isLoading: boolean
 }
 
-export const useCreditCardStore = defineStore('creditCard', {
+export const useCreditCardStore = defineStore("creditCard", {
   state: (): CreditCardState => ({
     invoices: [],
     isLoading: false,
@@ -26,7 +25,7 @@ export const useCreditCardStore = defineStore('creditCard', {
         const { data } = await http.get(`/contas/${cardAccountId}/invoices`);
         this.invoices = data.invoices;
       } catch (error) {
-        console.error('Erro ao buscar faturas:', error);
+        console.error("Erro ao buscar faturas:", error);
         this.invoices = [];
       } finally {
         this.isLoading = false;
@@ -37,14 +36,14 @@ export const useCreditCardStore = defineStore('creditCard', {
       this.isLoading = true;
       const dataStore = useData();
       try {
-        const { data } = await http.post('/lancamento/pagar-fatura', payload);
+        const { data } = await http.post("/lancamento/pagar-fatura", payload);
         dataStore.setData(data); // Atualiza dados globais
         const invoice = this.invoices.find(inv => inv.id === payload.invoice_id);
         if (invoice) {
-          invoice.status = 'Paga';
+          invoice.status = "Paga";
         }
       } catch (error) {
-        console.error('Erro ao pagar fatura:', error);
+        console.error("Erro ao pagar fatura:", error);
         throw error;
       } finally {
         this.isLoading = false;
@@ -54,14 +53,14 @@ export const useCreditCardStore = defineStore('creditCard', {
     async createRefund(payload: { lancamento_original_id: number; valor: number }, cardId: number) {
         this.isLoading = true;
         try {
-            await http.post('/lancamento/estorno', payload);
+            await http.post("/lancamento/estorno", payload);
             await this.fetchInvoices(cardId); // Recarrega as faturas para mostrar o estorno
         } catch (error) {
-            console.error('Erro ao criar estorno:', error);
+            console.error("Erro ao criar estorno:", error);
             throw error;
         } finally {
             this.isLoading = false;
         }
     }
   },
-})
+});

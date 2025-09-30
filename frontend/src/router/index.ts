@@ -67,7 +67,7 @@ const router = createRouter({
         {
             path: "/cartoes",
             name: "cartoes",
-            component: () => import("../views/cartaoCredito/CartaoCreditoView.vue"),
+            component: () => import("../views/cartaoCredito/CartaoCreditoView copy.vue"),
             meta: {
                 auth: true
             }
