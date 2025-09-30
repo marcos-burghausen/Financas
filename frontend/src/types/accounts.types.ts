@@ -1,20 +1,21 @@
-// src/types/accounts.types.ts
-// Represents a user account (e.g., bank account, wallet)
+
 export interface Account {
-  descricao?: string;
-  color: string;
-  icon: string;
   id?: number;
-  incluirEmSomaInicial: boolean;
+  user_id: number;
   name: string;
+  icon: string;
   saldo?: string;
+  saldo_inicial?: string;
+  incluir_em_soma_inicial: boolean;
+  descricao?: string;
+  tipo_conta: 'Carteira' | 'Conta Corrente' | 'Poupança' | 'Investimento' | 'Outro' | 'Cartão de Crédito';
+  status_conta: 'Ativo' | 'Inativo';
+  color: string;
   limite: string;
-  saldoInicial?: string;
-  tipoConta: string;
-  conta: string;
-  bandeira: string;
-  dia_fechamento: number | null,
-  dia_vencimento: number | null,
+  dia_fechamento?: number | null;
+  dia_vencimento?: number | null;
+  conta_pai_id?: number | null;
+  bandeira?: string;
   updatedAt?: string;
 }
 

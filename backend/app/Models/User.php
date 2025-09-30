@@ -50,6 +50,65 @@ class User extends Authenticatable implements JWTSubject
         'password'           => 'hashed',
     ];
 
+    /**
+     * Get the identifier that will be stored in the subject claim of the JWT.
+     *
+     * @return mixed
+     */
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    /**
+     * Return a key value array, containing any custom claims to be added to the JWT.
+     *
+     * @return array
+     */
+    public function getJWTCustomClaims()
+    {
+        return [];
+    }
+
+    /**
+     * A relação principal e única para todos os lançamentos do usuário.
+     */
+    public function lancamentos()
+    {
+        return $this->hasMany(Lancamento::class);
+    }
+
+    /**
+     * RELAÇÃO FILTRADA: Retorna a query para os lançamentos do tipo 'Receita'.
+     */
+    public function revenues()
+    {
+        return $this->hasMany(Lancamento::class)->where('tipo_lancamento', 'Receita');
+    }
+
+    /**
+     * RELAÇÃO FILTRADA: Retorna a query para os lançamentos do tipo 'Despesa'.
+     */
+    public function expenses()
+    {
+        return $this->hasMany(Lancamento::class)->where('tipo_lancamento', 'Despesa');
+    }
+
+    public function contas()
+    {
+        return $this->hasMany(Conta::class);
+    }
+
+    public function categories()
+    {
+        return $this->hasMany(Category::class);
+    }
+
+    public function subcategories()
+    {
+        return $this->hasMany(Subcategory::class);
+    }
+
     protected static function boot()
     {
         parent::boot();
@@ -367,45 +426,7 @@ class User extends Authenticatable implements JWTSubject
             }
         });
     }
-
-    public function categories()
-    {
-        return $this->hasMany(Category::class);
-    }
-
-    public function subcategories()
-    {
-        return $this->hasMany(Subcategory::class);
-    }
-
-
-    public function lancamentos()
-    {
-        //hasMany (tem muitos)
-        return $this->hasMany(Lancamento::class);
-    }
-
-    /**
-     * RELAÇÃO FILTRADA: Retorna a query para os lançamentos do tipo 'Despesa'.
-     */
-    public function expenses()
-    {
-        return $this->lancamentos()->where('tipo', 'Despesa');
-    }
-
-    /**
-     * RELAÇÃO FILTRADA: Retorna a query para os lançamentos do tipo 'Receita'.
-     */
-    public function revenues()
-    {
-        return $this->lancamentos()->where('tipo', 'Receita');
-    }
-
-
-    public function contas()
-    {
-        return $this->hasMany(Conta::class);
-    }
+}
 
     // public function calculateTotalBalance()
     // {
@@ -424,24 +445,3 @@ class User extends Authenticatable implements JWTSubject
     
 
     // Rest omitted for brevity
-
-    /**
-     * Get the identifier that will be stored in the subject claim of the JWT.
-     *
-     * @return mixed
-     */
-    public function getJWTIdentifier()
-    {
-        return $this->getKey();
-    }
-
-    /**
-     * Return a key value array, containing any custom claims to be added to the JWT.
-     *
-     * @return array
-     */
-    public function getJWTCustomClaims()
-    {
-        return [];
-    }
-}

@@ -1,529 +1,104 @@
 <template>
   <div class="container__modal">
-    <v-form
-      class="w-100"
-      @submit.prevent="submitForm"
-    >
-      <div>
-        <div class="header__items d-flex justify-content-between fixed-top py-10 align-items-center">
-          <div class="d-flex align-items-center">
-            <v-btn
-              :disabled="loading"
-              class="close fs-5 ms-2"
-              icon="mdi-close"
-              @click="closeForm"
-            />
-            <span class="fs-5 ms-2"> {{ walletType === 'Cartão' ? 'Novo Cartão' : 'Nova Conta' }} </span>
-          </div>
-          <v-btn
-            :disabled="loading || !isFormValid"
-            :loading="loading"
-            class="btn m-0 me-3 p-0 px-2"
-            type="submit"
-            rounded="xl"
-          >
-            Salvar
-          </v-btn>
+    <v-form v-model="isFormValid" class="w-100" @submit.prevent="submitForm">
+      <div class="header__items d-flex justify-content-between fixed-top py-10 align-items-center">
+        <div class="d-flex align-items-center">
+          <v-btn :disabled="loading" class="close fs-5 ms-2" icon="mdi-close" @click="closeForm" />
+          <span class="fs-5 ms-2"> {{ isCreditCard ? 'Novo Cartão' : 'Nova Conta' }} </span>
         </div>
+        <v-btn :disabled="loading || !isFormValid" :loading="loading" class="btn m-0 me-3 p-0 px-2" type="submit" rounded="xl">
+          Salvar
+        </v-btn>
+      </div>
 
-        <div class="form-body">
-          <div v-if="walletType === 'Conta'">
-            <v-text-field
-              v-model="form.name"
-              label="Nome da Conta"
-              variant="underlined"
-              class="imput"
-              :rules="[rules.required]"
-            />
-            <v-text-field
-              v-model="form.saldoInicial"
-              label="Valor Inicial"
-              variant="underlined"
-              class="imput"
-              type="number"
-              prefix="R$"
-            />
-            <v-select
-              v-model="form.tipo"
-              :items="['Conta Corrente', 'Poupança', 'Investimento', 'Outro']"
-              label="Tipo de Conta"
-              variant="underlined"
-              class="imput"
-              :rules="[rules.required]"
-            />
-            <div class="d-flex justify-content-between align-items-center mt-4">
-              <span>Incluir na soma do total?</span>
-              <v-switch
-                v-model="form.incluirEmSomaInicial"
-                color="success"
-                inset
-                hide-details
-              />
-            </div>
-          </div>
+      <div class="form-body">
+        <v-select v-model="form.tipo_conta" label="Tipo de Conta" variant="underlined" :items="['Conta Corrente', 'Poupança', 'Carteira', 'Investimento', 'Cartão de Crédito', 'Outro']" prepend-inner-icon="mdi-bank" />
 
-          <div v-if="walletType === 'Cartão'">
-            <v-text-field
-              v-model="form.name"
-              label="Nome do Cartão"
-              variant="underlined"
-              class="imput"
-              :rules="[rules.required]"
-            >
-              <template #prepend-inner>
-                <v-icon
-                  icon="mdi-text"
-                />
-              </template>
-              <template
-                #append-inner
-              >
-                <v-menu
-                  v-model="menu"
-                  :close-on-content-click="false"
-                  location="end"
-                >
-                  <template #activator="{ props }">
-                    <div 
-                      v-bind="props" 
-                      class="color-input-activator"
-                      :style="{ backgroundColor: form.color }"
-                    />
-                  </template>
+        <v-text-field v-model="form.name" label="Nome da Conta / Cartão" variant="underlined" class="imput" :rules="[rules.required]" prepend-inner-icon="mdi-text" />
 
-                  <v-card>
-                    <v-color-picker
-                      v-model="form.color"
-                      hide-details="auto"
-                      label="Colored Pip"
-                      :model-value="form.color"
-                      mode="hex"
-                      color-pip
-                    />
-                    <v-card-actions>
-                      <v-spacer />
-                      <v-btn
-                        color="primary"
-                        variant="text"
-                        @click="menu = false, form.color = '#163dc0'"
-                      >
-                        Cancelar
-                      </v-btn>
-                      <v-btn
-                        color="primary"
-                        variant="text"
-                        @click="menu = false"
-                      >
-                        OK
-                      </v-btn>
-                    </v-card-actions>
-                  </v-card>
-                </v-menu>
-              </template>
-            </v-text-field>
+        <v-text-field v-if="!isCreditCard" v-model="form.saldo_inicial" label="Valor Inicial" variant="underlined" type="number" step="0.01" class="imput" :rules="[rules.required]" prepend-inner-icon="mdi-cash" />
+
+        <template v-if="isCreditCard">
+          <v-text-field v-model="form.limite" label="Limite do Cartão" variant="underlined" type="number" step="0.01" class="imput" :rules="[rules.required]" prepend-inner-icon="mdi-credit-card-chip" />
           
-            <v-text-field
-              v-model="form.limite"
-              label="Limite do Cartão"
-              variant="underlined"
-              class="imput"
-              type="number"
-              prefix="R$"
-              :rules="[rules.required, rules.positive]"
-            >
-              <template #prepend-inner>
-                <v-icon
-                  icon="mdi-currency-usd"
-                />
-              </template>
-            </v-text-field>
+          <v-row>
+            <v-col cols="6">
+              <v-text-field v-model="form.dia_fechamento" label="Dia do Fechamento" variant="underlined" type="number" min="1" max="31" :rules="[rules.required]" />
+            </v-col>
+            <v-col cols="6">
+              <v-text-field v-model="form.dia_vencimento" label="Dia do Vencimento" variant="underlined" type="number" min="1" max="31" :rules="[rules.required]" />
+            </v-col>
+          </v-row>
           
-            <v-text-field
-              v-model="form.saldo"
-              label="Fatura Atual"
-              variant="underlined"
-              class="imput"
-              type="number"
-              prefix="R$"
-              :rules="[rules.required, rules.positive]"
-            >
-              <template #prepend-inner>
-                <v-icon
-                  icon="mdi-currency-usd"
-                />
-              </template>
-            </v-text-field>
-
-            <v-sel
-              v-model="form.bandeira"
-              :items="bandeiras"
-              label="Bandeira"
-              variant="underlined"
-              class="imput"
-              :rules="[rules.required]"
-            >
-              <template #prepend-inner>
-                <v-icon
-                  icon="mdi-credit-card-outline"
-                />
-              </template>
-              <template #chip="{ props, item }">
-                <v-chip
-                  v-bind="props"
-                  :prepend-icon="item.raw.avatar"
-                />
-              </template>
-              <template #append-inner>
-                <component
-                  :is="selectedBrandIcon"
-                  v-if="selectedBrandIcon"
-                  class="brand-icon"
-                />
-              </template>
-            </v-sel>
-
-            <v-select
-              v-model="form.conta"
-              :items="bandeiras"
-              label="Conta"
-              variant="underlined"
-              class="imput"
-              :rules="[rules.required]"
-            >
-              <template #prepend-inner>
-                <v-icon
-                  icon="mdi-bank-outline"
-                />
-              </template>
-            </v-select>
-            <v-text-field
-              v-model="form.dia_fechamento"
-              label="Dia de Fechamento"
-              variant="underlined"
-              class="imput"
-              type="number"
-              :rules="[rules.required, rules.dayOfMonth]"
-            >
-              <template #prepend-inner>
-                <v-icon
-                  icon="mdi-calendar-remove-outline"
-                />
-              </template>
-            </v-text-field>
-            <v-text-field
-              v-model="form.dia_vencimento"
-              label="Dia de Vencimento"
-              variant="underlined"
-              class="imput"
-              type="number"
-              :rules="[rules.required, rules.dayOfMonth]"
-            >
-              <template #prepend-inner>
-                <v-icon
-                  icon="mdi-calendar-today-outline"
-                />
-              </template>
-            </v-text-field>
-          </div>
-
-          <div class="d-flex justify-content-between mt-4">
-            <div
-              class="icon-color-selector"
-              @click="showIconModal = true"
-            >
-              <span class="label">Ícone</span>
-              <div class="selector-box">
-                <v-icon
-                  :icon="form.icon"
-                  size="24"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+          <v-select v-model="form.conta_pai_id" label="Conta para Débito (Opcional)" variant="underlined" :items="contasParaPagamento" item-title="name" item-value="id" clearable prepend-inner-icon="mdi-link-variant" />
+        </template>
+        
+        <v-checkbox v-model="form.incluir_em_soma_inicial" :label="isCreditCard ? 'Incluir limite na soma total' : 'Incluir saldo no total geral'" />
       </div>
     </v-form>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useWalletsStore } from "@/store/wallets";
-import { computed, ref, watch } from "vue";
-// 1. IMPORTAR OS MODAIS
+import { useDataStore } from '@/store/data';
+import { useWalletsStore } from '@/store/wallets';
+import type { Conta } from '@/types/accounts.types';
+import { computed, ref, watch } from 'vue';
 
-import MastercardIcon from "@/assets/icons/mastercard.svg";
-import VisaIcon from "@/assets/icons/visa.svg";
+const walletsStore = useWalletsStore();
+const dataStore = useDataStore();
+const emit = defineEmits(['close']);
 
-const menu = ref(false);
-const selectedColor = ref("#4CAF50"); // Cor inicial
-
-
-
-
-
-  const srcs = {
-    1: "https://cdn.vuetifyjs.com/images/lists/1.jpg",
-    2: "https://cdn.vuetifyjs.com/images/lists/2.jpg",
-    3: "https://cdn.vuetifyjs.com/images/lists/3.jpg",
-    4: "https://cdn.vuetifyjs.com/images/lists/4.jpg",
-    5: "https://cdn.vuetifyjs.com/images/lists/5.jpg",
-  };
-  const cards = [
-    { name: "mastercard", avatar: MastercardIcon },
-    { name: "visa", avatar: VisaIcon },
-    { name: "Trevor Hansen", avatar: "mdi-credit-card-outline" },
-    { name: "Tucker Smith", avatar: "mdi-credit-card-outline" },
-    { name: "Britta Holt", avatar: "mdi-credit-card-outline" },
-    { name: "Jane Smith ", avatar: "mdi-credit-card-outline" },
-    { name: "John Smith", avatar: "mdi-credit-card-outline" },
-    { name: "Sandra Williams", avatar: "mdi-credit-card-outline" },
-  ];
-
-  const autoUpdate = ref(true);
-  const friends = ref(["mastercard"]);
-  const isUpdating = ref(false);
-  const name = ref("Midnight Crew");
-  const title = ref("The summer breeze");
-
-  let timeout = -1;
-  watch(isUpdating, val => {
-    clearTimeout(timeout);
-    if (val) {
-      timeout = setTimeout(() => (isUpdating.value = false), 3000);
-    }
-  });
-
-
-
-
-
-
-
-
-// --- PROPS E EMITS ---
-const props = defineProps({
-  walletType: {
-    type: String,
-    required: true,
-  },
-});
-const emit = defineEmits(["closeForm", "updateData"]);
-
-const bandeiras = [
-  { title: "Mastercard", value: "Mastercard", icon: MastercardIcon },
-  { title: "Visa", value: "Visa", icon: VisaIcon },
-  { title: "Elo", value: "Elo", icon: "mdi-credit-card-outline" }, // Usando MDI como fallback
-  { title: "American Express", value: "American Express", icon: "mdi-credit-card-outline" },
-  { title: "Outra", value: "Outra", icon: "mdi-credit-card-outline" },
-];
-
-const selectedBrandIcon = computed(() => {
-  const brand = bandeiras.find(b => b.value === form.value.bandeira);
-  return brand ? brand.icon : null;
+const form = ref<Partial<Conta>>({
+  name: '',
+  tipo_conta: 'Conta Corrente',
+  saldo_inicial: 0,
+  incluir_em_soma_inicial: true,
+  limite: 0,
+  dia_fechamento: 1,
+  dia_vencimento: 10,
+  conta_pai_id: null,
 });
 
-// --- STATE MANAGEMENT ---
-const useWallets = useWalletsStore();
 const loading = ref(false);
+const isFormValid = ref(false);
 
-// 2. ADICIONAR CONTROLES DE VISIBILIDADE DOS MODAIS
-const showIconModal = ref(false);
-const showColorModal = ref(false);
+const isCreditCard = computed(() => form.value.tipo_conta === 'Cartão de Crédito');
+const contasParaPagamento = computed(() => dataStore.wallets.contas);
 
-const form = ref({
-  name: "",
-  icon: "mdi-wallet", // Ícone padrão
-  color: "#163dc0", // Cor padrão
-  tipo: props.walletType === "Conta" ? "Conta Corrente" : "Cartão de Crédito",
-  saldoInicial: null,
-  incluirEmSomaInicial: true,
-  limite: null,
-  conta: "Nenhuma",
-  bandeira: "Mastercard",
-  dia_fechamento: null,
-  dia_vencimento: null,
-});
-
-// --- VALIDAÇÃO (sem alterações) ---
 const rules = {
-  required: (value: any) => !!value || "Campo obrigatório.",
-  positive: (value: number) => value > 0 || "O valor deve ser positivo.",
-  dayOfMonth: (value: number) => (value >= 1 && value <= 31) || "Dia inválido.",
+  required: (value: any) => !!value || 'Campo obrigatório.',
 };
 
-const isFormValid = computed(() => {
-  if (props.walletType === "Conta") {
-    return !!form.value.name && !!form.value.tipo;
+watch(isCreditCard, (isCard) => {
+  if (isCard) {
+    form.value.incluir_em_soma_inicial = false;
+    form.value.saldo_inicial = 0;
+  } else {
+    form.value.incluir_em_soma_inicial = true;
   }
-  if (props.walletType === "Cartão") {
-    const diaFechamentoValido = form.value.dia_fechamento && form.value.dia_fechamento >= 1 && form.value.dia_fechamento <= 31;
-    const diaVencimentoValido = form.value.dia_vencimento && form.value.dia_vencimento >= 1 && form.value.dia_vencimento <= 31;
-    return !!form.value.name && !!form.value.limite && !!form.value.bandeira && diaFechamentoValido && diaVencimentoValido;
-  }
-  return false;
-});
+}, { immediate: true });
 
-// --- MÉTODOS ---
+const closeForm = () => emit('close');
+
 const submitForm = async () => {
-  // ... (lógica de submit sem alterações)
   if (!isFormValid.value) return;
   loading.value = true;
   try {
-    const payload = {
-        ...form.value,
-        tipo: props.walletType === "Cartão" ? "Cartão de Crédito" : form.value.tipo,
-        saldo: form.value.saldoInicial,
-    };
-    await useWallets.store(payload);
-    emit("updateData");
+    await walletsStore.saveWallet(form.value);
     closeForm();
   } catch (error) {
-    console.error("Erro ao salvar:", error);
+    console.error(error);
   } finally {
     loading.value = false;
   }
 };
-
-const closeForm = () => {
-  emit("closeForm");
-};
-
-// 3. MÉTODOS PARA ATUALIZAR FORMULÁRIO COM DADOS DOS MODAIS
-const handleIconSelect = (iconName: string) => {
-  form.value.icon = iconName;
-  showIconModal.value = false;
-};
-
-const handleColorSelect = (colorHex: string) => {
-  form.value.color = colorHex;
-  showColorModal.value = false;
-};
 </script>
 
 <style scoped>
-
-.color-input-activator {
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 50%;
-  /* padding: 8px; */
-  width: 30px;
-  height: 30px;
-  /* display: flex;
-  align-items: center;
-  justify-content: space-between; */
-  cursor: pointer;
-  background-color: transparent;
-}
-
-.color-input-activator .label {
-  font-size: 1rem;
-}
-
-.color-dot {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 1px solid white;
-}
-.brand-icon {
-  height: 24px; /* Ajuste a altura conforme necessário */
-  width: auto;
-}
-
-
-
-
-.v_color_picker_modal {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  position: fixed;
-  top: 0;
-  left: 0;
-  background-color: rgba(0, 0, 0, 0.11);
-   z-index: 1000;
-}
-.container__modal {
-  background-color: #1e1e1e;
-  color: white;
-  height: 100%;
-  width: 100%;
-}
-
-.header__items {
-  background-color: #1e1e1e;
-  width: 100%;
-  z-index: 10;
-  /* Garante que o header fique sobre o conteúdo */
-}
-
-.form-body {
-  padding: 120px 16px 16px 16px;
-  /* Padding no topo para não ficar embaixo do header */
-}
-
-.close {
-  background: transparent;
-  color: white;
-  box-shadow: none;
-}
-
-.btn {
-  background-color: #77d08e;
-  color: #1e1e1e;
-  text-transform: none;
-  font-weight: bold;
-}
-
-.imput {
-  margin-top: 10px;
-}
-
-/* Estilos para a seção de ícone e cor */
-.icon-color-selector {
-  display: flex;
-  flex-direction: column;
-}
-
-.icon-color-selector .label {
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 4px;
-}
-
-.icon-color-selector .selector-box {
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 8px;
-  padding: 8px;
-  width: 80px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.color-dot {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 1px solid white;
-}
-
+.container__modal { background-color: #1e1e1e; color: white; height: 100vh; width: 100vw; }
+.header__items { background-color: #1e1e1e; width: 100%; z-index: 10; padding: 10px 0; }
+.form-body { padding: 80px 16px 16px 16px; }
+.close { background: transparent; color: white; box-shadow: none; }
+.btn { background-color: #0c99ed; color: #1e1e1e; text-transform: none; font-weight: bold; }
 </style>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

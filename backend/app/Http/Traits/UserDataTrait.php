@@ -4,6 +4,7 @@ namespace App\Http\Traits;
 
 use DateTime;
 use App\Http\Traits\ReleasesMonthTrait;
+use Carbon\Carbon;
 
 trait UserDataTrait
 {
@@ -20,14 +21,20 @@ trait UserDataTrait
 
     private function getUserData(object $user, $date = null, array $sections = []): array
     {
-        $mes = $date ?? date('Y-m');
-
+        $mes = $date ?? Carbon::now()->format('Y-m');
         $fetchAll = empty($sections);
-
         $dataToReturn = [];
+
+        $year = Carbon::parse($mes)->year;
+        $month = Carbon::parse($mes)->month;
 
         // --- Seção de Despesas (Expenses) ---
         if ($fetchAll || in_array('expenses', $sections)) {
+            $despesasDoMes = $user->expenses()
+                ->whereYear('data_lancamento', $year)
+                ->whereMonth('data_lancamento', $month)
+                ->get();
+
             $categoriasDespesas = $user->categories()->whereIn('type', ['ambas', 'despesa'])->get(['id', 'name', 'color', 'icon', 'editable', 'type']);
             $subcategoriasDespesas = $user->subcategories()->whereIn('type', ['ambas', 'despesa'])->get(['id', 'category_id', 'name', 'color', 'icon', 'editable', 'type']);
             foreach ($categoriasDespesas as $categoria) {
@@ -41,13 +48,18 @@ trait UserDataTrait
             }
 
             $dataToReturn['expenses'] = [
-                ...$this->classifiesReleases($user->expenses()->get(), 'Expenses', $mes),
+                ...$this->classifiesReleases($despesasDoMes, 'Expenses', $mes),
                 "categories" => $categoriasDespesas,
             ];
         }
 
         // --- Seção de Receitas (Revenues) ---
         if ($fetchAll || in_array('revenues', $sections)) {
+            $receitasDoMes = $user->revenues()
+                ->whereYear('data_lancamento', $year)
+                ->whereMonth('data_lancamento', $month)
+                ->get();
+
             $categoriasReceitas = $user->categories()->whereIn('type', ['ambas', 'receita'])->get(['id', 'name', 'color', 'icon', 'editable', 'type']);
             $subcategoriasReceitas = $user->subcategories()->whereIn('type', ['ambas', 'receita'])->get(['id', 'category_id', 'name', 'color', 'icon', 'editable', 'type']);
             foreach ($categoriasReceitas as $categoria) {
@@ -61,7 +73,7 @@ trait UserDataTrait
             }
 
             $dataToReturn["revenues"] = [
-                ...$this->classifiesReleases($user->revenues()->get(), 'Revenues', $mes),
+                ...$this->classifiesReleases($receitasDoMes, 'Revenues', $mes),
                 "categories" => $categoriasReceitas,
             ];
         }
@@ -70,12 +82,12 @@ trait UserDataTrait
         if ($fetchAll || in_array('wallets', $sections)) {
             $dataToReturn['wallets'] = [
                 'contas' => $user->contas()
-                    ->where('tipoConta', '!=', 'Cartão de Crédito')
-                    ->get(['id', 'name', 'icon', 'saldo', 'saldoInicial', 'descricao', 'tipoConta', 'incluirEmSomaInicial']),
+                    ->where('tipo_conta', '!=', 'Cartão de Crédito')
+                    ->get(['id', 'name', 'icon', 'saldo', 'saldo_inicial', 'descricao', 'tipo_conta', 'incluir_em_soma_inicial']),
 
                 'cartoes' => $user->contas()
-                    ->where('tipoConta', 'Cartão de Crédito')
-                    ->get(['id', 'name', 'icon', 'saldo', 'descricao', 'tipoConta', 'incluirEmSomaInicial', 'conta', 'limite', 'dia_fechamento', 'dia_vencimento']),
+                    ->where('tipo_conta', 'Cartão de Crédito')
+                    ->get(['id', 'name', 'icon', 'saldo', 'descricao', 'tipo_conta', 'incluir_em_soma_inicial', 'conta_pai_id', 'limite', 'dia_fechamento', 'dia_vencimento']),
 
                 'contasNames' => $user->contas()->pluck("name"),
                 'saldoInicial' => $this->obterSaldoInicial($user, $mes),

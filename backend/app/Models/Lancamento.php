@@ -17,21 +17,24 @@ class Lancamento extends Model
     protected $fillable = [
         'user_id',
         'installment_group_id',
+        'invoice_id',
         'descricao',
         'valor',
-        'tipo',
+        'tipo_lancamento',
+        'is_estorno',
+        'original_lancamento_id',
         'recorrencia',
-        'numParcelas',
-        'parcelaAtual',
-        'tipoParcela',
+        'num_parcelas',
+        'parcela_atual',
+        'tipo_parcela',
         'periodicidade',
-        'dataVencimento',
-        'status',
+        'data_vencimento',
+        'status_lancamento',
         'categoria',
         'subcategoria',
-        'dataLancamento',
-        'dataEfetivacao',
-        'conta',
+        'data_lancamento',
+        'data_efetivacao',
+        'conta_id',
     ];
 
     public function user()
@@ -44,12 +47,12 @@ class Lancamento extends Model
         return $this->belongsTo(CreditCardInvoice::class, 'invoice_id');
     }
 
-    public function contaModel()
+    public function contaModel() // Renomeado para não conflitar com a coluna 'conta'
     {
         return $this->belongsTo(Conta::class, 'conta_id');
     }
 
-    public function original()
+    public function original() // Relacionamento para o estorno
     {
         return $this->belongsTo(Lancamento::class, 'original_lancamento_id');
     }

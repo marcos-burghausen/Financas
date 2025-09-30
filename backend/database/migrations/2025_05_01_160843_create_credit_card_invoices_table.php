@@ -17,10 +17,11 @@ return new class extends Migration
             $table->string('competencia', 7); // YYYY-MM
             $table->date('data_fechamento');
             $table->date('data_vencimento');
-            $table->enum('status', ['Aberta', 'Fechada', 'Paga'])->default('Aberta');
-            $table->integer('total_em_centavos')->default(0); // valor agregado (opcional, pode ser calculado on the fly)
-            $table->timestamp('paid_at')->nullable();
-            $table->unsignedBigInteger('payment_lancamento_id')->nullable(); // opcional: referência ao lançamento de pagamento
+            $table->enum('status_fatura', ['Aberta', 'Fechada', 'Paga'])->default('Aberta');
+            $table->integer('total_fatura')->default(0);
+            $table->integer('encargos')->default(0);
+            $table->timestamp('pago_em')->nullable();
+            $table->unsignedBigInteger('lancamento_pagamento_id')->nullable(); // ID do lançamento de pagamento
             $table->timestamps();
             $table->unique(['conta_id', 'competencia']);
             $table->foreign('conta_id')->references('id')->on('contas')->onDelete('cascade');

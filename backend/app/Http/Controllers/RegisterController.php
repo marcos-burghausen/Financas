@@ -73,9 +73,9 @@ class RegisterController extends Controller
             $conta->user_id                 = $lastUser->id;
             $conta->name                    = "Carteira";
             $conta->icon                    = "mdi-cash";
-            $conta->incluirEmSomaInicial    = true;
+            $conta->incluir_em_soma_inicial = true;
             $conta->descricao               = "Conta de uso pessoal";
-            $conta->tipoConta                    = "Carteira";
+            $conta->tipo_conta              = "Carteira";
             $conta->save();
             DB::commit();
         } catch (\Throwable $e) {

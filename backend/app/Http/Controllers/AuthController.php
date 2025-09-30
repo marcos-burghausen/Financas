@@ -6,20 +6,16 @@ use App\Enums\Actions;
 use App\Enums\CacheKeys;
 use App\Enums\CacheNaming;
 use App\Enums\Errors;
-use App\Http\Traits\GroupReleasesTrait;
 use App\Http\Traits\ReleasesMonthTrait;
-use App\Http\Traits\TotalByCategoryTrait;
 use App\Http\Traits\UserDataTrait;
 use App\Mail\NotificationMail;
 use App\Models\Conta;
 use App\Models\User;
 use App\Utils\FinancasCache;
-use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Validation\Rules\Password;
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
@@ -335,4 +331,3 @@ class AuthController extends Controller
     //     ];
     // }
 }
-
