@@ -14,6 +14,7 @@ class Conta extends Model
         'user_id',
         'name',
         'icon',
+        'bandeira',
         'saldo',
         'saldo_inicial',
         'incluir_em_soma_inicial',

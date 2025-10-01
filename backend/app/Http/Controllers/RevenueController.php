@@ -9,23 +9,21 @@ use App\Http\Traits\UserDataTrait;
 use App\Mail\NotificationMail;
 use App\Models\Conta;
 use App\Models\Lancamento;
-use App\Models\Parcela;
-use App\Models\Revenue;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use DateTime;
 
-class RevenueController extends Controller
+class LancamentoController extends Controller
 {
     use ReleasesMonthTrait, UserDataTrait;
 
-    public function saveRevenue(Request $request)
+    public function saveLancamento(Request $request)
     {
         try {
             $data = $this->validateData($request);
-            
+
             /** @var \App\Models\User $user */
             $user = auth()->user();
 
@@ -35,13 +33,105 @@ class RevenueController extends Controller
             $valorInputEmCentavos = (int) str_replace([',', '.'], '', $data['valor']);
             $statusInicial = $data['status'];
 
-            $conta = Conta::where('user_id', $user->id)->where('name', $data['conta'])->first();
+            $conta = Conta::where('user_id', $user->id)->where('name', $data['conta_id'])->first();
 
             if (!$conta) {
-               DB::rollBack();
+                DB::rollBack();
                 return response()->json(['error' => 'Conta não encontrada'], 404);
             }
 
+            // ---- FLUXO ESPECIAL: CARTÃO DE CRÉDITO ----
+            if ($data['tipo'] === 'CartaoCredito') {
+                if ($conta->tipoConta !== 'Cartão de Crédito') {
+                    DB::rollBack();
+                    return response()->json(['error' => 'A conta selecionada não é um Cartão de Crédito'], 422);
+                }
+
+                $dataCompra = new DateTime($data['dataLancamento']);
+                $diaFechamento = (int) $conta->dia_fechamento;
+
+                if ($recorrencia === 'Parcelado' && isset($data['numParcelas']) && (int)$data['numParcelas'] > 1) {
+                    $numParcelas = (int) $data['numParcelas'];
+                    $groupId = Str::uuid();
+                    $tipoParcela = $data['tipoParcela'] ?? 'total';
+
+                    if ($tipoParcela === 'total') {
+                        $valorBaseParcela = intdiv($valorInputEmCentavos, $numParcelas);
+                        $resto = $valorInputEmCentavos % $numParcelas;
+                    } else {
+                        $valorBaseParcela = $valorInputEmCentavos;
+                        $resto = 0;
+                    }
+
+                    for ($i = 1; $i <= $numParcelas; $i++) {
+                        $competencia = $this->calcularCompetenciaFatura((clone $dataCompra)->modify('+' . ($i - 1) . ' month'), $diaFechamento);
+                        $fatura = $this->obterOuCriarFatura($conta, $competencia);
+                        $valorDaParcela = $valorBaseParcela + (($i === 1 && $resto > 0) ? $resto : 0);
+
+                        $l = Lancamento::create([
+                            'user_id' => $user->id,
+                            'installment_group_id' => $groupId,
+                            'descricao' => $data['descricao'] . " ($i/" . $numParcelas . ")",
+                            'valor' => $valorDaParcela,
+                            'tipo' => 'CartaoCredito',
+                            'is_estorno' => false,
+                            'recorrencia' => 'Parcelado',
+                            'numParcelas' => $numParcelas,
+                            'parcelaAtual' => $i,
+                            'tipoParcela' => $tipoParcela,
+                            'periodicidade' => $data['periodicidade'] ?? null,
+                            'dataVencimento' => $fatura->data_vencimento,
+                            'status' => $statusInicial,
+                            'categoria' => $data['categoria'],
+                            'subcategoria' => $data['subcategoria'],
+                            'dataLancamento' => $data['dataLancamento'],
+                            'conta_id' => $conta->id,
+                            'invoice_id' => $fatura->id,
+                        ]);
+
+                        if ($statusInicial === 'Efetivada') {
+                            $this->atualizarSaldoCartao($conta, $l->valor, 'compra');
+                        }
+                        $this->recalcInvoiceTotals($fatura, $user->id);
+                    }
+                } else {
+                    // À vista
+                    $competencia = $this->calcularCompetenciaFatura(clone $dataCompra, $diaFechamento);
+                    $fatura = $this->obterOuCriarFatura($conta, $competencia);
+
+                    $l = Lancamento::create([
+                        'user_id' => $user->id,
+                        'descricao' => $data['descricao'],
+                        'valor' => $valorInputEmCentavos,
+                        'tipo' => 'CartaoCredito',
+                        'is_estorno' => false,
+                        'recorrencia' => 'Não recorrente',
+                        'dataVencimento' => $fatura->data_vencimento,
+                        'status' => $statusInicial,
+                        'categoria' => $data['categoria'],
+                        'subcategoria' => $data['subcategoria'],
+                        'dataLancamento' => $data['dataLancamento'],
+                        'conta_id' => $conta->id,
+                        'invoice_id' => $fatura->id,
+                    ]);
+
+                    if ($statusInicial === 'Efetivada') {
+                        $this->atualizarSaldoCartao($conta, $l->valor, 'compra');
+                    }
+                    $this->recalcInvoiceTotals($fatura, $user->id);
+                }
+
+                DB::commit();
+                Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Cartão de Crédito', $data['descricao']));
+
+                $dataResp = $this->getUserData($user, $data['mesAno'], ['expenses', 'wallets']);
+                return response()->json([
+                    'success' => "Lançamento de cartão cadastrado com sucesso",
+                    ...$dataResp
+                ], 201);
+            }
+
+            // ---- FLUXO PADRÃO: RECEITA / DESPESA ---
             // CASO 1: Lançamento Parcelado
             if ($recorrencia === 'Parcelado' && isset($data['numParcelas']) && $data['numParcelas'] > 1) {
 
@@ -85,6 +175,7 @@ class RevenueController extends Controller
                         'installment_group_id' => $groupId,
                         'descricao'            => $data['descricao'] . " (" . $i . "/" . $numParcelas . ")",
                         'valor'                => $valorDaParcelaAtual,
+                        'tipo'                 => $data['tipo'],
                         'recorrencia'          => 'Parcelado',
                         'numParcelas'          => $numParcelas,
                         'parcelaAtual'         => $i,
@@ -96,7 +187,6 @@ class RevenueController extends Controller
                         'conta'                => $data['conta'],
                         'tipoParcela'          => $data['tipoParcela'] ?? 'total',
                         'periodicidade'        => $data['periodicidade'] ?? null,
-                        'dataEfetivacao'       => $statusDaParcela === 'Efetivada' ? date('Y-m-d') : null,
                     ]);
                 }
 
@@ -106,7 +196,7 @@ class RevenueController extends Controller
                     $this->atualizarSaldo($conta, $primeiraParcela, $data['tipo']);
                 }
 
-            // CASO 2: Lançamento Fixo
+                // CASO 2: Lançamento Fixo
             } elseif ($recorrencia === 'Fixa') {
 
                 $groupId = Str::uuid();
@@ -121,12 +211,13 @@ class RevenueController extends Controller
                     $dataVencimentoParcela = $dataBaseLoop->format("Y-m-{$diaDaParcela}");
 
                     $statusDaParcelaFixa = ($statusInicial === 'Efetivada' && $i === 1) ? 'Efetivada' : 'Pendente';
-                    
+
                     Lancamento::create([
                         'user_id'              => $user->id,
                         'installment_group_id' => $groupId,
                         'descricao'            => $data['descricao'],
                         'valor'                => $valorInputEmCentavos,
+                        'tipo'                 => $data['tipo'],
                         'recorrencia'          => 'Fixa',
                         'numParcelas'          => $data['numParcelas'],
                         'parcelaAtual'         => $i,
@@ -138,7 +229,6 @@ class RevenueController extends Controller
                         'conta'                => $data['conta'],
                         'tipoParcela'          => $data['tipoParcela'] ?? 'total',
                         'periodicidade'        => $data['periodicidade'] ?? null,
-                        'dataEfetivacao'       => $statusDaParcelaFixa === 'Efetivada' ? date('Y-m-d') : null,
                     ]);
                 }
 
@@ -147,7 +237,7 @@ class RevenueController extends Controller
                     $this->atualizarSaldo($conta, $valorInputEmCentavos, $data['tipo']);
                 }
 
-            // CASO 3: Lançamento Único (Não recorrente)
+                // CASO 3: Lançamento Único (Não recorrente)
             } else {
 
                 $Lancamento = new Lancamento;
@@ -165,11 +255,11 @@ class RevenueController extends Controller
             DB::commit();
 
             Mail::to($user->email)->queue(new NotificationMail($user, 'Salvamento', 'Receita', $data['descricao']));
-            $data = $this->getUserData($user);
+            $data = $this->getUserData($user, $data['mesAno'], [($data['tipo'] === 'Receita') ? 'revenues' : 'expenses', 'wallets']);
 
             return response()->json([
-                'success' => 'Receita cadastrada com sucesso',
-                'data' => $data
+                'success' => "lançamento cadastrada com sucesso",
+                ...$data
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -178,226 +268,259 @@ class RevenueController extends Controller
         }
     }
 
-    public function editRevenue(Request $request, $id)
+    public function editLancamento(Request $request, $id)
     {
-        $data = $this->validateData($request);
+        try {
+            $data = $this->validateData($request);
+            $user = auth()->user();
+            $editScope = $data['editScope'] ?? 'apenas esta';
 
-        $user = auth()->user();
+            DB::beginTransaction();
 
-        DB::beginTransaction();
+            $lancamentoPrincipal = Lancamento::where('id', $id)->where('user_id', $user->id)->first();
+            if (!$lancamentoPrincipal) {
+                DB::rollBack();
+                return response()->json(['error' => 'Lançamento não encontrado'], 404);
+            }
 
-        $revenue = Revenue::where('id', $id)->where('user_id', $user->id)->first();
-        if (!$revenue) {
+            $lancamentosParaAtualizar = collect([]);
+
+            if ($lancamentoPrincipal->installment_group_id && $editScope !== 'apenas esta' && $editScope !== 'apenas este mês') {
+                $query = Lancamento::where('installment_group_id', $lancamentoPrincipal->installment_group_id)
+                    ->where('user_id', $user->id);
+
+                if ($editScope === 'esta e as próximas' || $editScope === 'mês atual e os próximos') {
+                    $query->where('parcelaAtual', '>=', $lancamentoPrincipal->parcelaAtual);
+                }
+                // Para 'todas', a query já busca todas por padrão
+
+                $lancamentosParaAtualizar = $query->get();
+            } else {
+                // Se for 'apenas esta' ou um lançamento não recorrente, a coleção conterá apenas o principal
+                $lancamentosParaAtualizar->push($lancamentoPrincipal);
+            }
+
+            // Prepara os valores que podem ser propagados para não recalculá-los no loop
+            $valorInputEmCentavos = (int) str_replace([',', '.'], '', $data['valor']);
+            $baseDescricao = preg_replace('/ \(\d+\/\d+\)$/', '', $data['descricao']);
+
+            foreach ($lancamentosParaAtualizar as $lancamento) {
+                // Lógica de atualização de saldo (remover o valor antigo)
+                if ($lancamento->status === 'Efetivada') {
+                    $contaAntiga = Conta::where('user_id', $user->id)->where('name', $lancamento->conta)->first();
+                    if ($contaAntiga) {
+                        $this->atualizarSaldo($contaAntiga, $lancamento->valor, $lancamento->tipo, 'remover');
+                    }
+                }
+
+                // 1. Prepara o array de atualização com os campos que devem ser propagados
+                $updateData = [
+                    'categoria'    => $data['categoria'],
+                    'subcategoria' => $data['subcategoria'],
+                    'conta'        => $data['conta'],
+                    'valor'        => $valorInputEmCentavos,
+                ];
+
+                // 2. Trata a descrição, que pode ter o sufixo de parcela
+                if ($lancamento->recorrencia === 'Parcelado') {
+                    $updateData['descricao'] = $baseDescricao . " (" . $lancamento->parcelaAtual . "/" . $lancamento->numParcelas . ")";
+                } else {
+                    $updateData['descricao'] = $baseDescricao;
+                }
+
+                // 3. Se este for o lançamento principal, aplica também os campos específicos da instância
+                if ($lancamento->id == $lancamentoPrincipal->id) {
+                    $updateData['dataVencimento'] = $data['dataVencimento'];
+                    $updateData['status']         = $data['status'];
+                    $updateData['dataLancamento'] = $data['dataLancamento'];
+                    $updateData['dataEfetivacao'] = $data['dataEfetivacao'] ?? null;
+                }
+
+                // 4. Atualiza o modelo com os dados corretos
+                $lancamento->update($updateData);
+
+                // Lógica de atualização de saldo (adicionar o novo valor)
+                if ($lancamento->status === 'Efetivada') {
+                    $contaNova = Conta::where('user_id', $user->id)->where('name', $lancamento->conta)->first();
+                    if ($contaNova) {
+                        $this->atualizarSaldo($contaNova, $lancamento->valor, $lancamento->tipo, 'adicionar');
+                    }
+                }
+            }
+
+            DB::commit();
+
+            $data = $this->getUserData($user, $data['mesAno'], [($data['tipo'] === 'Receita') ? 'revenues' : 'expenses', 'wallets']);
+            return response()->json([
+                'success' => 'Lançamento(s) editado(s) com sucesso',
+                ...$data
+            ], 200);
+        } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['error' => 'Receita não encontrada'], 404);
+            \Illuminate\Support\Facades\Log::error('Erro ao editar lançamento: ' . $e->getMessage() . ' no ficheiro ' . $e->getFile() . ' na linha ' . $e->getLine());
+            return response()->json(Errors::ERROR_UPDATING_LANCAMENTO->response(), 500);
         }
-
-        $oldStatus = $revenue->status;
-        $oldValor = $revenue->valor;
-        $oldConta = $revenue->conta;
-
-
-        $revenue->descricao      = $data['descricao'];
-        $revenue->valor          = str_replace([',', '.'], '', $data['valor']);
-        $revenue->recorrencia    = $data['recorrencia'] ?? 'Não recorrente';
-        $revenue->numParcelas    = $data['numParcelas'] ?? null;
-        $revenue->periodicidade  = $data['periodicidade'] ?? null;
-        $revenue->dataVencimento = $data['dataVencimento'];
-        $revenue->status         = $data['status'];
-        $revenue->categoria      = $data['categoria'];
-        $revenue->subcategoria   = $data['subcategoria'];
-        $revenue->dataLancamento = $data['dataLancamento'];
-        $revenue->dataEfetivacao = $data['dataEfetivacao'] ?? null;
-        $revenue->conta          = $data['conta'];
-        $saved = $revenue->save();
-
-        if (!$saved) {
-            DB::rollBack();
-            return response()->json(Errors::ERROR_UPDATING_REVENUE->response(), 422);
-        }
-
-        $conta = Conta::where('user_id', $user->id)
-            ->where('name', $data['conta'])
-            ->first();
-
-        $oldContaModel = $oldConta === $data['conta'] ? $conta : Conta::where('user_id', $user->id)
-            ->where('name', $oldConta)
-            ->first();
-
-        if ($oldStatus === 'Efetivada' && $data['status'] !== 'Efetivada') {
-            if ($oldContaModel) {
-                $oldContaModel->saldo -= $oldValor;
-                $oldContaModel->save();
-            }
-        } elseif ($oldStatus !== 'Efetivada' && $data['status'] === 'Efetivada') {
-            if ($conta) {
-                $conta->saldo += $revenue->valor;
-                $conta->save();
-            }
-        } elseif ($oldStatus === 'Efetivada' && $data['status'] === 'Efetivada') {
-            if ($oldContaModel && $oldConta !== $data['conta']) {
-                $oldContaModel->saldo -= $oldValor;
-                $oldContaModel->save();
-            }
-            if ($conta) {
-                $conta->saldo += $revenue->valor - ($oldConta === $data['conta'] ? $oldValor : 0);
-                $conta->save();
-            }
-        }
-
-        DB::commit();
-
-        // $revenuesData = $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data['mesReferencia'] ?? date('Y-m'));
-        // $walletsData = [
-        //     'wallets' => $user->contas()->get(),
-        //     'saldoInicial' => $this->obterSaldoInicial($user, $data['mesReferencia'] ?? date('Y-m')),
-        // ];
-        $data = $this->getUserData($user);
-
-        Mail::to($user->email)->queue(new NotificationMail($user, 'Edição', 'Receita', $revenue->descricao));
-
-        return response()->json([
-            'msg' => 'Receita editada com sucesso',
-            // 'revenuesData' => $revenuesData,
-            // 'walletsData' => $walletsData,
-            'data' => $data
-        ], 200);
     }
 
-    public function receivedRevenue(Request $request, $id)
+    public function receivedLancamento(Request $request, $id)
     {
-        $data = $request->validate([
-            'conta'         => 'required|string|max:100',
-            'mesReferencia' => 'nullable|string|regex:/^\d{4}-\d{2}$/',
-        ]);
+        try {
+            $data = $request->validate([
+                'conta'         => 'required|string|max:100',
+                'mesAno' => 'nullable|string|regex:/^\d{4}-\d{2}$/',
+            ]);
 
-        $user = auth()->user();
+            $user = auth()->user();
 
-        DB::beginTransaction();
-        $revenue = Revenue::where('id', $id)->where('user_id', $user->id)->first();
-        if (!$revenue) {
-            DB::rollBack();
-            return response()->json(['error' => 'Receita não encontrada'], 404);
-        }
+            DB::beginTransaction();
+            $lancamento = Lancamento::where('id', $id)->where('user_id', $user->id)->first();
+            if (!$lancamento) {
+                DB::rollBack();
+                return response()->json(['error' => 'Lançamento não encontrado'], 404);
+            }
 
-        if ($revenue->status === 'Efetivada') {
-            DB::rollBack();
-            return response()->json(['error' => 'Receita já está efetivada'], 422);
-        }
+            $lancamento->status = 'Efetivada';
+            $lancamento->dataEfetivacao = date('Y-m-d');
+            $saved = $lancamento->save();
 
-        $revenue->status = 'Efetivada';
-        $revenue->dataEfetivacao = date('Y-m-d');
-        $saved = $revenue->save();
+            if (!$saved) {
+                DB::rollBack();
+                return response()->json(Errors::ERROR_PAY_LANCAMENTO->response(), 422);
+            }
 
-        if (!$saved) {
-            DB::rollBack();
-            return response()->json(Errors::ERROR_PAY_REVENUE->response(), 422);
-        }
-
-        $conta = Conta::where('user_id', $user->id)
-            ->where('name', $data['conta'])
-            ->first();
-
-        if ($conta) {
-            $conta->saldo += $revenue->valor;
-            $conta->save();
-        }
-
-        DB::commit();
-
-        // $revenuesData = $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data['mesReferencia'] ?? date('Y-m'));
-        // $walletsData = [
-        //     'wallets' => $user->contas()->get(),
-        //     'saldoInicial' => $this->obterSaldoInicial($user, $data['mesReferencia'] ?? date('Y-m')),
-        // ];
-        $data = $this->getUserData($user);
-
-        Mail::to($user->email)->queue(new NotificationMail($user, 'Recebimento', 'Receita', $revenue->descricao));
-
-        return response()->json([
-            'success' => 'Receita recebida com sucesso',
-            // 'revenuesData' => $revenuesData,
-            // 'walletsData' => $walletsData,
-            'data' => $data
-        ], 200);
-    }
-
-    public function deleteRevenue(Request $request, $id)
-    {
-        $data = $request->validate([
-            'mesReferencia' => 'nullable|string|regex:/^\d{4}-\d{2}$/',
-        ]);
-
-        $user = auth()->user();
-
-        DB::beginTransaction();
-        $revenue = Revenue::where('id', $id)->where('user_id', $user->id)->first();
-        if (!$revenue) {
-            DB::rollBack();
-            return response()->json(['error' => 'Receita não encontrada'], 404);
-        }
-
-        if ($revenue->status === 'Efetivada') {
             $conta = Conta::where('user_id', $user->id)
-                ->where('name', $revenue->conta)
+                ->where('name', $data['conta'])
                 ->first();
+
             if ($conta) {
-                $conta->saldo -= $revenue->valor;
-                $conta->save();
+                $this->atualizarSaldo($conta, $lancamento->valor, $lancamento->tipo, 'adicionar');
             }
-        }
 
-        $deleted = $revenue->delete();
-        if (!$deleted) {
+            DB::commit();
+
+            $secoesParaRetorno = [($lancamento->tipo === 'Receita') ? 'revenues' : 'expenses', 'wallets'];
+            $data = $this->getUserData($user, $data['mesAno'], $secoesParaRetorno);
+
+            $isReceita = $lancamento->tipo === 'Receita';
+            $successMessage = $isReceita ? 'Receita recebida com sucesso' : 'Despesa paga com sucesso';
+            $mailAction = $isReceita ? 'Recebimento' : 'Pagamento';
+
+            Mail::to($user->email)->queue(new NotificationMail($user, $mailAction, $lancamento->tipo, $lancamento->descricao));
+
+
+            return response()->json([
+                'success' => $successMessage,
+                ...$data
+            ], 200);
+        } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(Errors::ERROR_DELETING_REVENUE->response(), 422);
+            \Illuminate\Support\Facades\Log::error('Erro ao receber receita: ' . $e->getMessage());
+            return response()->json(Errors::ERROR_PAY_LANCAMENTO->response(), 500);
         }
-
-        DB::commit();
-
-        // $revenuesData = $this->classifiesReleases($user->revenues()->get(), 'Revenues', $data['mesReferencia'] ?? date('Y-m'));
-        // $walletsData = [
-        //     'wallets' => $user->contas()->get(),
-        //     'saldoInicial' => $this->obterSaldoInicial($user, $data['mesReferencia'] ?? date('Y-m')),
-        // ];
-        $data = $this->getUserData($user);
-
-        Mail::to($user->email)->queue(new NotificationMail($user, 'Exclusão', 'Receita', $revenue->descricao));
-
-        return response()->json([
-            'msg' => 'Receita excluída com sucesso',
-            // 'revenuesData' => $revenuesData,
-            // 'walletsData' => $walletsData,
-            'data' => $data
-        ], 200);
     }
 
-    public function getRevenue()
+    public function deleteLancamento(Request $request, $id)
+    {
+        try {
+            $data = $request->validate(
+                [
+                    'mesAno' => 'nullable|string|regex:/^\d{4}-\d{2}$/',
+                    'tipo'   => 'required|string|in:Receita,Despesa,CartaoCredito',
+                ],
+                [
+                    'required'             => 'O campo :attribute é obrigatório',
+                    'in'                   => 'O campo :attribute não corresponde ao valor esperado',
+                    'mesAno.regex'         => 'O campo mesAno deve estar no formato YYYY-MM (ex: 2025-04)',
+                ]
+            );
+
+            $user = auth()->user();
+
+            DB::beginTransaction();
+            $lancamento = Lancamento::where('id', $id)->where('user_id', $user->id)->first();
+            if (!$lancamento) {
+                DB::rollBack();
+                return response()->json(['error' => 'Lançamento não encontrado'], 404);
+            }
+
+
+            $deleted = $lancamento->delete();
+            if (!$deleted) {
+                DB::rollBack();
+                return response()->json(Errors::ERROR_DELETING_LANCAMENTO->response(), 422);
+            }
+
+            if ($lancamento->status === 'Efetivada') {
+                $conta = Conta::where('user_id', $user->id)
+                    ->where('name', $lancamento->conta)
+                    ->first();
+                if ($conta) {
+                    $this->atualizarSaldo($conta, $lancamento->valor, $lancamento->tipo, 'remover');
+                }
+            }
+
+
+            DB::commit();
+
+            $secoesParaRetorno = [($lancamento->tipo === 'Receita') ? 'revenues' : 'expenses', 'wallets'];
+            $data = $this->getUserData($user, $data['mesAno'], $secoesParaRetorno);
+
+            $isReceita = $lancamento->tipo === 'Receita';
+            $successMessage = $isReceita ? 'Receita apagada com sucesso' : 'Despesa apagada com sucesso';
+            $mailAction = "Exclusão";
+
+            Mail::to($user->email)->queue(new NotificationMail($user, $mailAction, $lancamento->tipo, $lancamento->descricao));
+
+            return response()->json([
+                'msg' => $successMessage,
+                ...$data
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Illuminate\Support\Facades\Log::error('Erro ao deletar receita: ' . $e->getMessage());
+            return response()->json(Errors::ERROR_DELETING_LANCAMENTO->response(), 500);
+        }
+    }
+
+    public function getLancamento()
     {
         $revenues = auth()->user()->revenues()->get();
         return response()->json(['revenues' => $revenues], 200);
+    }
+
+    private function atualizarSaldo(Conta $conta, int $valor, string $tipo, string $operacao = 'adicionar')
+    {
+        $fator = ($tipo === 'Receita') ? 1 : -1; // Receitas somam, despesas subtraem
+        if ($operacao === 'remover') {
+            $fator *= -1; // Inverte a operação para remoção
+        }
+        $conta->saldo += ($valor * $fator);
+        $conta->save();
     }
 
     protected function validateData(Request $request)
     {
         return $request->validate(
             [
-                'id'             => 'nullable | integer',
-                'descricao'      => 'required | string | max:50',
-                'valor'          => 'required | min:0.01',
-                'recorrencia'    => 'string | in:Não recorrente,Parcelado,Fixa mensal',
-                'numParcelas'    => 'nullable | integer | min:2',
-                'parcelaAtual'   => 'nullable|integer|min:1',
-                'tipoParcela'    => 'nullable|string|in:total,parcela',
-                'periodicidade'  => 'nullable | string | in:Mensal,Diario,Semanal,Quinzenal,Trimestral,Anual',
-                'dataVencimento' => 'required | date',
-                'status'         => 'required | string | in:Pendente,Efetivada',
-                'categoria'      => 'required | string | max:30',
-                'subcategoria'   => 'required | string | max:30',
-                'dataLancamento' => 'required | date',
-                'dataEfetivacao' => 'nullable | date',
-                'conta'          => 'required | string | max:30',
-                'mesReferencia'  => 'required | string | regex:/^\d{4}-\d{2}$/',
+                'id'                   => 'nullable | integer',
+                'installment_group_id' => 'nullable | uuid',
+                'descricao'            => 'required | string | max:50',
+                'valor'                => 'required | min:0.01',
+                'tipo'                 => 'required | string | in:Receita,Despesa,CartaoCredito',
+                'recorrencia'          => 'string | in:Não recorrente,Parcelado,Fixa',
+                'numParcelas'          => 'nullable | integer | min:2',
+                'parcelaAtual'         => 'nullable|integer|min:1',
+                'tipoParcela'          => 'nullable|string|in:total,parcela',
+                'periodicidade'        => 'nullable | string | in:Mensal,Diario,Semanal,Quinzenal,Trimestral,Anual',
+                'dataVencimento'       => 'required | date',
+                'status'               => 'required | string | in:Pendente,Efetivada',
+                'categoria'            => 'required | string | max:30',
+                'subcategoria'         => 'required | string | max:30',
+                'dataLancamento'       => 'required | date',
+                'dataEfetivacao'       => 'nullable | date',
+                'conta'                => 'required | string | max:30',
+                'mesAno'               => 'required | string | regex:/^\d{4}-\d{2}$/',
+                'editScope'            => 'nullable|string|in:apenas esta,esta e as próximas,todas,apenas este mês,mês atual e os próximos',
             ],
             [
                 'required'             => 'O campo :attribute é obrigatório',
@@ -407,30 +530,8 @@ class RevenueController extends Controller
                 'min'                  => 'O campo :attribute deve ser maior que :min',
                 'in'                   => 'O campo :attribute não corresponde ao valor esperado',
                 'date'                 => 'O campo :attribute nâo é uma data valida',
-                'mesReferencia.regex' => 'O campo mesReferencia deve estar no formato YYYY-MM (ex: 2025-04)',
+                'mesAno.regex'         => 'O campo mesAno deve estar no formato YYYY-MM (ex: 2025-04)',
             ]
         );
-    }
-
-    protected function criarParcelas($data, $lancamentoId)
-    {
-        $valorTotalNumerico = (float) str_replace(['.', ','], ['', '.'], $data['valor']);
-
-        $valorParcela = $valorTotalNumerico / $data['numParcelas'];
-        $dataVencimento = $data['dataVencimento'];
-
-        for ($i = $data['parcelaAtual']; $i <= $data['numParcelas']; $i++) {
-            Parcela::create([
-                'revenue_id'     => $lancamentoId,
-                'parcela'        => $i,
-                "totalParcelas"  => $data['numParcelas'],
-                'valor'          => str_replace([',', '.'], '', $valorParcela),
-                'dataVencimento' => date('Y-m-d', strtotime($dataVencimento . " + " . ($i - 1) . " month")),
-                'dataLancamento' => $data['dataLancamento'],
-                'dataEfetivacao' => $data['dataEfetivacao'] ?? null,
-                'status'         => 'Pendente',
-            ]);
-        }
-        return true;
     }
 }

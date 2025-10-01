@@ -87,7 +87,17 @@ trait UserDataTrait
 
                 'cartoes' => $user->contas()
                     ->where('tipo_conta', 'Cartão de Crédito')
-                    ->get(['id', 'name', 'icon', 'saldo', 'descricao', 'tipo_conta', 'incluir_em_soma_inicial', 'conta_pai_id', 'limite', 'dia_fechamento', 'dia_vencimento']),
+                    ->with('parentAccount')
+                    ->get(['id', 'name', 'icon', 'saldo', 'descricao', 'tipo_conta', 'incluir_em_soma_inicial', 'conta_pai_id', 'bandeira', 'limite', 'dia_fechamento', 'dia_vencimento'])
+                    ->map(function ($cartao) {
+                        // 2. Itera sobre cada cartão para adicionar o novo campo
+                        $cartao->conta_pai_name = $cartao->parentAccount ? $cartao->parentAccount->name : null;
+
+                        // 3. (Opcional) Remove o objeto 'contaPai' completo se não for usá-lo no frontend
+                        unset($cartao->parentAccount);
+
+                        return $cartao;
+                    }),
 
                 'contasNames' => $user->contas()->pluck("name"),
                 'saldoInicial' => $this->obterSaldoInicial($user, $mes),

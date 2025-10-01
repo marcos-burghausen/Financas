@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use App\Http\Traits\ReleasesMonthTrait;
 use App\Http\Traits\UserDataTrait;
+use Illuminate\Support\Facades\Validator;
 
 class WalletsController extends Controller
 {
@@ -97,6 +98,7 @@ class WalletsController extends Controller
                 $dataToSave['dia_vencimento'] = $validatedData['dia_vencimento'];
                 $dataToSave['dia_fechamento'] = $validatedData['dia_fechamento'];
                 $dataToSave['conta_pai_id'] = $validatedData['conta_id'];
+                $dataToSave['bandeira'] = $validatedData['bandeira'];
             } else {
                 $dataToSave['saldo'] = (int) str_replace([',', '.'], '', $validatedData['saldo_inicial']);
             }
@@ -128,6 +130,77 @@ class WalletsController extends Controller
             'wallets' => $data,
         ], 200);
     }
+
+    // public function saveWallet(Request $request)
+    // {
+    //     $user = auth()->user();
+    //     $validator = Validator::make($request->all(), [
+    //         'id' => 'nullable|integer|exists:contas,id,user_id,',
+    //         'name' => [
+    //             'required',
+    //             'min:2',
+    //             'max:20',
+    //             // Rule::unique('contas')->where('tipoConta', $request->tipoConta),
+    //             // Garante que o nome seja único para o usuário E para o tipo de conta.
+    //             Rule::unique('contas')->where(function ($query) use ($request, $user) {
+    //                 return $query->where('user_id', $user->id)
+    //                     ->where('tipo_conta', $request->tipo_conta);
+    //             })->ignore($request->id),
+    //             'regex:/^[a-zA-ZÀ-ÿ\s]+$/'
+    //         ],
+    //         'tipo_conta' => ['required', Rule::in(['Carteira', 'Conta Corrente', 'Poupança', 'Investimento', 'Outro', 'Cartão de Crédito'])],
+    //         'color' => 'nullable|string',
+    //         'conta_id' => 'nullable|integer|exists:contas,id',
+    //         'icon' => 'nullable|string',
+    //         'incluir_em_soma_inicial' => 'nullable|boolean',
+    //         'saldo' => [
+    //             'nullable',
+    //             'max:40',
+    //             'regex:/^[0-9,.]+$/'
+    //         ],
+    //         'saldo_inicial' => [
+    //             'nullable',
+    //             'max:40',
+    //             'regex:/^[0-9,.]+$/'
+    //         ],
+    //         'descricao' => [
+    //             "nullable",
+    //             'max:50',
+    //             'regex:/^[a-zA-ZÀ-ÿ\s]+$/'
+    //         ],
+    //         'bandeira'       => 'required_if:tipo,Carteira|string|nullable',
+    //         'limite'         => 'required_if:tipo,Carteira|nullable|regex:/^[0-9,.]+$/',
+    //         'dia_fechamento' => 'required_if:tipo,Carteira|integer|min:1|max:31|nullable',
+    //         'dia_vencimento' => 'required_if:tipo,Carteira|integer|min:1|max:31|nullable',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json(['errors' => $validator->errors()], 422);
+    //     }
+
+    //     $data = $request->all();
+    //     $data['user_id'] = $user->id;
+
+    //     if (isset($data['id']) && $data['id'] !== '') {
+    //         $conta = Conta::find($data['id']);
+    //         if ($conta) {
+    //             $conta->update($data);
+    //         }
+    //     } else {
+    //         Conta::create($data);
+    //     }
+
+    //     return response()->json(['message' => 'Conta salva com sucesso!']);
+    // }
+
+    // public function delete(Request $request)
+    // {
+    //     $data = $request->all();
+    //     $conta = Conta::find($data['id']);
+    //     if ($conta) {
+    //         $conta->delete();
+    //     }
+    // }
 
     /**
      * Busca todas as faturas de um cartão de crédito específico.

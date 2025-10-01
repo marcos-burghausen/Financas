@@ -2,6 +2,7 @@
 import http from "@/services/http";
 import type { CreditCardInvoice } from "@/types/transactions.types";
 import { defineStore } from "pinia";
+import { useDataStore } from './data';
 
 interface CreditCardState {
   invoices: CreditCardInvoice[]
@@ -34,7 +35,7 @@ export const useCreditCardStore = defineStore("creditCard", {
 
     async payInvoice(payload: { invoice_id: number; conta_pagamento_id: number; mesAno: string }) {
       this.isLoading = true;
-      const dataStore = useData();
+      const dataStore = useDataStore();
       try {
         const { data } = await http.post("/lancamento/pagar-fatura", payload);
         dataStore.setData(data); // Atualiza dados globais
@@ -50,17 +51,14 @@ export const useCreditCardStore = defineStore("creditCard", {
       }
     },
 
-    async createRefund(payload: { lancamento_original_id: number; valor: number }, cardId: number) {
-        this.isLoading = true;
-        try {
-            await http.post("/lancamento/estorno", payload);
-            await this.fetchInvoices(cardId); // Recarrega as faturas para mostrar o estorno
-        } catch (error) {
-            console.error("Erro ao criar estorno:", error);
-            throw error;
-        } finally {
-            this.isLoading = false;
-        }
+    async createRefund(refundData: { id: number; valor_estorno: number }) {
+    try {
+      const response = await http.post('/create-refund', refundData);
+      // Lógica para atualizar o estado após o estorno
+      return response;
+    } catch (error) {
+      console.error('Erro ao criar estorno:', error);
     }
-  },
+  }
+}
 });

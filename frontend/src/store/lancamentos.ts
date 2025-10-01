@@ -2,12 +2,12 @@
 import http from '@/services/http';
 import type { Lancamento } from '@/types/transactions.types';
 import { defineStore } from 'pinia';
-import { useData } from './data';
+import { useDataStore } from './data';
 
 export const useLancamentoStore = defineStore('lancamentos', {
   actions: {
     async saveLancamento(payload: Partial<Lancamento>) {
-      const dataStore = useData();
+      const dataStore = useDataStore();
       try {
         // O backend espera o valor em centavos
         if (payload.valor) {

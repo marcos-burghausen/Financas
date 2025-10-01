@@ -1,193 +1,305 @@
 <template>
   <div class="content-wrapper">
-    <div class="header">
-      <router-link
-        class="link me-7 d-flex align-items-center opaco"
-        :to="{ name: 'dashboard' }"
-      >
-        <v-icon 
-          icon="mdi-arrow-left" 
-          size="25" 
-        />
-      </router-link>
-      <div class="header__items">
-        <div class="d-flex flex-column">
-          <span class="title__page fs-5">Cartão de Crédito</span>
-          <span class="valor">
-            R$
-            <!-- {{ formatValue(valueTotalRevenuesMonth) }} -->
-          </span>
+    <FormCartaoCredito
+      v-if="formCartao"
+      :mes-ano="mesAno"
+      wallet-type="Cartão"
+      :wallets="wallets"
+      @update-data="updateData"
+      @close-form="closeForm"
+    />
+    <FormLancamentos
+      v-if="formLancamentos"
+      rota="expense"
+      :mes-ano="mesAno"
+      transaction-type="Despesa"
+      @update-data="updateData"
+      @close-form="closeFormLancamentos"
+    />
+    <div
+      v-if="!formCartao"
+      class="receitas"
+    >
+      <div class="header">
+        <router-link
+          class="link me-7 d-flex align-items-center opaco"
+          :to="{ name: 'dashboard' }"
+        >
+          <v-icon
+            icon="mdi-arrow-left"
+            size="25"
+          />
+        </router-link>
+        <div class="header__items">
+          <div class="d-flex flex-column">
+            <span class="title__page fs-5"> Cartão de Crédito </span>
+            <span class="valor">
+              R$
+              <!-- {{ formatValue(valueTotalRevenuesMonth) }} -->
+            </span>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="px-3 py-2">
-      <v-select
-        v-model="selectedCardId"
-        label="Selecione o Cartão"
-        :items="creditCardAccounts"
-        item-title="name"
-        item-value="id"
-        variant="solo-filled"
-        hide-details
-        @update:model-value="loadInvoices"
-      />
-    </div>
+      <div class="container__mes">
+        <v-icon
+          icon="mdi-chevron-left"
+          class="mdicon text-white"
+          size="30"
+          @click="$emit('mesAnterior')"
+        />
+        <span class="mes text-white fs-3"> {{ mesPorExtenso }} </span>
+        <v-icon
+          icon="mdi-chevron-right"
+          class="mdicon text-white"
+          size="30"
+          @click="$emit('proximoMes')"
+        />
+      </div>
 
-    <div
-      v-if="creditCardStore.isLoading"
-      class="text-center pa-4"
-    >
-      <v-progress-circular
-        indeterminate
-        color="primary"
-      />
-    </div>
-    
-    <div
-      v-else-if="creditCardStore.invoices.length > 0"
-      class="px-3"
-    >
-      <v-expansion-panels>
-        <v-expansion-panel
-          v-for="invoice in creditCardStore.invoices"
-          :key="invoice.id"
-          class="mb-2 bg-grey-darken-4"
+      <div
+        v-if="creditCard && creditCard.length > 0"
+        class="container__cards"
+      >
+        <div
+          v-for="(card, index) in creditCard"
+          :key="index"
+          class="__card mb-2"
         >
-          <v-expansion-panel-title class="d-flex justify-space-between">
-            <div>
-              <span>Fatura de {{ formatCompetencia(invoice.competencia) }}</span>
-              <div class="text-caption opaco">
-                Venc. {{ formatDate(invoice.data_vencimento) }}
+          <div class="card__header">
+            <div class="card__title">
+              <IconeSicredi class="logo__sicredi" />
+              <div class="card__details">
+                <span> {{ card.name }}</span>
+                <div class="type__card d-flex align-items-center">
+                  <IconeMastercard class="logo__mastercard" />
+                  <small> {{ card.bandeira }}</small>
+                </div>
               </div>
             </div>
-            <v-spacer />
-            <v-chip
-              :color="invoice.status === 'Paga' ? 'success' : 'warning'"
-              size="small"
-              class="me-4"
-            >
-              {{ invoice.status }}
-            </v-chip>
-          </v-expansion-panel-title>
-          <v-expansion-panel-text>
-            <v-list
-              lines="two"
-              bg-color="transparent"
-            >
-              <v-list-item
-                v-for="lancamento in invoice.lancamentos"
-                :key="lancamento.id"
+            <div class="card-actions">
+              <v-icon>mdi-plus</v-icon>
+              <v-icon>mdi-magnify</v-icon>
+              <v-icon>mdi-dots-vertical</v-icon>
+            </div>
+          </div>
+
+          <div class="card__body">
+            <div class="info-row">
+              <div class="info-item">
+                <span class="label">Limite</span>
+                <span class="value">R$ {{ formatValue(card.limite) }}</span>
+              </div>
+              <div class="info-item text-center">
+                <span class="label">Em aberto</span>
+                <span class="value">R$ {{ formatValue(card.saldo) }}</span>
+              </div>
+              <div class="info-item text-right">
+                <span class="label">Lim. disponível</span>
+                <span class="value">R$ {{ formatValue(card.limite - card.saldo) }}</span>
+              </div>
+            </div>
+
+            <div class="progress__bar__container">
+              <v-progress-linear
+                :model-value="((card.limite - card.saldo) / card.limite * 100).toFixed(0)"
+                color="#32c770"
+                height="15"
+                rounded
+              />
+              <span class="progress-label">{{ ((card.limite - card.saldo) / card.limite * 100).toFixed(0) }}% </span>
+            </div>
+            <v-divider />
+            <div class="info-row mt-3">
+              <div class="info-item">
+                <span class="label">Conta</span>
+                <span class="value-small">{{ card.conta_pai_name }}</span>
+              </div>
+              <div class="info-item text-center">
+                <span class="label">Fechamento</span>
+                <span class="value-small">{{ card.dia_fechamento }}</span>
+              </div>
+              <div class="info-item text-right">
+                <span class="label">Vencimento</span>
+                <span class="value-small">{{ card.dia_vencimento }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card__footer">
+            <div class="fatura-info">
+              <span class="fatura-label">Fatura</span>
+              <span class="fatura-value">R$ {{ formatValue(card.saldo) }}</span>
+            </div>
+            <div class="fatura-actions">
+              <span class="status-fechada">
+                <v-icon
+                  size="14"
+                  class="me-1"
+                > mdi-lock </v-icon>
+                Fechada
+              </span>
+              <a
+                href="#"
+                class="register-payment"
               >
-                <v-list-item-title>{{ lancamento.descricao }}</v-list-item-title>
-                <v-list-item-subtitle>{{ lancamento.categoria }}</v-list-item-subtitle>
-                <template #append>
-                  <div class="d-flex align-center">
-                    <span :class="lancamento.is_estorno ? 'text-success' : ''">
-                      R$ {{ (lancamento.valor / 100).toFixed(2) }}
-                    </span>
-                    <v-btn
-                      v-if="!lancamento.is_estorno"
-                      icon="mdi-undo-variant"
-                      variant="text"
-                      size="small"
-                      @click="openRefundModal(lancamento)"
-                    />
-                  </div>
-                </template>
-              </v-list-item>
-            </v-list>
-            <v-divider class="my-2" />
-            <v-card-actions>
-              <span class="text-h6">Total: R$ {{ (calculateInvoiceTotal(invoice) / 100).toFixed(2) }}</span>
-              <v-spacer />
-              <v-btn
-                v-if="invoice.status !== 'Paga'"
-                color="primary"
-                variant="tonal"
-                @click="openPayInvoiceModal(invoice)"
-              >
-                Pagar Fatura
-              </v-btn>
-            </v-card-actions>
-          </v-expansion-panel-text>
-        </v-expansion-panel>
-      </v-expansion-panels>
+                <v-icon
+                  size="18"
+                  color="#3d8eff"
+                  class="me-1"
+                >
+                  mdi-check-circle
+                </v-icon>
+                Registrar pagamento
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <NoDataComponent v-else />
     </div>
-    
-    <div
-      v-else
-      class="text-center pa-5 opaco"
+
+    <v-bottom-sheet
+      v-if="!formCartao"
+      v-model="sheet"
+      style="border: 1px solid green;"
     >
-      <div v-if="!selectedCardId">
-        Selecione um cartão para ver as faturas.
-      </div>
-      <div v-else>
-        Nenhuma fatura encontrada.
-      </div>
-    </div>
+      <template #activator="{ props: activatorProps }">
+        <div class="text-center pa-8">
+          <v-btn
+            v-bind="activatorProps"
+            color="primary"
+            size="50"
+            class="btn__nova__conta"
+          >
+            <v-icon size="35">
+              mdi-plus
+            </v-icon>
+          </v-btn>
+        </div>
+      </template>
+
+      <v-list
+        class="position-fixed rounded"
+        style="bottom: 10px; right: 10px;"
+      >
+        <v-list-item
+          v-for="tile in tiles"
+          :key="tile.title"
+          :prepend-icon="tile.img"
+          :title="tile.title"
+          @click="sheet = false, tile.action()"
+        />
+      </v-list>
+    </v-bottom-sheet>
+
+    <!-- <div v-if="!formCartao" class="fixed-bottom d-flex justify-end pe-6 pb-6">
+      <v-icon
+        type="button"
+        title="Adicionar nova despesa"
+        icon="mdi-plus"
+        class="mdicon__add"
+        @click="openCreateForm"
+      />
+    </div> -->
   </div>
 </template>
 
 <script setup lang="ts">
-import { useCreditCardStore } from "@/store/creditCard";
-import { useWalletsStore } from "@/store/wallets";
-import type { CreditCardInvoice, Lancamento } from "@/types/transactions.types";
-import { computed, onMounted, ref } from "vue";
+import IconeMastercard from "@/assets/icons/mastercard.svg";
+import IconeSicredi from "@/assets/icons/sicredi35.svg";
 
+import FormCartaoCredito from "@/components/FormContaCartao.vue";
+import FormLancamentos from "@/components/FormLancamentos.vue";
+import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
+// import ModalNovaConta from "@/components/ModalNovaConta.vue";
+import { formatValue } from "@/utils/formatValue";
+import { computed } from "vue";
+
+import { useUserStore, useWalletsStore } from "@/store";
+import { useCreditCardStore } from '@/store/creditCard';
+import { WalletData } from "@/types";
+import { ref, shallowRef } from "vue";
+
+const sheet = shallowRef(false);
 const creditCardStore = useCreditCardStore();
-const walletsStore = useWalletsStore();
+const valorEstorno = ref(0);
+const tiles = [
+  { img: "mdi-credit-card-plus-outline", title: "Novo cartão", action: () => { openCreateForm(); } },
+  { img: "mdi-gift-outline", title: "Novo estorno" },
+  { img: "mdi-credit-card-outline", title: "Despesa cartão", action: () => { openFormLancamentos(); } },
+];
 
-const selectedCardId = ref<number | null>(null);
-const creditCardAccounts = computed(() => walletsStore.walletsData.cartoes);
+const useWallets = useWalletsStore();
+const useUser = useUserStore();
+let creditCard = ref(useWallets.walletsData.cartoes);
+const contaVinculo = ref(useWallets.walletsData.contas);
+let wallets = ref(useWallets.walletsData.contas);
+const mesAno = ref<string>(useUser.mesAno || "");
+const formCartao = ref(false);
+const formLancamentos = ref(false);
 
-onMounted(() => {
-  if (creditCardAccounts.value.length > 0) {
-    selectedCardId.value = creditCardAccounts.value[0].id;
-    loadInvoices();
+// const updateContas = (novoValor) => {
+//     wallets.value = novoValor;
+// };
+
+const mesPorExtenso = computed(() => {
+  if (!mesAno.value) return "";
+  const [ano, mes] = mesAno.value.split("-");
+  const anoAtual = new Date().getFullYear();
+  const mesesPorExtenso = [
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
+  ];
+  if (parseInt(ano, 10) === anoAtual) {
+    return mesesPorExtenso[parseInt(mes, 10) - 1];
   }
+  const mesAbreviado = mesesPorExtenso[parseInt(mes, 10) - 1].slice(0, 3);
+  return `${mesAbreviado}./${ano.slice(2)}`;
 });
 
-const loadInvoices = () => {
-  creditCardStore.fetchInvoices(selectedCardId.value!);
+const openCreateForm = () => {
+  // selectedRelease.value = undefined;
+  formCartao.value = true;
 };
 
-const calculateInvoiceTotal = (invoice: CreditCardInvoice) => {
-  return invoice.lancamentos.reduce((total, lanc) => {
-    return lanc.is_estorno ? total - lanc.valor : total + lanc.valor;
-  }, 0);
+const closeForm = () => {
+  formCartao.value = false;
+  // selectedRelease.value = undefined;
 };
 
-// Funções de formatação
-const formatCompetencia = (comp: string) => new Date(`${comp}-02`).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
-const formatDate = (date: string) => new Date(`${date}T00:00:00`).toLocaleDateString("pt-BR");
-
-// Lógica de Modais (simplificada para este exemplo)
-const openPayInvoiceModal = async (invoice: CreditCardInvoice) => {
-  const contaId = prompt("Digite o ID da conta para pagamento:");
-  if (contaId) {
-    await creditCardStore.payInvoice({
-      invoice_id: invoice.id,
-      conta_pagamento_id: parseInt(contaId),
-      mesAno: dataStore.mesAno,
-    });
-  }
+const openFormLancamentos = () => {
+  formLancamentos.value = true;
+};
+const closeFormLancamentos = () => {
+  formLancamentos.value = false;
+  // selectedRelease.value = undefined;
 };
 
-const openRefundModal = async (lancamento: Lancamento) => {
-  const valor = prompt(`Digite o valor do estorno para "${lancamento.descricao}":`);
-  if (valor) {
-    await creditCardStore.createRefund({
-      lancamento_original_id: lancamento.id,
-      valor: parseFloat(valor),
-    }, selectedCardId.value!);
-  }
+
+// const estornarLancamento = async (lancamentoId: number) => {
+//   await creditCardStore.createRefund({ id: lancamentoId, valor_estorno: valorEstorno.value });
+//   // Lógica para fechar o modal e atualizar a lista
+// };
+
+const updateData = (newData: WalletData) => {
+  creditCard.value = newData.cartoes;
+  closeForm();
 };
 </script>
 
 <style scoped>
-.content-wrapper { padding-top: 60px; }
-.opaco { opacity: 0.7; }
 .content-wrapper {
   position: relative;
   width: 100%;
@@ -619,5 +731,29 @@ span {
   border-radius: 50%;
   padding: 10px;
   color: #fefefe;
+}
+
+@media screen and (max-width: 600px) {
+  .pc {
+    display: none;
+  }
+  .carteira {
+    height: 150px;
+    width: 95%;
+    margin: 20px 10px 0 10px;
+    padding: 20px 10px;
+  }
+  .btn__new__conta {
+    height: 80px;
+    width: 100%;
+    margin-block: 10px;
+    padding: 0 10px;
+    display: flex;
+    justify-content: center;
+    align-items: end;
+  }
+  .body__carteira {
+    margin: 20px 0 30px 0;
+  }
 }
 </style>

@@ -8,6 +8,7 @@
       @update-data="updateData"
       @close-form="closeForm"
     />
+    
     <div class="header">
       <router-link
         class="link me-7 d-flex align-items-center opaco"
@@ -117,7 +118,7 @@
 
 <script setup lang="ts">
 // import ModalNovaConta from "@/components/ModalNovaConta.vue";
-import FormCartaoCredito from "@/components/FormContaCartao-copy.vue";
+import FormCartaoCredito from "@/components/FormContaCartao.vue";
 import { formatValue } from "@/utils/formatValue";
 import { computed } from "vue";
 
@@ -129,6 +130,7 @@ const useUser = useUserStore();
 let wallets = ref(useWallets.walletsData.contas);
 const mesAno = ref<string>(useUser.mesAno || "");
 const formulario = ref(false);
+
 
 // const updateContas = (novoValor) => {
 //     wallets.value = novoValor;
@@ -159,15 +161,13 @@ const mesPorExtenso = computed(() => {
   return `${mesAbreviado}./${ano.slice(2)}`;
 });
 const openCreateForm = () => {
-  console.log("formulario", formulario.value);
-  // selectedRelease.value = undefined;
   formulario.value = true;
-  console.log("formulario", formulario.value);
 };
 const closeForm = () => {
   formulario.value = false;
   // selectedRelease.value = undefined;
 };
+
 </script>
 
 <style scoped>

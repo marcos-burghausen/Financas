@@ -1,5 +1,5 @@
 
-export interface Account {
+export interface Wallet {
   id?: number;
   user_id: number;
   name: string;
@@ -23,11 +23,11 @@ export interface Account {
 // Represents wallet-related data (replacing Wallets)
 export interface WalletData {
   categories: CategoryAccount[];
-  contas: Account[];
-  cartoes: Account[];
-  contasNames: string[];
-  saldoAtual: number;
-  saldoInicial: number;
+  contas: Wallet[];
+  cartoes: Wallet[];
+  contas_names: string[];
+  saldo_atual: number;
+  saldo_inicial: number;
 }
 
 export interface CategoryAccount {

@@ -1,3 +1,4 @@
+import http from '@/services/http';
 import type { Account, WalletData } from "@/types";
 import { defineStore } from "pinia";
 import { ref, type Ref } from "vue";
@@ -14,8 +15,8 @@ export const useWalletsStore = defineStore("wallets", () => {
         walletsData.value = {
             contas: wallets?.contas ?? walletsData.value.contas,
             cartoes: wallets?.cartoes ?? walletsData.value.cartoes,
-            contasNames: wallets?.contasNames ?? walletsData.value.contasNames,
-            saldoInicial: wallets?.saldoInicial ?? walletsData.value.saldoInicial,
+            contas_names: wallets?.contas_names ?? walletsData.value.contas_names,
+            saldo_inicial: wallets?.saldo_inicial ?? walletsData.value.saldo_inicial,
             categories: wallets?.categories ?? walletsData.value.categories,
         };
         localStorage.setItem("walletsData", JSON.stringify( walletsData.value));
@@ -30,16 +31,27 @@ export const useWalletsStore = defineStore("wallets", () => {
     
     function setSaldoInicial(saldoInicial: number): void {
         if (walletsData.value) {
-            walletsData.value.saldoInicial = saldoInicial;
+            walletsData.value.saldo_inicial = saldoInicial;
             localStorage.setItem("walletsData", JSON.stringify(walletsData.value));
           }
     }
 
+    async function saveWallet(walletData: Account): Promise<any> {
+      try {
+        const response = await http.post('/wallet', walletData);
+        console.log(response);
+        setWalletsData(response.data.wallets);
+        return response.data;
+      } catch (error) {
+        console.error('Erro ao salvar a carteira:', error);
+      }
+    }
 
     return {
         walletsData,
         setWalletsData,
         setContas,
         setSaldoInicial,
+        saveWallet,
     };
 });
