@@ -8,17 +8,20 @@
       <div class="header__items d-flex justify-content-between fixed-top py-10 align-items-center">
         <div class="d-flex align-items-center">
           <v-btn 
-          :disabled="loading" 
-          class="close fs-5 ms-2" 
-          icon="mdi-close" 
-          @click="closeForm" 
-        />
+            :disabled="loading" 
+            class="close fs-5 ms-2" 
+            icon="mdi-close" 
+            @click="closeForm" 
+          />
           <div class="d-flex flex-column ms-2">
             <span class="fs-5">
               {{ isEditMode ? "Editar" : "Nova" }}
               {{ transactionType }}
             </span>
-            <span v-if="isCard" style="font-size: 12px;">
+            <span
+              v-if="isCard"
+              style="font-size: 12px;"
+            >
               Cartão de Crédito
             </span>
           </div>
@@ -282,7 +285,7 @@
             <template #selection="{ item }">
               <div class="d-flex align-center">
                 <!-- <component :is="getCardIcon(item.raw.bandeira)" class="brand-icon me-2" /> -->
-                 <v-icon
+                <v-icon
                   :icon="getBankIcon(item.raw.name)"
                   size="25"
                   class="mr-2"
@@ -309,29 +312,137 @@
             </template>
           </v-select>
 
-          <v-select v-model="form.fatura" label="Fatura" :items="invoiceList" variant="underlined"
-            prepend-inner-icon="mdi-receipt" class="mt-4" />
+          <v-row>
+            <v-col
+              class="p-0 pt-3"
+              cols="6"
+            >
+              <!-- <div class="d-flex align-center"> -->
+              <v-icon
+                icon="mdi-calendar"
+                size="25"
+                class="ms-2"
+              />
+              <span>Fatura</span>
+              <!-- </div> -->
+            </v-col>
+            <v-col
+              class="p-0"
+              cols="6"
+            >
+              <v-select
+                v-model="form.fatura"
+                :items="invoiceList"
+                variant="solo"
+                class=""
+              />
+            </v-col>
+          </v-row>
+          <v-select
+            v-model="form.fatura"
+            :items="invoiceList"
+            item-title="label"
+            item-value="value"
+            variant="underlined"
+            class="mt-4 fatura-select"
+            hide-detail
+            aria-label="Fatura"
+            :menu-props="{
+              contentClass: 'fatura-menu',
+              maxHeight: 320
+            }"
+            menu-icon="mdi-chevron-down"
+          >
+            <!-- Prefixo fixo: ícone + Fatura -->
+            <template #prepend-inner>
+              <div class="fatura-prefix">
+                <v-icon
+                  size="20"
+                  class="mr-1"
+                >
+                  mdi-receipt
+                </v-icon>
+                <span class="fatura-prefix__label">Fatura</span>
+              </div>
+            </template>
+
+            
+            <!-- Valor selecionado (mês/ano) alinhado à direita -->
+            <template #selection="{ item }">
+              <div class="fatura-selection">
+                <span class="fatura-selection__text">
+                  {{ item?.title ?? item?.raw?.label ?? '' }}
+                </span>
+              </div>
+            </template>
+
+            
+            <!-- (Opcional) Customização dos itens no menu -->
+            <!-- <template #item="{ props, item }">
+              <v-list-item v-bind="props">
+                <v-list-item-title class="text-body-2">
+                  {{ item?.title }}
+                </v-list-item-title>
+              </v-list-item>
+            </template> -->
+          </v-select>
         </template>
 
-        <v-text-field v-if="isCard" :model-value="linkedAccountName" label="Conta" variant="underlined" readonly
-          prepend-inner-icon="mdi-bank" class="mt-4" />
-        <v-select v-else v-model="form.conta_id" label="Conta" :items="availableBankAccounts" item-title="name"
-          item-value="id" variant="underlined" :rules="[rules.required]" prepend-inner-icon="mdi-bank"
-          class="mt-4" />
+
+        <v-text-field
+          v-if="isCard"
+          :model-value="linkedAccountName"
+          label="Conta"
+          variant="underlined"
+          readonly
+          prepend-inner-icon="mdi-bank"
+          class="mt-4"
+        />
+        <v-select
+          v-else
+          v-model="form.conta_id"
+          label="Conta"
+          :items="availableBankAccounts"
+          item-title="name"
+          item-value="id"
+          variant="underlined"
+          :rules="[rules.required]"
+          prepend-inner-icon="mdi-bank"
+          class="mt-4"
+        />
 
         <v-row>
           <v-col cols="6">
-            <v-select v-model="form.categoria" label="Categoria" :items="availableCategories" item-title="name"
-              item-value="name" variant="underlined" :rules="[rules.required]" @update:modelValue="form.subcategoria = ''" />
+            <v-select
+              v-model="form.categoria"
+              label="Categoria"
+              :items="availableCategories"
+              item-title="name"
+              item-value="name"
+              variant="underlined"
+              :rules="[rules.required]"
+              @update:model-value="form.subcategoria = ''"
+            />
           </v-col>
           <v-col cols="6">
-            <v-select v-model="form.subcategoria" label="Subcategoria" :items="availableSubcategories"
-              item-title="name" item-value="name" variant="underlined" />
+            <v-select
+              v-model="form.subcategoria"
+              label="Subcategoria"
+              :items="availableSubcategories"
+              item-title="name"
+              item-value="name"
+              variant="underlined"
+            />
           </v-col>
         </v-row>
         
-        <v-select v-if="!isCard" v-model="form.status_lancamento" label="Status" :items="['Pendente', 'Efetivada']"
-          variant="underlined" />
+        <v-select
+          v-if="!isCard"
+          v-model="form.status_lancamento"
+          label="Status"
+          :items="['Pendente', 'Efetivada']"
+          variant="underlined"
+        />
       </div>
     </v-form>
   </div>
@@ -339,22 +450,36 @@
 
 <script setup lang="ts">
 import http from "@/services/http";
-import { useErrorStore, useWalletsStore } from '@/store';
-import { useLancamentoStore } from '@/store/lancamentos';
-import type { CategoryData, Lancamento, Wallet } from '@/types';
+import { useErrorStore, useWalletsStore } from "@/store";
+import { useLancamentoStore } from "@/store/lancamentos";
+import type { CategoryData, Lancamento, Wallet } from "@/types";
 import { formatValue } from "@/utils/formatValue";
-import { getBankIcon } from '@/utils/iconMapper'; // Supondo que você tenha este utilitário
-import { computed, onMounted, ref } from 'vue';
+import { getBankIcon } from "@/utils/iconMapper"; // Supondo que você tenha este utilitário
+import { computed, onMounted, ref } from "vue";
 
 const props = defineProps<{
-  transactionType?: 'Receita' | 'Despesa';
+  transactionType?: "Receita" | "Despesa";
   isCard?: boolean;
   rota: string;
   mesAno: string;
   lancamento?: Lancamento;
+  modelValue: { type: [string, number, Object, null], default: null },
+  items: { type: Array, default: () => [] },
+  /** Se true, clicar em qualquer lugar do wrapper abre o menu */
+  openOnWrapper: { type: boolean, default: false },
+
 }>();
 
-const emit = defineEmits(['close']);
+const menuOpen = ref(false);
+const innerValue = computed({
+  get: () => props.modelValue,
+  set: v => emit("update:modelValue", v),
+});
+
+const faturaSelect = ref();
+
+
+const emit = defineEmits(["close"]);
 
 // --- STORES ---
 const walletsStore = useWalletsStore();
@@ -380,17 +505,17 @@ const editScope = ref<"apenas esta" | "esta e as próximas" | "todas" | "apenas 
 
 // --- FORM STATE ---
 const form = ref<Partial<Lancamento & { cartao_id: number | null, fatura: string | null }>>({
-  tipo_lancamento: props.transactionType || 'Despesa',
-  descricao: '',
+  tipo_lancamento: props.transactionType || "Despesa",
+  descricao: "",
   valor: formatValue(Number(props.lancamento?.valor)) || "0,00",
   conta_id: null,
   cartao_id: null,
   fatura: null,
-  data_lancamento: new Date().toISOString().split('T')[0],
-  recorrencia: 'Não recorrente',
-  categoria: '',
-  subcategoria: '',
-  status_lancamento: props.isCard ? 'Efetivada' : 'Pendente',
+  data_lancamento: new Date().toISOString().split("T")[0],
+  recorrencia: "Não recorrente",
+  categoria: "",
+  subcategoria: "",
+  status_lancamento: props.isCard ? "Efetivada" : "Pendente",
 });
 
 const tiposRecorrencia = ref<("Não recorrente" | "Fixa" | "Parcelado")[]>([
@@ -429,9 +554,9 @@ const decrementQuantidade = () => {
 
 // --- COMPUTED PROPERTIES ---
 
-const formTitle = computed(() => `${props.lancamento ? 'Editar' : 'Novo(a)'} ${form.value.tipo_lancamento}`);
-const tiposLancamento = ['Despesa', 'Receita', 'Cartão de Crédito'];
-const isCreditCard = computed(() => form.value.tipo_lancamento === 'Cartão de Crédito');
+const formTitle = computed(() => `${props.lancamento ? "Editar" : "Novo(a)"} ${form.value.tipo_lancamento}`);
+const tiposLancamento = ["Despesa", "Receita", "Cartão de Crédito"];
+const isCreditCard = computed(() => form.value.tipo_lancamento === "Cartão de Crédito");
 
 // Listas de Contas e Cartões
 const creditCardAccounts = computed<Wallet[]>(() => walletsStore.walletsData.cartoes || []);
@@ -445,27 +570,27 @@ const selectedCreditCard = computed(() => {
 
 // Lógica para a Conta vinculada (readonly)
 const linkedAccountName = computed(() => {
-  if (!selectedCreditCard.value || !selectedCreditCard.value.conta_pai_id) return 'Nenhuma conta vinculada';
+  if (!selectedCreditCard.value || !selectedCreditCard.value.conta_pai_id) return "Nenhuma conta vinculada";
   const conta = availableBankAccounts.value.find(acc => acc.id === selectedCreditCard.value.conta_pai_id);
-  return conta?.name || 'Conta não encontrada';
+  return conta?.name || "Conta não encontrada";
 });
 
 // Lógica para gerar a lista de faturas
 const invoiceList = computed(() => {
   const list = [];
   const now = new Date();
-  const options: Intl.DateTimeFormatOptions = { month: 'long', year: 'numeric' };
+  const options: Intl.DateTimeFormatOptions = { month: "long", year: "numeric" };
 
   // Adiciona 12 meses para trás
   for (let i = 12; i > 0; i--) {
     const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    list.push(date.toLocaleDateString('pt-BR', options));
+    list.push(date.toLocaleDateString("pt-BR", options));
   }
 
   // Adiciona o mês atual e 12 meses para frente
   for (let i = 0; i <= 12; i++) {
     const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
-    list.push(date.toLocaleDateString('pt-BR', options));
+    list.push(date.toLocaleDateString("pt-BR", options));
   }
   return list;
 });
@@ -633,9 +758,9 @@ const formatValueSave = () => {
 // Lógica para Categorias e Subcategorias
 const availableCategories = computed<CategoryData[]>(() => {
   if (!walletsStore.walletsData.categories) return [];
-  const typeMap: { [key: string]: string } = { 'Receita': 'receita', 'Despesa': 'despesa' };
+  const typeMap: { [key: string]: string } = { "Receita": "receita", "Despesa": "despesa" };
   const currentType = typeMap[props.transactionType];
-  return walletsStore.walletsData.categories.filter(c => c.type === currentType || c.type === 'ambas');
+  return walletsStore.walletsData.categories.filter(c => c.type === currentType || c.type === "ambas");
 });
 
 const availableSubcategories = computed(() => {
@@ -652,15 +777,15 @@ onMounted(() => {
     form.value.cartao_id = creditCardAccounts.value[0].id;
   }
   // Define a fatura atual como padrão
-  form.value.fatura = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  form.value.fatura = new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
 });
 
 // --- MÉTODOS ---
 const rules = {
-  required: (value: any) => !!value || 'Campo obrigatório.',
+  required: (value: any) => !!value || "Campo obrigatório.",
 };
 
-const closeForm = () => emit('close');
+const closeForm = () => emit("close");
 
 const submitForm = async () => {
   if (!isFormValid.value) return;
@@ -675,7 +800,7 @@ const submitForm = async () => {
     await lancamentoStore.saveLancamento(payload);
     closeForm();
   } catch (error) {
-    console.error(error)
+    console.error(error);
   } finally {
     loading.value = false;
   }
@@ -688,9 +813,118 @@ if (props.lancamento) {
 </script>
 
 <style scoped>
-.lista__menor {
-  max-height: 300px;
+
+/* Prefixo não bloqueia o clique para abrir o select */
+.fatura-select :deep(.v-field__prepend-inner) { pointer-events: none; }
+
+.fatura-prefix {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
+.fatura-prefix__label {
+  font-size: 0.9rem;
+  color: rgba(var(--v-theme-on-surface), 0.7);
+}
+
+/* Campo do select em flex para permitir empurrar o valor p/ direita */
+.fatura-select :deep(.v-field__input) {
+  display: flex;
+  align-items: center;
+}
+
+/* Empurra o valor selecionado (mês/ano) para a direita */
+.fatura-select :deep(.fatura-selection) {
+  margin-left: auto;
+}
+
+.fatura-select :deep(.fatura-selection__text) {
+  font-weight: 600;
+  color: rgba(var(--v-theme-on-surface), 0.95);
+}
+
+/* (Opcional) itens do menu mais compactos */
+:deep(.fatura-menu .v-list-item) {
+  min-height: 36px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- Estilos internos (podem ser scoped) -->
+<style scoped>
+.fatura-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0 6px;
+  border-bottom: 1px solid rgba(var(--v-theme-outline), .5);
+}
+
+/* Esquerda fixa */
+.fatura-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.fatura-left__label {
+  font-size: 0.9rem;
+  color: rgba(var(--v-theme-on-surface), 0.7);
+}
+
+/* Direita (select) */
+.fatura-right {
+  margin-left: auto;     /* empurra o select para a direita */
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Deixa o select bem compacto e "flat" para parecer embutido */
+.fatura-select-compact :deep(.v-field__outline),
+.fatura-select-compact :deep(.v-field__prepend-inner),
+.fatura-select-compact :deep(.v-field__append-inner) {
+  display: none !important;
+}
+.fatura-select-compact :deep(.v-field__input) {
+  padding: 0 !important;
+  min-height: unset !important;
+}
+.fatura-select-compact :deep(.v-field__overlay) { display: none; }
+.fatura-select-compact :deep(.v-field) { --v-input-padding-top: 0; --v-input-padding-bottom: 0; }
+
+.fatura-value {
+  font-weight: 600;
+  color: rgba(var(--v-theme-on-surface), 0.95);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 .container__modal {
   background-color: #1e1e1e;
   color: white;
@@ -1014,3 +1248,4 @@ h2 {
   color: #77d08e;
 }
 </style>
+
