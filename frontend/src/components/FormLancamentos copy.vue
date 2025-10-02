@@ -11,14 +11,20 @@
         <div class="d-flex">
           <v-btn
             :disabled="loading"
-            class="close fs-5 ms-2"
+            class="close fs-5"
+            size="50"
             prepend-icon="mdi-close"
             @click="closeForm"
           />
-          <span class="fs-5">
-            {{ isEditMode ? "Editar" : "Nova" }}
-            {{ transactionType }}
-          </span>
+          <div class="d-flex flex-column">
+            <span class="fs-5">
+              {{ isEditMode ? "Editar" : "Nova" }}
+              {{ transactionType }}
+            </span>
+            <span v-if="isCard" style="font-size: 12px;">
+              Cartão de Crédito
+            </span>
+          </div>
         </div>
         <v-btn
           :disabled="
@@ -63,7 +69,7 @@
       >
         <!-- <div class="custom-input-label">Recorrência</div> -->
         <div
-          class="custom-input-content"
+          class="custom__input__content"
           @click="openRecorrenciaModal = true"
         >
           <v-icon
@@ -74,7 +80,7 @@
             <span>{{ formReleases.recorrencia }}</span>
             <span
               v-if="detalheRecorrencia"
-              class="detalhe-parcela-interno"
+              class="detalhe__parcela__interno"
             >
               {{ detalheRecorrencia }}
             </span>
@@ -267,72 +273,132 @@
         </div>
       </div>
 
-      <div class="mb-2 pt-1">
-        <v-menu
-          v-model="menuDataVencimento"
-          :close-on-content-click="false"
-          transition="scale-transition"
-          offset-y
+      <!-- BANDEIRA -->
+      <template
+        v-if="isCard"
+      >
+        <v-select
+          v-model="formReleases.cartao_id"
+          :items="creditCardAccounts"
+          item-title="name"
+          item-value="id"
+          label="Cartão de Crédito"
+          variant="underlined"
+          class="imput mb-4"
+          :rules="[rules.required]"
         >
-          <template #activator="{ props }">
-            <div
-              class="custom__display__input"
-              v-bind="props"
-            >
-              <div class="d-flex align-center text-grey">
-                <v-icon
-                  icon="mdi-calendar"
-                  class="me-3"
-                />
-                <span>Data de vencimento</span>
-              </div>
-              <v-spacer class="m-0 p-0" />
-              <span class="font-weight-medium">{{ displayDataVencimento }}</span>
+          <!-- <template #prepend-inner>
+            <v-icon icon="mdi-credit-card-outline" />
+          </template> -->
+
+          <!-- Valor selecionado -->
+          <template #selection="{ item }">
+            <div class="d-flex align-center text-truncate">
+              <v-icon
+                :icon="getBankIcon(item.raw.name)"
+                size="25"
+                class="mr-2"
+              />
+              <span class="text-truncate">{{ item.title }}</span>
             </div>
           </template>
+          <template #append-inner>
+            <v-icon
+              v-if="selectedCreditCard"
+              :icon="getBankIcon(selectedCreditCard.bandeira)"
+              size="25"
+              class="mr-2"
+            />
+            <!-- <component
+              :is="selectedBrandIcon"
+              v-if="selectedBrandIcon"
+              class="brand-icon"
+            /> -->
+          </template>
+          <template #item="{ props, item }">
+            <v-list-item
 
-          <v-date-picker
-            v-model="formReleases.dataVencimento"
-            color="#77d08e"
-            hide-header
-            show-adjacent-months
-            @update:model-value="menuDataVencimento = false"
-          />
-        </v-menu>
-      </div>
+              v-bind="props"
+              :prepend-icon="getBankIcon(item.raw.name)"
+              :title="item.raw.name"
+            />
+          </template>
+        </v-select>
 
-      <v-text-field
-        v-model="formReleases.status"
-        variant="underlined"
-        hide-details="auto"
-        type="text"
-        class="mb-6 imput"
-        readonly
-        :prepend-inner-icon="
-          formReleases.status === 'Efetivada'
-            ? 'mdi-check-circle-outline'
-            : 'mdi-clock-time-three-outline'
-        "
-        @click="toggleStatus"
-      >
-        <template #append-inner>
-          <div
-            :class="
-              formReleases.status === 'Efetivada'
-                ? 'form__check__efetivada'
-                : 'form__check'
-            "
+        
+        <v-select v-model="formReleases.fatura" label="Fatura" :items="invoiceList" variant="underlined"
+            prepend-inner-icon="mdi-receipt" class="imput mb-4" />
+
+      </template>
+
+      <template v-else>
+        <div class="mb-2 pt-1">
+          <v-menu
+            v-model="menuDataVencimento"
+            :close-on-content-click="false"
+            transition="scale-transition"
+            offset-y
           >
+            <template #activator="{ props }">
+              <div
+                class="custom__display__input"
+                v-bind="props"
+              >
+                <div class="d-flex align-center text-grey">
+                  <v-icon
+                    icon="mdi-calendar"
+                    class="me-3"
+                  />
+                  <span>Data de vencimento</span>
+                </div>
+                <v-spacer class="m-0 p-0" />
+                <span class="font-weight-medium">{{ displayDataVencimento }}</span>
+              </div>
+            </template>
+
+            <v-date-picker
+              v-model="formReleases.dataVencimento"
+              color="#77d08e"
+              hide-header
+              show-adjacent-months
+              @update:model-value="menuDataVencimento = false"
+            />
+          </v-menu>
+        </div>
+
+        <v-text-field
+          v-model="formReleases.status"
+          variant="underlined"
+          hide-details="auto"
+          type="text"
+          class="mb-6 imput"
+          readonly
+          :prepend-inner-icon="
+            formReleases.status === 'Efetivada'
+              ? 'mdi-check-circle-outline'
+              : 'mdi-clock-time-three-outline'
+          "
+          @click="toggleStatus"
+        >
+          <template #append-inner>
             <div
               :class="
                 formReleases.status === 'Efetivada'
-                  ? 'switch__check__efetivada'
-                  : 'switch__check'
+                  ? 'form__check__efetivada'
+                  : 'form__check'
               "
-            />
-          </div>
-        </template>
-      </v-text-field>
+            >
+              <div
+                :class="
+                  formReleases.status === 'Efetivada'
+                    ? 'switch__check__efetivada'
+                    : 'switch__check'
+                "
+              />
+            </div>
+          </template>
+        </v-text-field>
+      </template>
 
       <v-autocomplete
         v-model="formReleases.categoria"
@@ -366,7 +432,7 @@
         </template>
       </v-autocomplete>
 
-      <v-autocomplete
+      <!-- <v-autocomplete
         v-model="formReleases.conta"
         :items="contasNames"
         :rules="[rules.requiredConta]"
@@ -376,7 +442,42 @@
         variant="underlined"
         class="mb-6 imput"
         prepend-inner-icon="mdi-bank"
-      />
+      /> -->
+      <!-- CONTA (ícone antes do nome no valor e nos itens) -->
+      <v-select
+        v-model="formReleases.conta_id"
+        :items="props.wallets"
+        item-title="bandeira"
+        item-value="id"
+        label="Conta"
+        variant="underlined"
+        class="mb-6 imput"
+        :rules="[rules.required]"
+      >
+        <template #selection="{ item }">
+          <div class="d-flex align-center text-truncate">
+            <v-icon
+              :icon="getBankIcon(item.raw.bandeira)"
+              size="25"
+              class="mr-2"
+            />
+            <span class="text-truncate">{{ item?.raw?.bandeira ?? 'Nenhuma' }}</span>
+          </div>
+        </template>
+        <template #item="{ props, item }">
+          <v-list-item
+            v-bind="props"
+            :prepend-icon="getBankIcon(item.raw.bandeira)"
+            :title="item.raw.name"
+          />
+        </template>
+      </v-select>
+
+      <v-text-field v-if="isCard" :model-value="linkedAccountName" label="Conta" variant="underlined" readonly
+        :prepend-inner-icon="getBankIcon(selectedCreditCard.name)" class="imput mb-4" />
+      <v-select v-else v-model="formReleases.conta_id" label="Conta" :items="availableBankAccounts" item-title="name"
+        item-value="id" variant="underlined" :rules="[rules.required]" prepend-inner-icon="mdi-bank"
+        class="mt-4" />
 
       <v-btn
         v-if="!informacoes"
@@ -540,12 +641,13 @@ import {
   useUserStore,
   useWalletsStore,
 } from "@/store";
-import type { ApiErrorResponse, Lancamento } from "@/types";
+import type { ApiErrorResponse, Lancamento, Wallet } from "@/types";
 import { formatValue } from "@/utils/formatValue";
+import { getBankIcon } from '@/utils/iconMapper';
 import type { AxiosError } from "axios";
 import { format, format as formatDate, isTomorrow, isValid, isYesterday, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 
 const useWallets = useWalletsStore();
 const useRevenues = useRevenuesStore();
@@ -562,10 +664,13 @@ const menuDataEfetivacao = ref(false);
 
 const props = defineProps<{
   releases?: Lancamento;
+  wallets: Wallet[];
+  isCard: boolean;
   rota: string;
   mesAno: string;
   transactionType: "Receita" | "Despesa";
 }>();
+console.log(props.wallets);
 
 const validateDate = (date: string | Date | undefined): string => {
   if (!date) {
@@ -584,6 +689,79 @@ const validateDate = (date: string | Date | undefined): string => {
   }
   return formatDate(parsedDate, "yyyy-MM-dd");
 };
+
+const contasNames = ref(useWallets.walletsData.contas);
+
+const formReleases = ref<Lancamento>({
+  id: props.releases?.id || null,
+  descricao: props.releases?.descricao || "",
+  valor: formatValue(Number(props.releases?.valor)) || "0,00",
+  tipo_lancamento: props.transactionType,
+  recorrencia: props.releases?.recorrencia || "Não recorrente",
+  parcela_atual: props.releases?.parcela_atual || null,
+  num_parcelas: props.releases?.num_parcelas || null,
+  tipo_parcela: props.releases?.tipo_parcela || null,
+  periodicidade: props.releases?.periodicidade || null,
+  data_vencimento: validateDate(props.releases?.data_vencimento),
+  status_lancamento: props.releases?.status_lancamento || "Pendente",
+  categoria: props.releases?.categoria || "Outros",
+  subcategoria: props.releases?.subcategoria || "Outros",
+  conta_id: props.wallets?.conta_id || contasNames.value[0],
+  bandeira: "MasterCard",
+  data_lancamento: validateDate(props.releases?.data_lancamento),
+  data_efetivacao: props.releases?.data_efetivacao || null,
+  // mesAno: props.mesAno,
+});
+
+// Listas de Contas e Cartões
+const creditCardAccounts = computed<Wallet[]>(() => useWallets.walletsData.cartoes);
+const availableBankAccounts = computed<Wallet[]>(() => useWallets.walletsData.contas || []);
+
+// Lógica para o Cartão de Crédito selecionado
+const selectedCreditCard = computed(() => {
+  if (!formReleases.value.cartao_id) return null;
+  return creditCardAccounts.value.find(c => c.id === formReleases.value.cartao_id);
+});
+console.log('aqui', selectedCreditCard.value);
+
+// Lógica para a Conta vinculada (readonly)
+const linkedAccountName = computed(() => {
+  if (!selectedCreditCard.value || !selectedCreditCard.value.conta_pai_id) return 'Nenhuma conta vinculada';
+  const conta = availableBankAccounts.value.find(acc => acc.id === selectedCreditCard.value.conta_pai_id);
+  return conta?.name || 'Conta não encontrada';
+});
+
+// Lógica para gerar a lista de faturas
+const invoiceList = computed(() => {
+  const list = [];
+  const now = new Date();
+  const options: Intl.DateTimeFormatOptions = { month: 'long', year: 'numeric' };
+
+  // Adiciona 12 meses para trás
+  for (let i = 12; i > 0; i--) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    list.push(date.toLocaleDateString('pt-BR', options));
+  }
+
+  // Adiciona o mês atual e 12 meses para frente
+  for (let i = 0; i <= 12; i++) {
+    const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    list.push(date.toLocaleDateString('pt-BR', options));
+  }
+  return list;
+});
+
+// --- LIFECYCLE HOOKS ---
+onMounted(() => {
+  // Inicializa o formulário para Cartão de Crédito se for o caso
+  if (props.isCard && creditCardAccounts.value.length > 0) {
+    formReleases.value.cartao_id = creditCardAccounts.value[0].id;
+  }
+  // Define a fatura atual como padrão
+  formReleases.value.fatura = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+});
+
+
 
 let valorParcela = ref<string | null>(null);
 let informacoes = ref(false);
@@ -650,7 +828,10 @@ const categoriasNames = computed(() => {
 });
 
 
-const contasNames = ref(useWallets.walletsData.contasNames);
+
+console.log(contasNames.value);
+  // .concat(useWallets.walletsData.cartoes)
+  // .map((conta) => conta.name));
 const isEditMode = computed(() => !!props.releases?.id);
 console.log(props.releases?.recorrencia);
 
@@ -676,10 +857,10 @@ const isToday = (dateValue: string | Date | undefined | null): boolean => {
 
 const displayDataVencimento = computed(() => {
   // Se não houver data, não mostre nada.
-  if (!formReleases.value.dataVencimento) return "Selecione...";
+  if (!formReleases.value.data_vencimento) return "Selecione...";
 
-  if (typeof formReleases.value.dataVencimento !== "string") return "";
-  const data = parseISO(formReleases.value.dataVencimento);
+  if (typeof formReleases.value.data_vencimento !== "string") return "";
+  const data = parseISO(formReleases.value.data_vencimento);
 
   // Compara com a data atual e retorna o texto correspondente
   if (isToday(data)) return "Hoje";
@@ -765,25 +946,7 @@ const isTodayEfetivacao = computed(() =>
 
 const tipoCalculoParcela = ref<"total" | "parcela">("total");
 
-const formReleases = ref<Lancamento>({
-  id: props.releases?.id || null,
-  descricao: props.releases?.descricao || "",
-  valor: formatValue(Number(props.releases?.valor)) || "0,00",
-  tipo: props.transactionType,
-  recorrencia: props.releases?.recorrencia || "Não recorrente",
-  parcelaAtual: props.releases?.parcelaAtual || null,
-  numParcelas: props.releases?.numParcelas || null,
-  tipoParcela: props.releases?.tipoParcela || null,
-  periodicidade: props.releases?.periodicidade || null,
-  dataVencimento: validateDate(props.releases?.dataVencimento),
-  status: props.releases?.status || "Pendente",
-  categoria: props.releases?.categoria || "Outros",
-  subcategoria: props.releases?.subcategoria || "Outros",
-  conta: props.releases?.conta || contasNames.value[0],
-  dataLancamento: validateDate(props.releases?.dataLancamento),
-  dataEfetivacao: props.releases?.dataEfetivacao || null,
-  // mesAno: props.mesAno,
-});
+
 
 const detalheRecorrencia = computed(() => {
   if (
@@ -803,27 +966,39 @@ const detalheRecorrencia = computed(() => {
     };
 
     if (tipoCalculoParcela.value === "total") {
-      const valorParcela = valorInput / formReleases.value.numParcelas;
+      const valorParcela = valorInput / formReleases.value.num_parcelas;
       const valorFormatado = valorParcela.toLocaleString("pt-BR", opcoesDeFormatacao);
-      return `Em ${formReleases.value.numParcelas}x de R$ ${valorFormatado}`;
+      return `Em ${formReleases.value.num_parcelas}x de R$ ${valorFormatado}`;
     } else {
       const valorFormatado = valorInput.toLocaleString("pt-BR", opcoesDeFormatacao);
-      return `Em ${formReleases.value.numParcelas}x de R$ ${valorFormatado}`;
+      return `Em ${formReleases.value.num_parcelas}x de R$ ${valorFormatado}`;
     }
   }
   return "";
 });
 
 // Busca a lista de categorias correta (Receita ou Despesa)
-const categoriesSource = computed(() => 
-  props.transactionType === "Receita"
-    ? useRevenues.revenuesData?.categories
-    : useExpenses.expensesData?.categories
-);
+// const categoriesSource = computed(() => 
+//   props.transactionType === "Receita"
+//     ? useRevenues.revenuesData?.categories
+//     : useExpenses.expensesData?.categories
+// );
+const availableCategories = computed<CategoryData[]>(() => {
+  if (!useWallets.walletsData.categories) return []; // Guarda de Segurança!
+  const typeMap: { [key: string]: string } = { 'Receita': 'receita', 'Despesa': 'despesa' };
+  const currentType = typeMap[props.transactionType];
+  // Correto: Filtra a lista principal de categorias
+  return useWallets.walletsData.categories.filter(c => c.type === currentType || c.type === 'ambas');
+});
 
 // Encontra o objeto da categoria selecionada
 const selectedCategoryObject = computed(() => {
-  return categoriesSource.value.find(
+  if (!availableCategories.value || availableCategories.value.length === 0) {
+    return null;
+  }
+  // --- FIM DA CORREÇÃO ---
+
+  return availableCategories.value.find(
     (cat) => cat.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === (formReleases.value.categoria || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
   );
 });
@@ -1107,9 +1282,6 @@ const rules = {
 }
 .close {
   cursor: pointer;
-  border-radius: 50%;
-  height: 40px;
-  width: 40px;
   background-color: transparent;
   color: #fefefe;
   display: flex;
@@ -1117,15 +1289,14 @@ const rules = {
   align-items: center;
 }
 .btn {
-  color: #fff;
+  color: #1e1e1e;
   cursor: pointer;
   font-weight: bold;
   align-self: center;
   border: none;
   margin-top: 1rem;
   font-size: 20px;
-  background-color: #77d08e;
-  border: 1px solid #77d08e;
+  background-color: #0c99ed;
   transition: background-color 0.5s;
 }
 .imput {
@@ -1319,14 +1490,14 @@ h2 {
   margin-bottom: 4px;
 }
 
-.custom-input-content {
+.custom__input__content {
   display: flex;
   align-items: center;
   color: #fff;
   cursor: pointer;
 }
 
-.detalhe-parcela-interno {
+.detalhe__parcela__interno {
   font-size: 14px;
   color: #e0e0e0;
   line-height: 1.2;

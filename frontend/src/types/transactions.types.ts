@@ -19,7 +19,8 @@ export interface Lancamento {
   data_lancamento: string; // "YYYY-MM-DD"
   data_efetivacao: string | null;
   periodicidade: "Mensal" | "Diario" | "Semanal" | "Quinzenal" | "Trimenstral" | "Anual" | null;
-  conta_id: number;
+  conta_id?: number | null;
+  fatura?: string; // "YYYY-MM"
 }
 
 export interface CreditCardInvoice {

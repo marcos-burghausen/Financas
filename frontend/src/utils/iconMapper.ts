@@ -12,6 +12,8 @@ const iconBankMap: { [key: string]: string } = {
   'Nubank': NubankIcon,
   'Caixa Economica': CaixaIcon,
   'Banco do Brasil': BBIcon,
+  'MasterCard': MasterCardIcon,
+  'Visa': VisaIcon,
 };
 
 // Função que retorna o ícone correspondente ou um ícone padrão

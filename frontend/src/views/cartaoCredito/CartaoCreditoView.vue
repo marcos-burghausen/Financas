@@ -9,12 +9,14 @@
       @close-form="closeForm"
     />
     <FormLancamentos
-      v-if="formLancamentos"
+      v-if="formLancCartao"
       rota="expense"
       :mes-ano="mesAno"
+      :wallets="creditCards"
       transaction-type="Despesa"
+      :is-card="true"
       @update-data="updateData"
-      @close-form="closeFormLancamentos"
+      @close-form="closeFormLancCartao"
     />
     <div
       v-if="!formCartao"
@@ -58,11 +60,11 @@
       </div>
 
       <div
-        v-if="creditCard && creditCard.length > 0"
+        v-if="creditCards && creditCards.length > 0"
         class="container__cards"
       >
         <div
-          v-for="(card, index) in creditCard"
+          v-for="(card, index) in creditCards"
           :key="index"
           class="__card mb-2"
         >
@@ -161,9 +163,8 @@
     </div>
 
     <v-bottom-sheet
-      v-if="!formCartao"
+      v-if="!formCartao && !formLancCartao"
       v-model="sheet"
-      style="border: 1px solid green;"
     >
       <template #activator="{ props: activatorProps }">
         <div class="text-center pa-8">
@@ -228,17 +229,17 @@ const valorEstorno = ref(0);
 const tiles = [
   { img: "mdi-credit-card-plus-outline", title: "Novo cartão", action: () => { openCreateForm(); } },
   { img: "mdi-gift-outline", title: "Novo estorno" },
-  { img: "mdi-credit-card-outline", title: "Despesa cartão", action: () => { openFormLancamentos(); } },
+  { img: "mdi-credit-card-outline", title: "Despesa cartão", action: () => { openFormLancCartao(); } },
 ];
 
 const useWallets = useWalletsStore();
 const useUser = useUserStore();
-let creditCard = ref(useWallets.walletsData.cartoes);
+let creditCards = ref(useWallets.walletsData.cartoes);
 const contaVinculo = ref(useWallets.walletsData.contas);
 let wallets = ref(useWallets.walletsData.contas);
 const mesAno = ref<string>(useUser.mesAno || "");
 const formCartao = ref(false);
-const formLancamentos = ref(false);
+const formLancCartao = ref(false);
 
 // const updateContas = (novoValor) => {
 //     wallets.value = novoValor;
@@ -279,11 +280,11 @@ const closeForm = () => {
   // selectedRelease.value = undefined;
 };
 
-const openFormLancamentos = () => {
-  formLancamentos.value = true;
+const openFormLancCartao = () => {
+  formLancCartao.value = true;
 };
-const closeFormLancamentos = () => {
-  formLancamentos.value = false;
+const closeFormLancCartao = () => {
+  formLancCartao.value = false;
   // selectedRelease.value = undefined;
 };
 
@@ -294,7 +295,7 @@ const closeFormLancamentos = () => {
 // };
 
 const updateData = (newData: WalletData) => {
-  creditCard.value = newData.cartoes;
+  creditCards.value = newData.cartoes;
   closeForm();
 };
 </script>
