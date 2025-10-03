@@ -21,7 +21,10 @@
               {{ isEditMode ? "Editar" : "Nova" }}
               {{ transactionType }}
             </span>
-            <span v-if="isCard" style="font-size: 12px;">
+            <span
+              v-if="isCard"
+              style="font-size: 12px;"
+            >
               Cartão de Crédito
             </span>
           </div>
@@ -326,9 +329,14 @@
         </v-select>
 
         
-        <v-select v-model="formReleases.fatura" label="Fatura" :items="invoiceList" variant="underlined"
-            prepend-inner-icon="mdi-receipt" class="imput mb-4" />
-
+        <v-select
+          v-model="formReleases.fatura"
+          label="Fatura"
+          :items="invoiceList"
+          variant="underlined"
+          prepend-inner-icon="mdi-receipt"
+          class="imput mb-4"
+        />
       </template>
 
       <template v-else>
@@ -473,11 +481,27 @@
         </template>
       </v-select>
 
-      <v-text-field v-if="isCard" :model-value="linkedAccountName" label="Conta" variant="underlined" readonly
-        :prepend-inner-icon="getBankIcon(selectedCreditCard.name)" class="imput mb-4" />
-      <v-select v-else v-model="formReleases.conta_id" label="Conta" :items="availableBankAccounts" item-title="name"
-        item-value="id" variant="underlined" :rules="[rules.required]" prepend-inner-icon="mdi-bank"
-        class="mt-4" />
+      <v-text-field
+        v-if="isCard"
+        :model-value="linkedAccountName"
+        label="Conta"
+        variant="underlined"
+        readonly
+        :prepend-inner-icon="getBankIcon(selectedCreditCard.name)"
+        class="imput mb-4"
+      />
+      <v-select
+        v-else
+        v-model="formReleases.conta_id"
+        label="Conta"
+        :items="availableBankAccounts"
+        item-title="name"
+        item-value="id"
+        variant="underlined"
+        :rules="[rules.required]"
+        prepend-inner-icon="mdi-bank"
+        class="mt-4"
+      />
 
       <v-btn
         v-if="!informacoes"
@@ -643,7 +667,7 @@ import {
 } from "@/store";
 import type { ApiErrorResponse, Lancamento, Wallet } from "@/types";
 import { formatValue } from "@/utils/formatValue";
-import { getBankIcon } from '@/utils/iconMapper';
+import { getBankIcon } from "@/utils/iconMapper";
 import type { AxiosError } from "axios";
 import { format, format as formatDate, isTomorrow, isValid, isYesterday, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -722,31 +746,31 @@ const selectedCreditCard = computed(() => {
   if (!formReleases.value.cartao_id) return null;
   return creditCardAccounts.value.find(c => c.id === formReleases.value.cartao_id);
 });
-console.log('aqui', selectedCreditCard.value);
+console.log("aqui", selectedCreditCard.value);
 
 // Lógica para a Conta vinculada (readonly)
 const linkedAccountName = computed(() => {
-  if (!selectedCreditCard.value || !selectedCreditCard.value.conta_pai_id) return 'Nenhuma conta vinculada';
+  if (!selectedCreditCard.value || !selectedCreditCard.value.conta_pai_id) return "Nenhuma conta vinculada";
   const conta = availableBankAccounts.value.find(acc => acc.id === selectedCreditCard.value.conta_pai_id);
-  return conta?.name || 'Conta não encontrada';
+  return conta?.name || "Conta não encontrada";
 });
 
 // Lógica para gerar a lista de faturas
 const invoiceList = computed(() => {
   const list = [];
   const now = new Date();
-  const options: Intl.DateTimeFormatOptions = { month: 'long', year: 'numeric' };
+  const options: Intl.DateTimeFormatOptions = { month: "long", year: "numeric" };
 
   // Adiciona 12 meses para trás
   for (let i = 12; i > 0; i--) {
     const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    list.push(date.toLocaleDateString('pt-BR', options));
+    list.push(date.toLocaleDateString("pt-BR", options));
   }
 
   // Adiciona o mês atual e 12 meses para frente
   for (let i = 0; i <= 12; i++) {
     const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
-    list.push(date.toLocaleDateString('pt-BR', options));
+    list.push(date.toLocaleDateString("pt-BR", options));
   }
   return list;
 });
@@ -758,7 +782,7 @@ onMounted(() => {
     formReleases.value.cartao_id = creditCardAccounts.value[0].id;
   }
   // Define a fatura atual como padrão
-  formReleases.value.fatura = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  formReleases.value.fatura = new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
 });
 
 
@@ -985,10 +1009,10 @@ const detalheRecorrencia = computed(() => {
 // );
 const availableCategories = computed<CategoryData[]>(() => {
   if (!useWallets.walletsData.categories) return []; // Guarda de Segurança!
-  const typeMap: { [key: string]: string } = { 'Receita': 'receita', 'Despesa': 'despesa' };
+  const typeMap: { [key: string]: string } = { "Receita": "receita", "Despesa": "despesa" };
   const currentType = typeMap[props.transactionType];
   // Correto: Filtra a lista principal de categorias
-  return useWallets.walletsData.categories.filter(c => c.type === currentType || c.type === 'ambas');
+  return useWallets.walletsData.categories.filter(c => c.type === currentType || c.type === "ambas");
 });
 
 // Encontra o objeto da categoria selecionada
@@ -1420,7 +1444,7 @@ const rules = {
   text-align: right;
 }
 .btn-cancelar {
-  color: #77d08e;
+  color: #c41d1d;
   background-color: transparent;
   border-radius: 25px;
   font-size: 16px;

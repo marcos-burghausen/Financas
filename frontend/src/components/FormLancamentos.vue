@@ -2,7 +2,7 @@
   <div class="container__modal">
     <v-form 
       v-model="isFormValid" 
-      class="px-3 w-100" 
+      class="px-3 w-100 mt-5 pt-4" 
       @submit.prevent="submitForm"
     >
       <div class="header__items d-flex justify-content-between fixed-top py-10 align-items-center">
@@ -18,7 +18,10 @@
               {{ isEditMode ? "Editar" : "Nova" }}
               {{ transactionType }}
             </span>
-            <span v-if="isCard" style="font-size: 12px;">
+            <span
+              v-if="isCard"
+              style="font-size: 12px;"
+            >
               Lançamento no Cartão de Crédito
             </span>
           </div>
@@ -41,7 +44,7 @@
           variant="underlined" 
           :rules="[rules.required]"
           prepend-inner-icon="mdi-text-long" 
-          class="mb-4" 
+          class="imput mb-5" 
         />
   
         <v-text-field
@@ -50,11 +53,220 @@
           hide-details="auto"
           label="Valor" 
           type="tel"
-          class="mb-3"
+          class="imput mb-5"
           :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
           prepend-inner-icon="mdi-currency-usd"
           @input="formatValueSave"
         />
+
+        <div
+          v-if="props.lancamento?.recorrencia === 'Não recorrente' || !isEditMode"
+          class="custom__input__container mb-3"
+        >
+          <div
+            class="custom__input__content"
+            @click="openRecorrenciaModal = true"
+          >
+            <v-icon
+              icon="mdi-refresh"
+              class="me-2"
+            />
+            <div class="d-flex flex-column">
+              <span>{{ form.recorrencia }}</span>
+              <span
+                v-if="detalheRecorrencia"
+                class="detalhe__parcela__interno"
+              >
+                {{ detalheRecorrencia }}
+              </span>
+            </div>
+            <v-spacer />
+            <v-icon
+              v-if="form.recorrencia === 'Parcelado'"
+              icon="mdi-pencil"
+              size="x-small"
+              class="edit-icon"
+              @click.stop="openParcelas = true"
+            />
+          </div>
+
+          <v-btn-toggle
+            v-if="form.recorrencia === 'Parcelado'"
+            v-model="tipoCalculoParcela"
+            mandatory
+            class="parcela__toggle mt-4"
+            variant="flat"
+          >
+            <v-btn
+              class="toggle__btn"
+              value="total"
+              rounded="lg"
+            >
+              Valor total
+            </v-btn>
+            <v-btn
+              class="toggle__btn"
+              value="parcela"
+              rounded="lg"
+            >
+              Valor parcela
+            </v-btn>
+          </v-btn-toggle>
+
+          <div class="custom__underline" />
+        </div>
+
+        <div
+          v-if="openRecorrenciaModal"
+          class="tipo"
+        >
+          <div
+            class="d-flex flex-column align-start justify-space-around modal__tipo"
+          >
+            <v-btn
+              v-for="item in tiposRecorrencia"
+              :key="item"
+              :disabled="loading"
+              style="background: transparent"
+              :class="form.recorrencia === item ? 'selected' : ''"
+              flat
+              :prepend-icon="
+                form.recorrencia === item
+                  ? 'mdi-radiobox-marked'
+                  : 'mdi-checkbox-blank-circle-outline'
+              "
+              @click="selecionarRecorrencia(item)"
+            >
+              <span>{{ item }}</span>
+            </v-btn>
+          </div>
+        </div>
+
+        <div
+          v-if="openParcelas"
+          class="parcelas"
+        >
+          <div class="container__parcelas">
+            <div class="p-3">
+              <h2 class="mb-4 text-center">
+                Configurar parcelas
+              </h2>
+
+              <div class="py-2">
+                <div class="d-flex align-center justify-space-between">
+                  <v-icon
+                    class="pe-3"
+                    icon="mdi-arrow-right"
+                    size="24"
+                  />
+                  <span class="item__label"> Parcela inicial </span>
+                  <div class="item__value">
+                    <div class="number__stepper">
+                      <v-btn
+                        :disabled="tempParcelaInicial <= 1"
+                        prepend-icon="mdi-chevron-down"
+                        flat
+                        variant="text"
+                        class="stepper__btn"
+                        @click="decrementParcelaInicial"
+                      />
+                      <input
+                        v-model="tempParcelaInicial"
+                        type="number"
+                        class="stepper__input"
+                        min="1"
+                      >
+                      <v-btn
+                        prepend-icon="mdi-chevron-up"
+                        flat
+                        class="stepper__btn"
+                        @click="incrementParcelaInicial"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="divider" />
+
+              <div class="">
+                <div class="d-flex align-center justify-space-between">
+                  <v-icon
+                    icon="mdi-plus-circle-outline"
+                    name="plus-circle-outline"
+                    size="24"
+                    class="pe-3"
+                  />
+                  <div class="item__label">
+                    Quantidade
+                  </div>
+                  <div class="item__value">
+                    <div class="number__stepper">
+                      <v-btn
+                        class="stepper__btn"
+                        :disabled="tempNumParcelas <= 2"
+                        prepend-icon="mdi-chevron-down"
+                        variant="text"
+                        @click="decrementQuantidade"
+                      />
+                      <input
+                        v-model="tempNumParcelas"
+                        type="number"
+                        class="stepper__input"
+                        min="2"
+                      >
+                      <v-btn
+                        class="stepper__btn"
+                        prepend-icon="mdi-chevron-up"
+                        variant="text"
+                        @click="incrementQuantidade"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="divider" />
+
+              <div class="">
+                <div class="d-flex align-center justify-space-between">
+                  <v-icon
+                    icon="mdi-calendar-blank"
+                    size="24"
+                    class="pe-3"
+                  />
+                  <div class="item__label">
+                    Periodicidade
+                  </div>
+                  <div class="item__value pb-2">
+                    <v-select
+                      v-model="tempPeriodicidade"
+                      :items="['Mensal', 'Semanal', 'Quinzenal', 'Bimestral']"
+                      variant="plain"
+                      hide-details
+                      class="select__dark"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex justify-space-between align-center p-3">
+              <v-btn
+                class="btn__cancelar"
+                @click="cancelarConfiguracaoRepeticao"
+              >
+                Cancelar
+              </v-btn>
+              <v-btn
+                class="btn__concluido"
+                @click="concluirParcelas"
+              >
+                Concluído
+              </v-btn>
+            </div>
+          </div>
+        </div>
 
         <template v-if="isCard">
           <v-select
@@ -65,15 +277,25 @@
             item-value="id"
             variant="underlined"
             :rules="[rules.required]"
+            class="imput mb-5 mt-5"
           >
             <template #selection="{ item }">
               <div class="d-flex align-center">
-                <v-icon :icon="getBankIcon(item.raw.name)" size="25" class="mr-2" />
+                <v-icon
+                  :icon="getBankIcon(item.raw.name)"
+                  size="25"
+                  class="mr-2"
+                />
                 <span>{{ item.title }}</span>
               </div>
             </template>
             <template #append-inner>
-              <v-icon v-if="selectedCreditCard" :icon="getBankIcon(selectedCreditCard.bandeira)" size="25" class="mr-2" />
+              <v-icon
+                v-if="selectedCreditCard"
+                :icon="getBankIcon(selectedCreditCard.bandeira)"
+                size="25"
+                class="mr-2"
+              />
             </template>
             <template #item="{ props, item }">
               <v-list-item
@@ -85,16 +307,32 @@
             </template>
           </v-select>
 
-          <div ref="faturaSelectRef" class="fatura-custom-select" @click="toggleDropdown">
+          <div
+            ref="faturaSelectRef"
+            class="fatura-custom-select"
+            @click="toggleDropdown"
+          >
             <div class="fatura-prefix">
-              <v-icon icon="mdi-calendar" size="20" class="me-2" />
+              <v-icon
+                icon="mdi-calendar"
+                size="20"
+                class="me-2"
+              />
               <span>Fatura</span>
             </div>
             <div class="fatura-selection">
               <span>{{ form.fatura || 'Selecione' }}</span>
-              <v-icon icon="mdi-chevron-down" size="20" class="ms-2" />
+              <v-icon
+                icon="mdi-chevron-down"
+                size="20"
+                class="ms-2"
+              />
             </div>
-            <div v-if="isDropdownOpen" ref="dropdownContainerRef" class="fatura-dropdown">
+            <div
+              v-if="isDropdownOpen"
+              ref="dropdownContainerRef"
+              class="fatura-dropdown"
+            >
               <div
                 v-for="item in invoiceList"
                 :key="item"
@@ -108,7 +346,7 @@
             </div>
           </div>
         </template>
-
+        
         <v-text-field
           v-if="isCard"
           :model-value="linkedAccountName"
@@ -116,7 +354,7 @@
           variant="underlined"
           readonly
           prepend-inner-icon="mdi-bank"
-          class="mt-4"
+          class="imput mb-5"
         />
         <v-select
           v-else
@@ -128,33 +366,35 @@
           variant="underlined"
           :rules="[rules.required]"
           prepend-inner-icon="mdi-bank"
-          class="mt-4"
+          class="imput mb-5"
         />
 
-        <v-row>
-          <v-col cols="6">
-            <v-select
-              v-model="form.categoria"
-              label="Categoria"
-              :items="availableCategories"
-              item-title="name"
-              item-value="name"
-              variant="underlined"
-              :rules="[rules.required]"
-              @update:model-value="form.subcategoria = ''"
-            />
-          </v-col>
-          <v-col cols="6">
-            <v-select
-              v-model="form.subcategoria"
-              label="Subcategoria"
-              :items="availableSubcategories"
-              item-title="name"
-              item-value="name"
-              variant="underlined"
-            />
-          </v-col>
-        </v-row>
+        <!-- <v-row> -->
+        <!-- <v-col cols="6"> -->
+        <v-select
+          v-model="form.categoria"
+          label="Categoria"
+          :items="availableCategories"
+          item-title="name"
+          item-value="name"
+          variant="underlined"
+          :rules="[rules.required]"
+          class="imput mb-5"
+          @update:model-value="form.subcategoria = ''"
+        />
+        <!-- </v-col>
+          <v-col cols="6"> -->
+        <v-select
+          v-model="form.subcategoria"
+          class="imput mb-5"
+          label="Subcategoria"
+          :items="availableSubcategories"
+          item-title="name"
+          item-value="name"
+          variant="underlined"
+        />
+        <!-- </v-col>
+        </v-row> -->
         
         <v-select
           v-if="!isCard"
@@ -175,7 +415,7 @@ import { useLancamentoStore } from "@/store/lancamentos";
 import type { CategoryData, Lancamento, Wallet } from "@/types";
 import { formatValue } from "@/utils/formatValue";
 import { getBankIcon } from "@/utils/iconMapper";
-import { onClickOutside } from '@vueuse/core';
+import { onClickOutside } from "@vueuse/core";
 import { computed, nextTick, onMounted, ref } from "vue";
 
 // --- 2. PROPS & EMITS ---
@@ -184,7 +424,7 @@ const props = defineProps<{
   isCard?: boolean;
   lancamento?: Lancamento;
 }>();
-const emit = defineEmits(["close"]);
+const emit = defineEmits(["closeForm"]);
 
 // --- 3. STORES ---
 const walletsStore = useWalletsStore();
@@ -210,11 +450,114 @@ const isEditMode = computed(() => !!props.lancamento?.id);
 const isDropdownOpen = ref(false);
 const faturaSelectRef = ref(null);
 const dropdownContainerRef = ref<HTMLElement | null>(null);
+const openRecorrenciaModal = ref(false);
+const openParcelas = ref(false);
+const tipoCalculoParcela = ref<"total" | "parcela">("total");
+const tiposRecorrencia = ref<("Não recorrente" | "Fixa" | "Parcelado")[]>([
+  "Não recorrente",
+  "Fixa",
+  "Parcelado",
+]);
+const tempParcelaInicial = ref(1);
+const tempNumParcelas = ref(2);
+const tempPeriodicidade = ref<
+  | "Mensal"
+  | "Diario"
+  | "Semanal"
+  | "Quinzenal"
+  | "Trimenstral"
+  | "Anual"
+  | undefined
+>("Mensal");
 
 // --- 5. LÓGICA DE INTERAÇÃO ---
 onClickOutside(faturaSelectRef, () => {
   isDropdownOpen.value = false;
 });
+
+const selecionarRecorrencia = (item: "Não recorrente" | "Fixa" | "Parcelado") => {
+  form.value.recorrencia = item;
+  openRecorrenciaModal.value = false;
+
+  if (item === "Parcelado") {
+    // Abre o modal de configuração de parcelas
+    openParcelas.value = true;
+  } else {
+    // Reseta os dados de parcela se não for "Parcelado"
+    form.value.num_parcelas = null;
+    form.value.periodicidade = null;
+  }
+};
+
+const detalheRecorrencia = computed(() => {
+  if (
+    form.value.recorrencia === "Parcelado" &&
+    form.value.num_parcelas &&
+    form.value.num_parcelas > 0
+  ) {
+    const valorInput = parseFloat(
+      form.value.valor.replace(/\./g, "").replace(",", ".")
+    );
+    if (isNaN(valorInput) || valorInput <= 0) return "";
+
+    // Opções de formatação para garantir 2 casas decimais
+    const opcoesDeFormatacao = {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    };
+
+    if (tipoCalculoParcela.value === "total") {
+      const valorParcela = valorInput / form.value.num_parcelas;
+      const valorFormatado = valorParcela.toLocaleString("pt-BR", opcoesDeFormatacao);
+      return `Em ${form.value.num_parcelas}x de R$ ${valorFormatado}`;
+    } else {
+      const valorFormatado = valorInput.toLocaleString("pt-BR", opcoesDeFormatacao);
+      return `Em ${form.value.num_parcelas}x de R$ ${valorFormatado}`;
+    }
+  }
+  return "";
+});
+
+const incrementParcelaInicial = () => {
+  tempParcelaInicial.value++;
+};
+
+const decrementParcelaInicial = () => {
+  if (tempParcelaInicial.value > 1) {
+    tempParcelaInicial.value--;
+  }
+};
+
+// Funções para incrementar e decrementar quantidade de parcelas
+const incrementQuantidade = () => {
+  tempNumParcelas.value++;
+};
+
+const decrementQuantidade = () => {
+  if (tempNumParcelas.value > 2) {
+    tempNumParcelas.value--;
+  }
+};
+
+const cancelarConfiguracaoRepeticao = () => {
+  // Retorna tipo para "Não recorrente"
+  form.value.recorrencia = "Não recorrente";
+  form.value.num_parcelas = null;
+  form.value.periodicidade = null;
+
+  // Fecha o modal
+  openParcelas.value = false;
+};
+
+const concluirParcelas = () => {
+  // Salva os valores temporários nos valores finais
+  parcelaInicial.value = tempParcelaInicial.value;
+  form.value.num_parcelas = tempNumParcelas.value;
+  form.value.periodicidade = tempPeriodicidade.value || null;
+
+  // Fecha o modal
+  openParcelas.value = false;
+};
 
 // --- 6. COMPUTED PROPERTIES ---
 const creditCardAccounts = computed<Wallet[]>(() => walletsStore.walletsData.cartoes || []);
@@ -232,7 +575,7 @@ const availableCategories = computed<CategoryData[]>(() => {
   if (!walletsStore.walletsData.categories) return [];
   const typeMap: { [key: string]: string } = { "Receita": "receita", "Despesa": "despesa" };
   const currentType = typeMap[props.transactionType];
-  return walletsStore.walletsData.categories.filter(cat => cat && (cat.type === currentType || cat.type === 'ambas'));
+  return walletsStore.walletsData.categories.filter(cat => cat && (cat.type === currentType || cat.type === "ambas"));
 });
 const availableSubcategories = computed(() => {
   const selectedCategory = availableCategories.value.find(c => c.name === form.value.categoria);
@@ -243,7 +586,7 @@ const invoiceList = computed(() => {
   const list = [];
   const now = new Date();
   const formatDate = (date: Date) => {
-    const month = date.toLocaleDateString("pt-BR", { month: "short" }).toUpperCase().replace('.', '');
+    const month = date.toLocaleDateString("pt-BR", { month: "short" }).toUpperCase().replace(".", "");
     const year = date.getFullYear();
     return `${month}/${year}`;
   };
@@ -292,8 +635,8 @@ const toggleDropdown = async () => {
          * 'start' alinha o topo do item selecionado com o topo da área visível da lista.
          */
         selectedItem.scrollIntoView({
-          block: 'start',
-          behavior: 'auto' // 'auto' é mais rápido que 'smooth' para esse caso
+          block: "start",
+          behavior: "auto" // 'auto' é mais rápido que 'smooth' para esse caso
         });
       }
     }
@@ -305,7 +648,7 @@ const selectInvoice = (invoice: string) => {
   isDropdownOpen.value = false;
 };
 
-const closeForm = () => emit("close");
+const closeForm = () => emit("closeForm");
 const submitForm = async () => { /* ... seu código ... */ };
 
 // --- 8. LIFECYCLE HOOKS ---
@@ -314,7 +657,7 @@ onMounted(() => {
     form.value.cartao_id = creditCardAccounts.value[0].id;
   }
   const now = new Date();
-  const month = now.toLocaleDateString("pt-BR", { month: "short" }).toUpperCase().replace('.', '');
+  const month = now.toLocaleDateString("pt-BR", { month: "short" }).toUpperCase().replace(".", "");
   const year = now.getFullYear();
   form.value.fatura = `${month}/${year}`;
   
@@ -342,11 +685,12 @@ onMounted(() => {
   cursor: pointer;
   width: 100%;
   background-color: transparent;
-  margin-top: 16px;
+  margin-bottom: 40px;
 }
 .fatura-prefix { display: flex; align-items: center; color: rgba(255, 255, 255, 0.7); }
 .fatura-selection { display: flex; align-items: center; color: white; font-weight: 500; }
 .fatura-dropdown {
+  border: solid 1px #0c99ed;
   position: absolute;
   top: 100%;
   left: 0;
@@ -357,16 +701,18 @@ onMounted(() => {
   max-height: 250px;
   overflow-y: auto;
   z-index: 10;
-  width: 250px;
-  margin: 4px auto 0;
+  width: 120px;
+  /* margin: 4px auto 0; */
+  margin-left: calc(100% - 125px);
 }
 .dropdown-item {
-  padding: 10px 16px;
+  text-align: center;
+  padding: 10px 0;
   color: white;
   font-size: 0.9rem;
   transition: background-color 0.2s ease;
   border-radius: 4px;
-  margin: 2px 4px;
+  /* margin: 2px 4px; */
 }
 .dropdown-item:hover {
   background-color: #3f3f3f;
@@ -374,5 +720,152 @@ onMounted(() => {
 .dropdown-item.is-selected {
   background-color: #0c99ed;
   font-weight: bold;
+}
+.imput {
+  height: 40px;
+  color: #ccc;
+  width: 100%;
+}
+.custom__input__container {
+  position: relative;
+  padding-top: 10px;
+  padding-bottom: 4px;
+}
+.custom__input__content {
+  display: flex;
+  align-items: center;
+  color: #fff;
+}
+.detalhe__parcela__interno {
+  font-size: 14px;
+  color: #e0e0e0;
+  line-height: 1.2;
+  margin-top: 4px;
+}
+.parcela__toggle {
+  display: flex;
+  border-radius: 10px;
+  border: 1px solid #4F4F4F;
+  background-color: transparent;
+  overflow: hidden;
+}
+
+.parcela__toggle .toggle__btn {
+  flex: 1;
+  text-transform: none;
+  font-size: 14px;
+  color: #bdbdbd;
+  background-color: transparent;
+}
+
+.parcela__toggle .v-btn--active {
+  background-color: #77d08e;
+  color: #121212 !important; /* Cor do texto do botão ativo */
+  font-weight: bold;
+}
+.custom__underline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.7);
+}
+.modal__tipo {
+  background: #2c2c2e;
+  color: #fefefe;
+  height: 200px;
+  border-radius: 20px;
+  padding: 15px;
+}
+.selected {
+  color: #77d08e;
+}
+.parcelas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(12, 12, 12, 0.8);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+.container__parcelas {
+  background: #161616ff;
+  width: 100%;
+  max-width: 500px;
+  border-radius: 15px;
+  overflow: hidden;
+  color: #fefefe;
+  padding-bottom: 20px;
+}
+.item__label {
+  flex-grow: 1;
+  font-size: 18px;
+  font-weight: 400;
+}
+.item__value {
+  margin-right: 20px;
+  font-size: 18px;
+  font-weight: 500;
+}
+.number__stepper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 120px;
+}
+.stepper__btn {
+  background-color: transparent;
+  border: none;
+  width: 30px;
+  color: #999;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.stepper__input {
+  width: 50px;
+  background-color: transparent;
+  border: none;
+  color: white;
+  text-align: center;
+  font-size: 18px;
+  -moz-appearance: textfield;
+}
+.stepper__input::-webkit-outer-spin-button,
+.stepper__input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.divider {
+  height: 1px;
+  background-color: #333;
+  margin: 5px 0;
+}
+.select__dark {
+  color: white;
+  width: 120px;
+  text-align: right;
+}
+.btn__cancelar {
+  color: #db4646;
+  background-color: transparent;
+  border-radius: 25px;
+  font-size: 16px;
+  padding: 0 30px;
+  height: 45px;
+}
+.btn__concluido {
+  background-color: #77d08e;
+  color: white;
+  border-radius: 25px;
+  font-size: 16px;
+  padding: 0 30px;
+  height: 45px;
 }
 </style>
