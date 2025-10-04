@@ -128,7 +128,7 @@
               :key="item"
               :disabled="loading"
               style="background: transparent"
-              :class="form.recorrencia === item ? 'selected' : ''"
+              :class="form.recorrencia === item ? (props.transactionType === 'Receita' ? 'receita' : props.transactionType === 'Despesa' ? 'despesa' : 'cartao') : ''"
               flat
               :prepend-icon="
                 form.recorrencia === item
@@ -268,7 +268,7 @@
           </div>
         </div>
 
-        <template v-if="isCard">
+        <!-- <template v-if="isCard">
           <v-select
             v-model="form.cartao_id"
             label="Cartão de Crédito"
@@ -345,17 +345,80 @@
               </div>
             </div>
           </div>
-        </template>
+        </template> -->
         
+
+
+        
+
+        <template v-if="isCard">
+          <div class="custom__select__wrapper">
+            <span class="custom__select__label">Cartão de Crédito</span>
+            <div ref="cardSelectRef" class="custom__select" @click="toggleCardDropdown">
+              <div class="prefix">
+                <v-icon :icon="getBankIcon(linkedAccount?.name || '')" size="25" class="me-2" />
+                <span>{{ selectedCreditCard?.name || 'Selecione' }}</span>
+              </div>
+              <div class="selection">
+                <!-- <span>{{ selectedCreditCard?.bandeira || '' }}</span> -->
+                <v-icon :icon="getBankIcon(selectedCreditCard?.bandeira)" size="20" class="ms-2" />
+                <v-icon icon="mdi-menu-down" size="20" class="ms-2" />
+              </div>
+              <div v-if="isCardDropdownOpen" ref="cardDropdownContainerRef" class="dropdown">
+                <div
+                  v-for="card in creditCardAccounts"
+                  :key="card.id"
+                  class="dropdown__item"
+                  :class="{ 'is__selected': card.id === form.cartao_id }"
+                  :data-card-id="card.id"
+                  @click.stop="selectCard(card)"
+                >
+                  <div class="dropdown__item__content">
+                    <v-icon :icon="getBankIcon(findLinkedAccountFor(card)?.name || '')" size="25" class="me-2" />
+                    <span>{{ card.name }}</span>
+                  </div>
+                  <v-icon :icon="getBankIcon(card.bandeira)" size="20" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div ref="faturaSelectRef" class="custom__select" @click="toggleFaturaDropdown">
+            <div class="prefix">
+              <v-icon icon="mdi-calendar" size="20" class="me-2" />
+              <span>Fatura</span>
+            </div>
+            <div class="selection">
+              <span>{{ form.fatura || 'Selecione' }}</span>
+              <v-icon icon="mdi-menu-down" size="20" class="ms-2" />
+            </div>
+            <div v-if="isFaturaDropdownOpen" ref="faturaDropdownContainerRef" class="dropdown">
+              <div
+                v-for="item in invoiceList"
+                :key="item"
+                class="dropdown__item"
+                :class="{ 'is__selected': item === form.fatura }"
+                :data-invoice="item"
+                @click.stop="selectInvoice(item)"
+              >
+                {{ item }}
+              </div>
+            </div>
+          </div>
+        </template>
+
+
         <v-text-field
           v-if="isCard"
           :model-value="linkedAccountName"
           label="Conta"
           variant="underlined"
           readonly
-          prepend-inner-icon="mdi-bank"
           class="imput mb-5"
-        />
+          :prepend-inner-icon="getBankIcon(linkedAccount?.name)"
+        >
+          
+        </v-text-field>
         <v-select
           v-else
           v-model="form.conta_id"
@@ -369,8 +432,6 @@
           class="imput mb-5"
         />
 
-        <!-- <v-row> -->
-        <!-- <v-col cols="6"> -->
         <v-select
           v-model="form.categoria"
           label="Categoria"
@@ -382,8 +443,7 @@
           class="imput mb-5"
           @update:model-value="form.subcategoria = ''"
         />
-        <!-- </v-col>
-          <v-col cols="6"> -->
+        
         <v-select
           v-model="form.subcategoria"
           class="imput mb-5"
@@ -393,8 +453,6 @@
           item-value="name"
           variant="underlined"
         />
-        <!-- </v-col>
-        </v-row> -->
         
         <v-select
           v-if="!isCard"
@@ -447,9 +505,17 @@ const form = ref<Partial<Lancamento & { cartao_id: number | null, fatura: string
 const loading = ref(false);
 const isFormValid = ref(false);
 const isEditMode = computed(() => !!props.lancamento?.id);
-const isDropdownOpen = ref(false);
+
+// State para o dropdown de Fatura
+const isFaturaDropdownOpen = ref(false);
 const faturaSelectRef = ref(null);
-const dropdownContainerRef = ref<HTMLElement | null>(null);
+const faturaDropdownContainerRef = ref<HTMLElement | null>(null);
+
+// State para o dropdown de Cartão de Crédito
+const isCardDropdownOpen = ref(false);
+const cardSelectRef = ref(null);
+const cardDropdownContainerRef = ref<HTMLElement | null>(null);
+
 const openRecorrenciaModal = ref(false);
 const openParcelas = ref(false);
 const tipoCalculoParcela = ref<"total" | "parcela">("total");
@@ -458,6 +524,8 @@ const tiposRecorrencia = ref<("Não recorrente" | "Fixa" | "Parcelado")[]>([
   "Fixa",
   "Parcelado",
 ]);
+
+const parcelaInicial = ref<number | null>(null);
 const tempParcelaInicial = ref(1);
 const tempNumParcelas = ref(2);
 const tempPeriodicidade = ref<
@@ -471,9 +539,8 @@ const tempPeriodicidade = ref<
 >("Mensal");
 
 // --- 5. LÓGICA DE INTERAÇÃO ---
-onClickOutside(faturaSelectRef, () => {
-  isDropdownOpen.value = false;
-});
+onClickOutside(faturaSelectRef, () => { isFaturaDropdownOpen.value = false; });
+onClickOutside(cardSelectRef, () => { isCardDropdownOpen.value = false; });
 
 const selecionarRecorrencia = (item: "Não recorrente" | "Fixa" | "Parcelado") => {
   form.value.recorrencia = item;
@@ -550,6 +617,7 @@ const cancelarConfiguracaoRepeticao = () => {
 };
 
 const concluirParcelas = () => {
+
   // Salva os valores temporários nos valores finais
   parcelaInicial.value = tempParcelaInicial.value;
   form.value.num_parcelas = tempNumParcelas.value;
@@ -562,21 +630,32 @@ const concluirParcelas = () => {
 // --- 6. COMPUTED PROPERTIES ---
 const creditCardAccounts = computed<Wallet[]>(() => walletsStore.walletsData.cartoes || []);
 const availableBankAccounts = computed<Wallet[]>(() => walletsStore.walletsData.contas || []);
+
 const selectedCreditCard = computed(() => {
   if (!form.value.cartao_id) return null;
   return creditCardAccounts.value.find(c => c.id === form.value.cartao_id);
 });
-const linkedAccountName = computed(() => {
-  if (!selectedCreditCard.value || !selectedCreditCard.value.conta_pai_id) return "Nenhuma conta vinculada";
-  const conta = availableBankAccounts.value.find(acc => acc.id === selectedCreditCard.value.conta_pai_id);
-  return conta?.name || "Conta não encontrada";
+
+const linkedAccount = computed(() => {
+  if (!selectedCreditCard.value || !selectedCreditCard.value.conta_pai_id) return null;
+  return availableBankAccounts.value.find(acc => acc.id === selectedCreditCard.value.conta_pai_id);
 });
+
+const linkedAccountName = computed(() => linkedAccount.value?.name || "Conta não encontrada");
+
+// const linkedAccountName = computed(() => {
+//   if (!selectedCreditCard.value || !selectedCreditCard.value.conta_pai_id) return "Nenhuma conta vinculada";
+//   const conta = availableBankAccounts.value.find(acc => acc.id === selectedCreditCard.value.conta_pai_id);
+//   return conta?.name || "Conta não encontrada";
+// });
+
 const availableCategories = computed<CategoryData[]>(() => {
   if (!walletsStore.walletsData.categories) return [];
   const typeMap: { [key: string]: string } = { "Receita": "receita", "Despesa": "despesa" };
   const currentType = typeMap[props.transactionType];
   return walletsStore.walletsData.categories.filter(cat => cat && (cat.type === currentType || cat.type === "ambas"));
 });
+
 const availableSubcategories = computed(() => {
   const selectedCategory = availableCategories.value.find(c => c.name === form.value.categoria);
   return selectedCategory?.subcategories ? selectedCategory.subcategories.map(s => s.name) : [];
@@ -599,7 +678,7 @@ const invoiceList = computed(() => {
   return list;
 });
 
-// --- 7. MÉTODOS ---
+// --- MÉTODOS ---
 const rules = {
   required: (value: any) => !!value || "Campo obrigatório.",
   requiredValor: (value: string) => !!value || "O campo valor é obrigatório",
@@ -620,24 +699,21 @@ const formatValueSave = () => {
   form.value.valor = `${formattedIntegerPart},${decimalPart}`;
 };
 
-const toggleDropdown = async () => {
-  isDropdownOpen.value = !isDropdownOpen.value;
+const findLinkedAccountFor = (card: Wallet) => {
+  if (!card.conta_pai_id) return null;
+  return availableBankAccounts.value.find(acc => acc.id === card.conta_pai_id);
+};
 
-  if (isDropdownOpen.value) {
+// Métodos para o seletor de Fatura
+const toggleFaturaDropdown = async () => {
+  isFaturaDropdownOpen.value = !isFaturaDropdownOpen.value;
+  if (isFaturaDropdownOpen.value) {
     await nextTick();
-    const container = dropdownContainerRef.value;
+    const container = faturaDropdownContainerRef.value;
     if (container && form.value.fatura) {
       const selectedItem = container.querySelector(`[data-invoice="${form.value.fatura}"]`) as HTMLElement;
       if (selectedItem) {
-        /**
-         * AQUI ESTÁ A MUDANÇA!
-         * Trocamos 'center' por 'start'.
-         * 'start' alinha o topo do item selecionado com o topo da área visível da lista.
-         */
-        selectedItem.scrollIntoView({
-          block: "start",
-          behavior: "auto" // 'auto' é mais rápido que 'smooth' para esse caso
-        });
+        selectedItem.scrollIntoView({ block: 'start', behavior: 'auto' });
       }
     }
   }
@@ -645,11 +721,46 @@ const toggleDropdown = async () => {
 
 const selectInvoice = (invoice: string) => {
   form.value.fatura = invoice;
-  isDropdownOpen.value = false;
+  isFaturaDropdownOpen.value = false;
+};
+
+// Métodos para o seletor de Cartão
+const toggleCardDropdown = async () => {
+  isCardDropdownOpen.value = !isCardDropdownOpen.value;
+  if (isCardDropdownOpen.value) {
+    await nextTick();
+    const container = cardDropdownContainerRef.value;
+    if (container && form.value.cartao_id) {
+      const selectedItem = container.querySelector(`[data-card-id="${form.value.cartao_id}"]`) as HTMLElement;
+      if (selectedItem) {
+        selectedItem.scrollIntoView({ block: 'start', behavior: 'auto' });
+      }
+    }
+  }
+};
+
+const selectCard = (card: Wallet) => {
+  form.value.cartao_id = card.id;
+  isCardDropdownOpen.value = false;
 };
 
 const closeForm = () => emit("closeForm");
-const submitForm = async () => { /* ... seu código ... */ };
+const submitForm = async () => {
+  if (!isFormValid.value) return;
+  loading.value = true;
+  try {
+    const payload = { ...form.value };
+    if (props.isCard) {
+      payload.conta_id = selectedCreditCard.value?.conta_pai_id;
+    }
+    await lancamentoStore.saveLancamento(payload);
+    closeForm();
+  } catch (error) {
+    console.error(error);
+  } finally {
+    loading.value = false;
+  }
+};
 
 // --- 8. LIFECYCLE HOOKS ---
 onMounted(() => {
@@ -705,22 +816,11 @@ onMounted(() => {
   /* margin: 4px auto 0; */
   margin-left: calc(100% - 125px);
 }
-.dropdown-item {
-  text-align: center;
-  padding: 10px 0;
-  color: white;
-  font-size: 0.9rem;
-  transition: background-color 0.2s ease;
-  border-radius: 4px;
-  /* margin: 2px 4px; */
-}
+
 .dropdown-item:hover {
   background-color: #3f3f3f;
 }
-.dropdown-item.is-selected {
-  background-color: #0c99ed;
-  font-weight: bold;
-}
+
 .imput {
   height: 40px;
   color: #ccc;
@@ -778,9 +878,9 @@ onMounted(() => {
   border-radius: 20px;
   padding: 15px;
 }
-.selected {
-  color: #77d08e;
-}
+.despesa { color: #ed0c0c; }
+.receita { color: #77d08e; }
+.cartao { color: #0c99ed; }
 .parcelas {
   position: fixed;
   top: 0;
@@ -867,5 +967,69 @@ onMounted(() => {
   font-size: 16px;
   padding: 0 30px;
   height: 45px;
+}
+.custom__select__wrapper {
+  position: relative;
+  margin-top: 16px;
+  padding-top: 8px; /* Espaço para a label flutuar */
+}
+.custom__select__label {
+  position: absolute;
+  top: 0;
+  left: 4px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+.custom__select {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  width: 100%;
+  background-color: transparent;
+  margin-bottom: 24px;
+}
+.selection {
+  display: flex;
+  align-items: center;
+  color: white;
+  font-weight: 500;
+}
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #2c2c2c;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 10;
+  width: 200px;
+  /* margin: 4px auto 0; */
+  margin-left: calc(100% - 200px);
+}
+.dropdown__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Para separar os ícones */
+  padding: 10px 16px;
+  color: white;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+  border-radius: 4px;
+  margin: 2px 4px;
+}
+.dropdown__item.is__selected {
+  background-color: #0c99ed;
+  font-weight: bold;
+}
+.dropdown__item__content {
+  display: flex;
+  align-items: center;
 }
 </style>

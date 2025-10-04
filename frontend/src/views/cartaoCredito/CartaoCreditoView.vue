@@ -13,7 +13,7 @@
       rota="expense"
       :mes-ano="mesAno"
       :wallets="creditCards"
-      transaction-type="Despesa"
+      transaction-type=""
       :is-card="true"
       @update-data="updateData"
       @close-form="closeFormLancCartao"
