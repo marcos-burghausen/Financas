@@ -14,7 +14,7 @@
       :mes-ano="mesAno"
       :wallets="creditCards"
       :credit-cards="creditCards"
-      transaction-type=""
+      transaction-type="Despesa"
       :is-card="true"
       @update-data="updateData"
       @close-form="closeFormLancCartao"

@@ -390,27 +390,41 @@
           class="imput mb-5"
         />
 
-        <v-select
+        <v-autocomplete
           v-model="form.categoria"
           label="Categoria"
-          :items="availableCategories"
+          :items="categoriasNames"
           item-title="name"
           item-value="name"
           variant="underlined"
           :rules="[rules.required]"
           class="imput mb-5"
           @update:model-value="form.subcategoria = ''"
-        />
+        >
+          <template #prepend-inner>
+            <v-icon
+              :icon="categoriaIcon"
+              :class="categoriaColorClass"
+            />
+          </template>
+        </v-autocomplete>
         
-        <v-select
+        <v-autocomplete
           v-model="form.subcategoria"
           class="imput mb-5"
           label="Subcategoria"
-          :items="availableSubcategories"
+          :items="subcategoriasDaCategoriaSelecionada"
           item-title="name"
           item-value="name"
           variant="underlined"
-        />
+        >
+          <template #prepend-inner>
+            <v-icon
+              :icon="subcategoriaIcon"
+              :class="subcategoriaColorClass"
+            />
+          </template>
+        </v-autocomplete>
         
         <v-select
           v-if="!isCard"
@@ -426,7 +440,7 @@
 
 <script setup lang="ts">
 // --- 1. IMPORTS ---
-import { useWalletsStore } from "@/store";
+import { useExpensesStore, useRevenuesStore, useWalletsStore } from "@/store";
 import { useLancamentoStore } from "@/store/lancamentos";
 import type { CategoryData, Lancamento, Wallet } from "@/types";
 import { formatValue } from "@/utils/formatValue";
@@ -446,6 +460,8 @@ const emit = defineEmits(["closeForm"]);
 // --- 3. STORES ---
 const walletsStore = useWalletsStore();
 const lancamentoStore = useLancamentoStore();
+const expensesStore = useExpensesStore();
+const revenuesStore = useRevenuesStore();
 
 // --- 4. STATE ---
 const form = ref<Partial<Lancamento & { cartao_id: number | null, fatura: string | null }>>({
@@ -457,9 +473,9 @@ const form = ref<Partial<Lancamento & { cartao_id: number | null, fatura: string
   fatura: "",
   data_lancamento: new Date().toISOString().split("T")[0],
   recorrencia: "Não recorrente",
-  categoria: "",
-  subcategoria: "",
   status_lancamento: props.isCard ? "Efetivada" : "Pendente",
+  categoria: props.lancamento?.categoria || "Outros",
+  subcategoria: props.lancamento?.subcategoria || "Outros",
 });
 const loading = ref(false);
 const isFormValid = ref(false);
@@ -483,6 +499,7 @@ const tiposRecorrencia = ref<("Não recorrente" | "Fixa" | "Parcelado")[]>([
   "Fixa",
   "Parcelado",
 ]);
+let subcategoriesNames = ref<string[]>([]);
 
 const parcelaInicial = ref<number | null>(null);
 const tempParcelaInicial = ref(1);
@@ -589,41 +606,93 @@ const concluirParcelas = () => {
 // --- 6. COMPUTED PROPERTIES ---
 // const creditCardAccounts = computed<Wallet[]>(() => walletsStore.walletsData.cartoes || []);
 const availableBankAccounts = computed<Wallet[]>(() => walletsStore.walletsData.contas || []);
-console.log("linha: 592", props.creditCards);
 
 const selectedCreditCard = computed(() => {
-  console.log("linha 595: ", form.value.conta_id);
   if (!form.value.conta_id) return null;
   return props.creditCards.find(c => c.id === form.value.cartao_id);
 });
-console.log("linha 599: ", selectedCreditCard.value);
 
 const linkedAccount = computed(() => {
   if (!selectedCreditCard.value || !selectedCreditCard.value.conta_pai_id) return null;
   return availableBankAccounts.value.find(acc => acc.id === selectedCreditCard.value.conta_pai_id);
 });
-console.log(linkedAccount.value);
-
-// const linkedAccountName = computed(() => linkedAccount.value?.name || "Conta não vinculada");
 
 const linkedAccountName = computed(() => {
     if (!selectedCreditCard.value || !selectedCreditCard.value.conta_pai_id) return "Nenhuma conta vinculada";
     const conta = availableBankAccounts.value.find(acc => acc.id === selectedCreditCard.value.conta_pai_id);
     return conta?.name || "Conta não encontrada";
   });
-  console.log(linkedAccountName.value);
+
+const categoriasNames = computed(() => {
+  if (props.transactionType === "Receita") {
+    return revenuesStore.revenuesData?.categories.map((categoria) => categoria.name) || [];
+  } else if (props.transactionType === "Despesa") {
+    return expensesStore.expensesData?.categories.map((categoria) => categoria.name) || [];
+  }
+  return [];
+});
+
+// Busca a lista de categorias correta (Receita ou Despesa)
+const categoriesSource = computed(() => 
+  props.transactionType === "Receita"
+    ? revenuesStore.revenuesData?.categories
+    : expensesStore.expensesData?.categories
+);
+
+// Encontra o objeto da categoria selecionada
+const selectedCategoryObject = computed(() => {
+  return categoriesSource.value.find(
+    (cat) => cat.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === (form.value.categoria || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+  );
+});
+
+// Encontra o objeto da subcategoria selecionada
+const selectedSubcategoryObject = computed(() =>
+  selectedCategoryObject.value?.subcategories?.find(
+    (sub) => sub.name === form.value.subcategoria
+  )
+);
+
+const categoriaColorClass = computed(() => selectedCategoryObject.value?.color || "");
+
+// Retorna o ícone e a cor para a SUBCATEGORIA
+const subcategoriaIcon = computed(() => selectedSubcategoryObject.value?.icon || "mdi-scatter-plot");
+
+// Retorna o ícone e a cor para a CATEGORIA
+const categoriaIcon = computed(() => selectedCategoryObject.value?.icon || "mdi-scatter-plot");
+const subcategoriaColorClass = computed(() => selectedSubcategoryObject.value?.color || "");
+
+const subcategoriasDaCategoriaSelecionada = computed(() => {
+  // Decide se estamos a trabalhar com receitas ou despesas
+  // const categoriesSource = props.transactionType === "Receita"
+  //   ? useRevenues.revenuesData?.categories
+  //   : useExpenses.expensesData?.categories;
+
+  if (!categoriesSource.value) {
+    return [];
+  }
+
+  const selectedCategory = categoriesSource.value.find(
+    (cat) => cat.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === (form.value.categoria || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+  );
+
+  if (selectedCategory && selectedCategory.subcategories) {
+    return subcategoriesNames.value = selectedCategory.subcategories.map((sub) => sub.name);
+  }
+
+  return [];
+});
 
 const availableCategories = computed<CategoryData[]>(() => {
-  if (!walletsStore.walletsData.categories) return [];
-  const typeMap: { [key: string]: string } = { "Receita": "receita", "Despesa": "despesa" };
-  const currentType = typeMap[props.transactionType];
-  return walletsStore.walletsData.categories.filter(cat => cat && (cat.type === currentType || cat.type === "ambas"));
+  if (props.transactionType === "Receita") {
+    return revenuesStore.revenuesData.categories;
+  } else if (props.transactionType === "Despesa") {
+    return expensesStore.expensesData.categories;
+  }
+  return [];
 });
+console.log("linha: 616", availableCategories.value);
 
-const availableSubcategories = computed(() => {
-  const selectedCategory = availableCategories.value.find(c => c.name === form.value.categoria);
-  return selectedCategory?.subcategories ? selectedCategory.subcategories.map(s => s.name) : [];
-});
 
 const invoiceList = computed(() => {
   const list = [];
