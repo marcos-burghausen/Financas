@@ -13,6 +13,7 @@
       rota="expense"
       :mes-ano="mesAno"
       :wallets="creditCards"
+      :credit-cards="creditCards"
       transaction-type=""
       :is-card="true"
       @update-data="updateData"
@@ -219,7 +220,7 @@ import { formatValue } from "@/utils/formatValue";
 import { computed } from "vue";
 
 import { useUserStore, useWalletsStore } from "@/store";
-import { useCreditCardStore } from '@/store/creditCard';
+import { useCreditCardStore } from "@/store/creditCard";
 import { WalletData } from "@/types";
 import { ref, shallowRef } from "vue";
 
