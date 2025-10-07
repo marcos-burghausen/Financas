@@ -20,7 +20,7 @@
       @close-form="closeFormLancCartao"
     />
     <div
-      v-if="!formCartao"
+      v-if="!formCartao && !formLancCartao"
       class="receitas"
     >
       <div class="header">
@@ -213,7 +213,7 @@ import IconeMastercard from "@/assets/icons/mastercard.svg";
 import IconeSicredi from "@/assets/icons/sicredi35.svg";
 
 import FormCartaoCredito from "@/components/FormContaCartao.vue";
-import FormLancamentos from "@/components/FormLancamentos.vue";
+import FormLancamentos from "@/components/FormLancamentos copy 2.vue";
 import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
 // import ModalNovaConta from "@/components/ModalNovaConta.vue";
 import { formatValue } from "@/utils/formatValue";

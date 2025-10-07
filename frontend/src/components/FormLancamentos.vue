@@ -285,7 +285,6 @@
                 <span>{{ selectedCreditCard?.name || 'Selecione' }}</span>
               </div>
               <div class="selection">
-                <!-- <span>{{ selectedCreditCard?.bandeira || '' }}</span> -->
                 <v-icon
                   :icon="getBankIcon(selectedCreditCard?.bandeira)"
                   size="20"
@@ -377,6 +376,7 @@
           class="imput mb-5"
           :prepend-inner-icon="getBankIcon(linkedAccount?.name)"
         />
+        
         <v-select
           v-else
           v-model="form.conta_id"
@@ -392,15 +392,14 @@
 
         <v-autocomplete
           v-model="form.categoria"
-          label="Categoria"
           :items="categoriasNames"
-          item-title="name"
-          item-value="name"
-          variant="underlined"
           :rules="[rules.required]"
+          label="Categoria"
+          variant="underlined"
           class="imput mb-5"
-          @update:model-value="form.subcategoria = ''"
-        >
+          >
+          <!-- item-title="name"
+          item-value="name" -->
           <template #prepend-inner>
             <v-icon
               :icon="categoriaIcon"
@@ -414,10 +413,10 @@
           class="imput mb-5"
           label="Subcategoria"
           :items="subcategoriasDaCategoriaSelecionada"
-          item-title="name"
-          item-value="name"
           variant="underlined"
-        >
+          item-title="name"
+          >
+          <!-- item-value="name" -->
           <template #prepend-inner>
             <v-icon
               :icon="subcategoriaIcon"
@@ -446,7 +445,7 @@ import type { CategoryData, Lancamento, Wallet } from "@/types";
 import { formatValue } from "@/utils/formatValue";
 import { getBankIcon } from "@/utils/iconMapper";
 import { onClickOutside } from "@vueuse/core";
-import { computed, nextTick, onMounted, ref } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 
 // --- 2. PROPS & EMITS ---
 const props = defineProps<{
@@ -623,65 +622,56 @@ const linkedAccountName = computed(() => {
     return conta?.name || "Conta não encontrada";
   });
 
-const categoriasNames = computed(() => {
-  if (props.transactionType === "Receita") {
-    return revenuesStore.revenuesData?.categories.map((categoria) => categoria.name) || [];
-  } else if (props.transactionType === "Despesa") {
-    return expensesStore.expensesData?.categories.map((categoria) => categoria.name) || [];
-  }
-  return [];
-});
-
-// Busca a lista de categorias correta (Receita ou Despesa)
-const categoriesSource = computed(() => 
-  props.transactionType === "Receita"
-    ? revenuesStore.revenuesData?.categories
-    : expensesStore.expensesData?.categories
-);
-
-// Encontra o objeto da categoria selecionada
-const selectedCategoryObject = computed(() => {
-  return categoriesSource.value.find(
-    (cat) => cat.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === (form.value.categoria || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+  // Busca a lista de categorias correta (Receita ou Despesa)
+  const categoriesSource = computed(() =>
+    props.transactionType === "Receita"
+      ? revenuesStore.revenuesData?.categories
+      : expensesStore.expensesData?.categories
   );
-});
 
-// Encontra o objeto da subcategoria selecionada
-const selectedSubcategoryObject = computed(() =>
-  selectedCategoryObject.value?.subcategories?.find(
-    (sub) => sub.name === form.value.subcategoria
-  )
-);
-
-const categoriaColorClass = computed(() => selectedCategoryObject.value?.color || "");
-
-// Retorna o ícone e a cor para a SUBCATEGORIA
-const subcategoriaIcon = computed(() => selectedSubcategoryObject.value?.icon || "mdi-scatter-plot");
-
-// Retorna o ícone e a cor para a CATEGORIA
-const categoriaIcon = computed(() => selectedCategoryObject.value?.icon || "mdi-scatter-plot");
-const subcategoriaColorClass = computed(() => selectedSubcategoryObject.value?.color || "");
-
-const subcategoriasDaCategoriaSelecionada = computed(() => {
-  // Decide se estamos a trabalhar com receitas ou despesas
-  // const categoriesSource = props.transactionType === "Receita"
-  //   ? useRevenues.revenuesData?.categories
-  //   : useExpenses.expensesData?.categories;
-
-  if (!categoriesSource.value) {
+  // 2. Cria uma lista apenas com os nomes das categorias para o v-autocomplete
+  const categoriasNames = computed(() => {
+    if (categoriesSource.value) {
+      return categoriesSource.value.map((cat) => cat.name);
+    }
     return [];
-  }
+  });
 
-  const selectedCategory = categoriesSource.value.find(
-    (cat) => cat.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === (form.value.categoria || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-  );
+  // 3. Encontra o objeto completo da categoria que foi selecionada
+  const selectedCategoryObject = computed(() => {
+    if (!categoriesSource.value || !form.value.categoria) {
+      return null;
+    }
+    return categoriesSource.value.find(
+      (cat) => cat.name === form.value.categoria
+    );
+  });
 
-  if (selectedCategory && selectedCategory.subcategories) {
-    return subcategoriesNames.value = selectedCategory.subcategories.map((sub) => sub.name);
-  }
+  // 4. A PARTIR do objeto da categoria, extrai a lista de subcategorias
+  const subcategoriasDaCategoriaSelecionada = computed(() => {
+    if (selectedCategoryObject.value && selectedCategoryObject.value.subcategories) {
+      return selectedCategoryObject.value.subcategories.map((sub) => sub.name);
+    }
+    return []; // Retorna vazio se não houver categoria ou subcategorias
+  });
+  console.log(subcategoriasDaCategoriaSelecionada.value);
 
-  return [];
-});
+  // 5. Encontra o objeto completo da subcategoria selecionada
+  const selectedSubcategoryObject = computed(() => {
+    if (!selectedCategoryObject.value?.subcategories || !form.value.subcategoria) {
+      return null;
+    }
+    return selectedCategoryObject.value.subcategories.find(
+      (sub) => sub.name === form.value.subcategoria
+    );
+  });
+  // 6. Usa os objetos encontrados para pegar ícones e cores
+  const categoriaIcon = computed(() => selectedCategoryObject.value?.icon || 'mdi-shape-outline');
+  const categoriaColorClass = computed(() => selectedCategoryObject.value?.color || '');
+  const subcategoriaIcon = computed(() => selectedSubcategoryObject.value?.icon || 'mdi-shape-outline');
+  const subcategoriaColorClass = computed(() => selectedSubcategoryObject.value?.color || '');
+
+
 
 const availableCategories = computed<CategoryData[]>(() => {
   if (props.transactionType === "Receita") {
@@ -709,6 +699,10 @@ const invoiceList = computed(() => {
     list.push(formatDate(new Date(now.getFullYear(), now.getMonth() + i, 1)));
   }
   return list;
+});
+
+watch(() => form.value.categoria, () => {
+  form.value.subcategoria = '';
 });
 
 // --- MÉTODOS ---
