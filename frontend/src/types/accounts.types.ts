@@ -14,7 +14,7 @@ export interface Wallet {
   limite: string;
   dia_fechamento?: number | null;
   dia_vencimento?: number | null;
-  conta_id?: number | null;
+  conta_id: number | null;
   conta_pai_id?: number | null;
   bandeira?: string;
   updatedAt?: string;

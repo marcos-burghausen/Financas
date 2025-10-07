@@ -41,7 +41,7 @@
             </v-text-field>
 
             <v-text-field
-              v-model="form.saldoInicial"
+              v-model="form.saldo_inicial"
               label="Valor Inicial"
               variant="underlined"
               class="imput"
@@ -56,7 +56,7 @@
             </v-text-field>
             
             <v-text-field
-              v-model="form.saldoInicial"
+              v-model="form.saldo_inicial"
               label="cheque especial"
               variant="underlined"
               class="imput"
@@ -71,7 +71,7 @@
             </v-text-field>
 
             <v-select
-              v-model="form.tipoConta"
+              v-model="form.tipo_conta"
               :items="['Carteira', 'Conta Corrente', 'Poupança', 'Investimento', 'Outro']"
               label="Tipo de Conta"
               variant="underlined"
@@ -79,14 +79,14 @@
               :rules="[rules.required]"
             >
               <template #prepend-inner>
-                <v-icon :icon="form.tipoConta === 'Carteira' ? 'mdi-wallet-outline' : form.tipoConta === 'Conta Corrente' ? 'mdi-bank-outline' : form.tipoConta === 'Poupança' ? 'mdi-piggy-bank' : form.tipoConta === 'Investimento' ? 'mdi-chart-line' : 'mdi-currency-usd'" />
+                <v-icon :icon="form.tipo_conta === 'Carteira' ? 'mdi-wallet-outline' : form.tipo_conta === 'Conta Corrente' ? 'mdi-bank-outline' : form.tipo_conta === 'Poupança' ? 'mdi-piggy-bank' : form.tipo_conta === 'Investimento' ? 'mdi-chart-line' : 'mdi-currency-usd'" />
               </template>
             </v-select>
 
             <div class="d-flex justify-content-between align-items-center mt-4">
               <span>Incluir na soma do total?</span>
               <v-switch
-                v-model="form.incluirEmSomaInicial"
+                v-model="form.incluir_em_soma_inicial"
                 color="primary"
                 hide-details
               />
@@ -367,7 +367,6 @@ const props = defineProps({
     required: true,
   }
 });
-console.log(props.wallets);
 
 /** Item padrão (nenhuma conta selecionada) */
 const DEFAULT_ITEM = { id: -1, name: "Nenhuma", icon: "mdi-bank-off-outline" };
@@ -403,7 +402,7 @@ const loading = ref(false);
 const showIconModal = ref(false);
 const showColorModal = ref(false);
 
-const form = ref<Wallet>({
+const form = ref<Partial<Wallet>>({
   name: "",
   icon: props.walletType === "Conta" ? "mdi-bank" : "mdi-bank-off",
   color: "#0c99ed",
