@@ -372,73 +372,74 @@
           </div>
         </template>
 
-      <div class="mb-2 pt-1">
-        <v-menu
-          v-model="menuDataVencimento"
-          :close-on-content-click="false"
-          transition="scale-transition"
-          offset-y
-        >
-          <template #activator="{ props }">
-            <div
-              class="custom__display__input"
-              v-bind="props"
-            >
-              <div class="d-flex align-center text-grey">
-                <v-icon
-                  icon="mdi-calendar"
-                  class="me-3"
-                />
-                <span>Data de vencimento</span>
-              </div>
-              <v-spacer class="m-0 p-0" />
-              <span class="font-weight-medium">{{ displayDataVencimento }}</span>
-            </div>
-          </template>
-
-          <v-date-picker
-            v-model="formReleases.dataVencimento"
-            color="#77d08e"
-            hide-header
-            show-adjacent-months
-            @update:model-value="menuDataVencimento = false"
-          />
-        </v-menu>
-      </div>
-
-      <v-text-field
-        v-model="formReleases.status"
-        variant="underlined"
-        hide-details="auto"
-        type="text"
-        class="mb-6 imput"
-        readonly
-        :prepend-inner-icon="
-          formReleases.status === 'Efetivada'
-            ? 'mdi-check-circle-outline'
-            : 'mdi-clock-time-three-outline'
-        "
-        @click="toggleStatus"
-      >
-        <template #append-inner>
-          <div
-            :class="
-              formReleases.status === 'Efetivada'
-                ? 'form__check__efetivada'
-                : 'form__check'
-            "
+      <template v-if="!isCard">
+        <div class="mb-2 pt-1">
+          <v-menu
+            v-model="menuDataVencimento"
+            :close-on-content-click="false"
+            transition="scale-transition"
+            offset-y
           >
+            <template #activator="{ props }">
+              <div
+                class="custom__display__input"
+                v-bind="props"
+              >
+                <div class="d-flex align-center text-grey">
+                  <v-icon
+                    icon="mdi-calendar"
+                    class="me-3"
+                  />
+                  <span>Data de vencimento</span>
+                </div>
+                <v-spacer class="m-0 p-0" />
+                <span class="font-weight-medium">{{ displayDataVencimento }}</span>
+              </div>
+            </template>
+
+            <v-date-picker
+              v-model="formReleases.data_vencimento"
+              color="#77d08e"
+              hide-header
+              show-adjacent-months
+              @update:model-value="menuDataVencimento = false"
+            />
+          </v-menu>
+        </div>
+
+        <v-text-field
+          v-model="formReleases.status_lancamento"
+          variant="underlined"
+          hide-details="auto"
+          type="text"
+          class="mb-6 imput"
+          readonly
+          :prepend-inner-icon="
+            formReleases.status_lancamento === 'Efetivada'
+              ? 'mdi-check-circle-outline'
+              : 'mdi-clock-time-three-outline'
+          "
+          @click="toggleStatus"
+        >
+          <template #append-inner>
             <div
               :class="
-                formReleases.status === 'Efetivada'
-                  ? 'switch__check__efetivada'
-                  : 'switch__check'
+                formReleases.status_lancamento === 'Efetivada'
+                  ? 'form__check__efetivada'
+                  : 'form__check'
               "
-            />
-          </div>
-        </template>
-      </v-text-field>
-
+            >
+              <div
+                :class="
+                  formReleases.status_lancamento === 'Efetivada'
+                    ? 'switch__check__efetivada'
+                    : 'switch__check'
+                "
+              />
+            </div>
+          </template>
+        </v-text-field>
+      </template>
       <v-autocomplete
         v-model="formReleases.categoria"
         :items="categoriasNames"
@@ -480,10 +481,10 @@
           class="imput mb-5"
           :prepend-inner-icon="getBankIcon(linkedAccount?.name)"
         />
-        
+
         <v-select
           v-else
-          v-model="form.conta_id"
+          v-model="formReleases.conta_id"
           label="Conta"
           :items="availableBankAccounts"
           item-title="name"
@@ -534,7 +535,7 @@
           </template>
 
           <v-date-picker
-            v-model="formReleases.dataLancamento"
+            v-model="formReleases.data_lancamento"
             color="#77d08e"
             hide-header
             show-adjacent-months
@@ -542,9 +543,9 @@
           />
         </v-menu>
       </div>
-      
+
       <div
-        v-if="informacoes"
+        v-if="informacoes && !isCard"
         class="mb-1"
       >
         <v-menu
@@ -571,7 +572,7 @@
           </template>
 
           <v-date-picker
-            v-model="formReleases.dataEfetivacao"
+            v-model="formReleases.data_efetivacao"
             color="#77d08e"
             hide-header
             show-adjacent-months
@@ -596,7 +597,6 @@
         </v-card-text>
 
         <v-card-actions class="d-flex flex-column align-stretch">
-          <!-- Opções para Lançamento Parcelado -->
           <template v-if="formReleases.recorrencia === 'Parcelado'">
             <v-btn
               block
@@ -621,7 +621,6 @@
             </v-btn>
           </template>
 
-          <!-- Opções para Lançamento Fixo -->
           <template v-if="formReleases.recorrencia === 'Fixa'">
             <v-btn
               block
@@ -647,48 +646,26 @@
 </template>
 
 <script setup lang="ts">
+import { onClickOutside } from "@vueuse/core";
+import type { AxiosError } from "axios";
+import { addMonths, format, isToday, isTomorrow, isValid, isYesterday, parseISO, subMonths } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
+
+// Components
 import ErrorMessage from "@/components/ErrorMessage.vue";
 import ErrorsForm from "@/components/ModalErrorsForm.vue";
+
+// Services and Stores
 import http from "@/services/http";
-import {
-  useErrorStore,
-  useExpensesStore,
-  useRevenuesStore,
-  useUserStore,
-  useWalletsStore,
-} from "@/store";
+import { useErrorStore, useExpensesStore, useRevenuesStore, useUserStore, useWalletsStore } from "@/store";
+
+// Types and Utils
 import type { ApiErrorResponse, Lancamento, Wallet } from "@/types";
 import { formatValue } from "@/utils/formatValue";
 import { getBankIcon } from "@/utils/iconMapper";
-import { onClickOutside } from "@vueuse/core";
-import type { AxiosError } from "axios";
-import { format, format as formatDate, isTomorrow, isValid, isYesterday, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { computed, nextTick, ref, watch } from "vue";
 
-const walletsStore = useWalletsStore();
-const useRevenues = useRevenuesStore();
-const useExpenses = useExpensesStore();
-const useUser = useUserStore();
-const errorStore = useErrorStore();
-const showEditOptionsModal = ref(false);
-const editScope = ref<"apenas esta" | "esta e as próximas" | "todas" | "apenas este mês" | "mês atual e os próximos">("apenas esta");
-
-const emit = defineEmits(["updateData", "closeForm"]);
-const menuDataVencimento = ref(false);
-const menuDataLancamento = ref(false);
-const menuDataEfetivacao = ref(false);
-
-// State para o dropdown de Fatura
-const isFaturaDropdownOpen = ref(false);
-const faturaSelectRef = ref(null);
-const faturaDropdownContainerRef = ref<HTMLElement | null>(null);
-
-// State para o dropdown de Cartão de Crédito
-const isCardDropdownOpen = ref(false);
-const cardSelectRef = ref(null);
-const cardDropdownContainerRef = ref<HTMLElement | null>(null);
-
+// 1. PROPS & EMITS
 const props = defineProps<{
   releases?: Lancamento;
   wallets: Wallet[];
@@ -698,104 +675,271 @@ const props = defineProps<{
   isCard?: boolean;
 }>();
 
-const validateDate = (date: string | Date | undefined): string => {
-  if (!date) {
-    console.log(`Date inválida: ${date}`);
-    return formatDate(new Date(), "yyyy-MM-dd");
-  }
-  let parsedDate: Date;
-  if (typeof date === "string") {
-    const parts = date.split("-").map(Number);
-    parsedDate = new Date(date + "T00:00:00");
-  } else {
-    parsedDate = date;
-  }
-  if (!isValid(parsedDate)) {
-    return formatDate(new Date(), "yyyy-MM-dd");
-  }
-  return formatDate(parsedDate, "yyyy-MM-dd");
-};
+const emit = defineEmits(["updateData", "closeForm"]);
 
-const formReleases = ref<Partial<Lancamento>>({
-  id: props.releases?.id || null,
-  descricao: props.releases?.descricao || "",
-  valor: formatValue(Number(props.releases?.valor)) || "0,00",
-  tipo_lancamento: props.transactionType,
-  recorrencia: props.releases?.recorrencia || "Não recorrente",
-  parcela_atual: props.releases?.parcela_atual || null,
-  num_parcelas: props.releases?.num_parcelas || null,
-  tipo_parcela: props.releases?.tipo_parcela || null,
-  periodicidade: props.releases?.periodicidade || null,
-  data_vencimento: validateDate(props.releases?.data_vencimento),
-  status_lancamento: props.releases?.status_lancamento || "Pendente",
-  categoria: props.releases?.categoria || "Outros",
-  subcategoria: props.releases?.subcategoria || "Outros",
-  conta_id: props.wallets.length > 0 ? props.wallets[0].id : null,
-  data_lancamento: validateDate(props.releases?.data_lancamento),
-  data_efetivacao: props.releases?.data_efetivacao || null,
-  cartao_id: null,
-});
+// 2. STORES
+const walletsStore = useWalletsStore();
+const useRevenues = useRevenuesStore();
+const useExpenses = useExpensesStore();
+const useUser = useUserStore();
+const errorStore = useErrorStore();
 
-let valorParcela = ref<string | null>(null);
-let informacoes = ref(false);
-let subcategoriesNames = ref<string[]>([]);
+// 3. REFS & STATE
+const formReleases = ref<Partial<Lancamento>>({});
+const loading = ref(false);
+const validFormLancamentos = ref(false);
+const informacoes = ref(false);
+const errorsForm = ref<{ [key: string]: string[] }>({});
+
+// UI State
+const menuDataVencimento = ref(false);
+const menuDataLancamento = ref(false);
+const menuDataEfetivacao = ref(false);
+const openRecorrenciaModal = ref(false);
+const openParcelas = ref(false);
+const showEditOptionsModal = ref(false);
+const isFaturaDropdownOpen = ref(false);
+const isCardDropdownOpen = ref(false);
+
+// Dropdown Refs
+const faturaSelectRef = ref<HTMLElement | null>(null);
+const cardSelectRef = ref<HTMLElement | null>(null);
+const faturaDropdownContainerRef = ref<HTMLElement | null>(null);
+const cardDropdownContainerRef = ref<HTMLElement | null>(null);
+
+// Recurrence State
+const editScope = ref<"apenas esta" | "esta e as próximas" | "todas" | "apenas este mês" | "mês atual e os próximos">("apenas esta");
+const tipoCalculoParcela = ref<"total" | "parcela">("total");
 const parcelaInicial = ref<number | null>(null);
 const tempParcelaInicial = ref(1);
 const tempNumParcelas = ref(2);
-const tempPeriodicidade = ref<
-  | "Mensal"
-  | "Diario"
-  | "Semanal"
-  | "Quinzenal"
-  | "Trimenstral"
-  | "Anual"
-  | undefined
->("Mensal");
-// --- 5. LÓGICA DE INTERAÇÃO ---
-onClickOutside(faturaSelectRef, () => { isFaturaDropdownOpen.value = false; });
-onClickOutside(cardSelectRef, () => { isCardDropdownOpen.value = false; });
-const loading = ref(false);
-const validFormLancamentos = ref(false);
-const openParcelas = ref(false);
-const errorsForm = ref<{ [key: string]: string[] }>({});
-
-// CORREÇÃO: Lógica de tipos separada para recorrência
-const openRecorrenciaModal = ref(false);
+const tempPeriodicidade = ref<"Mensal" | "Semanal" | "Quinzenal" | "Bimestral">("Mensal");
 const tiposRecorrencia = ref<("Não recorrente" | "Fixa" | "Parcelado")[]>([
   "Não recorrente",
   "Fixa",
   "Parcelado",
 ]);
 
+// 4. COMPUTED PROPERTIES
+const isEditMode = computed(() => !!props.releases?.id);
+
+const creditCardAccounts = computed<Wallet[]>(() => 
+  props.wallets.filter(w => w.tipo_carteira === 'Cartão de Crédito') || []
+);
+
+const availableBankAccounts = computed<Wallet[]>(() => 
+  walletsStore.walletsData.contas || []
+);
+
+const selectedCreditCard = computed(() => {
+  if (!formReleases.value.cartao_id) return null;
+  return props.wallets.find(c => c.id === formReleases.value.cartao_id);
+});
+
+const linkedAccount = computed(() => {
+  if (!selectedCreditCard.value?.conta_pai_id) return null;
+  return availableBankAccounts.value.find(acc => acc.id === selectedCreditCard.value.conta_pai_id);
+});
+
+const linkedAccountName = computed(() => {
+  if (!linkedAccount.value) return "Nenhuma conta vinculada";
+  return linkedAccount.value.name || "Conta não encontrada";
+});
+
+const invoiceList = computed(() => {
+  const list = [];
+  const now = new Date();
+  const formatDateForList = (date: Date) => {
+    const month = date.toLocaleDateString("pt-BR", { month: "short" }).toUpperCase().replace(".", "");
+    const year = date.getFullYear();
+    return `${month}/${year}`;
+  };
+  // 12 meses para trás
+  for (let i = 12; i > 0; i--) {
+    list.push(formatDateForList(subMonths(now, i)));
+  }
+  // Mês atual e 12 meses para frente
+  for (let i = 0; i <= 12; i++) {
+    list.push(formatDateForList(addMonths(now, i)));
+  }
+  return list;
+});
+
+const categoriesSource = computed(() =>
+  props.transactionType === "Receita"
+    ? useRevenues.revenuesData?.categories
+    : useExpenses.expensesData?.categories
+);
+
+const categoriasNames = computed(() => categoriesSource.value?.map((cat) => cat.name) || []);
+
+const selectedCategoryObject = computed(() =>
+  categoriesSource.value?.find(
+    (cat) => cat.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === (formReleases.value.categoria || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+  )
+);
+
+const subcategoriasDaCategoriaSelecionada = computed(() => {
+  if (selectedCategoryObject.value?.subcategories) {
+    return selectedCategoryObject.value.subcategories.map((sub) => sub.name);
+  }
+  return [];
+});
+
+const selectedSubcategoryObject = computed(() =>
+  selectedCategoryObject.value?.subcategories?.find(
+    (sub) => sub.name === formReleases.value.subcategoria
+  )
+);
+
+const categoriaIcon = computed(() => selectedCategoryObject.value?.icon || "mdi-scatter-plot");
+const categoriaColorClass = computed(() => selectedCategoryObject.value?.color || "");
+const subcategoriaIcon = computed(() => selectedSubcategoryObject.value?.icon || "mdi-scatter-plot");
+const subcategoriaColorClass = computed(() => selectedSubcategoryObject.value?.color || "");
+
+const detalheRecorrencia = computed(() => {
+  if (formReleases.value.recorrencia !== "Parcelado" || !formReleases.value.num_parcelas || formReleases.value.num_parcelas <= 0) {
+    return "";
+  }
+  const valorInput = parseFloat(formReleases.value.valor?.replace(/\./g, "").replace(",", ".") || "0");
+  if (isNaN(valorInput) || valorInput <= 0) return "";
+
+  const opcoesDeFormatacao = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+  
+  if (tipoCalculoParcela.value === "total") {
+    const valorParcela = valorInput / formReleases.value.num_parcelas;
+    const valorFormatado = valorParcela.toLocaleString("pt-BR", opcoesDeFormatacao);
+    return `Em ${formReleases.value.num_parcelas}x de R$ ${valorFormatado}`;
+  } else {
+    const valorFormatado = valorInput.toLocaleString("pt-BR", opcoesDeFormatacao);
+    return `Em ${formReleases.value.num_parcelas}x de R$ ${valorFormatado}`;
+  }
+});
+
+const displayDataVencimento = computed(() => formatDateForDisplay(formReleases.value.data_vencimento));
+const displayDataLancamento = computed(() => formatDateForDisplay(formReleases.value.data_lancamento));
+const displayDataEfetivacao = computed(() => formatDateForDisplay(formReleases.value.data_efetivacao));
+
+// 5. WATCHERS
+watch(() => formReleases.value.status_lancamento, (newStatus) => {
+  formReleases.value.data_efetivacao = newStatus === "Efetivada" ? format(new Date(), "yyyy-MM-dd") : null;
+});
+
+watch(() => formReleases.value.categoria, () => {
+  formReleases.value.subcategoria = 'Outros';
+});
+
+watch(() => formReleases.value.data_vencimento, (nv) => (formReleases.value.data_vencimento = formatDateOnWatch(nv)));
+watch(() => formReleases.value.data_lancamento, (nv) => (formReleases.value.data_lancamento = formatDateOnWatch(nv)));
+watch(() => formReleases.value.data_efetivacao, (nv) => (formReleases.value.data_efetivacao = formatDateOnWatch(nv)));
+
+// NOVO: Watch para atualizar a fatura quando o cartão de crédito mudar
+watch(() => formReleases.value.cartao_id, (newCardId) => {
+  if (newCardId) {
+    setDefaultInvoice();
+  }
+});
+
+
+// 6. LIFECYCLE HOOKS
+onMounted(() => {
+  initializeForm();
+});
+
+// 7. METHODS
+
+// Form Initialization
+const initializeForm = () => {
+  const hoje = format(new Date(), "yyyy-MM-dd");
+
+  formReleases.value = {
+    id: props.releases?.id || null,
+    descricao: props.releases?.descricao || "",
+    valor: formatValue(Number(props.releases?.valor)) || "0,00",
+    tipo_lancamento: props.transactionType,
+    recorrencia: props.releases?.recorrencia || "Não recorrente",
+    parcela_atual: props.releases?.parcela_atual || null,
+    num_parcelas: props.releases?.num_parcelas || null,
+    tipo_parcela: props.releases?.tipo_parcela || null,
+    periodicidade: props.releases?.periodicidade || null,
+    data_vencimento: validateDate(props.releases?.data_vencimento),
+    status_lancamento: props.releases?.status_lancamento || "Pendente",
+    categoria: props.releases?.categoria || "Outros",
+    subcategoria: props.releases?.subcategoria || "Outros",
+    conta_id: props.isCard ? null : (props.releases?.conta_id || availableBankAccounts.value[0]?.id || null),
+    cartao_id: props.isCard ? (props.releases?.cartao_id || creditCardAccounts.value[0]?.id || null) : null,
+    fatura: props.releases?.fatura || null,
+    data_lancamento: validateDate(props.releases?.data_lancamento),
+    data_efetivacao: props.releases?.data_efetivacao ? validateDate(props.releases.data_efetivacao) : null,
+  };
+  
+  // Lógica de inicialização para cartão
+  if (props.isCard && !isEditMode.value) {
+    setDefaultInvoice();
+  }
+};
+
+// Date Handling
+const validateDate = (date: string | Date | undefined | null): string => {
+  if (!date) return format(new Date(), "yyyy-MM-dd");
+  
+  const parsedDate = typeof date === 'string' ? parseISO(date) : date;
+  
+  return isValid(parsedDate) ? format(parsedDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
+};
+
+const formatDateOnWatch = (newValue: any) => {
+  if (newValue instanceof Date) {
+    return format(newValue, "yyyy-MM-dd");
+  }
+  return newValue;
+};
+
+const formatDateForDisplay = (dateValue: string | Date | undefined | null): string => {
+  if (!dateValue) return "Selecione...";
+
+  const data = typeof dateValue === 'string' ? parseISO(dateValue) : dateValue;
+  if (!isValid(data)) return "Data inválida";
+  
+  if (isToday(data)) return "Hoje";
+  if (isYesterday(data)) return "Ontem";
+  if (isTomorrow(data)) return "Amanhã";
+
+  const nomeDiaCompleto = format(data, "EEEE", { locale: ptBR });
+  const diaAbreviadoCapitalizado = nomeDiaCompleto.charAt(0).toUpperCase() + nomeDiaCompleto.slice(1, 3);
+  const dataFormatada = format(data, "dd/MM/yyyy");
+
+  return `${diaAbreviadoCapitalizado}., ${dataFormatada}`;
+};
+
+// Business Logic: Card and Invoice
+const setDefaultInvoice = () => {
+  const card = selectedCreditCard.value;
+  if (!card || !card.dia_fechamento) return;
+
+  const today = new Date();
+  const closingDay = card.dia_fechamento;
+  const currentDay = today.getDate();
+
+  let invoiceDate = today;
+  if (currentDay > closingDay) {
+    invoiceDate = addMonths(today, 1);
+  }
+
+  const month = invoiceDate.toLocaleDateString("pt-BR", { month: "short" }).toUpperCase().replace(".", "");
+  const year = invoiceDate.getFullYear();
+  formReleases.value.fatura = `${month}/${year}`;
+};
+
+// UI Interaction
+onClickOutside(faturaSelectRef, () => { isFaturaDropdownOpen.value = false; });
+onClickOutside(cardSelectRef, () => { isCardDropdownOpen.value = false; });
+
 const toggleStatus = () => {
   formReleases.value.status_lancamento =
     formReleases.value.status_lancamento === "Efetivada" ? "Pendente" : "Efetivada";
 };
 
-const formatValueSave = () => {
-  // 1. Pega apenas os dígitos do valor
-  let digits = formReleases.value.valor.replace(/\D/g, "");
-
-  // 2. Remove zeros à esquerda, tratando o caso de ser tudo zero
-  digits = digits.replace(/^0+/, "") || "0";
-
-  // 3. Garante que o valor tenha pelo menos 3 dígitos para a formatação (ex: 50 vira 050)
-  while (digits.length < 3) {
-    digits = "0" + digits;
-  }
-
-  // 4. Separa a parte inteira e a decimal
-  const integerPart = digits.slice(0, -2);
-  const decimalPart = digits.slice(-2);
-
-  // 5. Formata a parte inteira com pontos como separadores de milhar
-  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-  // 6. Monta o valor final formatado
-  formReleases.value.valor = `${formattedIntegerPart},${decimalPart}`;
-};
-
-// Métodos para o seletor de Fatura
 const toggleFaturaDropdown = async () => {
   isFaturaDropdownOpen.value = !isFaturaDropdownOpen.value;
   if (isFaturaDropdownOpen.value) {
@@ -803,36 +947,11 @@ const toggleFaturaDropdown = async () => {
     const container = faturaDropdownContainerRef.value;
     if (container && formReleases.value.fatura) {
       const selectedItem = container.querySelector(`[data-invoice="${formReleases.value.fatura}"]`) as HTMLElement;
-      if (selectedItem) {
-        selectedItem.scrollIntoView({ block: "start", behavior: "auto" });
-      }
+      selectedItem?.scrollIntoView({ block: "start", behavior: "auto" });
     }
   }
 };
 
-const invoiceList = computed(() => {
-  const list = [];
-  const now = new Date();
-  const formatDate = (date: Date) => {
-    const month = date.toLocaleDateString("pt-BR", { month: "short" }).toUpperCase().replace(".", "");
-    const year = date.getFullYear();
-    return `${month}/${year}`;
-  };
-  for (let i = 12; i > 0; i--) {
-    list.push(formatDate(new Date(now.getFullYear(), now.getMonth() - i, 1)));
-  }
-  for (let i = 0; i <= 12; i++) {
-    list.push(formatDate(new Date(now.getFullYear(), now.getMonth() + i, 1)));
-  }
-  return list;
-});
-
-const selectInvoice = (invoice: string) => {
-  formReleases.value.fatura = invoice;
-  isFaturaDropdownOpen.value = false;
-};
-
-// Métodos para o seletor de Cartão
 const toggleCardDropdown = async () => {
   isCardDropdownOpen.value = !isCardDropdownOpen.value;
   if (isCardDropdownOpen.value) {
@@ -840,11 +959,14 @@ const toggleCardDropdown = async () => {
     const container = cardDropdownContainerRef.value;
     if (container && formReleases.value.cartao_id) {
       const selectedItem = container.querySelector(`[data-card-id="${formReleases.value.cartao_id}"]`) as HTMLElement;
-      if (selectedItem) {
-        selectedItem.scrollIntoView({ block: "start", behavior: "auto" });
-      }
+      selectedItem?.scrollIntoView({ block: "start", behavior: "auto" });
     }
   }
+};
+
+const selectInvoice = (invoice: string) => {
+  formReleases.value.fatura = invoice;
+  isFaturaDropdownOpen.value = false;
 };
 
 const selectCard = (card: Wallet) => {
@@ -852,359 +974,62 @@ const selectCard = (card: Wallet) => {
   isCardDropdownOpen.value = false;
 };
 
-const categoriasNames = computed(() => {
-  if (props.transactionType === "Receita") {
-    return useRevenues.revenuesData?.categories.map((cat) => cat.name) || [];
-  } else {
-    return useExpenses.expensesData?.categories.map((cat) => cat.name) || [];
-  }
-});
+// Form Value Formatting
+const formatValueSave = () => {
+  let digits = (formReleases.value.valor || "").replace(/\D/g, "");
+  digits = digits.replace(/^0+/, "") || "0";
+  while (digits.length < 3) digits = "0" + digits;
 
-
-// const contasNames = ref(useWallets.walletsData.contasNames);
-const isEditMode = computed(() => !!props.releases?.id);
-console.log(props.releases?.recorrencia);
-
-const isToday = (dateValue: string | Date | undefined | null): boolean => {
-  if (!dateValue) return false;
-
-  // Pega a data de hoje, já formatada corretamente.
-  const todayStr = formatDate(new Date(), "yyyy-MM-dd");
-
-  let selectedDateStr: string;
-
-  if (typeof dateValue === "string") {
-    // Se o valor já for uma string (ex: '2025-07-23'), 
-    // usamos apenas os 10 primeiros caracteres para evitar problemas de fuso horário.
-    selectedDateStr = dateValue.substring(0, 10);
-  } else {
-    // Se for um objeto Date (vindo do seletor de data), nós o formatamos.
-    selectedDateStr = formatDate(dateValue, "yyyy-MM-dd");
-  }
-
-  return todayStr === selectedDateStr;
-};
-
-const displayDataVencimento = computed(() => {
-  // Se não houver data, não mostre nada.
-  if (!formReleases.value.data_vencimento) return "Selecione...";
-
-  if (typeof formReleases.value.data_vencimento !== "string") return "";
-  const data = parseISO(formReleases.value.data_vencimento);
-
-  // Compara com a data atual e retorna o texto correspondente
-  if (isToday(data)) return "Hoje";
-  if (isYesterday(data)) return "Ontem";
-  if (isTomorrow(data)) return "Amanhã";
+  const integerPart = digits.slice(0, -2);
+  const decimalPart = digits.slice(-2);
+  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   
-  // Pega o nome do dia da semana (ex: "segunda-feira")
-  const nomeDiaCompleto = format(data, "EEEE", { locale: ptBR });
-  
-  // Pega as 3 primeiras letras e capitaliza a primeira
-  const nomeDiaAbreviado = nomeDiaCompleto.substring(0, 3);
-  const diaAbreviadoCapitalizado = nomeDiaAbreviado.charAt(0).toUpperCase() + nomeDiaAbreviado.slice(1);
-
-  // Formata o resto da data
-  const dataFormatada = format(data, "dd/MM/yyyy");
-
-  // Retorna no formato "Seg., 25/07/2025"
-  return `${diaAbreviadoCapitalizado}., ${dataFormatada}`;
-});
-
-const displayDataLancamento = computed(() => {
-  // Se não houver data, não mostre nada.
-  if (!formReleases.value.data_lancamento) return "Selecione...";
-
-  if (typeof formReleases.value.data_lancamento !== "string") return "";
-  const data = parseISO(formReleases.value.data_lancamento);
-
-  // Compara com a data atual e retorna o texto correspondente
-  if (isToday(data)) return "Hoje";
-  if (isYesterday(data)) return "Ontem";
-  if (isTomorrow(data)) return "Amanhã";
-  
-  // Pega o nome do dia da semana (ex: "segunda-feira")
-  const nomeDiaCompleto = format(data, "EEEE", { locale: ptBR });
-  
-  // Pega as 3 primeiras letras e capitaliza a primeira
-  const nomeDiaAbreviado = nomeDiaCompleto.substring(0, 3);
-  const diaAbreviadoCapitalizado = nomeDiaAbreviado.charAt(0).toUpperCase() + nomeDiaAbreviado.slice(1);
-
-  // Formata o resto da data
-  const dataFormatada = format(data, "dd/MM/yyyy");
-
-  // Retorna no formato "Seg., 25/07/2025"
-  return `${diaAbreviadoCapitalizado}., ${dataFormatada}`;
-});
-
-const displayDataEfetivacao = computed(() => {
-  // Se não houver data, não mostre nada.
-  if (!formReleases.value.data_efetivacao) return null;
-
-  if (typeof formReleases.value.data_efetivacao !== "string") return "";
-  const data = parseISO(formReleases.value.data_efetivacao);
-
-  // Compara com a data atual e retorna o texto correspondente
-  if (isToday(data)) return "Hoje";
-  if (isYesterday(data)) return "Ontem";
-  if (isTomorrow(data)) return "Amanhã";
-  
-  // Pega o nome do dia da semana (ex: "segunda-feira")
-  const nomeDiaCompleto = format(data, "EEEE", { locale: ptBR });
-  
-  // Pega as 3 primeiras letras e capitaliza a primeira
-  const nomeDiaAbreviado = nomeDiaCompleto.substring(0, 3);
-  const diaAbreviadoCapitalizado = nomeDiaAbreviado.charAt(0).toUpperCase() + nomeDiaAbreviado.slice(1);
-
-  // Formata o resto da data
-  const dataFormatada = format(data, "dd/MM/yyyy");
-
-  // Retorna no formato "Seg., 25/07/2025"
-  return `${diaAbreviadoCapitalizado}., ${dataFormatada}`;
-});
-
-const isTodayVencimento = computed(() =>
-  isToday(formReleases.value.data_vencimento)
-);
-
-const isTodayLancamento = computed(() =>
-  isToday(formReleases.value.data_lancamento)
-);
-const isTodayEfetivacao = computed(() =>
-  isToday(formReleases.value.data_efetivacao)
-);
-
-const tipoCalculoParcela = ref<"total" | "parcela">("total");
-
-
-
-const detalheRecorrencia = computed(() => {
-  if (
-    formReleases.value.recorrencia === "Parcelado" &&
-    formReleases.value.num_parcelas &&
-    formReleases.value.num_parcelas > 0
-  ) {
-    const valorInput = parseFloat(
-      formReleases.value.valor.replace(/\./g, "").replace(",", ".")
-    );
-    if (isNaN(valorInput) || valorInput <= 0) return "";
-
-    // Opções de formatação para garantir 2 casas decimais
-    const opcoesDeFormatacao = {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    };
-
-    if (tipoCalculoParcela.value === "total") {
-      const valorParcela = valorInput / formReleases.value.num_parcelas;
-      const valorFormatado = valorParcela.toLocaleString("pt-BR", opcoesDeFormatacao);
-      return `Em ${formReleases.value.num_parcelas}x de R$ ${valorFormatado}`;
-    } else {
-      const valorFormatado = valorInput.toLocaleString("pt-BR", opcoesDeFormatacao);
-      return `Em ${formReleases.value.num_parcelas}x de R$ ${valorFormatado}`;
-    }
-  }
-  return "";
-});
-
-// Busca a lista de categorias correta (Receita ou Despesa)
-const categoriesSource = computed(() => 
-  props.transactionType === "Receita"
-    ? useRevenues.revenuesData?.categories
-    : useExpenses.expensesData?.categories
-);
-
-// Encontra o objeto da categoria selecionada
-const selectedCategoryObject = computed(() => {
-  return categoriesSource.value.find(
-    (cat) => cat.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === (formReleases.value.categoria || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-  );
-});
-
-// Encontra o objeto da subcategoria selecionada
-const selectedSubcategoryObject = computed(() =>
-  selectedCategoryObject.value?.subcategories?.find(
-    (sub) => sub.name === formReleases.value.subcategoria
-  )
-);
-
-
-// Retorna o ícone e a cor para a CATEGORIA
-const categoriaIcon = computed(() => selectedCategoryObject.value?.icon || "mdi-scatter-plot");
-
-const categoriaColorClass = computed(() => selectedCategoryObject.value?.color || "");
-
-// Retorna o ícone e a cor para a SUBCATEGORIA
-const subcategoriaIcon = computed(() => selectedSubcategoryObject.value?.icon || "mdi-scatter-plot");
-const subcategoriaColorClass = computed(() => selectedSubcategoryObject.value?.color || "");
-
-watch(
-  () => formReleases.value.status_lancamento,
-  (newStatus) => {
-    if (newStatus === "Efetivada") {
-      formReleases.value.data_efetivacao = formatDate(new Date(), "yyyy-MM-dd");
-    } else {
-      formReleases.value.data_efetivacao = null;
-    }
-  }
-);
-
-const subcategoriasDaCategoriaSelecionada = computed(() => {
-  // Decide se estamos a trabalhar com receitas ou despesas
-  // const categoriesSource = props.transactionType === "Receita"
-  //   ? useRevenues.revenuesData?.categories
-  //   : useExpenses.expensesData?.categories;
-
-  if (!categoriesSource.value) {
-    return [];
-  }
-
-  const selectedCategory = categoriesSource.value.find(
-    (cat) => cat.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === (formReleases.value.categoria || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-  );
-
-  if (selectedCategory && selectedCategory.subcategories) {
-    return subcategoriesNames.value = selectedCategory.subcategories.map((sub) => sub.name);
-  }
-
-  return [];
-});
-
-
-const formatDateOnWatch = (newValue: any) => {
-  if (newValue instanceof Date) {
-    return formatDate(newValue, "yyyy-MM-dd");
-  }
-  return newValue;
+  formReleases.value.valor = `${formattedIntegerPart},${decimalPart}`;
 };
 
-watch(
-  () => formReleases.value.data_vencimento,
-  (nv) => (formReleases.value.data_vencimento = formatDateOnWatch(nv))
-);
-watch(
-  () => formReleases.value.data_lancamento,
-  (nv) => (formReleases.value.data_lancamento = formatDateOnWatch(nv))
-);
-watch(
-  () => formReleases.value.data_efetivacao,
-  (nv) => (formReleases.value.data_efetivacao = formatDateOnWatch(nv))
-);
-
-// Adiciona o watch para limpar a subcategoria quando a categoria mudar
-watch(() => formReleases.value.categoria, () => {
-  formReleases.value.subcategoria = 'Outros';
-});
-
-const incrementParcelaInicial = () => {
-  tempParcelaInicial.value++;
-};
-
-const decrementParcelaInicial = () => {
-  if (tempParcelaInicial.value > 1) {
-    tempParcelaInicial.value--;
-  }
-};
-
-// Funções para incrementar e decrementar quantidade de parcelas
-const incrementQuantidade = () => {
-  tempNumParcelas.value++;
-};
-
-const decrementQuantidade = () => {
-  if (tempNumParcelas.value > 2) {
-    tempNumParcelas.value--;
-  }
-};
-
-const inicializarValoresTemporarios = () => {
-  tempParcelaInicial.value = 1;
-  tempNumParcelas.value = 2;
-  tempPeriodicidade.value = "Mensal";
-};
-
-const cancelarConfiguracaoRepeticao = () => {
-  // Retorna tipo para "Não recorrente"
-  formReleases.value.recorrencia = "Não recorrente";
-  formReleases.value.num_parcelas = null;
-  formReleases.value.periodicidade = null;
-
-  // Fecha o modal
-  openParcelas.value = false;
-};
-
-const concluirParcelas = () => {
-  // Salva os valores temporários nos valores finais
-  parcelaInicial.value = tempParcelaInicial.value;
-  formReleases.value.num_parcelas = tempNumParcelas.value;
-  formReleases.value.periodicidade = tempPeriodicidade.value || null;
-
-  // Fecha o modal
-  openParcelas.value = false;
-};
-
-// --- 6. COMPUTED PROPERTIES ---
-// const creditCardAccounts = computed<Wallet[]>(() => walletsStore.walletsData.cartoes || []);
-const availableBankAccounts = computed<Wallet[]>(() => walletsStore.walletsData.contas || []);
-
-const selectedCreditCard = computed(() => {
-  if (!formReleases.value.conta_id) return null;
-  return props.wallets.find(c => c.id === formReleases.value.cartao_id);
-});
-
-const linkedAccount = computed(() => {
-  if (!selectedCreditCard.value || !selectedCreditCard.value.conta_pai_id) return null;
-  return availableBankAccounts.value.find(acc => acc.id === selectedCreditCard.value.conta_pai_id);
-});
-
-const linkedAccountName = computed(() => {
-    if (!selectedCreditCard.value || !selectedCreditCard.value.conta_pai_id) return "Nenhuma conta vinculada";
-    const conta = availableBankAccounts.value.find(acc => acc.id === selectedCreditCard.value.conta_pai_id);
-    return conta?.name || "Conta não encontrada";
-  });
-
-
-
-
-
-const closeForm = () => {
-  emit("closeForm");
-  clearInputs();
-};
-
-// CORREÇÃO: Nova função para lidar com a seleção de recorrência
+// Recurrence Logic
 const selecionarRecorrencia = (item: "Não recorrente" | "Fixa" | "Parcelado") => {
   formReleases.value.recorrencia = item;
   openRecorrenciaModal.value = false;
 
   if (item === "Parcelado") {
-    // Abre o modal de configuração de parcelas
     openParcelas.value = true;
   } else {
-    // Reseta os dados de parcela se não for "Parcelado"
     formReleases.value.num_parcelas = null;
     formReleases.value.periodicidade = null;
   }
 };
 
+const incrementParcelaInicial = () => tempParcelaInicial.value++;
+const decrementParcelaInicial = () => { if (tempParcelaInicial.value > 1) tempParcelaInicial.value--; };
+const incrementQuantidade = () => tempNumParcelas.value++;
+const decrementQuantidade = () => { if (tempNumParcelas.value > 2) tempNumParcelas.value--; };
 
-const salvarLancamentos = async () => {
-  errorStore.unsetError();
-
-  if (!validFormLancamentos.value) {
-    return;
-  }
-
-  // Se for um lançamento recorrente no modo de edição, mostra o modal primeiro.
-  if (isEditMode.value && (formReleases.value.recorrencia === "Parcelado" || formReleases.value.recorrencia === "Fixa")) {
-    showEditOptionsModal.value = true;
-    return; // Para a execução aqui e espera a escolha do utilizador
-  }
-
-  // Se não for recorrente, executa a lógica de salvar diretamente
-  await proceedWithSave();
+const cancelarConfiguracaoRepeticao = () => {
+  formReleases.value.recorrencia = "Não recorrente";
+  formReleases.value.num_parcelas = null;
+  formReleases.value.periodicidade = null;
+  openParcelas.value = false;
 };
 
+const concluirParcelas = () => {
+  parcelaInicial.value = tempParcelaInicial.value;
+  formReleases.value.num_parcelas = tempNumParcelas.value;
+  formReleases.value.periodicidade = tempPeriodicidade.value || null;
+  openParcelas.value = false;
+};
+
+// Form Submission
+const salvarLancamentos = async () => {
+  errorStore.unsetError();
+  if (!validFormLancamentos.value) return;
+
+  if (isEditMode.value && (formReleases.value.recorrencia === "Parcelado" || formReleases.value.recorrencia === "Fixa")) {
+    showEditOptionsModal.value = true;
+    return;
+  }
+  await proceedWithSave();
+};
 
 const handleEditScopeSelection = async (scope: any) => {
   editScope.value = scope;
@@ -1219,36 +1044,27 @@ const proceedWithSave = async () => {
     editScope: editScope.value,
     mesAno: props.mesAno,
   };
-  try {
-    
-    if (formReleases.value.recorrencia === "Parcelado"  ) {
-      if (props.releases?.recorrencia === "Parcelado" || props.releases?.recorrencia === "Fixa") {
-        payload.tipo_parcela = props.releases?.tipo_parcela;
-        payload.parcela_atual = props.releases?.parcela_atual;
-      } else {
-        payload.tipo_parcela = tipoCalculoParcela.value;
-        payload.parcela_atual = parcelaInicial.value;
-      }
-    }
 
+  if (formReleases.value.recorrencia === "Parcelado") {
+    if (props.releases?.recorrencia === "Parcelado" || props.releases?.recorrencia === "Fixa") {
+      payload.tipo_parcela = props.releases?.tipo_parcela;
+      payload.parcela_atual = props.releases?.parcela_atual;
+    } else {
+      payload.tipo_parcela = tipoCalculoParcela.value;
+      payload.parcela_atual = parcelaInicial.value;
+    }
+  }
+
+  try {
     const method = isEditMode.value ? http.put : http.post;
-    const url = isEditMode.value
-      ? `/lancamentos/${payload.id}`
-      : "/lancamentos";
-      
+    const url = isEditMode.value ? `/lancamentos/${payload.id}` : "/lancamentos";
     const res = await method(url, payload);
 
     useUser.setMesAno(res.data.mesAno);
-    if (props.transactionType === "Receita") {
-      emit("updateData", res.data.revenues);
-    } else {
-      emit("updateData", res.data.expenses);
-    }
+    emit("updateData", props.transactionType === "Receita" ? res.data.revenues : res.data.expenses);
     walletsStore.setWalletsData(res.data.wallets);
-
     closeForm();
   } catch (error) {
-    console.log(error);
     const axiosError = error as AxiosError<ApiErrorResponse>;
     if (axiosError.response?.data.errors) {
       errorStore.setErrorFromForm(axiosError);
@@ -1260,57 +1076,26 @@ const proceedWithSave = async () => {
   }
 };
 
-const clearInputs = () => {
-  formReleases.value = {
-    id: null,
-    descricao: "",
-    valor: "0,00",
-    tipo_lancamento: props.transactionType,
-    recorrencia: "Não recorrente",
-    parcela_atual: null,
-    num_parcelas: null,
-    tipo_parcela: null,
-    periodicidade: null,
-    data_vencimento: new Date().toISOString().split("T")[0],
-    status_lancamento: "Pendente",
-    categoria: "Outros",
-    subcategoria: "Outros",
-    // conta: contasNames.value[0] || "",
-    data_lancamento: new Date().toISOString().split("T")[0],
-    data_efetivacao: null,
-  };
-  errorsForm.value = {};
+const closeForm = () => {
+  emit("closeForm");
 };
 
+// Validation Rules
 const rules = {
-  requiredDescricao: (value: string) =>
-    !!value || "O campo descrição é obrigatório",
+  required: (value: any) => !!value || "Campo obrigatório",
+  requiredDescricao: (value: string) => !!value || "O campo descrição é obrigatório",
   requiredValor: (value: string) => !!value || "O campo valor é obrigatório",
   requiredValorMaiorQue0: (value: string) => {
     if (!value) return "O campo valor é obrigatório";
     const numericValue = parseFloat(value.replace(/\./g, "").replace(",", "."));
-    return (
-      (!isNaN(numericValue) && numericValue > 0) ||
-      "O campo valor deve ser maior que zero"
-    );
+    return (!isNaN(numericValue) && numericValue > 0) || "O valor deve ser maior que zero";
   },
-  requiredDataVencimento: (value: string) =>
-    !!value || "O campo data vencimento é obrigatório",
-  requiredCatagoria: (value: string) =>
-    !!value || "O campo categoria é obrigatório",
-  requiredConta: (value: string) => !!value || "O campo conta é obrigatório",
-  requiredDataLancamento: (value: string) =>
-    !!value || "O campo data lançamento é obrigatório",
-  requiredDataEfetivacao: (value: string) => {
-    if (formReleases.value.status_lancamento === "Efetivada") {
-      return !!value || "O campo data efetivação é obrigatório";
-    }
-    return true;
-  },
+  requiredCatagoria: (value: string) => !!value || "O campo categoria é obrigatório",
 };
 </script>
 
 <style scoped>
+/* SEU CSS CONTINUA O MESMO */
 .container__modal {
   background: rgb(15, 15, 15);
   color: #a5a5a5;
@@ -1641,18 +1426,6 @@ const rules = {
   min-height: 48px;
   color: #77d08e;
 }
-
-
-
-
-
-
-
-
-
-
-
-
 .error__message {
   color: red;
   font-size: 12px;
@@ -1670,17 +1443,4 @@ h2 {
   color: rgba(255, 255, 255, 0.6);
   margin-bottom: 4px;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 </style>
