@@ -135,7 +135,10 @@
               <span class="fatura-value">R$ {{ formatValue(card.total_fatura) }}</span>
             </div>
             <div class="fatura-actions">
-              <span class="status__fechada" :style="{ backgroundColor: card.status_fatura === 'FECHADA' ? '#d33a3a' : '#3d8eff' }">
+              <span
+                class="status__fechada"
+                :style="{ backgroundColor: card.status_fatura === 'FECHADA' ? '#d33a3a' : '#3d8eff' }"
+              >
                 <v-icon
                   size="14"
                   class="me-1"
@@ -192,6 +195,7 @@
           :key="tile.title"
           :prepend-icon="tile.img"
           :title="tile.title"
+          :disabled="(['Novo estorno', 'Despesa cartão'].includes(tile.title)) && (!creditCards || creditCards.length === 0)"
           @click="sheet = false, tile.action()"
         />
       </v-list>
@@ -223,8 +227,8 @@ import { computed } from "vue";
 import { useUserStore, useWalletsStore } from "@/store";
 import { useCreditCardStore } from "@/store/creditCard";
 import { WalletData } from "@/types";
-import { format, getYear, parseISO } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { format, getYear, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { ref, shallowRef } from "vue";
 
 
@@ -251,16 +255,16 @@ const formLancCartao = ref(false);
 // };
 
 const formatarDataFatura = (dateString: string | null): string => {
-  if (!dateString) return 'N/A'; // Retorna 'Não Aplicável' se a data for nula
+  if (!dateString) return "N/A"; // Retorna 'Não Aplicável' se a data for nula
 
   const date = parseISO(dateString);
   const currentYear = getYear(new Date());
   const dateYear = getYear(date);
 
   // Formata 'dd/MMM' -> '10/nov.'
-  let dayAndMonth = format(date, 'dd/MMM', { locale: ptBR });
+  let dayAndMonth = format(date, "dd/MMM", { locale: ptBR });
   // Remove o ponto -> '10/nov'
-  dayAndMonth = dayAndMonth.replace('.', '');
+  dayAndMonth = dayAndMonth.replace(".", "");
   // Converte para maiúsculas -> '10/NOV'
   dayAndMonth = dayAndMonth.toUpperCase();
 
@@ -270,7 +274,7 @@ const formatarDataFatura = (dateString: string | null): string => {
   } else {
     // Se for um ano diferente, adiciona o ano ao final
     const yearString = getYear(date);
-    const [day, month] = dayAndMonth.split('/');
+    const [day, month] = dayAndMonth.split("/");
     
     return `${day}/${month}./${yearString}`;
   }

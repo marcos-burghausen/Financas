@@ -28,17 +28,69 @@
 
         <div class="form-body">
           <div v-if="walletType === 'Conta'">
-            <v-text-field
-              v-model="form.name"
-              label="Nome da Conta"
-              variant="underlined"
-              class="imput"
-              :rules="[rules.required]"
-            >
-              <template #prepend-inner>
-                <v-icon icon="mdi-text" />
-              </template>
-            </v-text-field>
+            <div class="custom__select__wrapper d-flex">
+              <v-col
+                cols="10"
+                class="p-0"
+              >
+                <v-text-field
+                  v-model="form.name"
+                  label="Nome da Conta"
+                  variant="underlined"
+                  class="imput"
+                  :rules="[rules.required]"
+                >
+                  <template #prepend-inner>
+                    <v-icon icon="mdi-text" />
+                  </template>
+                </v-text-field>
+              </v-col>
+              <div
+                ref="cardSelectRef"
+                class="custom__select"
+                @click="toggleCardDropdown"
+              >
+                <div class="selection">
+                  <v-icon
+                    :icon="getBankIcon(form.icon)"
+                    size="25"
+                    class=""
+                  />
+                  <v-icon
+                    icon="mdi-menu-down"
+                    size="20"
+                    class=""
+                  />
+                </div>
+                <div
+                  v-if="isIconDropdownOpen"
+                  ref="cardDropdownContainerRef"
+                  class="dropdown"
+                >
+                  <div
+                    v-for="icon in iconsBank"
+                    :key="icon.name"
+                    class="dropdown__item"
+                    :class="{ 'is__selected': icon.name === form.icon }"
+                    :data-card-id="icon.name"
+                    @click.stop="selectCard(icon)"
+                  >
+                    <div class="dropdown__item__content">
+                      <v-icon
+                        :icon="getBankIcon(icon.name)"
+                        size="25"
+                        class="me-2"
+                      />
+                      <span>{{ icon.name }}</span>
+                    </div>
+                    <!-- <v-icon
+                      :icon="getBankIcon(icon.bandeira)"
+                      size="20"
+                    /> -->
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <v-text-field
               v-model="form.saldo_inicial"
@@ -250,7 +302,7 @@
               :close-on-content-click="false"
               location="bottom"
             >
-              <template v-slot:activator="{ props }">
+              <template #activator="{ props }">
                 <v-text-field
                   v-model="form.dia_fechamento"
                   label="Dia do Fechamento"
@@ -289,7 +341,7 @@
               :close-on-content-click="false"
               location="bottom"
             >
-              <template v-slot:activator="{ props }">
+              <template #activator="{ props }">
                 <v-text-field
                   v-model="form.dia_vencimento"
                   label="Dia do Fechamento"
@@ -331,12 +383,15 @@
 
 <script setup lang="ts">
 import { useWalletsStore } from "@/store/wallets";
-import { computed, PropType, ref } from "vue";
+import { onClickOutside } from "@vueuse/core";
+import { computed, nextTick, PropType, ref } from "vue";
 
 // Assets das bandeiras
 import type { Wallet } from "@/types/accounts.types";
 import { formatValue } from "@/utils/formatValue";
-import { getBankIcon, iconCardMap } from '@/utils/iconMapper';
+import { getBankIcon, iconCardMap, iconsBank } from "@/utils/iconMapper";
+
+const DEFAULT_ICON = "mdi-bank-outline";
 
 const diasDoMes = Array.from({ length: 30 }, (_, i) => i + 1);
 
@@ -362,7 +417,8 @@ const props = defineProps({
     required: true,
   },
   wallets: {
-    type: Array as PropType<Array<Wallet>>,
+    type: Array as PropType<Wallet[]>,
+    // type: Array as PropType<Array<Wallet>>,
     required: true,
   }
 });
@@ -379,24 +435,45 @@ const selectedWallet = computed<Wallet>(() => {
   return walletItems.value.find(w => w.id === form.value.conta_id) ?? null;
 });
 
-// const selectedWallet = computed<Wallet | null>(() => {
-//   if (props.walletId) {
-//     const wallet = props.wallets.find((w) => w.id === props.walletId);
-//     return wallet || null;
-//   }
-//   return {
-//     id: 0,
-//     name: "",
-//     icon: "",
-//   };
-// });
-
-/** Ícone que aparece no input quando abrir/selecionar */
-
-const selectedIcon = computed(() => {
-  const w = walletItems.value.find(w => Number(w.id) === form.value.conta_id);
-  return w?.icon ?? "mdi-wallet-outline";
+const displayIcon = computed<string>(() => {
+  // 1) Se usuário já selecionou no form
+  if (form.value.icon) return getBankIcon(form.value.icon as string);
+  // 2) Se estiver editando e o form.icon já foi populado pelo wallet, essa linha acima já cobre
+  // 3) Caso contrário, use o ícone padrão
+  return DEFAULT_ICON;
 });
+
+
+const toggleCardDropdown = async () => {
+  isIconDropdownOpen.value = !isIconDropdownOpen.value;
+  if (isIconDropdownOpen.value) {
+    await nextTick();
+    const container = cardDropdownContainerRef.value;
+    if (container && form.value.icon) {
+      const selectedItem = container.querySelector(
+        `[data-card-id="${form.value.icon}"]`
+      ) as HTMLElement | null;
+
+      if (selectedItem) {
+        // Tenta centralizar de forma nativa
+        try {
+          selectedItem.scrollIntoView({ block: "center", inline: "nearest", behavior: "auto" });
+        } catch {
+          // Fallback manual caso block:'center' não seja suportado
+          const top = selectedItem.offsetTop - (container.clientHeight / 2 - selectedItem.clientHeight / 2);
+          container.scrollTop = top;
+        }
+      }
+    }
+  }
+};
+
+
+type IconItem = { name: string } // ajuste se seu iconsBank tiver outra estrutura
+const selectCard = (icon: IconItem) => {
+  form.value.icon = icon.name;
+  isIconDropdownOpen.value = false;
+};
 
 const cards =  ref(iconCardMap);
 
@@ -415,7 +492,7 @@ const showColorModal = ref(false);
 
 const form = ref<Partial<Wallet>>({
   name: "",
-  icon: props.walletType === "Conta" ? "mdi-bank" : "mdi-bank-off",
+  icon: "",
   color: "#0c99ed",
   tipo_conta: props.walletType === "Conta" ? "Carteira" : "Cartão de Crédito",
   saldo_inicial: formatValue(Number("0,00")) || "0,00",
@@ -481,6 +558,12 @@ const formatValueSave = (campo: MoneyKeys) => {
   // 6. Monta o valor final formatado
   form.value[campo] = `${formattedIntegerPart},${decimalPart}`;
 };
+
+const isIconDropdownOpen = ref(false);
+const cardSelectRef = ref<HTMLElement | null>(null);
+const cardDropdownContainerRef = ref<HTMLElement | null>(null);
+
+onClickOutside(cardSelectRef, () => { isIconDropdownOpen.value = false; });
 
 // --- VALIDAÇÃO ---
 const rules = {
@@ -665,5 +748,69 @@ const handleColorSelect = (colorHex: string) => {
   height: 24px;
   border-radius: 50%;
   border: 1px solid white;
+}
+.custom__select__wrapper {
+  position: relative;
+  margin-top: 16px;
+  padding-top: 8px;
+}
+.custom__select__label {
+  position: absolute;
+  top: 0;
+  left: 4px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+.custom__select {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* padding: 8px 4px; */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  width: 100%;
+  background-color: transparent;
+  margin-bottom: 22px;
+}
+.selection {
+  display: flex;
+  justify-content: space-between;
+  color: #a5a5a5;
+  width: 100%;
+}
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #2c2c2c;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 10;
+  width: 200px;
+  /* margin: 4px auto 0; */
+  margin-left: calc(100% - 200px);
+}
+.dropdown__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  color: white;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+  border-radius: 4px;
+  margin: 2px 4px;
+}
+.dropdown__item.is__selected {
+  background-color: #0c99ed;
+  font-weight: bold;
+}
+.dropdown__item__content {
+  display: flex;
+  align-items: center;
 }
 </style>
