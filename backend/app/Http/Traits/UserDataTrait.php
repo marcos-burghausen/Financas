@@ -2,9 +2,10 @@
 
 namespace App\Http\Traits;
 
-use DateTime;
+use App\Models\CreditCardInvoice;
 use App\Http\Traits\ReleasesMonthTrait;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 trait UserDataTrait
 {
@@ -12,11 +13,6 @@ trait UserDataTrait
 
     /**
      * Busca os dados do usuário de forma seletiva.
-     *
-     * @param object $user O objeto do usuário.
-     * @param string|null $date A data de referência no formato 'Y-m'. Se nulo, usa o mês atual.
-     * @param array $sections As seções de dados a serem retornadas ('expenses', 'revenues', 'wallets'). Se vazio, retorna tudo.
-     * @return array
      */
 
     private function getUserData(object $user, $date = null, array $sections = []): array
@@ -31,6 +27,8 @@ trait UserDataTrait
         // --- Seção de Despesas (Expenses) ---
         if ($fetchAll || in_array('expenses', $sections)) {
             $despesasDoMes = $user->expenses()
+                ->with('contaModel:id,name')
+                ->where('tipo_lancamento', '!=', 'CARTAO_CREDITO')
                 ->whereYear('data_lancamento', $year)
                 ->whereMonth('data_lancamento', $month)
                 ->get();
@@ -56,6 +54,7 @@ trait UserDataTrait
         // --- Seção de Receitas (Revenues) ---
         if ($fetchAll || in_array('revenues', $sections)) {
             $receitasDoMes = $user->revenues()
+                ->with('contaModel:id,name')
                 ->whereYear('data_lancamento', $year)
                 ->whereMonth('data_lancamento', $month)
                 ->get();
@@ -83,17 +82,45 @@ trait UserDataTrait
             $dataToReturn['wallets'] = [
                 'contas' => $user->contas()
                     ->where('tipo_conta', '!=', 'Cartão de Crédito')
-                    ->get(['id', 'name', 'icon', 'saldo', 'saldo_inicial', 'descricao', 'tipo_conta', 'incluir_em_soma_inicial']),
+                    ->get(['id', 'name', 'icon', 'saldo', 'saldo_inicial', 'color', 'descricao', 'tipo_conta', 'incluir_em_soma_inicial']),
 
                 'cartoes' => $user->contas()
                     ->where('tipo_conta', 'Cartão de Crédito')
                     ->with('parentAccount')
-                    ->get(['id', 'name', 'icon', 'saldo', 'descricao', 'tipo_conta', 'incluir_em_soma_inicial', 'conta_pai_id', 'bandeira', 'limite', 'dia_fechamento', 'dia_vencimento'])
+                    ->get(['id', 'name', 'icon', 'saldo', 'descricao', 'tipo_conta', 'incluir_em_soma_inicial', 'conta_pai_id', 'bandeira', 'limite', 'color'])
                     ->map(function ($cartao) {
-                        // 2. Itera sobre cada cartão para adicionar o novo campo
-                        $cartao->conta_pai_name = $cartao->parentAccount ? $cartao->parentAccount->name : null;
+                        // 1. Determina a competência da fatura atual/vigente.
+                        $today = Carbon::today();
+                        if ($today->day > $cartao->dia_fechamento) {
+                            // Se o dia de hoje já passou do dia do fechamento, a fatura vigente é a do próximo mês.
+                            $competenciaDate = $today->addMonth();
+                        } else {
+                            // Senão, a fatura vigente é a do mês atual.
+                            $competenciaDate = $today;
+                        }
+                        $competencia = $competenciaDate->format('Y-m');
 
-                        // 3. (Opcional) Remove o objeto 'contaPai' completo se não for usá-lo no frontend
+                        // 2. Busca a fatura no banco de dados.
+                        $faturaVigente = CreditCardInvoice::where('conta_id', $cartao->id)
+                            ->where('competencia', $competencia)
+                            ->with('lancamentos')
+                            ->first();
+
+                        // Soma o (total da fatura - valor pago) para todas as faturas que não estão 'PAGA'.
+                        $valorEmAberto = CreditCardInvoice::where('conta_id', $cartao->id)
+                            ->where('status_fatura', '!=', 'PAGA')
+                            ->sum(DB::raw('total_fatura - valor_pago'));
+
+                        // 3. Adiciona os novos campos ao objeto do cartão.
+                        $cartao->total_fatura = $faturaVigente ? $faturaVigente->total_fatura : 0;
+                        $cartao->lancamentos_fatura = $faturaVigente ? $faturaVigente->lancamentos : [];
+                        $cartao->conta_pai_name = $cartao->parentAccount ? $cartao->parentAccount->name : null;
+                        $cartao->data_fechamento = $faturaVigente ? $faturaVigente->data_fechamento : null;
+                        $cartao->data_vencimento = $faturaVigente ? $faturaVigente->data_vencimento : null;
+                        $cartao->status_fatura = $faturaVigente ? $faturaVigente->status_fatura : null;
+                        $cartao->valor_em_aberto = $valorEmAberto;
+
+
                         unset($cartao->parentAccount);
 
                         return $cartao;

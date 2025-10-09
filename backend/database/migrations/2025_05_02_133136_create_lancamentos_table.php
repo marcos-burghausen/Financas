@@ -25,8 +25,8 @@ return new class extends Migration
             $table->boolean('is_estorno')->default(false);
             $table->unsignedBigInteger('original_lancamento_id')->nullable();
             $table->enum('recorrencia', ['NAO_RECORRENTE', 'PARCELADO', 'FIXA']);
-            $table->integer('num_parcelas')->nullable()->default(1);
-            $table->integer('parcela_atual')->nullable()->default(1);
+            $table->integer('qtd_parcelas')->nullable()->default(1);
+            $table->integer('num_parcela')->nullable()->default(1);
             $table->enum('tipo_parcela', ['TOTAL', 'PARCELA'])->nullable()->default('TOTAL');
             $table->enum('periodicidade', ['MENSAL', 'DIARIO', 'SEMANAL', 'QUINZENAL', 'TRIMESTRAL', 'ANUAL'])->nullable()->default(null);
             $table->date('data_vencimento');

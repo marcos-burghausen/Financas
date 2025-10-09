@@ -95,22 +95,22 @@
               </div>
               <div class="info-item text-center">
                 <span class="label">Em aberto</span>
-                <span class="value">R$ {{ formatValue(card.saldo) }}</span>
+                <span class="value">R$ {{ formatValue(card.valor_em_aberto) }}</span>
               </div>
               <div class="info-item text-right">
                 <span class="label">Lim. disponível</span>
-                <span class="value">R$ {{ formatValue(card.limite - card.saldo) }}</span>
+                <span class="value">R$ {{ formatValue(card.limite - card.valor_em_aberto) }}</span>
               </div>
             </div>
 
             <div class="progress__bar__container">
               <v-progress-linear
-                :model-value="((card.limite - card.saldo) / card.limite * 100).toFixed(0)"
-                color="#32c770"
+                :model-value="((card.limite - card.valor_em_aberto) / card.limite).toFixed(0)"
+                :color="card.color"
                 height="15"
                 rounded
               />
-              <span class="progress-label">{{ ((card.limite - card.saldo) / card.limite * 100).toFixed(0) }}% </span>
+              <span class="progress-label">{{ ((card.limite - card.valor_em_aberto) / card.limite * 100).toFixed(0) }}% </span>
             </div>
             <v-divider />
             <div class="info-row mt-3">
@@ -120,11 +120,11 @@
               </div>
               <div class="info-item text-center">
                 <span class="label">Fechamento</span>
-                <span class="value-small">{{ card.dia_fechamento }}</span>
+                <span class="value-small">{{ formatarDataFatura(card.data_fechamento) }}</span>
               </div>
               <div class="info-item text-right">
                 <span class="label">Vencimento</span>
-                <span class="value-small">{{ card.dia_vencimento }}</span>
+                <span class="value-small">{{ formatarDataFatura(card.data_vencimento) }}</span>
               </div>
             </div>
           </div>
@@ -132,19 +132,20 @@
           <div class="card__footer">
             <div class="fatura-info">
               <span class="fatura-label">Fatura</span>
-              <span class="fatura-value">R$ {{ formatValue(card.saldo) }}</span>
+              <span class="fatura-value">R$ {{ formatValue(card.total_fatura) }}</span>
             </div>
             <div class="fatura-actions">
-              <span class="status-fechada">
+              <span class="status__fechada" :style="{ backgroundColor: card.status_fatura === 'FECHADA' ? '#d33a3a' : '#3d8eff' }">
                 <v-icon
                   size="14"
                   class="me-1"
-                > mdi-lock </v-icon>
-                Fechada
+                  :icon="card.status_fatura === 'FECHADA' ? 'mdi-lock-outline' : 'mdi-lock-open-outline'"
+                />
+                {{ card.status_fatura === 'FECHADA' ? 'Fechada' : 'Aberta' }}
               </span>
               <a
                 href="#"
-                class="register-payment"
+                class="register__payment"
               >
                 <v-icon
                   size="18"
@@ -213,7 +214,7 @@ import IconeMastercard from "@/assets/icons/mastercard.svg";
 import IconeSicredi from "@/assets/icons/sicredi35.svg";
 
 import FormCartaoCredito from "@/components/FormContaCartao.vue";
-import FormLancamentos from "@/components/FormLancamentos copy 2.vue";
+import FormLancamentos from "@/components/FormLancamentos.vue";
 import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
 // import ModalNovaConta from "@/components/ModalNovaConta.vue";
 import { formatValue } from "@/utils/formatValue";
@@ -222,7 +223,10 @@ import { computed } from "vue";
 import { useUserStore, useWalletsStore } from "@/store";
 import { useCreditCardStore } from "@/store/creditCard";
 import { WalletData } from "@/types";
+import { format, getYear, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { ref, shallowRef } from "vue";
+
 
 const sheet = shallowRef(false);
 const creditCardStore = useCreditCardStore();
@@ -245,6 +249,32 @@ const formLancCartao = ref(false);
 // const updateContas = (novoValor) => {
 //     wallets.value = novoValor;
 // };
+
+const formatarDataFatura = (dateString: string | null): string => {
+  if (!dateString) return 'N/A'; // Retorna 'Não Aplicável' se a data for nula
+
+  const date = parseISO(dateString);
+  const currentYear = getYear(new Date());
+  const dateYear = getYear(date);
+
+  // Formata 'dd/MMM' -> '10/nov.'
+  let dayAndMonth = format(date, 'dd/MMM', { locale: ptBR });
+  // Remove o ponto -> '10/nov'
+  dayAndMonth = dayAndMonth.replace('.', '');
+  // Converte para maiúsculas -> '10/NOV'
+  dayAndMonth = dayAndMonth.toUpperCase();
+
+  if (currentYear === dateYear) {
+    // Se o ano for o atual, retorna só "DD/MÊS"
+    return dayAndMonth;
+  } else {
+    // Se for um ano diferente, adiciona o ano ao final
+    const yearString = getYear(date);
+    const [day, month] = dayAndMonth.split('/');
+    
+    return `${day}/${month}./${yearString}`;
+  }
+};
 
 const mesPorExtenso = computed(() => {
   if (!mesAno.value) return "";
@@ -462,8 +492,8 @@ const updateData = (newData: WalletData) => {
   margin-top: 12px;
 }
 
-.status-fechada {
-  background-color: #d33a3a;
+.status__fechada {
+  
   padding: 4px 10px;
   border-radius: 15px;
   font-size: 0.8rem;
@@ -471,7 +501,7 @@ const updateData = (newData: WalletData) => {
   align-items: center;
 }
 
-.register-payment {
+.register__payment {
   color: #3d8eff;
   text-decoration: none;
   font-size: 0.9rem;

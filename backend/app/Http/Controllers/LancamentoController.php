@@ -2,59 +2,93 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CreditCardInvoice;
+use App\Http\Requests\StoreLancamentoRequest;
+use App\Services\LancamentoService;
+use App\Http\Traits\UserDataTrait;
+use App\Http\Traits\ReleasesMonthTrait;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
 use App\Models\Lancamento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class LancamentoController extends Controller
 {
-    public function saveLancamento(Request $request)
-    {
-        $data = $request->all();
-        $data['user_id'] = Auth::id();
+    use UserDataTrait;
 
-        if ($data['tipo'] === 'CartaoCredito') {
-            $this->handleCreditCardLancamento($data);
-        } else {
-            if (isset($data['id']) && $data['id'] !== '') {
-                $this->updateLancamento($data);
-            } else {
-                $this->createLancamento($data);
+    protected $lancamentoService;
+
+    public function __construct(LancamentoService $lancamentoService)
+    {
+        $this->lancamentoService = $lancamentoService;
+    }
+
+    public function saveLancamento(StoreLancamentoRequest  $request)
+    {
+        $validatedData = $request->validated();
+
+        info('Dados validados: ' . json_encode($validatedData));
+
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
+        try {
+            DB::beginTransaction();
+
+            $this->lancamentoService->createLancamento($validatedData, $user);
+
+            DB::commit();
+
+            $tipo = $validatedData['tipo_lancamento'];
+            $dataToFetch = [($tipo === 'RECEITA') ? 'revenues' : 'expenses', 'wallets'];
+
+            if ($tipo === 'CARTAO_CREDITO') {
+                $dataToFetch = ['expenses', 'wallets'];
             }
+
+            $responseData = $this->getUserData($user, $request->input('mesAno'), $dataToFetch);
+
+            return response()->json([
+                'success' => "Lançamento cadastrado com sucesso",
+                ...$responseData
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Erro ao salvar lançamento: ' . $e->getMessage(), ['exception' => $e]);
+
+
+            return response()->json(['error' => 'Ocorreu um erro interno ao registrar o lançamento.'], 500);
         }
     }
 
     private function handleCreditCardLancamento($data)
     {
-        $invoice = CreditCardInvoice::firstOrCreate(
-            [
-                'conta_id' => $data['conta_id'],
-                'mes' => $data['mes_fatura'],
-                'ano' => $data['ano_fatura'],
-            ],
-            [
-                'valor_total' => 0,
-                'data_fechamento' => now(),
-                'data_vencimento' => now(),
-                'paga' => false,
-            ]
-        );
-
         if (isset($data['id']) && $data['id'] !== '') {
-            $this->updateLancamento($data, $invoice->id);
+            $this->updateLancamento($data, $data['invoice_id']);
         } else {
-            $this->createLancamento($data, $invoice->id);
+            $this->createLancamento($data, $data['invoice_id']);
         }
     }
 
     private function createLancamento($data, $invoiceId = null)
     {
         $data['credit_card_invoice_id'] = $invoiceId;
-        if ($data['parcelado']) {
+        if ($data['recorrencia'] === 'PARCELADO' && isset($data['qtd_parcelas']) && $data['qtd_parcelas'] > 1) {
+            $groupId = Str::uuid();
+
+            if ($data['tipo_parcela'] === 'TOTAL') {
+                $valorBaseParcela = intdiv($data['valor'], $data['qtd_parcelas']);
+                $resto = $data['valor'] % $data['qtd_parcelas'];
+            } else {
+                $valorBaseParcela = $data['valor'];
+                $resto = 0;
+            }
+
             for ($i = 0; $i < $data['qtd_parcelas']; $i++) {
                 $lancamento = new Lancamento($data);
-                $lancamento->parcela_atual = $i + 1;
+                $lancamento->num_parcela = $i + 1;
                 $lancamento->data_vencimento = date('Y-m-d', strtotime("+$i month", strtotime($data['data_vencimento'])));
                 $lancamento->save();
             }

@@ -5,14 +5,14 @@ export interface Lancamento {
   invoice_id: number | null;
   descricao?: string;
   valor: string;
-  tipo_lancamento: 'Receita' | 'Despesa';
+  tipo_lancamento: 'Receita' | 'Despesa' | 'Cartão de Crédito';
   is_estorno: boolean;
   original_lancamento_id: number | null;
   recorrencia?: "Não recorrente" | "Fixa" | "Parcelado";
-  num_parcelas: number | null;
-  parcela_atual: number | null;
+  num_parcela: number | null;
+  qtd_parcelas: number | null;
   data_vencimento?: string | Date;
-  status_lancamento: 'Efetivada' | 'Pendente'; 
+  status_lancamento: 'EFETIVADA' | 'PENDENTE'; 
   tipo_parcela: "total" | "parcela" | null;
   categoria?: string;
   subcategoria?: string;
@@ -20,6 +20,7 @@ export interface Lancamento {
   data_efetivacao: string | Date | null;
   periodicidade: "Mensal" | "Diario" | "Semanal" | "Quinzenal" | "Trimenstral" | "Anual" | null;
   conta_id?: number | null;
+  cartao_id?: number | null;
   fatura?: string | null; // "YYYY-MM"
 }
 

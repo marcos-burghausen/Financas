@@ -1,17 +1,19 @@
 <template>
   <div class="container__modal">
-    <v-form 
-      v-model="isFormValid" 
-      class="px-3 w-100 mt-5 pt-4" 
-      @submit.prevent="submitForm"
+    <v-form
+      v-model="validFormLancamentos"
+      class="px-3 w-100"
+      @submit.prevent="salvarLancamentos"
     >
-      <div class="header__items d-flex justify-content-between fixed-top py-10 align-items-center">
+      <div
+        class="header__items d-flex justify-content-between fixed-top py-10 align-items-center"
+      >
         <div class="d-flex align-items-center">
-          <v-btn 
-            :disabled="loading" 
-            class="close fs-5 ms-2" 
-            icon="mdi-close" 
-            @click="closeForm" 
+          <v-btn
+            :disabled="loading"
+            class="close fs-5 ms-2"
+            prepend-icon="mdi-close"
+            @click="closeForm"
           />
           <div class="d-flex flex-column ms-2">
             <span class="fs-5">
@@ -26,10 +28,13 @@
             </span>
           </div>
         </div>
-        <v-btn 
-          :disabled="loading || !isFormValid" 
-          :loading="loading" 
-          class="btn m-0 me-3 p-0 px-2" 
+        <v-btn
+          :disabled="
+            loading || !validFormLancamentos || formReleases.valor === '0,00'
+          "
+          :loading="loading"
+          class="btn m-0 me-3 p-0 px-2"
+          :class="(props.transactionType === 'Receita' ? 'btn__receita' : props.transactionType === 'Despesa' && !props.isCard ? 'btn__despesa' : 'btn__cartao')"
           type="submit"
           rounded="xl"
         >
@@ -39,236 +44,237 @@
 
       <div class="form__body">
         <v-text-field
-          v-model="form.descricao" 
-          label="Descrição" 
-          variant="underlined" 
-          :rules="[rules.required]"
-          prepend-inner-icon="mdi-text-long" 
-          class="imput mb-5" 
-        />
-  
-        <v-text-field
-          v-model="form.valor"
+          v-model="formReleases.descricao"
+          label="Descrição"
           variant="underlined"
           hide-details="auto"
-          label="Valor" 
+          required
+          class="mb-3 imput"
+          :rules="[rules.requiredDescricao]"
+          prepend-inner-icon="mdi-text-long"
+        />
+
+        <v-text-field
+          v-model="formReleases.valor"
+          variant="underlined"
+          hide-details="auto"
           type="tel"
-          class="imput mb-5"
+          class="mb-3 imput"
           :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
           prepend-inner-icon="mdi-currency-usd"
           @input="formatValueSave"
         />
 
+      <div
+        v-if="props.releases?.recorrencia === 'Não recorrente' || !isEditMode"
+        class="custom__input__container mb-3"
+      >
         <div
-          v-if="props.lancamento?.recorrencia === 'Não recorrente' || !isEditMode"
-          class="custom__input__container mb-3"
+          class="custom__input__content"
+          @click="openRecorrenciaModal = true"
         >
-          <div
-            class="custom__input__content"
-            @click="openRecorrenciaModal = true"
-          >
-            <v-icon
-              icon="mdi-refresh"
-              class="me-2"
-            />
-            <div class="d-flex flex-column">
-              <span>{{ form.recorrencia }}</span>
-              <span
-                v-if="detalheRecorrencia"
-                class="detalhe__parcela__interno"
-              >
-                {{ detalheRecorrencia }}
-              </span>
-            </div>
-            <v-spacer />
-            <v-icon
-              v-if="form.recorrencia === 'Parcelado'"
-              icon="mdi-pencil"
-              size="x-small"
-              class="edit-icon"
-              @click.stop="openParcelas = true"
-            />
+          <v-icon
+            icon="mdi-refresh"
+            class="me-2"
+          />
+          <div class="d-flex flex-column">
+            <span>{{ formReleases.recorrencia }}</span>
+            <span
+              v-if="detalheRecorrencia"
+              class="detalhe__parcela__interno"
+            >
+              {{ detalheRecorrencia }}
+            </span>
           </div>
-
-          <v-btn-toggle
-            v-if="form.recorrencia === 'Parcelado'"
-            v-model="tipoCalculoParcela"
-            mandatory
-            class="parcela__toggle mt-4"
-            variant="flat"
-          >
-            <v-btn
-              class="toggle__btn"
-              value="total"
-              rounded="lg"
-            >
-              Valor total
-            </v-btn>
-            <v-btn
-              class="toggle__btn"
-              value="parcela"
-              rounded="lg"
-            >
-              Valor parcela
-            </v-btn>
-          </v-btn-toggle>
-
-          <div class="custom__underline" />
+          <v-spacer />
+          <v-icon
+            v-if="formReleases.recorrencia === 'Parcelado'"
+            icon="mdi-pencil"
+            size="x-small"
+            class="edit__icon"
+            @click.stop="openParcelas = true"
+          />
         </div>
 
-        <div
-          v-if="openRecorrenciaModal"
-          class="tipo"
+        <v-btn-toggle
+          v-if="formReleases.recorrencia === 'Parcelado'"
+          v-model="tipoCalculoParcela"
+          mandatory
+          class="parcela__toggle mt-4"
+          variant="flat"
         >
-          <div
-            class="d-flex flex-column align-start justify-space-around modal__tipo"
+          <v-btn
+            class="toggle__btn"
+            value="total"
+            rounded="lg"
           >
-            <v-btn
-              v-for="item in tiposRecorrencia"
-              :key="item"
-              :disabled="loading"
-              style="background: transparent"
-              :class="form.recorrencia === item ? (props.transactionType === 'Receita' ? 'receita' : props.transactionType === 'Despesa' ? 'despesa' : 'cartao') : ''"
-              flat
-              :prepend-icon="
-                form.recorrencia === item
-                  ? 'mdi-radiobox-marked'
-                  : 'mdi-checkbox-blank-circle-outline'
-              "
-              @click="selecionarRecorrencia(item)"
-            >
-              <span>{{ item }}</span>
-            </v-btn>
-          </div>
-        </div>
+            Valor total
+          </v-btn>
+          <v-btn
+            class="toggle__btn"
+            value="parcela"
+            rounded="lg"
+          >
+            Valor parcela
+          </v-btn>
+        </v-btn-toggle>
 
+        <div class="custom__underline" />
+      </div>
+
+      <div
+        v-if="openRecorrenciaModal"
+        class="tipo"
+      >
         <div
-          v-if="openParcelas"
-          class="parcelas"
+          class="d-flex flex-column align-start justify-space-around modal__tipo"
         >
-          <div class="container__parcelas">
-            <div class="p-3">
-              <h2 class="mb-4 text-center">
-                Configurar parcelas
-              </h2>
+          <v-btn
+            v-for="item in tiposRecorrencia"
+            :key="item"
+            :disabled="loading"
+            style="background: transparent"
+            :class="formReleases.recorrencia === item ? (props.transactionType === 'Receita' ? 'receita' : props.transactionType === 'Despesa' && !props.isCard ? 'despesa' : 'cartao') : ''"
+            flat
+            :prepend-icon="
+              formReleases.recorrencia === item
+                ? 'mdi-radiobox-marked'
+                : 'mdi-checkbox-blank-circle-outline'
+            "
+            @click="selecionarRecorrencia(item)"
+          >
+            <span>{{ item }}</span>
+          </v-btn>
+        </div>
+      </div>
 
-              <div class="py-2">
-                <div class="d-flex align-center justify-space-between">
-                  <v-icon
-                    class="pe-3"
-                    icon="mdi-arrow-right"
-                    size="24"
-                  />
-                  <span class="item__label"> Parcela inicial </span>
-                  <div class="item__value">
-                    <div class="number__stepper">
-                      <v-btn
-                        :disabled="tempParcelaInicial <= 1"
-                        prepend-icon="mdi-chevron-down"
-                        flat
-                        variant="text"
-                        class="stepper__btn"
-                        @click="decrementParcelaInicial"
-                      />
-                      <input
-                        v-model="tempParcelaInicial"
-                        type="number"
-                        class="stepper__input"
-                        min="1"
-                      >
-                      <v-btn
-                        prepend-icon="mdi-chevron-up"
-                        flat
-                        class="stepper__btn"
-                        @click="incrementParcelaInicial"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
+      <div
+        v-if="openParcelas"
+        class="parcelas"
+      >
+        <div class="container__parcelas">
+          <div class="p-3">
+            <h2 class="mb-4 text-center">
+              Configurar parcelas
+            </h2>
 
-              <div class="divider" />
-
-              <div class="">
-                <div class="d-flex align-center justify-space-between">
-                  <v-icon
-                    icon="mdi-plus-circle-outline"
-                    name="plus-circle-outline"
-                    size="24"
-                    class="pe-3"
-                  />
-                  <div class="item__label">
-                    Quantidade
-                  </div>
-                  <div class="item__value">
-                    <div class="number__stepper">
-                      <v-btn
-                        class="stepper__btn"
-                        :disabled="tempNumParcelas <= 2"
-                        prepend-icon="mdi-chevron-down"
-                        variant="text"
-                        @click="decrementQuantidade"
-                      />
-                      <input
-                        v-model="tempNumParcelas"
-                        type="number"
-                        class="stepper__input"
-                        min="2"
-                      >
-                      <v-btn
-                        class="stepper__btn"
-                        prepend-icon="mdi-chevron-up"
-                        variant="text"
-                        @click="incrementQuantidade"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="divider" />
-
-              <div class="">
-                <div class="d-flex align-center justify-space-between">
-                  <v-icon
-                    icon="mdi-calendar-blank"
-                    size="24"
-                    class="pe-3"
-                  />
-                  <div class="item__label">
-                    Periodicidade
-                  </div>
-                  <div class="item__value pb-2">
-                    <v-select
-                      v-model="tempPeriodicidade"
-                      :items="['Mensal', 'Semanal', 'Quinzenal', 'Bimestral']"
-                      variant="plain"
-                      hide-details
-                      class="select__dark"
+            <div class="py-2">
+              <div class="d-flex align-center justify-space-between">
+                <v-icon
+                  class="pe-3"
+                  icon="mdi-arrow-right"
+                  size="24"
+                />
+                <span class="item__label"> Parcela inicial </span>
+                <div class="item__value">
+                  <div class="number__stepper">
+                    <v-btn
+                      :disabled="tempParcelaInicial <= 1"
+                      prepend-icon="mdi-chevron-down"
+                      flat
+                      variant="text"
+                      class="stepper__btn"
+                      @click="decrementParcelaInicial"
+                    />
+                    <input
+                      v-model="tempParcelaInicial"
+                      type="number"
+                      class="stepper__input"
+                      min="1"
+                    >
+                    <v-btn
+                      prepend-icon="mdi-chevron-up"
+                      flat
+                      class="stepper__btn"
+                      @click="incrementParcelaInicial"
                     />
                   </div>
                 </div>
               </div>
             </div>
 
-            <div class="d-flex justify-space-between align-center p-3">
-              <v-btn
-                class="btn__cancelar"
-                @click="cancelarConfiguracaoRepeticao"
-              >
-                Cancelar
-              </v-btn>
-              <v-btn
-                class="btn__concluido"
-                @click="concluirParcelas"
-              >
-                Concluído
-              </v-btn>
+            <div class="divider" />
+
+            <div class="">
+              <div class="d-flex align-center justify-space-between">
+                <v-icon
+                  icon="mdi-plus-circle-outline"
+                  name="plus-circle-outline"
+                  size="24"
+                  class="pe-3"
+                />
+                <div class="item__label">
+                  Quantidade
+                </div>
+                <div class="item__value">
+                  <div class="number__stepper">
+                    <v-btn
+                      class="stepper__btn"
+                      :disabled="tempNumParcelas <= 2"
+                      prepend-icon="mdi-chevron-down"
+                      variant="text"
+                      @click="decrementQuantidade"
+                    />
+                    <input
+                      v-model="tempNumParcelas"
+                      type="number"
+                      class="stepper__input"
+                      min="2"
+                    >
+                    <v-btn
+                      class="stepper-btn"
+                      prepend-icon="mdi-chevron-up"
+                      variant="text"
+                      @click="incrementQuantidade"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="divider" />
+
+            <div class="">
+              <div class="d-flex align-center justify-space-between">
+                <v-icon
+                  icon="mdi-calendar-blank"
+                  size="24"
+                  class="pe-3"
+                />
+                <div class="item-label">
+                  Periodicidade
+                </div>
+                <div class="item-value pb-2">
+                  <v-select
+                    v-model="tempPeriodicidade"
+                    :items="['Mensal', 'Semanal', 'Quinzenal', 'Bimestral']"
+                    variant="plain"
+                    hide-details
+                    class="select__dark"
+                  />
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <template v-if="isCard">
+          <div class="d-flex justify-space-between align-center p-3">
+            <v-btn
+              class="btn__cancelar"
+              @click="cancelarConfiguracaoRepeticao"
+            >
+              Cancelar
+            </v-btn>
+            <v-btn
+              class="btn__concluido"
+              @click="concluirParcelas"
+            >
+              Concluído
+            </v-btn>
+          </div>
+        </div>
+      </div>
+
+      <template v-if="isCard">
           <div class="custom__select__wrapper">
             <span class="custom__select__label">Cartão de Crédito</span>
             <div
@@ -302,10 +308,10 @@
                 class="dropdown"
               >
                 <div
-                  v-for="card in props.creditCards"
+                  v-for="card in props.wallets"
                   :key="card.id"
                   class="dropdown__item"
-                  :class="{ 'is__selected': card.id === form.cartao_id }"
+                  :class="{ 'is__selected': card.id === formReleases.cartao_id }"
                   :data-card-id="card.id"
                   @click.stop="selectCard(card)"
                 >
@@ -340,7 +346,7 @@
               <span>Fatura</span>
             </div>
             <div class="selection">
-              <span>{{ form.fatura || 'Selecione' }}</span>
+              <span>{{ formReleases.fatura || 'Selecione' }}</span>
               <v-icon
                 icon="mdi-menu-down"
                 size="20"
@@ -356,7 +362,7 @@
                 v-for="item in invoiceList"
                 :key="item"
                 class="dropdown__item"
-                :class="{ 'is__selected': item === form.fatura }"
+                :class="{ 'is__selected': item === formReleases.fatura }"
                 :data-invoice="item"
                 @click.stop="selectInvoice(item)"
               >
@@ -366,8 +372,107 @@
           </div>
         </template>
 
+      <template v-if="!isCard">
+        <div class="mb-2 pt-1">
+          <v-menu
+            v-model="menuDataVencimento"
+            :close-on-content-click="false"
+            transition="scale-transition"
+            offset-y
+          >
+            <template #activator="{ props }">
+              <div
+                class="custom__display__input"
+                v-bind="props"
+              >
+                <div class="d-flex align-center text-grey">
+                  <v-icon
+                    icon="mdi-calendar"
+                    class="me-3"
+                  />
+                  <span>Data de vencimento</span>
+                </div>
+                <v-spacer class="m-0 p-0" />
+                <span class="font-weight-medium">{{ displayDataVencimento }}</span>
+              </div>
+            </template>
+
+            <v-date-picker
+              v-model="formReleases.data_vencimento"
+              color="#77d08e"
+              hide-header
+              show-adjacent-months
+              @update:model-value="menuDataVencimento = false"
+            />
+          </v-menu>
+        </div>
 
         <v-text-field
+          v-model="formReleases.status_lancamento"
+          variant="underlined"
+          hide-details="auto"
+          type="text"
+          class="mb-6 imput"
+          readonly
+          :prepend-inner-icon="
+            formReleases.status_lancamento === 'Efetivada'
+              ? 'mdi-check-circle-outline'
+              : 'mdi-clock-time-three-outline'
+          "
+          @click="toggleStatus"
+        >
+          <template #append-inner>
+            <div
+              :class="
+                formReleases.status_lancamento === 'Efetivada'
+                  ? 'form__check__efetivada'
+                  : 'form__check'
+              "
+            >
+              <div
+                :class="
+                  formReleases.status_lancamento === 'Efetivada'
+                    ? 'switch__check__efetivada'
+                    : 'switch__check'
+                "
+              />
+            </div>
+          </template>
+        </v-text-field>
+      </template>
+      <v-autocomplete
+        v-model="formReleases.categoria"
+        :items="categoriasNames"
+        :rules="[rules.requiredCatagoria]"
+        label="Categoria"
+        required
+        variant="underlined"
+        class="mb-6 imput"
+      >
+        <template #prepend-inner>
+          <v-icon
+            :icon="categoriaIcon"
+            :class="categoriaColorClass"
+          />
+        </template>
+      </v-autocomplete>
+
+      <v-autocomplete
+        v-model="formReleases.subcategoria"
+        :items="subcategoriasDaCategoriaSelecionada"
+        label="Subcategoria"
+        variant="underlined"
+        class="mb-6 imput"
+      >
+        <template #prepend-inner>
+          <v-icon
+            :icon="subcategoriaIcon"
+            :class="subcategoriaColorClass"
+          />
+        </template>
+      </v-autocomplete>
+
+      <v-text-field
           v-if="isCard"
           :model-value="linkedAccountName"
           label="Conta"
@@ -376,10 +481,10 @@
           class="imput mb-5"
           :prepend-inner-icon="getBankIcon(linkedAccount?.name)"
         />
-        
+
         <v-select
           v-else
-          v-model="form.conta_id"
+          v-model="formReleases.conta_id"
           label="Conta"
           :items="availableBankAccounts"
           item-title="name"
@@ -390,474 +495,696 @@
           class="imput mb-5"
         />
 
-        <v-autocomplete
-          v-model="form.categoria"
-          :items="categoriasNames"
-          :rules="[rules.required]"
-          label="Categoria"
-          variant="underlined"
-          class="imput mb-5"
-          >
-          <!-- item-title="name"
-          item-value="name" -->
-          <template #prepend-inner>
-            <v-icon
-              :icon="categoriaIcon"
-              :class="categoriaColorClass"
-            />
+      <v-btn
+        v-if="!informacoes"
+        :append-icon="informacoes ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+        variant="plain"
+        size="x-small"
+        style="color: #77d08e"
+        block
+        @click="informacoes = !informacoes"
+      >
+        Mais informações
+      </v-btn>
+
+      <div
+        v-if="informacoes"
+        class="mb-6"
+      >
+        <v-menu
+          v-model="menuDataLancamento"
+          :close-on-content-click="false"
+          transition="scale-transition"
+          offset-y
+        >
+          <template #activator="{ props }">
+            <div
+              class="custom__display__input"
+              v-bind="props"
+            >
+              <div class="d-flex align-center text-grey">
+                <v-icon
+                  icon="mdi-calendar"
+                  class="me-3"
+                />
+                <span>Data de lançamento</span>
+              </div>
+              <v-spacer />
+              <span class="font-weight-medium">{{ displayDataLancamento }}</span>
+            </div>
           </template>
-        </v-autocomplete>
-        
-        <v-autocomplete
-          v-model="form.subcategoria"
-          class="imput mb-5"
-          label="Subcategoria"
-          :items="subcategoriasDaCategoriaSelecionada"
-          variant="underlined"
-          item-title="name"
-          >
-          <!-- item-value="name" -->
-          <template #prepend-inner>
-            <v-icon
-              :icon="subcategoriaIcon"
-              :class="subcategoriaColorClass"
-            />
+
+          <v-date-picker
+            v-model="formReleases.data_lancamento"
+            color="#77d08e"
+            hide-header
+            show-adjacent-months
+            @update:model-value="menuDataLancamento = false"
+          />
+        </v-menu>
+      </div>
+
+      <div
+        v-if="informacoes && !isCard"
+        class="mb-1"
+      >
+        <v-menu
+          v-model="menuDataEfetivacao"
+          :close-on-content-click="false"
+          transition="scale-transition"
+          offset-y
+        >
+          <template #activator="{ props }">
+            <div
+              class="custom__display__input"
+              v-bind="props"
+            >
+              <div class="d-flex align-center text-grey">
+                <v-icon
+                  icon="mdi-calendar"
+                  class="me-3"
+                />
+                <span>Data de efetivação</span>
+              </div>
+              <v-spacer />
+              <span class="font-weight-medium">{{ displayDataEfetivacao }}</span>
+            </div>
           </template>
-        </v-autocomplete>
-        
-        <v-select
-          v-if="!isCard"
-          v-model="form.status_lancamento"
-          label="Status"
-          :items="['Pendente', 'Efetivada']"
-          variant="underlined"
-        />
+
+          <v-date-picker
+            v-model="formReleases.data_efetivacao"
+            color="#77d08e"
+            hide-header
+            show-adjacent-months
+            @update:model-value="menuDataEfetivacao = false"
+          />
+        </v-menu>
+      </div>
       </div>
     </v-form>
+    <v-dialog
+      v-model="showEditOptionsModal"
+      persistent
+      max-width="320"
+    >
+      <v-card class="modal__recorrente__card">
+        <v-card-title class="headline">
+          {{ formReleases.recorrencia === 'Parcelado' ? 'Receita Recorrente' : 'Alterar o valor' }}
+        </v-card-title>
+
+        <v-card-text v-if="formReleases.recorrencia === 'Fixa'">
+          {{ formReleases.recorrencia === 'Fixa' ? 'Essa é uma transação fixa. Você pode escolher como deseja considerar a alteração do valor.' : '' }}
+        </v-card-text>
+
+        <v-card-actions class="d-flex flex-column align-stretch">
+          <template v-if="formReleases.recorrencia === 'Parcelado'">
+            <v-btn
+              block
+              class="modal__option__btn"
+              @click="handleEditScopeSelection('apenas esta')"
+            >
+              Atualizar apenas esta
+            </v-btn>
+            <v-btn
+              block
+              class="modal__option__btn"
+              @click="handleEditScopeSelection('esta e as próximas')"
+            >
+              Atualizar esta e as próximas
+            </v-btn>
+            <v-btn
+              block
+              class="modal__option__btn"
+              @click="handleEditScopeSelection('todas')"
+            >
+              Atualizar todas
+            </v-btn>
+          </template>
+
+          <template v-if="formReleases.recorrencia === 'Fixa'">
+            <v-btn
+              block
+              class="modal__option__btn"
+              @click="handleEditScopeSelection('apenas este mês')"
+            >
+              Apenas este mês
+            </v-btn>
+            <v-btn
+              block
+              class="modal__option__btn"
+              @click="handleEditScopeSelection('mês atual e os próximos')"
+            >
+              Mês atual e os próximos
+            </v-btn>
+          </template>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
+  <ErrorsForm />
+  <ErrorMessage />
 </template>
 
 <script setup lang="ts">
-// --- 1. IMPORTS ---
-import { useExpensesStore, useRevenuesStore, useWalletsStore } from "@/store";
-import { useLancamentoStore } from "@/store/lancamentos";
-import type { CategoryData, Lancamento, Wallet } from "@/types";
-import { formatValue } from "@/utils/formatValue";
-import { getBankIcon } from "@/utils/iconMapper";
 import { onClickOutside } from "@vueuse/core";
+import type { AxiosError } from "axios";
+import { addMonths, format, isToday, isTomorrow, isValid, isYesterday, parseISO, subMonths } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 
-// --- 2. PROPS & EMITS ---
+// Components
+import ErrorMessage from "@/components/ErrorMessage.vue";
+import ErrorsForm from "@/components/ModalErrorsForm.vue";
+
+// Services and Stores
+import http from "@/services/http";
+import { useErrorStore, useExpensesStore, useRevenuesStore, useUserStore, useWalletsStore } from "@/store";
+
+// Types and Utils
+import type { ApiErrorResponse, Lancamento, Wallet } from "@/types";
+import { formatValue } from "@/utils/formatValue";
+import { getBankIcon } from "@/utils/iconMapper";
+
+// 1. PROPS & EMITS
 const props = defineProps<{
-  creditCards: Wallet[];
+  releases?: Lancamento;
+  wallets: Wallet[];
+  rota: string;
+  mesAno: string;
   transactionType: "Receita" | "Despesa";
   isCard?: boolean;
-  lancamento?: Lancamento;
 }>();
-const emit = defineEmits(["closeForm"]);
 
-// --- 3. STORES ---
+const emit = defineEmits(["updateData", "closeForm"]);
+
+// 2. STORES
 const walletsStore = useWalletsStore();
-const lancamentoStore = useLancamentoStore();
-const expensesStore = useExpensesStore();
-const revenuesStore = useRevenuesStore();
+const useRevenues = useRevenuesStore();
+const useExpenses = useExpensesStore();
+const useUser = useUserStore();
+const errorStore = useErrorStore();
 
-// --- 4. STATE ---
-const form = ref<Partial<Lancamento & { cartao_id: number | null, fatura: string | null }>>({
-  tipo_lancamento: props.transactionType,
-  descricao: "",
-  valor: "0,00",
-  conta_id: props.creditCards.length > 0 ? props.creditCards[0].id : null,
-  cartao_id: null,
-  fatura: "",
-  data_lancamento: new Date().toISOString().split("T")[0],
-  recorrencia: "Não recorrente",
-  status_lancamento: props.isCard ? "Efetivada" : "Pendente",
-  categoria: props.lancamento?.categoria || "Outros",
-  subcategoria: props.lancamento?.subcategoria || "Outros",
-});
+// 3. REFS & STATE
+const formReleases = ref<Partial<Lancamento>>({});
 const loading = ref(false);
-const isFormValid = ref(false);
-const isEditMode = computed(() => !!props.lancamento?.id);
+const validFormLancamentos = ref(false);
+const informacoes = ref(false);
+const errorsForm = ref<{ [key: string]: string[] }>({});
 
-// State para o dropdown de Fatura
-const isFaturaDropdownOpen = ref(false);
-const faturaSelectRef = ref(null);
-const faturaDropdownContainerRef = ref<HTMLElement | null>(null);
-
-// State para o dropdown de Cartão de Crédito
-const isCardDropdownOpen = ref(false);
-const cardSelectRef = ref(null);
-const cardDropdownContainerRef = ref<HTMLElement | null>(null);
-
+// UI State
+const menuDataVencimento = ref(false);
+const menuDataLancamento = ref(false);
+const menuDataEfetivacao = ref(false);
 const openRecorrenciaModal = ref(false);
 const openParcelas = ref(false);
+const showEditOptionsModal = ref(false);
+const isFaturaDropdownOpen = ref(false);
+const isCardDropdownOpen = ref(false);
+
+// Dropdown Refs
+const faturaSelectRef = ref<HTMLElement | null>(null);
+const cardSelectRef = ref<HTMLElement | null>(null);
+const faturaDropdownContainerRef = ref<HTMLElement | null>(null);
+const cardDropdownContainerRef = ref<HTMLElement | null>(null);
+
+// Recurrence State
+const editScope = ref<"apenas esta" | "esta e as próximas" | "todas" | "apenas este mês" | "mês atual e os próximos">("apenas esta");
 const tipoCalculoParcela = ref<"total" | "parcela">("total");
+const parcelaInicial = ref<number | null>(null);
+const tempParcelaInicial = ref(1);
+const tempNumParcelas = ref(2);
+const tempPeriodicidade = ref<"Mensal" | "Semanal" | "Quinzenal" | "Bimestral">("Mensal");
 const tiposRecorrencia = ref<("Não recorrente" | "Fixa" | "Parcelado")[]>([
   "Não recorrente",
   "Fixa",
   "Parcelado",
 ]);
-let subcategoriesNames = ref<string[]>([]);
 
-const parcelaInicial = ref<number | null>(null);
-const tempParcelaInicial = ref(1);
-const tempNumParcelas = ref(2);
-const tempPeriodicidade = ref<
-  | "Mensal"
-  | "Diario"
-  | "Semanal"
-  | "Quinzenal"
-  | "Trimenstral"
-  | "Anual"
-  | undefined
->("Mensal");
+// 4. COMPUTED PROPERTIES
+const isEditMode = computed(() => !!props.releases?.id);
 
-// --- 5. LÓGICA DE INTERAÇÃO ---
-onClickOutside(faturaSelectRef, () => { isFaturaDropdownOpen.value = false; });
-onClickOutside(cardSelectRef, () => { isCardDropdownOpen.value = false; });
+const creditCardAccounts = computed<Wallet[]>(() => 
+  props.wallets.filter(w => w.tipo_carteira === 'Cartão de Crédito') || []
+);
 
-const selecionarRecorrencia = (item: "Não recorrente" | "Fixa" | "Parcelado") => {
-  form.value.recorrencia = item;
-  openRecorrenciaModal.value = false;
-
-  if (item === "Parcelado") {
-    // Abre o modal de configuração de parcelas
-    openParcelas.value = true;
-  } else {
-    // Reseta os dados de parcela se não for "Parcelado"
-    form.value.num_parcelas = null;
-    form.value.periodicidade = null;
-  }
-};
-
-const detalheRecorrencia = computed(() => {
-  if (
-    form.value.recorrencia === "Parcelado" &&
-    form.value.num_parcelas &&
-    form.value.num_parcelas > 0
-  ) {
-    const valorInput = parseFloat(
-      form.value.valor.replace(/\./g, "").replace(",", ".")
-    );
-    if (isNaN(valorInput) || valorInput <= 0) return "";
-
-    // Opções de formatação para garantir 2 casas decimais
-    const opcoesDeFormatacao = {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    };
-
-    if (tipoCalculoParcela.value === "total") {
-      const valorParcela = valorInput / form.value.num_parcelas;
-      const valorFormatado = valorParcela.toLocaleString("pt-BR", opcoesDeFormatacao);
-      return `Em ${form.value.num_parcelas}x de R$ ${valorFormatado}`;
-    } else {
-      const valorFormatado = valorInput.toLocaleString("pt-BR", opcoesDeFormatacao);
-      return `Em ${form.value.num_parcelas}x de R$ ${valorFormatado}`;
-    }
-  }
-  return "";
-});
-
-const incrementParcelaInicial = () => {
-  tempParcelaInicial.value++;
-};
-
-const decrementParcelaInicial = () => {
-  if (tempParcelaInicial.value > 1) {
-    tempParcelaInicial.value--;
-  }
-};
-
-// Funções para incrementar e decrementar quantidade de parcelas
-const incrementQuantidade = () => {
-  tempNumParcelas.value++;
-};
-
-const decrementQuantidade = () => {
-  if (tempNumParcelas.value > 2) {
-    tempNumParcelas.value--;
-  }
-};
-
-const cancelarConfiguracaoRepeticao = () => {
-  // Retorna tipo para "Não recorrente"
-  form.value.recorrencia = "Não recorrente";
-  form.value.num_parcelas = null;
-  form.value.periodicidade = null;
-
-  // Fecha o modal
-  openParcelas.value = false;
-};
-
-const concluirParcelas = () => {
-
-  // Salva os valores temporários nos valores finais
-  parcelaInicial.value = tempParcelaInicial.value;
-  form.value.num_parcelas = tempNumParcelas.value;
-  form.value.periodicidade = tempPeriodicidade.value || null;
-
-  // Fecha o modal
-  openParcelas.value = false;
-};
-
-// --- 6. COMPUTED PROPERTIES ---
-// const creditCardAccounts = computed<Wallet[]>(() => walletsStore.walletsData.cartoes || []);
-const availableBankAccounts = computed<Wallet[]>(() => walletsStore.walletsData.contas || []);
+const availableBankAccounts = computed<Wallet[]>(() => 
+  walletsStore.walletsData.contas || []
+);
 
 const selectedCreditCard = computed(() => {
-  if (!form.value.conta_id) return null;
-  return props.creditCards.find(c => c.id === form.value.cartao_id);
+  if (!formReleases.value.cartao_id) return null;
+  return props.wallets.find(c => c.id === formReleases.value.cartao_id);
 });
 
 const linkedAccount = computed(() => {
-  if (!selectedCreditCard.value || !selectedCreditCard.value.conta_pai_id) return null;
+  if (!selectedCreditCard.value?.conta_pai_id) return null;
   return availableBankAccounts.value.find(acc => acc.id === selectedCreditCard.value.conta_pai_id);
 });
 
 const linkedAccountName = computed(() => {
-    if (!selectedCreditCard.value || !selectedCreditCard.value.conta_pai_id) return "Nenhuma conta vinculada";
-    const conta = availableBankAccounts.value.find(acc => acc.id === selectedCreditCard.value.conta_pai_id);
-    return conta?.name || "Conta não encontrada";
-  });
-
-  // Busca a lista de categorias correta (Receita ou Despesa)
-  const categoriesSource = computed(() =>
-    props.transactionType === "Receita"
-      ? revenuesStore.revenuesData?.categories
-      : expensesStore.expensesData?.categories
-  );
-
-  // 2. Cria uma lista apenas com os nomes das categorias para o v-autocomplete
-  const categoriasNames = computed(() => {
-    if (categoriesSource.value) {
-      return categoriesSource.value.map((cat) => cat.name);
-    }
-    return [];
-  });
-
-  // 3. Encontra o objeto completo da categoria que foi selecionada
-  const selectedCategoryObject = computed(() => {
-    if (!categoriesSource.value || !form.value.categoria) {
-      return null;
-    }
-    return categoriesSource.value.find(
-      (cat) => cat.name === form.value.categoria
-    );
-  });
-
-  // 4. A PARTIR do objeto da categoria, extrai a lista de subcategorias
-  const subcategoriasDaCategoriaSelecionada = computed(() => {
-    if (selectedCategoryObject.value && selectedCategoryObject.value.subcategories) {
-      return selectedCategoryObject.value.subcategories.map((sub) => sub.name);
-    }
-    return []; // Retorna vazio se não houver categoria ou subcategorias
-  });
-  console.log(subcategoriasDaCategoriaSelecionada.value);
-
-  // 5. Encontra o objeto completo da subcategoria selecionada
-  const selectedSubcategoryObject = computed(() => {
-    if (!selectedCategoryObject.value?.subcategories || !form.value.subcategoria) {
-      return null;
-    }
-    return selectedCategoryObject.value.subcategories.find(
-      (sub) => sub.name === form.value.subcategoria
-    );
-  });
-  // 6. Usa os objetos encontrados para pegar ícones e cores
-  const categoriaIcon = computed(() => selectedCategoryObject.value?.icon || 'mdi-shape-outline');
-  const categoriaColorClass = computed(() => selectedCategoryObject.value?.color || '');
-  const subcategoriaIcon = computed(() => selectedSubcategoryObject.value?.icon || 'mdi-shape-outline');
-  const subcategoriaColorClass = computed(() => selectedSubcategoryObject.value?.color || '');
-
-
-
-const availableCategories = computed<CategoryData[]>(() => {
-  if (props.transactionType === "Receita") {
-    return revenuesStore.revenuesData.categories;
-  } else if (props.transactionType === "Despesa") {
-    return expensesStore.expensesData.categories;
-  }
-  return [];
+  if (!linkedAccount.value) return "Nenhuma conta vinculada";
+  return linkedAccount.value.name || "Conta não encontrada";
 });
-console.log("linha: 616", availableCategories.value);
-
 
 const invoiceList = computed(() => {
   const list = [];
   const now = new Date();
-  const formatDate = (date: Date) => {
+  const formatDateForList = (date: Date) => {
     const month = date.toLocaleDateString("pt-BR", { month: "short" }).toUpperCase().replace(".", "");
     const year = date.getFullYear();
     return `${month}/${year}`;
   };
+  // 12 meses para trás
   for (let i = 12; i > 0; i--) {
-    list.push(formatDate(new Date(now.getFullYear(), now.getMonth() - i, 1)));
+    list.push(formatDateForList(subMonths(now, i)));
   }
+  // Mês atual e 12 meses para frente
   for (let i = 0; i <= 12; i++) {
-    list.push(formatDate(new Date(now.getFullYear(), now.getMonth() + i, 1)));
+    list.push(formatDateForList(addMonths(now, i)));
   }
   return list;
 });
 
-watch(() => form.value.categoria, () => {
-  form.value.subcategoria = '';
+const categoriesSource = computed(() =>
+  props.transactionType === "Receita"
+    ? useRevenues.revenuesData?.categories
+    : useExpenses.expensesData?.categories
+);
+
+const categoriasNames = computed(() => categoriesSource.value?.map((cat) => cat.name) || []);
+
+const selectedCategoryObject = computed(() =>
+  categoriesSource.value?.find(
+    (cat) => cat.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === (formReleases.value.categoria || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+  )
+);
+
+const subcategoriasDaCategoriaSelecionada = computed(() => {
+  if (selectedCategoryObject.value?.subcategories) {
+    return selectedCategoryObject.value.subcategories.map((sub) => sub.name);
+  }
+  return [];
 });
 
-// --- MÉTODOS ---
+const selectedSubcategoryObject = computed(() =>
+  selectedCategoryObject.value?.subcategories?.find(
+    (sub) => sub.name === formReleases.value.subcategoria
+  )
+);
+
+const categoriaIcon = computed(() => selectedCategoryObject.value?.icon || "mdi-scatter-plot");
+const categoriaColorClass = computed(() => selectedCategoryObject.value?.color || "");
+const subcategoriaIcon = computed(() => selectedSubcategoryObject.value?.icon || "mdi-scatter-plot");
+const subcategoriaColorClass = computed(() => selectedSubcategoryObject.value?.color || "");
+
+const detalheRecorrencia = computed(() => {
+  if (formReleases.value.recorrencia !== "Parcelado" || !formReleases.value.qtd_parcelas || formReleases.value.qtd_parcelas <= 0) {
+    return "";
+  }
+  const valorInput = parseFloat(formReleases.value.valor?.replace(/\./g, "").replace(",", ".") || "0");
+  if (isNaN(valorInput) || valorInput <= 0) return "";
+
+  const opcoesDeFormatacao = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+  
+  if (tipoCalculoParcela.value === "total") {
+    const valorParcela = valorInput / formReleases.value.qtd_parcelas;
+    const valorFormatado = valorParcela.toLocaleString("pt-BR", opcoesDeFormatacao);
+    return `Em ${formReleases.value.qtd_parcelas}x de R$ ${valorFormatado}`;
+  } else {
+    const valorFormatado = valorInput.toLocaleString("pt-BR", opcoesDeFormatacao);
+    return `Em ${formReleases.value.qtd_parcelas}x de R$ ${valorFormatado}`;
+  }
+});
+
+const displayDataVencimento = computed(() => formatDateForDisplay(formReleases.value.data_vencimento));
+const displayDataLancamento = computed(() => formatDateForDisplay(formReleases.value.data_lancamento));
+const displayDataEfetivacao = computed(() => formatDateForDisplay(formReleases.value.data_efetivacao));
+
+// 5. WATCHERS
+watch(() => formReleases.value.status_lancamento, (newStatus) => {
+  formReleases.value.data_efetivacao = newStatus === "Efetivada" ? format(new Date(), "yyyy-MM-dd") : null;
+});
+
+watch(() => formReleases.value.categoria, () => {
+  formReleases.value.subcategoria = 'Outros';
+});
+
+watch(() => formReleases.value.data_vencimento, (nv) => (formReleases.value.data_vencimento = formatDateOnWatch(nv)));
+watch(() => formReleases.value.data_lancamento, (nv) => (formReleases.value.data_lancamento = formatDateOnWatch(nv)));
+watch(() => formReleases.value.data_efetivacao, (nv) => (formReleases.value.data_efetivacao = formatDateOnWatch(nv)));
+
+// NOVO: Watch para atualizar a fatura quando o cartão de crédito mudar
+watch(() => formReleases.value.cartao_id, (newCardId) => {
+  if (newCardId) {
+    setDefaultInvoice();
+  }
+});
+
+
+// 6. LIFECYCLE HOOKS
+onMounted(() => {
+  initializeForm();
+});
+
+// 7. METHODS
+
+// Form Initialization
+const initializeForm = () => {
+  const hoje = format(new Date(), "yyyy-MM-dd");
+
+  formReleases.value = {
+    id: props.releases?.id || null,
+    descricao: props.releases?.descricao || "",
+    valor: formatValue(Number(props.releases?.valor)) || "0,00",
+    tipo_lancamento: props.transactionType,
+    recorrencia: props.releases?.recorrencia || "Não recorrente",
+    num_parcela: props.releases?.num_parcela || null,
+    qtd_parcelas: props.releases?.qtd_parcelas || null,
+    tipo_parcela: props.releases?.tipo_parcela || null,
+    periodicidade: props.releases?.periodicidade || null,
+    data_vencimento: validateDate(props.releases?.data_vencimento),
+    status_lancamento: props.releases?.status_lancamento || "PENDENTE",
+    categoria: props.releases?.categoria || "Outros",
+    subcategoria: props.releases?.subcategoria || "Outros",
+    conta_id: props.isCard ? null : (props.releases?.conta_id || availableBankAccounts.value[0]?.id || null),
+    cartao_id: props.isCard ? (props.releases?.cartao_id || creditCardAccounts.value[0]?.id || null) : null,
+    fatura: props.releases?.fatura || null,
+    data_lancamento: validateDate(props.releases?.data_lancamento),
+    data_efetivacao: props.releases?.data_efetivacao ? validateDate(props.releases.data_efetivacao) : null,
+  };
+  
+  // Lógica de inicialização para cartão
+  if (props.isCard && !isEditMode.value) {
+    setDefaultInvoice();
+  }
+};
+
+// Date Handling
+const validateDate = (date: string | Date | undefined | null): string => {
+  if (!date) return format(new Date(), "yyyy-MM-dd");
+  
+  const parsedDate = typeof date === 'string' ? parseISO(date) : date;
+  
+  return isValid(parsedDate) ? format(parsedDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
+};
+
+const formatDateOnWatch = (newValue: any) => {
+  if (newValue instanceof Date) {
+    return format(newValue, "yyyy-MM-dd");
+  }
+  return newValue;
+};
+
+const formatDateForDisplay = (dateValue: string | Date | undefined | null): string => {
+  if (!dateValue) return "Selecione...";
+
+  const data = typeof dateValue === 'string' ? parseISO(dateValue) : dateValue;
+  if (!isValid(data)) return "Data inválida";
+  
+  if (isToday(data)) return "Hoje";
+  if (isYesterday(data)) return "Ontem";
+  if (isTomorrow(data)) return "Amanhã";
+
+  const nomeDiaCompleto = format(data, "EEEE", { locale: ptBR });
+  const diaAbreviadoCapitalizado = nomeDiaCompleto.charAt(0).toUpperCase() + nomeDiaCompleto.slice(1, 3);
+  const dataFormatada = format(data, "dd/MM/yyyy");
+
+  return `${diaAbreviadoCapitalizado}., ${dataFormatada}`;
+};
+
+// Business Logic: Card and Invoice
+const setDefaultInvoice = () => {
+  const card = selectedCreditCard.value;
+  if (!card || !card.dia_fechamento) return;
+
+  const today = new Date();
+  const closingDay = card.dia_fechamento;
+  const currentDay = today.getDate();
+
+  let invoiceDate = today;
+  if (currentDay > closingDay) {
+    invoiceDate = addMonths(today, 1);
+  }
+
+  const month = invoiceDate.toLocaleDateString("pt-BR", { month: "short" }).toUpperCase().replace(".", "");
+  const year = invoiceDate.getFullYear();
+  formReleases.value.fatura = `${month}/${year}`;
+};
+
+// UI Interaction
+onClickOutside(faturaSelectRef, () => { isFaturaDropdownOpen.value = false; });
+onClickOutside(cardSelectRef, () => { isCardDropdownOpen.value = false; });
+
+const toggleStatus = () => {
+  formReleases.value.status_lancamento =
+    formReleases.value.status_lancamento === "Efetivada" ? "Pendente" : "Efetivada";
+};
+
+const toggleFaturaDropdown = async () => {
+  isFaturaDropdownOpen.value = !isFaturaDropdownOpen.value;
+  if (isFaturaDropdownOpen.value) {
+    await nextTick();
+    const container = faturaDropdownContainerRef.value;
+    if (container && formReleases.value.fatura) {
+      const selectedItem = container.querySelector(`[data-invoice="${formReleases.value.fatura}"]`) as HTMLElement;
+      selectedItem?.scrollIntoView({ block: "start", behavior: "auto" });
+    }
+  }
+};
+
+const toggleCardDropdown = async () => {
+  isCardDropdownOpen.value = !isCardDropdownOpen.value;
+  if (isCardDropdownOpen.value) {
+    await nextTick();
+    const container = cardDropdownContainerRef.value;
+    if (container && formReleases.value.cartao_id) {
+      const selectedItem = container.querySelector(`[data-card-id="${formReleases.value.cartao_id}"]`) as HTMLElement;
+      selectedItem?.scrollIntoView({ block: "start", behavior: "auto" });
+    }
+  }
+};
+
+const selectInvoice = (invoice: string) => {
+  formReleases.value.fatura = invoice;
+  isFaturaDropdownOpen.value = false;
+};
+
+const selectCard = (card: Wallet) => {
+  formReleases.value.cartao_id = card.id;
+  isCardDropdownOpen.value = false;
+};
+
+// Form Value Formatting
+const formatValueSave = () => {
+  let digits = (formReleases.value.valor || "").replace(/\D/g, "");
+  digits = digits.replace(/^0+/, "") || "0";
+  while (digits.length < 3) digits = "0" + digits;
+
+  const integerPart = digits.slice(0, -2);
+  const decimalPart = digits.slice(-2);
+  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  
+  formReleases.value.valor = `${formattedIntegerPart},${decimalPart}`;
+};
+
+// Recurrence Logic
+const selecionarRecorrencia = (item: "Não recorrente" | "Fixa" | "Parcelado") => {
+  formReleases.value.recorrencia = item;
+  openRecorrenciaModal.value = false;
+
+  if (item === "Parcelado") {
+    openParcelas.value = true;
+  } else {
+    formReleases.value.qtd_parcelas = null;
+    formReleases.value.periodicidade = null;
+  }
+};
+
+const incrementParcelaInicial = () => tempParcelaInicial.value++;
+const decrementParcelaInicial = () => { if (tempParcelaInicial.value > 1) tempParcelaInicial.value--; };
+const incrementQuantidade = () => tempNumParcelas.value++;
+const decrementQuantidade = () => { if (tempNumParcelas.value > 2) tempNumParcelas.value--; };
+
+const cancelarConfiguracaoRepeticao = () => {
+  formReleases.value.recorrencia = "Não recorrente";
+  formReleases.value.qtd_parcelas = null;
+  formReleases.value.periodicidade = null;
+  openParcelas.value = false;
+};
+
+const concluirParcelas = () => {
+  parcelaInicial.value = tempParcelaInicial.value;
+  formReleases.value.qtd_parcelas = tempNumParcelas.value;
+  formReleases.value.periodicidade = tempPeriodicidade.value || null;
+  openParcelas.value = false;
+};
+
+// Form Submission
+const salvarLancamentos = async () => {
+  errorStore.unsetError();
+  if (!validFormLancamentos.value) return;
+
+  if (isEditMode.value && (formReleases.value.recorrencia === "Parcelado" || formReleases.value.recorrencia === "Fixa")) {
+    showEditOptionsModal.value = true;
+    return;
+  }
+  await proceedWithSave();
+};
+
+const handleEditScopeSelection = async (scope: any) => {
+  editScope.value = scope;
+  showEditOptionsModal.value = false;
+  await proceedWithSave();
+};
+
+const proceedWithSave = async () => {
+  loading.value = true;
+  
+  const payload = {
+    ...formReleases.value,
+    editScope: editScope.value,
+    mesAno: props.mesAno,
+    // Adicionamos o tipo de transação para o backend saber como agir
+    tipo_lancamento: props.isCard ? 'Cartão de Crédito' : props.transactionType,
+  };
+
+  if (props.isCard) {
+    payload.conta_id = formReleases.value.cartao_id;
+  }
+  delete payload.cartao_id;
+
+  if (formReleases.value.recorrencia === "Parcelado") {
+    if (props.releases?.recorrencia === "Parcelado" || props.releases?.recorrencia === "Fixa") {
+      payload.tipo_parcela = props.releases?.tipo_parcela;
+      payload.parcela_atual = props.releases?.parcela_atual;
+    } else {
+      payload.tipo_parcela = tipoCalculoParcela.value;
+      payload.parcela_atual = parcelaInicial.value;
+    }
+  }
+
+  try {
+    const method = isEditMode.value ? http.put : http.post;
+    const url = isEditMode.value ? `/lancamentos/${payload.id}` : "/lancamentos";
+    const res = await method(url, payload);
+
+    useUser.setMesAno(res.data.mesAno);
+    if (props.transactionType === "Receita") {
+      emit("updateData", res.data.revenues);
+    } else {
+      emit("updateData", res.data.expenses);
+    }
+    walletsStore.setWalletsData(res.data.wallets);
+    closeForm();
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiErrorResponse>;
+    if (axiosError.response?.data.errors) {
+      errorStore.setErrorFromForm(axiosError);
+    } else {
+      errorStore.setErrorFromResponse(axiosError);
+    }
+  } finally {
+    loading.value = false;
+  }
+};
+
+const closeForm = () => {
+  emit("closeForm");
+};
+
+// Validation Rules
 const rules = {
-  required: (value: any) => !!value || "Campo obrigatório.",
+  required: (value: any) => !!value || "Campo obrigatório",
+  requiredDescricao: (value: string) => !!value || "O campo descrição é obrigatório",
   requiredValor: (value: string) => !!value || "O campo valor é obrigatório",
   requiredValorMaiorQue0: (value: string) => {
     if (!value) return "O campo valor é obrigatório";
     const numericValue = parseFloat(value.replace(/\./g, "").replace(",", "."));
     return (!isNaN(numericValue) && numericValue > 0) || "O valor deve ser maior que zero";
   },
+  requiredCatagoria: (value: string) => !!value || "O campo categoria é obrigatório",
 };
-
-const formatValueSave = () => {
-  let digits = String(form.value.valor).replace(/\D/g, "");
-  digits = digits.replace(/^0+/, "") || "0";
-  while (digits.length < 3) digits = "0" + digits;
-  const integerPart = digits.slice(0, -2);
-  const decimalPart = digits.slice(-2);
-  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  form.value.valor = `${formattedIntegerPart},${decimalPart}`;
-};
-
-const findLinkedAccountFor = (card: Wallet) => {
-  if (!card.conta_pai_id) return null;
-  return availableBankAccounts.value.find(acc => acc.id === card.conta_pai_id);
-};
-
-// Métodos para o seletor de Fatura
-const toggleFaturaDropdown = async () => {
-  isFaturaDropdownOpen.value = !isFaturaDropdownOpen.value;
-  if (isFaturaDropdownOpen.value) {
-    await nextTick();
-    const container = faturaDropdownContainerRef.value;
-    if (container && form.value.fatura) {
-      const selectedItem = container.querySelector(`[data-invoice="${form.value.fatura}"]`) as HTMLElement;
-      if (selectedItem) {
-        selectedItem.scrollIntoView({ block: "start", behavior: "auto" });
-      }
-    }
-  }
-};
-
-const selectInvoice = (invoice: string) => {
-  form.value.fatura = invoice;
-  isFaturaDropdownOpen.value = false;
-};
-
-// Métodos para o seletor de Cartão
-const toggleCardDropdown = async () => {
-  isCardDropdownOpen.value = !isCardDropdownOpen.value;
-  if (isCardDropdownOpen.value) {
-    await nextTick();
-    const container = cardDropdownContainerRef.value;
-    if (container && form.value.cartao_id) {
-      const selectedItem = container.querySelector(`[data-card-id="${form.value.cartao_id}"]`) as HTMLElement;
-      if (selectedItem) {
-        selectedItem.scrollIntoView({ block: "start", behavior: "auto" });
-      }
-    }
-  }
-};
-
-const selectCard = (card: Wallet) => {
-  form.value.cartao_id = card.id;
-  isCardDropdownOpen.value = false;
-};
-
-const closeForm = () => emit("closeForm");
-const submitForm = async () => {
-  if (!isFormValid.value) return;
-  loading.value = true;
-  try {
-    const payload = { ...form.value };
-    if (props.isCard) {
-      payload.conta_id = selectedCreditCard.value?.conta_pai_id;
-    }
-    await lancamentoStore.saveLancamento(payload);
-    closeForm();
-  } catch (error) {
-    console.error(error);
-  } finally {
-    loading.value = false;
-  }
-};
-
-// --- 8. LIFECYCLE HOOKS ---
-onMounted(() => {
-  if (props.isCard && props.creditCards.length > 0) {
-    form.value.cartao_id = props.creditCards[0].id;
-  }
-  const now = new Date();
-  const month = now.toLocaleDateString("pt-BR", { month: "short" }).toUpperCase().replace(".", "");
-  const year = now.getFullYear();
-  form.value.fatura = `${month}/${year}`;
-  
-  if (props.lancamento) {
-    form.value = { ...props.lancamento, valor: formatValue(Number(props.lancamento.valor)) };
-  }
-});
 </script>
 
 <style scoped>
+/* SEU CSS CONTINUA O MESMO */
 .container__modal {
-  background-color: #1e1e1e;
-  color: white;
-  height: 100vh;
-  width: 100vw;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1005;
+  background: rgb(15, 15, 15);
+  color: #a5a5a5;
+  height: 100%;
+  min-height: 100%;
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
 }
 .header__items {
-  background-color: #1e1e1e;
+  /* background-color: #1e1e1e; */
   width: 100%;
-  z-index: 10;
-  padding: 10px 0;
+  color: #a5a5a5;
+  /* height: 70px; */
 }
 .close {
-  background: transparent;
-  color: white;
-  box-shadow: none;
+  cursor: pointer;
+  border-radius: 50%;
+  height: 40px;
+  width: 40px;
+  background-color: transparent;
+  color: #fefefe;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.btn__despesa {
+  background: #ed0c0c;
+}
+.btn__receita {
+  background: #77d08e;
+}
+.btn__cartao {
+  background: #0c99ed;
 }
 .btn {
-  background-color: #0c99ed;
   color: #1e1e1e;
-  text-transform: none;
+  cursor: pointer;
   font-weight: bold;
+  align-self: center;
+  border: none;
+  margin-top: 1rem;
+  font-size: 20px;
+  /* background-color: #77d08e; */
+  transition: background-color 0.5s;
 }
-.form__body {
+/* .form__body {
   padding: 80px 16px 16px 16px;
   overflow-y: auto;
   height: 100vh;
-}
+} */
 .imput {
   height: 40px;
-  color: #ccc;
+  color: #a5a5a5;
   width: 100%;
 }
 .custom__input__container {
   position: relative;
-  padding-top: 10px;
+  padding-top: 20px;
   padding-bottom: 4px;
 }
 .custom__input__content {
   display: flex;
   align-items: center;
-  color: #fff;
+  color: #a5a5a5;
 }
 .detalhe__parcela__interno {
   font-size: 14px;
-  color: #e0e0e0;
+  color: #a5a5a5;
   line-height: 1.2;
   margin-top: 4px;
+}
+.edit__icon {
+  color: #77d08e;
 }
 .parcela__toggle {
   display: flex;
@@ -873,6 +1200,11 @@ onMounted(() => {
   color: #bdbdbd;
   background-color: transparent;
 }
+.parcela__toggle .v-btn--active {
+  background-color: #77d08e;
+  color: #121212 !important; /* Cor do texto do botão ativo */
+  font-weight: bold;
+}
 .custom__underline {
   position: absolute;
   bottom: 0;
@@ -881,9 +1213,21 @@ onMounted(() => {
   height: 1px;
   background-color: rgba(255, 255, 255, 0.7);
 }
+.tipo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 .modal__tipo {
   background: #2c2c2e;
-  color: #fefefe;
+  color: #a5a5a5;
   height: 200px;
   border-radius: 20px;
   padding: 15px;
@@ -952,6 +1296,11 @@ onMounted(() => {
   text-align: center;
   font-size: 18px;
   -moz-appearance: textfield;
+}
+.stepper__input::-webkit-outer-spin-button,
+.stepper__input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 .divider {
   height: 1px;
@@ -1043,15 +1392,67 @@ onMounted(() => {
   display: flex;
   align-items: center;
 }
-.parcela__toggle .v-btn--active {
-  background-color: #77d08e;
-  color: #121212 !important;
-  font-weight: bold;
+.custom__display__input {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.7);
+  padding: 8px 0;
+  cursor: pointer;
+  color: #fff;
 }
-.stepper__input::-webkit-outer-spin-button,
-.stepper__input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+.form__check__efetivada {
+  width: 40px;
+  height: 20px;
+  border-radius: 15px;
+  background-color: rgba(119, 208, 142, 0.4);
+  display: flex;
+  justify-content: flex-end;
+}
+.form__check {
+  width: 40px;
+  height: 20px;
+  border-radius: 15px;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+.switch__check__efetivada {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #77d08e;
+}
+.switch__check {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #fefefe;
+}
+.modal__recorrente__card {
+  background-color: #2c2c2e;
+  color: white;
+  border-radius: 16px;
+}
+.modal__option__btn {
+  text-transform: none;
+  justify-content: start;
+  padding: 12px 16px !important;
+  min-height: 48px;
+  color: #77d08e;
+}
+.error__message {
+  color: red;
+  font-size: 12px;
+  margin-top: 4px;
+}
+h2 {
+  font-size: 28px;
+  font-weight: 500;
+  color: white;
+  margin-bottom: 30px;
 }
 
+.custom-input-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 4px;
+}
 </style>

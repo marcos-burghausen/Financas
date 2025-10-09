@@ -61,15 +61,15 @@
                 :icon="getIconForRevenue(revenue)"
                 class="mdicon__lacamento"
                 size="30"
-                :disabled="revenue.status === 'Efetivada'"
-                @click="receiveRevenue(revenue.id!, revenue.conta!)"
+                :disabled="revenue.status_lancamento === 'EFETIVADA'"
+                @click="receiveRevenue(revenue.id!, revenue.conta_id!)"
               />
             </v-container>
             <div style="width: 100%">
               <div class="header__visao_geral">
-                <span style="text-align: start; height: 22px">{{ revenue.conta }}</span>
+                <span style="text-align: start; height: 22px">{{ revenue.conta_model.name }}</span>
                 <div>
-                  <span>{{ revenue.dataVencimento }}</span>
+                  <span>{{ revenue.data_vencimento }}</span>
                   <span>
                     <v-icon icon="mdi-dots-vertical" class="mdicon" size="25" />
                     <v-menu
@@ -130,7 +130,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, ref } from "vue";
 
 import FormLancamentos from "@/components/FormLancamentos.vue";
 import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
@@ -148,7 +148,7 @@ import type { Lancamento, TransactionsData } from "@/types";
 
 import { formatValue } from "@/utils/formatValue";
 
-import { isToday, isPast, differenceInCalendarDays, parseISO } from "date-fns";
+import { differenceInCalendarDays, parseISO } from "date-fns";
 
 const useRevenues = useRevenuesStore();
 const useWallets = useWalletsStore();
@@ -170,20 +170,20 @@ interface ApiError {
 }
 
 const getIconForRevenue = (revenue: Lancamento) => {
-  if (revenue.status === "Efetivada") {
+  if (revenue.status_lancamento === "EFETIVADA") {
     return "mdi-check";
   }
 
-  if (revenue.status === "Pendente") {
-    if (!revenue.dataVencimento) {
+  if (revenue.status_lancamento === "PENDENTE") {
+    if (!revenue.data_vencimento) {
       return "mdi-calendar-question";
     }
 
     let dataVencimento: Date;
-    if (typeof revenue.dataVencimento === "string") {
-      dataVencimento = parseISO(revenue.dataVencimento);
+    if (typeof revenue.data_vencimento === "string") {
+      dataVencimento = parseISO(revenue.data_vencimento);
     } else {
-      dataVencimento = revenue.dataVencimento;
+      dataVencimento = revenue.data_vencimento;
     }
 
     const hoje = new Date();
@@ -205,20 +205,20 @@ const getIconForRevenue = (revenue: Lancamento) => {
 };
 
 const getClassForRevenue = (revenue: Lancamento) => {
-  if (revenue.status === "Efetivada") {
+  if (revenue.status_lancamento === "EFETIVADA") {
     return "paga";
   }
 
-  if (revenue.status === "Pendente") {
-    if (!revenue.dataVencimento) {
+  if (revenue.status_lancamento === "PENDENTE") {
+    if (!revenue.data_vencimento) {
       return "pendente";
     }
 
     let dataVencimento: Date;
-    if (typeof revenue.dataVencimento === "string") {
-      dataVencimento = parseISO(revenue.dataVencimento);
+    if (typeof revenue.data_vencimento === "string") {
+      dataVencimento = parseISO(revenue.data_vencimento);
     } else {
-      dataVencimento = revenue.dataVencimento; // Já é um objeto Date
+      dataVencimento = revenue.data_vencimento; // Já é um objeto Date
     }
 
     const hoje = new Date();

@@ -54,13 +54,13 @@
       >
         <div class="container__icon pe-2">
           <v-icon
-            icon="mdi-circle-outline"
-            size="60"
+            :icon="getBankIcon(wallet.name)"
+            size="40"
             color="#77d08e"
           />
         </div>
         <div class="descricao__carteira">
-          <span class="tipo__conta"> {{ wallet.tipoConta }} </span>
+          <span class="tipo__conta"> {{ wallet.tipo_conta }} </span>
           <span class="nome__conta"> {{ wallet.name }} </span>
           <span class="tipo__conta"> Saldo Previsto </span>
         </div>
@@ -120,6 +120,7 @@
 // import ModalNovaConta from "@/components/ModalNovaConta.vue";
 import FormCartaoCredito from "@/components/FormContaCartao.vue";
 import { formatValue } from "@/utils/formatValue";
+import { getBankIcon } from "@/utils/iconMapper";
 import { computed } from "vue";
 
 import { useUserStore, useWalletsStore } from "@/store";

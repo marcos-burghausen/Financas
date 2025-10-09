@@ -42,13 +42,13 @@
 
             <v-text-field
               v-model="form.saldo_inicial"
-              label="Valor Inicial"
+              label="Saldo Inicial"
               variant="underlined"
               class="imput"
-              type="number"
+              type="tel"
               prefix="R$"
-              :rules="[rules.requiredValor, rules.requiredValorMaiorQue0]"
-              @input="formatValueSave"
+              :rules="[rules.requiredValor]"
+              @update:model-value="form.saldo_inicial = formatCurrencyInput($event)"
             >
               <template #prepend-inner>
                 <v-icon icon="mdi-currency-usd" />
@@ -56,14 +56,14 @@
             </v-text-field>
             
             <v-text-field
-              v-model="form.saldo_inicial"
-              label="cheque especial"
+              v-model="form.limite"
+              label="Cheque Especial"
               variant="underlined"
               class="imput"
-              type="number"
+              type="tel"
               prefix="R$"
               :rules="[rules.requiredValor]"
-              @input="formatValueSave"
+              @update:model-value="form.limite = formatCurrencyInput($event)"
             >
               <template #prepend-inner>
                 <v-icon icon="mdi-currency-usd" />
@@ -122,8 +122,7 @@
                     <v-color-picker
                       v-model="form.color"
                       hide-details="auto"
-                      label="Colored Pip"
-                      :model-value="form.color"
+                      label="Colored Picker"
                       mode="hex"
                       color-pip
                     />
@@ -380,6 +379,18 @@ const selectedWallet = computed<Wallet>(() => {
   return walletItems.value.find(w => w.id === form.value.conta_id) ?? null;
 });
 
+// const selectedWallet = computed<Wallet | null>(() => {
+//   if (props.walletId) {
+//     const wallet = props.wallets.find((w) => w.id === props.walletId);
+//     return wallet || null;
+//   }
+//   return {
+//     id: 0,
+//     name: "",
+//     icon: "",
+//   };
+// });
+
 /** Ícone que aparece no input quando abrir/selecionar */
 
 const selectedIcon = computed(() => {
@@ -407,6 +418,7 @@ const form = ref<Partial<Wallet>>({
   icon: props.walletType === "Conta" ? "mdi-bank" : "mdi-bank-off",
   color: "#0c99ed",
   tipo_conta: props.walletType === "Conta" ? "Carteira" : "Cartão de Crédito",
+  saldo_inicial: formatValue(Number("0,00")) || "0,00",
   saldo: formatValue(Number("0,00")) || "0,00",
   incluir_em_soma_inicial: true,
   limite: formatValue(Number("0,00")) || "0,00",
@@ -419,6 +431,31 @@ const form = ref<Partial<Wallet>>({
 
 
 type MoneyKeys = "saldo" | "limite";
+
+const formatCurrencyInput = (value: string): string => {
+  if (!value) return "0,00";
+
+  // 1. Pega apenas os dígitos
+  let digits = value.replace(/\D/g, "");
+
+  // 2. Remove zeros à esquerda, tratando o caso de ser tudo zero
+  digits = digits.replace(/^0+/, "") || "0";
+
+  // 3. Garante pelo menos 3 dígitos para a formatação (ex: 50 vira 050)
+  while (digits.length < 3) {
+    digits = "0" + digits;
+  }
+
+  // 4. Separa a parte inteira e a decimal
+  const integerPart = digits.slice(0, -2);
+  const decimalPart = digits.slice(-2);
+
+  // 5. Formata a parte inteira com pontos
+  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+  // 6. Retorna o valor final formatado
+  return `${formattedIntegerPart},${decimalPart}`;
+};
 
 const formatValueSave = (campo: MoneyKeys) => {
 

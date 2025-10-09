@@ -4,10 +4,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BuscaDadosMesCntroller;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\WalletsController;
-use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\LancamentoController;
 use App\Http\Controllers\RegisterController;
-use App\Http\Controllers\RevenueController;
 use Illuminate\Support\Facades\Route;
 
 // Route::options('{any?}', function () {
@@ -40,11 +38,11 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('/refresh-token', [AuthController::class, 'refresh']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    Route::post('/save-expense', [ExpenseController::class, 'saveExpense']);
-    Route::get('/get-expense', [ExpenseController::class, 'getExpense']);
-    Route::post('/pay-expense', [ExpenseController::class, 'payExpense']);
-    Route::post('/edit-expense', [ExpenseController::class, 'editExpense']);
-    Route::post('/delete-expense', [ExpenseController::class, 'deleteExpense']);
+    // Route::post('/save-expense', [ExpenseController::class, 'saveExpense']);
+    // Route::get('/get-expense', [ExpenseController::class, 'getExpense']);
+    // Route::post('/pay-expense', [ExpenseController::class, 'payExpense']);
+    // Route::post('/edit-expense', [ExpenseController::class, 'editExpense']);
+    // Route::post('/delete-expense', [ExpenseController::class, 'deleteExpense']);
 
     Route::get('/lancamentos', [LancamentoController::class, 'getLancamento']);
     Route::post('/lancamentos', [LancamentoController::class, 'saveLancamento']);
