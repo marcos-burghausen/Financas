@@ -28,9 +28,7 @@ class LancamentoController extends Controller
 
     public function saveLancamento(StoreLancamentoRequest  $request)
     {
-        info('createLancamento: ' . json_encode($request->all()));
         $validatedData = $request->validated();
-        info('validatedData: ' . json_encode($validatedData));
 
         /** @var \App\Models\User $user */
         $user = auth()->user();

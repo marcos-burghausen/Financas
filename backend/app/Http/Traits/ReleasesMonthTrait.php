@@ -5,6 +5,7 @@ namespace App\Http\Traits;
 use App\Models\Conta;
 use DateTime;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 trait ReleasesMonthTrait
 {
@@ -163,44 +164,64 @@ trait ReleasesMonthTrait
     {
         $dataLimite = (new DateTime("$mes-01"))->modify('-1 day')->format('Y-m-d');
 
-        // 1. Começa com a soma dos saldos iniciais das contas que devem ser incluídas.
-        $saldoInicial = $user->contas()
+
+        // 1. Filtra contas que devem ser incluídas
+        $contasIncluidas = $user->contas()
             ->where('incluir_em_soma_inicial', true)
+            ->pluck('id');
+
+
+        // 2. Soma os saldos iniciais dessas contas
+        $saldoInicial = DB::table('contas')
+            ->whereIn('id', $contasIncluidas)
             ->sum('saldo_inicial');
 
-        // 2. Busca todos os lançamentos efetivados ANTES do início do mês de referência.
+
+
+
+        // 3. Busca lançamentos efetivados antes do mês, apenas das contas incluídas
         $lancamentosAnteriores = $user->lancamentos()
             ->where('status_lancamento', 'EFETIVADA')
             ->where('data_efetivacao', '<', $dataLimite)
+            ->whereIn('conta_id', $contasIncluidas)
             ->get();
 
-        // 3. Soma as receitas e subtrai as despesas do período.
+
+
+        // 4. Soma receitas e subtrai despesas
         $totalReceitasAnteriores = $lancamentosAnteriores->where('tipo_lancamento', 'RECEITA')->sum('valor');
         $totalDespesasAnteriores = $lancamentosAnteriores->where('tipo_lancamento', 'DESPESA')->sum('valor');
 
-        // 4. Calcula o saldo final
         return $saldoInicial + $totalReceitasAnteriores - $totalDespesasAnteriores;
     }
 
     public function obterSaldoAtual(object $user, $mes = null): float
     {
-        $dataInicio = Carbon::parse($mes)->startOfMonth()->format('Y-m-d');
-        $dataFim = Carbon::parse($mes)->endOfMonth()->format('Y-m-d');
+        $mes = $date ?? Carbon::now()->format('Y-m');
+        $year = Carbon::parse($mes)->year;
+        $month = Carbon::parse($mes)->month;
 
-        // 1. Pega o saldo inicial do mês.
+
+        // 1. Filtra contas que devem ser incluídas
+        $contasIncluidas = $user->contas()
+            ->where('incluir_em_soma_inicial', true)
+            ->pluck('id');
+
+        // 2. Pega o saldo inicial do mês
         $saldoDoInicioDoMes = $this->obterSaldoInicial($user, $mes);
 
-        // 2. Busca todos os lançamentos efetivados DENTRO do mês de referência.
+        // 3. Busca lançamentos efetivados no mês, apenas das contas incluídas
         $lancamentosDoMes = $user->lancamentos()
             ->where('status_lancamento', 'EFETIVADA')
-            ->whereBetween('data_efetivacao', [$dataInicio, $dataFim]) // A consulta agora usa um intervalo de datas válido.
+            ->whereYear('data_vencimento', $year)
+            ->whereMonth('data_vencimento', $month)
+            ->whereIn('conta_id', $contasIncluidas)
             ->get();
 
-        // 3. Soma as receitas e subtrai as despesas do mês.
+        // 4. Soma receitas e subtrai despesas
         $totalReceitasDoMes = $lancamentosDoMes->where('tipo_lancamento', 'RECEITA')->sum('valor');
         $totalDespesasDoMes = $lancamentosDoMes->where('tipo_lancamento', 'DESPESA')->sum('valor');
 
-        // 4. Calcula o saldo final do mês.
         return $saldoDoInicioDoMes + $totalReceitasDoMes - $totalDespesasDoMes;
     }
 }

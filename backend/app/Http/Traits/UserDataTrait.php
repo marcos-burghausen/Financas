@@ -82,17 +82,23 @@ trait UserDataTrait
                     ->where('tipo_conta', '!=', 'Cartão de Crédito')
                     // ->get(['id', 'name', 'icon', 'color', 'saldo', 'saldo_inicial', 'descricao', 'tipo_conta', 'incluir_em_soma_inicial']),
                     ->get()
-                    ->map(function ($conta) {
+                    ->map(function ($conta) use ($year, $month) {
                         // Calcula a soma de todas as receitas para esta conta
+                        // $totalReceitas = $dataToReturn['revenues']['valueTotalMonth'];
                         $totalReceitas = DB::table('lancamentos')
                             ->where('conta_id', $conta->id)
                             ->where('tipo_lancamento', 'RECEITA')
+                            ->whereYear('data_vencimento', $year)
+                            ->whereMonth('data_vencimento', $month)
                             ->sum('valor');
 
                         // Calcula a soma de todas as despesas para esta conta
+                        // $totalDespesas = $dataToReturn['expenses']['valueTotalMonth'];
                         $totalDespesas = DB::table('lancamentos')
                             ->where('conta_id', $conta->id)
                             ->where('tipo_lancamento', 'DESPESA')
+                            ->whereYear('data_vencimento', $year)
+                            ->whereMonth('data_vencimento', $month)
                             ->sum('valor');
 
                         // Define o novo atributo no objeto da conta

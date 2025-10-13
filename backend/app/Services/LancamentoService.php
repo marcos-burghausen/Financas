@@ -56,10 +56,11 @@ class LancamentoService
     {
         switch ($data['recorrencia']) {
             case 'PARCELADO':
-                $this->createLancamentoParcelado($data, $user);
+                $this->createLancamentoParceladoStandard($data, $user);
                 break;
-            // Adicione a lógica para 'FIXA' se for diferente de 'PARCELADO'
             case 'FIXA':
+                $this->createLancamentoFixoStandard($data, $user);
+                break;
             case 'NAO_RECORRENTE':
             default:
                 $this->createLancamentoUnico($data, $user);
@@ -153,6 +154,7 @@ class LancamentoService
     private function createLancamentoParceladoStandard(array $data, User $user): void
     {
         $qtdParcelas = (int) $data['qtd_parcelas'];
+        $numParcela = (int) ($data['num_parcela'] ?? 1);
         $valorTotal = $data['valor'];
         $tipoParcela = $data['tipo_parcela'] ?? 'TOTAL';
 
@@ -167,31 +169,90 @@ class LancamentoService
         $groupId = Str::uuid();
         $dataVencimentoBase = new DateTime($data['data_vencimento']);
         $diaOriginal = (int)$dataVencimentoBase->format('d');
+        $parcelaInicial = $data['num_parcela'] ?? 1;
+        $statusInicial = $data['status_lancamento'];
 
-        for ($i = 1; $i <= $qtdParcelas; $i++) {
+        // for ($i = 1; $i <= $qtdParcelas; $i++) {
+        for ($i = $parcelaInicial; $i <= $qtdParcelas; $i++) {
             $valorDaParcela = $valorBaseParcela + (($i === 1) ? $resto : 0);
 
-            $offsetMeses = $i - 1;
+            $offsetMeses = $i - $parcelaInicial;
             $dataBaseLoop = (new DateTime($dataVencimentoBase->format('Y-m-01')))->modify("+$offsetMeses month");
             $ultimoDiaDoMesCalculado = (int)$dataBaseLoop->format('t');
             $diaDaParcela = min($diaOriginal, $ultimoDiaDoMesCalculado);
             $dataVencimentoParcela = $dataBaseLoop->format("Y-m-{$diaDaParcela}");
+
+            $statusDaParcelaFixa = ($statusInicial === 'EFETIVADA' && $i === $parcelaInicial) ? 'EFETIVADA' : 'PENDENTE';
 
             $lancamento = Lancamento::create(array_merge($data, [
                 'user_id'              => $user->id,
                 'installment_group_id' => $groupId,
                 'descricao'            => $data['descricao'] . " ($i/$qtdParcelas)",
                 'valor'                => $valorDaParcela,
+                'tipo_parcela'         => $data['tipo_parcela'],
+                'recorrencia'          => 'Parcelado',
                 'qtd_parcelas'         => $qtdParcelas,
                 'num_parcela'         => $i,
                 'data_vencimento'      => $dataVencimentoParcela,
-                // Apenas a primeira parcela herda o status; as outras são pendentes
-                'status_lancamento'    => ($i === 1 && $data['status_lancamento'] === 'EFETIVADA') ? 'EFETIVADA' : 'PENDENTE',
+                'status_lancamento'    => $statusDaParcelaFixa,
+                'categoria'            => $data['categoria'],
+                'subcategoria'         => $data['subcategoria'],
+                'data_lancamento'       => $data['data_lancamento'],
+                'conta_id'             => $data['conta_id'],
+                'periodicidade'        => $data['periodicidade'] ?? null,
             ]));
 
-            // A atualização de saldo é chamada para cada parcela,
-            // mas só terá efeito se a parcela for 'EFETIVADA'
-            $this->atualizarSaldos($lancamento);
+            if ($statusInicial === 'EFETIVADA') {
+                // $this->atualizarSaldo($conta, $valorInputEmCentavos, $data['tipo']);
+                $this->atualizarSaldos($lancamento);
+            }
+        }
+    }
+
+    /**
+     * Cria lançamentos fixos padrão (Receita/Despesa).
+     */
+    private function createLancamentoFixoStandard(array $data, User $user): void
+    {
+        info('Criando lançamento fixo padrão', $data);
+        $groupId = Str::uuid();
+        $dataVencimentoBase = new DateTime($data['data_vencimento']);
+        $diaOriginal = (int)$dataVencimentoBase->format('d');
+        $statusInicial = $data['status_lancamento'];
+
+        for ($i = 1; $i <= 12; $i++) {
+            $offsetMeses = $i - 1;
+            $dataBaseLoop = (new DateTime($dataVencimentoBase->format('Y-m-01')))->modify("+$offsetMeses month");
+            $ultimoDiaDoMesCalculado = (int)$dataBaseLoop->format('t');
+            $diaDaParcela = min($diaOriginal, $ultimoDiaDoMesCalculado);
+            $dataVencimentoParcela = $dataBaseLoop->format("Y-m-{$diaDaParcela}");
+
+            $statusDaParcelaFixa = ($statusInicial === 'EFETIVADA' && $i === 1) ? 'EFETIVADA' : 'PENDENTE';
+
+            $lancamento = Lancamento::create([
+                'user_id'              => $user->id,
+                'installment_group_id' => $groupId,
+                'descricao'            => $data['descricao'],
+                'valor'                => $data['valor'],
+                'tipo_lancamento'      => $data['tipo_lancamento'],
+                'recorrencia'          => 'Fixa',
+                'qtd_parcelas'         => $data['qtd_parcelas'],
+                'num_parcela'          => $i,
+                'data_vencimento'      => $dataVencimentoParcela,
+                'status_lancamento'    => $statusDaParcelaFixa,
+                'categoria'            => $data['categoria'],
+                'subcategoria'         => $data['subcategoria'],
+                'data_lancamento'      => $data['data_lancamento'],
+                'conta_id'             => $data['conta_id'] ?? null,
+                'tipo_parcela'         => $data['tipo_parcela'] ?? 'total',
+                'periodicidade'        => $data['periodicidade'] ?? null,
+            ]);
+            info('Lançamento fixo criado: numero -> ', $lancamento->toArray());
+
+            if ($statusInicial === 'EFETIVADA') {
+                // $this->atualizarSaldo($conta, $valorInputEmCentavos, $data['tipo']);
+                $this->atualizarSaldos($lancamento);
+            }
         }
     }
 
