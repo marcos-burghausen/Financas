@@ -22,6 +22,7 @@ export interface Lancamento {
   conta_id?: number | null;
   cartao_id?: number | null;
   fatura?: string | null; // "YYYY-MM"
+  conta_model?: { id: number; nome: string; };
 }
 
 export interface CreditCardInvoice {

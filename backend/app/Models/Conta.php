@@ -15,7 +15,6 @@ class Conta extends Model
         'name',
         'icon',
         'color',
-        'bandeira',
         'saldo',
         'saldo_inicial',
         'incluir_em_soma_inicial',

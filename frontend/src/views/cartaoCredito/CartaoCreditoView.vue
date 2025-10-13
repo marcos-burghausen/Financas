@@ -132,7 +132,7 @@
           <div class="card__footer">
             <div class="fatura-info">
               <span class="fatura-label">Fatura</span>
-              <span class="fatura-value">R$ {{ formatValue(card.total_fatura) }}</span>
+              <span class="fatura-value">R$ {{ formatValue(card.total_fatura_vigente) }}</span>
             </div>
             <div class="fatura-actions">
               <span
@@ -330,8 +330,14 @@ const closeFormLancCartao = () => {
 // };
 
 const updateData = (newData: WalletData) => {
+  // A resposta da API (newData) contém tanto 'cartoes' quanto 'contas'.
+  // Atualizamos ambos para manter a consistência.
   creditCards.value = newData.cartoes;
+  wallets.value = newData.contas; 
+  
+  // Fecha qualquer formulário que estiver aberto
   closeForm();
+  closeFormLancCartao();
 };
 </script>
 

@@ -24,12 +24,29 @@ class LancamentoService
      */
     public function createLancamento(array $data, User $user): void
     {
-        info('createLancamento: ' . json_encode($data));
+
         if ($data['tipo_lancamento'] === 'CARTAO_CREDITO') {
             $this->createCreditCardLancamento($data, $user);
         } else {
             $this->createStandardLancamento($data, $user);
         }
+    }
+
+    public function efetivarLancamento(Lancamento $lancamento): void
+    {
+        // Se o lançamento já estiver efetivado, não faz nada.
+        if ($lancamento->status_lancamento === 'EFETIVADA') {
+            return;
+        }
+
+        // 1. Atualiza o status e a data de efetivação.
+        $lancamento->status_lancamento = 'EFETIVADA';
+        $lancamento->data_efetivacao = Carbon::now();
+        $lancamento->save();
+
+        // 2. Chama o método que já criamos para atualizar o saldo da conta.
+        // Ele já contém a lógica para verificar o tipo (RECEITA/DESPESA) e o status.
+        $this->atualizarSaldos($lancamento);
     }
 
     /**

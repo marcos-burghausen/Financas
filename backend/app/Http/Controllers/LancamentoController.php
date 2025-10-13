@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 use App\Models\Lancamento;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -27,9 +28,9 @@ class LancamentoController extends Controller
 
     public function saveLancamento(StoreLancamentoRequest  $request)
     {
+        info('createLancamento: ' . json_encode($request->all()));
         $validatedData = $request->validated();
-
-        info('Dados validados: ' . json_encode($validatedData));
+        info('validatedData: ' . json_encode($validatedData));
 
         /** @var \App\Models\User $user */
         $user = auth()->user();
@@ -60,6 +61,40 @@ class LancamentoController extends Controller
 
 
             return response()->json(['error' => 'Ocorreu um erro interno ao registrar o lançamento.'], 500);
+        }
+    }
+
+    public function efetivarLancamento(Request $request, Lancamento $lancamento): JsonResponse
+    {
+
+        // 1. Verificação de permissão: garante que o lançamento pertence ao usuário autenticado.
+        if ($lancamento->user_id !== auth()->id()) {
+            return response()->json(['error' => 'Não autorizado.'], 403);
+        }
+        info('Efetivando lançamento ID: ' . $request->mesAno);
+
+        try {
+            DB::beginTransaction();
+
+            // 2. Delega a lógica de negócio para o serviço.
+            $this->lancamentoService->efetivarLancamento($lancamento);
+
+            DB::commit();
+
+            // $mesAnoParaRetorno = $request->input('mesAno', $lancamento->data_vencimento->format('Y-m'));
+            $tipo = $lancamento->tipo_lancamento;
+            $dataToFetch = [($tipo === 'RECEITA') ? 'revenues' : 'expenses', 'wallets'];
+
+            $responseData = $this->getUserData(auth()->user(), $request->mesAno, $dataToFetch);
+
+            return response()->json([
+                'success' => 'Lançamento efetivado com sucesso!',
+                ...$responseData
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Erro ao efetivar lançamento: ' . $e->getMessage(), ['lancamento_id' => $lancamento->id, 'exception' => $e]);
+            return response()->json(['error' => 'Ocorreu um erro ao efetivar o lançamento.'], 500);
         }
     }
 

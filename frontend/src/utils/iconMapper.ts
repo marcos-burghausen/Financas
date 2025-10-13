@@ -22,10 +22,10 @@ export const getBankIcon = (bankName: string): string => {
 };
 
 export const iconsBank = [
-  { name: "Sicredi", icon: SicrediIcon },
-  { name: "Nubank", icon: NubankIcon },
-  { name: "Caixa Economica", icon: CaixaIcon },
-  { name: "Banco do Brasil", icon: BBIcon },
+  { name: "Sicredi", value: 'SicrediIcon', icon: SicrediIcon },
+  { name: "Nubank", value: 'NubankIcon', icon: NubankIcon },
+  { name: "Caixa Economica", value: 'CaixaIcon', icon: CaixaIcon },
+  { name: "Banco do Brasil", value: 'BBIcon', icon: BBIcon },
 ];
 
 export const iconCardMap = [

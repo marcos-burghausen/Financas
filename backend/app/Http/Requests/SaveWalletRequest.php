@@ -54,7 +54,6 @@ class SaveWalletRequest extends FormRequest
             'incluir_em_soma_inicial' => 'nullable|boolean',
             'saldo_inicial'           => 'nullable|integer',
             'descricao'               => 'nullable|string|max:50',
-            'bandeira'                => 'required_if:tipo_conta,Cartão de Crédito|nullable|string',
             'limite'                  => 'required_if:tipo_conta,Cartão de Crédito|nullable|integer',
             'dia_fechamento'          => 'required_if:tipo_conta,Cartão de Crédito|nullable|integer|min:1|max:31',
             'dia_vencimento'          => 'required_if:tipo_conta,Cartão de Crédito|nullable|integer|min:1|max:31',

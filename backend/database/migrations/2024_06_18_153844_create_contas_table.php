@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('name', 20);
             $table->string('icon', 20)->default('');
             $table->string('color', 20)->default('');
-            $table->string('bandeira', 20)->default('');
             $table->integer('saldo')->default(0);
             $table->integer('saldo_inicial')->default(0);
             $table->integer('incluir_em_soma_inicial')->default(false);

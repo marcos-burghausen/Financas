@@ -415,7 +415,7 @@
           class="mb-6 imput"
           readonly
           :prepend-inner-icon="
-            formReleases.status_lancamento === 'Efetivada'
+            formReleases.status_lancamento === 'EFETIVADA'
               ? 'mdi-check-circle-outline'
               : 'mdi-clock-time-three-outline'
           "
@@ -424,14 +424,14 @@
           <template #append-inner>
             <div
               :class="
-                formReleases.status_lancamento === 'Efetivada'
+                formReleases.status_lancamento === 'EFETIVADA'
                   ? 'form__check__efetivada'
                   : 'form__check'
               "
             >
               <div
                 :class="
-                  formReleases.status_lancamento === 'Efetivada'
+                  formReleases.status_lancamento === 'EFETIVADA'
                     ? 'switch__check__efetivada'
                     : 'switch__check'
                 "
@@ -668,7 +668,7 @@ import { getBankIcon } from "@/utils/iconMapper";
 // 1. PROPS & EMITS
 const props = defineProps<{
   releases?: Lancamento;
-  wallets: Wallet[];
+  wallets?: Wallet[];
   rota: string;
   mesAno: string;
   transactionType: "Receita" | "Despesa";
@@ -685,7 +685,25 @@ const useUser = useUserStore();
 const errorStore = useErrorStore();
 
 // 3. REFS & STATE
-const formReleases = ref<Partial<Lancamento>>({});
+const formReleases = ref<Partial<Lancamento>>({
+  id: props.releases?.id || null,
+  descricao: props.releases?.descricao || "",
+  valor: props.releases?.valor || "0,00",
+  tipo_lancamento: props.transactionType,
+  recorrencia: props.releases?.recorrencia || "Não recorrente",
+  num_parcela: props.releases?.num_parcela || null,
+  qtd_parcelas: props.releases?.qtd_parcelas || null,
+  tipo_parcela: props.releases?.tipo_parcela || null,
+  periodicidade: props.releases?.periodicidade || null,
+  data_vencimento: props.releases?.data_vencimento || format(new Date(), "yyyy-MM-dd"),
+  status_lancamento: props.releases?.status_lancamento || "PENDENTE",
+  categoria: props.releases?.categoria || "Outros",
+  subcategoria: props.releases?.subcategoria || "Outros",
+  conta_id: props.releases?.conta_id || null,
+  fatura: props.releases?.fatura || null,
+  data_lancamento: props.releases?.data_lancamento || format(new Date(), "yyyy-MM-dd"),
+  data_efetivacao: props.releases?.data_efetivacao || null,
+});
 const loading = ref(false);
 const validFormLancamentos = ref(false);
 const informacoes = ref(false);
@@ -724,7 +742,7 @@ const tiposRecorrencia = ref<("Não recorrente" | "Fixa" | "Parcelado")[]>([
 const isEditMode = computed(() => !!props.releases?.id);
 
 const creditCardAccounts = computed<Wallet[]>(() => 
-  props.wallets.filter(w => w.tipo_carteira === 'Cartão de Crédito') || []
+  props.wallets.filter(w => w.tipo_conta === 'Cartão de Crédito') || []
 );
 
 const availableBankAccounts = computed<Wallet[]>(() => 
@@ -822,7 +840,7 @@ const displayDataEfetivacao = computed(() => formatDateForDisplay(formReleases.v
 
 // 5. WATCHERS
 watch(() => formReleases.value.status_lancamento, (newStatus) => {
-  formReleases.value.data_efetivacao = newStatus === "Efetivada" ? format(new Date(), "yyyy-MM-dd") : null;
+  formReleases.value.data_efetivacao = newStatus === "EFETIVADA" ? format(new Date(), "yyyy-MM-dd") : null;
 });
 
 watch(() => formReleases.value.categoria, () => {
@@ -833,7 +851,6 @@ watch(() => formReleases.value.data_vencimento, (nv) => (formReleases.value.data
 watch(() => formReleases.value.data_lancamento, (nv) => (formReleases.value.data_lancamento = formatDateOnWatch(nv)));
 watch(() => formReleases.value.data_efetivacao, (nv) => (formReleases.value.data_efetivacao = formatDateOnWatch(nv)));
 
-// NOVO: Watch para atualizar a fatura quando o cartão de crédito mudar
 watch(() => formReleases.value.cartao_id, (newCardId) => {
   if (newCardId) {
     setDefaultInvoice();
@@ -937,7 +954,7 @@ onClickOutside(cardSelectRef, () => { isCardDropdownOpen.value = false; });
 
 const toggleStatus = () => {
   formReleases.value.status_lancamento =
-    formReleases.value.status_lancamento === "Efetivada" ? "Pendente" : "Efetivada";
+    formReleases.value.status_lancamento === "EFETIVADA" ? "PENDENTE" : "EFETIVADA";
 };
 
 const toggleFaturaDropdown = async () => {
@@ -1015,7 +1032,7 @@ const cancelarConfiguracaoRepeticao = () => {
 const concluirParcelas = () => {
   parcelaInicial.value = tempParcelaInicial.value;
   formReleases.value.qtd_parcelas = tempNumParcelas.value;
-  formReleases.value.periodicidade = tempPeriodicidade.value || null;
+  formReleases.value.periodicidade = tempPeriodicidade.value;
   openParcelas.value = false;
 };
 
@@ -1056,10 +1073,10 @@ const proceedWithSave = async () => {
   if (formReleases.value.recorrencia === "Parcelado") {
     if (props.releases?.recorrencia === "Parcelado" || props.releases?.recorrencia === "Fixa") {
       payload.tipo_parcela = props.releases?.tipo_parcela;
-      payload.parcela_atual = props.releases?.parcela_atual;
+      payload.num_parcela = props.releases?.num_parcela;
     } else {
       payload.tipo_parcela = tipoCalculoParcela.value;
-      payload.parcela_atual = parcelaInicial.value;
+      payload.num_parcela = parcelaInicial.value;
     }
   }
 
@@ -1069,10 +1086,15 @@ const proceedWithSave = async () => {
     const res = await method(url, payload);
 
     useUser.setMesAno(res.data.mesAno);
-    if (props.transactionType === "Receita") {
-      emit("updateData", res.data.revenues);
+    if (props.isCard) {
+      emit("updateData", res.data.wallets);
     } else {
-      emit("updateData", res.data.expenses);
+      // Lógica original para receitas e despesas normais
+      if (props.transactionType === "Receita") {
+        emit("updateData", res.data.revenues);
+      } else {
+        emit("updateData", res.data.expenses);
+      }
     }
     walletsStore.setWalletsData(res.data.wallets);
     closeForm();

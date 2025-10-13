@@ -4,6 +4,7 @@ namespace App\Http\Traits;
 
 use App\Models\Conta;
 use DateTime;
+use Carbon\Carbon;
 
 trait ReleasesMonthTrait
 {
@@ -13,8 +14,8 @@ trait ReleasesMonthTrait
 
         $releasesMonth = $this->lancamentosMes($lacamentos, $mes);
 
-        $valorRecebidoOuPago = $this->valorPendenteMes($releasesMonth, "Efetivada");
-        $valuePending = $this->valorPendenteMes($releasesMonth, "Pendente");
+        $valorRecebidoOuPago = $this->valorPendenteMes($releasesMonth, "EFETIVADA");
+        $valuePending = $this->valorPendenteMes($releasesMonth, "PENDENTE");
         $valorTotalMes = $this->valorLancamentosMes($releasesMonth);
 
         $Data = [
@@ -38,7 +39,7 @@ trait ReleasesMonthTrait
     {
         $totalExpensesDay = 0;
         foreach ($releasesMonth as $release) {
-            if ($release->status_lancamento === 'Efetivada' && strtotime($release->data_lancamento) === strtotime(date('Y-m-d'))) {
+            if ($release->status_lancamento === 'EFETIVADA' && strtotime($release->data_lancamento) === strtotime(date('Y-m-d'))) {
                 $totalExpensesDay += $release->valor;
             }
         }
@@ -169,13 +170,13 @@ trait ReleasesMonthTrait
 
         // 2. Busca todos os lançamentos efetivados ANTES do início do mês de referência.
         $lancamentosAnteriores = $user->lancamentos()
-            ->where('status_lancamento', 'Efetivada')
+            ->where('status_lancamento', 'EFETIVADA')
             ->where('data_efetivacao', '<', $dataLimite)
             ->get();
 
         // 3. Soma as receitas e subtrai as despesas do período.
-        $totalReceitasAnteriores = $lancamentosAnteriores->where('tipo_lancamento', 'Receita')->sum('valor');
-        $totalDespesasAnteriores = $lancamentosAnteriores->where('tipo_lancamento', 'Despesa')->sum('valor');
+        $totalReceitasAnteriores = $lancamentosAnteriores->where('tipo_lancamento', 'RECEITA')->sum('valor');
+        $totalDespesasAnteriores = $lancamentosAnteriores->where('tipo_lancamento', 'DESPESA')->sum('valor');
 
         // 4. Calcula o saldo final
         return $saldoInicial + $totalReceitasAnteriores - $totalDespesasAnteriores;
@@ -183,20 +184,21 @@ trait ReleasesMonthTrait
 
     public function obterSaldoAtual(object $user, $mes = null): float
     {
-        $dataLimite = (new DateTime("$mes-01"))->modify('-1 day')->format('Y-m-d');
+        $dataInicio = Carbon::parse($mes)->startOfMonth()->format('Y-m-d');
+        $dataFim = Carbon::parse($mes)->endOfMonth()->format('Y-m-d');
 
         // 1. Pega o saldo inicial do mês.
         $saldoDoInicioDoMes = $this->obterSaldoInicial($user, $mes);
 
         // 2. Busca todos os lançamentos efetivados DENTRO do mês de referência.
         $lancamentosDoMes = $user->lancamentos()
-            ->where('status_lancamento', 'Efetivada')
-            ->whereBetween('data_efetivacao', ["{$mes}-01", $dataLimite])
+            ->where('status_lancamento', 'EFETIVADA')
+            ->whereBetween('data_efetivacao', [$dataInicio, $dataFim]) // A consulta agora usa um intervalo de datas válido.
             ->get();
 
         // 3. Soma as receitas e subtrai as despesas do mês.
-        $totalReceitasDoMes = $lancamentosDoMes->where('tipo_lancamento', 'Receita')->sum('valor');
-        $totalDespesasDoMes = $lancamentosDoMes->where('tipo_lancamento', 'Despesa')->sum('valor');
+        $totalReceitasDoMes = $lancamentosDoMes->where('tipo_lancamento', 'RECEITA')->sum('valor');
+        $totalDespesasDoMes = $lancamentosDoMes->where('tipo_lancamento', 'DESPESA')->sum('valor');
 
         // 4. Calcula o saldo final do mês.
         return $saldoDoInicioDoMes + $totalReceitasDoMes - $totalDespesasDoMes;

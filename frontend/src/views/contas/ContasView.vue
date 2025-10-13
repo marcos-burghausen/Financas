@@ -55,7 +55,7 @@
         <div class="container__icon pe-2">
           <v-icon
             :icon="getBankIcon(wallet.name)"
-            size="40"
+            size="30"
             color="#77d08e"
           />
         </div>
@@ -81,7 +81,7 @@
             <span
               v-if="wallet.saldo == null"
               class="saldo__atual"
-            > R$ 5.000,00 </span>
+            > R$ 0,00 </span>
             <span
               v-else
               class="saldo__atual"
@@ -96,7 +96,7 @@
               v-else
               class="saldo__previsto"
             >
-              R$ {{ formatValue(wallet.saldo) }}
+              R$ {{ formatValue(wallet.saldo_previsto) }}
             </span>
           </div>
         </v-col>
@@ -119,6 +119,7 @@
 <script setup lang="ts">
 // import ModalNovaConta from "@/components/ModalNovaConta.vue";
 import FormCartaoCredito from "@/components/FormContaCartao.vue";
+import type { WalletData } from "@/types/accounts.types";
 import { formatValue } from "@/utils/formatValue";
 import { getBankIcon } from "@/utils/iconMapper";
 import { computed } from "vue";
@@ -133,9 +134,10 @@ const mesAno = ref<string>(useUser.mesAno || "");
 const formulario = ref(false);
 
 
-// const updateContas = (novoValor) => {
-//     wallets.value = novoValor;
-// };
+const updateData = (newData: WalletData) => {
+  wallets.value = newData.contas;
+  closeForm();
+};
 
 const mesPorExtenso = computed(() => {
   if (!mesAno.value) return "";
@@ -259,7 +261,7 @@ const closeForm = () => {
   width: 100%;
   display: flex;
   border-bottom: solid 1px #3e4247;
-  padding-bottom: 15px;
+  padding: 10px 0;
 }
 .descricao__carteira {
   width: 50%;

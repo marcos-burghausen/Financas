@@ -1,5 +1,5 @@
 <template>
-  <div class="container__modal">
+  <!-- <div class="container__modal">
     <v-form
       class="w-100"
       @submit.prevent="submitForm"
@@ -48,7 +48,7 @@
               <div
                 ref="cardSelectRef"
                 class="custom__select"
-                @click="toggleCardDropdown"
+                @click="toggleIconDropdown"
               >
                 <div class="selection">
                   <v-icon
@@ -69,11 +69,11 @@
                 >
                   <div
                     v-for="icon in iconsBank"
-                    :key="icon.name"
+                    :key="icon.value"
                     class="dropdown__item"
                     :class="{ 'is__selected': icon.name === form.icon }"
                     :data-card-id="icon.name"
-                    @click.stop="selectCard(icon)"
+                    @click.stop="selectIcon(icon.name)"
                   >
                     <div class="dropdown__item__content">
                       <v-icon
@@ -83,18 +83,14 @@
                       />
                       <span>{{ icon.name }}</span>
                     </div>
-                    <!-- <v-icon
-                      :icon="getBankIcon(icon.bandeira)"
-                      size="20"
-                    /> -->
                   </div>
                 </div>
               </div>
             </div>
 
             <v-text-field
-              v-model="form.saldo_inicial"
-              label="Saldo Inicial"
+              v-model="form.saldo"
+              label="Saldo"
               variant="underlined"
               class="imput"
               type="tel"
@@ -208,7 +204,7 @@
               type="tel"
               prefix="R$"
               :rules="[rules.requiredValor]"
-              @input="() => formatValueSave('limite')"
+              @input="() => formatCurrencyInput('limite')"
             >
               <template #prepend-inner>
                 <v-icon icon="mdi-currency-usd" />
@@ -222,17 +218,15 @@
               class="imput"
               type="tel"
               prefix="R$"
-              :rules="[rules.requiredValor]"
-              @input="() => formatValueSave('saldo')"
+              @input="() => formatCurrencyInput('saldo')"
             >
               <template #prepend-inner>
                 <v-icon icon="mdi-currency-usd" />
               </template>
             </v-text-field>
 
-            <!-- BANDEIRA (ícone antes do nome no valor e nos itens) -->
             <v-select
-              v-model="form.bandeira"
+              v-model="form.icon"
               :items="cards"
               item-title="name"
               item-value="name"
@@ -245,7 +239,6 @@
                 <v-icon icon="mdi-credit-card-outline" />
               </template>
 
-              <!-- Valor selecionado -->
               <template #selection="{ item }">
                 <div class="d-flex align-center text-truncate">
                   <span class="text-truncate">{{ item.title }}</span>
@@ -258,16 +251,21 @@
                   class="brand-icon"
                 />
               </template>
-              <template #item="{ props, item }">
+              <template #item="{ props: itemProps, item }">
                 <v-list-item
-                  v-bind="props"
-                  :prepend-icon="item.raw.icon"
+                  v-bind="itemProps"
                   :title="item.raw.name"
-                />
+                >
+                  <template #prepend>
+                    <component
+                      :is="item.raw.icon"
+                      class="brand-icon mr-3"
+                    />
+                  </template>
+                </v-list-item>
               </template>
             </v-select>
 
-            <!-- CONTA (ícone antes do nome no valor e nos itens) -->
             <v-select
               v-model="form.conta_id"
               :items="walletItems"
@@ -281,7 +279,7 @@
               <template #selection="{ item }">
                 <div class="d-flex align-center text-truncate">
                   <v-icon
-                    :icon="getBankIcon(item.raw.name)"
+                    :icon="getBankIcon(item.raw.icon)"
                     size="25"
                     class="mr-2"
                   />
@@ -291,7 +289,7 @@
               <template #item="{ props, item }">
                 <v-list-item
                   v-bind="props"
-                  :prepend-icon="getBankIcon(item.raw.name)"
+                  :prepend-icon="getBankIcon(item.raw.icon)"
                   :title="item.raw.name"
                 />
               </template>
@@ -378,37 +376,337 @@
         </div>
       </div>
     </v-form>
+  </div> -->
+  <div class="container__modal">
+    <v-form
+      class="w-100"
+      @submit.prevent="submitForm"
+    >
+      <div>
+        <div class="header__items d-flex justify-content-between fixed-top py-10 align-items-center">
+          <div class="d-flex align-items-center">
+            <v-btn
+              :disabled="loading"
+              class="close fs-5 ms-2"
+              icon="mdi-close"
+              @click="closeForm"
+            />
+            <span class="fs-5 ms-2"> {{ walletType === 'Cartão' ? 'Novo Cartão' : 'Nova Conta' }} </span>
+          </div>
+          <v-btn
+            :disabled="loading || !isFormValid"
+            :loading="loading"
+            class="btn m-0 me-3 p-0 px-2"
+            type="submit"
+            rounded="xl"
+          >
+            Salvar
+          </v-btn>
+        </div>
+
+        <div class="form-body">
+          <div v-if="walletType === 'Conta'">
+            <div class="custom__select__wrapper d-flex">
+              <v-col
+                cols="10"
+                class="p-0"
+              >
+                <v-text-field
+                  v-model="form.name"
+                  label="Nome da Conta"
+                  variant="underlined"
+                  class="imput"
+                  :rules="[rules.required]"
+                >
+                  <template #prepend-inner>
+                    <v-icon icon="mdi-text" />
+                  </template>
+                </v-text-field>
+              </v-col>
+              <div
+                ref="cardSelectRef"
+                class="custom__select"
+                @click="toggleIconDropdown"
+              >
+                <div class="selection">
+                  <v-icon
+                    :icon="getBankIcon(form.icon || '')"
+                    size="25"
+                  />
+                  <v-icon
+                    icon="mdi-menu-down"
+                    size="20"
+                  />
+                </div>
+                <div
+                  v-if="isIconDropdownOpen"
+                  ref="cardDropdownContainerRef"
+                  class="dropdown"
+                >
+                  <div
+                    v-for="icon in iconsBank"
+                    :key="icon.value"
+                    class="dropdown__item"
+                    :class="{ 'is__selected': icon.name === form.icon }"
+                    @click.stop="selectIcon(icon.name)"
+                  >
+                    <div class="dropdown__item__content">
+                      <v-icon
+                        :icon="getBankIcon(icon.name)"
+                        size="25"
+                        class="me-2"
+                      />
+                      <span>{{ icon.name }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <v-text-field
+              v-model="form.saldo_inicial"
+              label="Saldo Inicial"
+              variant="underlined"
+              class="imput"
+              type="tel"
+              prefix="R$"
+              :rules="[rules.requiredValor]"
+              @update:model-value="form.saldo_inicial = formatCurrencyInput($event)"
+            >
+              <template #prepend-inner>
+                <v-icon icon="mdi-currency-usd" />
+              </template>
+            </v-text-field>
+
+            <v-select
+              v-model="form.tipo_conta"
+              :items="['Carteira', 'Conta Corrente', 'Poupança', 'Investimento', 'Outro']"
+              label="Tipo de Conta"
+              variant="underlined"
+              class="imput"
+              :rules="[rules.required]"
+            >
+              <template #prepend-inner>
+                <v-icon :icon="form.tipo_conta === 'Carteira' ? 'mdi-wallet-outline' : form.tipo_conta === 'Conta Corrente' ? 'mdi-bank-outline' : form.tipo_conta === 'Poupança' ? 'mdi-piggy-bank' : form.tipo_conta === 'Investimento' ? 'mdi-chart-line' : 'mdi-currency-usd'" />
+              </template>
+            </v-select>
+
+            <div class="d-flex justify-content-between align-items-center mt-4">
+              <span>Incluir na soma do total?</span>
+              <v-switch
+                v-model="form.incluir_em_soma_inicial"
+                color="primary"
+                hide-details
+              />
+            </div>
+          </div>
+
+          <div v-if="walletType === 'Cartão'">
+            <v-text-field
+              v-model="form.name"
+              label="Apelido do Cartão"
+              variant="underlined"
+              class="imput"
+              :rules="[rules.required]"
+            >
+              <template #prepend-inner>
+                <v-icon icon="mdi-text" />
+              </template>
+              <template #append-inner>
+                <v-menu
+                  v-model="menu"
+                  :close-on-content-click="false"
+                  location="end"
+                >
+                  <template #activator="{ props: menuProps }">
+                    <div
+                      v-bind="menuProps"
+                      class="color-input-activator"
+                      :style="{ backgroundColor: form.color }"
+                    />
+                  </template>
+                  <v-card>
+                    <v-color-picker
+                      v-model="form.color"
+                      hide-details
+                      mode="hex"
+                    />
+                    <v-card-actions>
+                      <v-spacer />
+                      <v-btn @click="menu = false">OK</v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-menu>
+              </template>
+            </v-text-field>
+
+            <v-text-field
+              v-model="form.limite"
+              label="Limite do Cartão"
+              variant="underlined"
+              class="imput"
+              type="tel"
+              prefix="R$"
+              :rules="[rules.requiredValor]"
+              @update:model-value="form.limite = formatCurrencyInput($event)"
+            >
+              <template #prepend-inner>
+                <v-icon icon="mdi-currency-usd" />
+              </template>
+            </v-text-field>
+
+            <v-select
+              v-model="form.icon"
+              :items="cards"
+              item-title="name"
+              item-value="name"
+              label="Bandeira"
+              variant="underlined"
+              class="imput"
+              :rules="[rules.required]"
+            >
+              <template #prepend-inner>
+                <v-icon icon="mdi-credit-card-outline" />
+              </template>
+              <template #append-inner>
+                <component
+                  :is="selectedBrandIcon"
+                  v-if="selectedBrandIcon"
+                  class="brand-icon"
+                />
+              </template>
+              <template #item="{ props: itemProps, item }">
+                <v-list-item
+                  v-bind="itemProps"
+                  :title="item.raw.name"
+                >
+                  <template #prepend>
+                    <component
+                      :is="item.raw.icon"
+                      class="brand-icon mr-3"
+                    />
+                  </template>
+                </v-list-item>
+              </template>
+            </v-select>
+
+            <v-select
+              v-model="form.conta_pai_id"
+              :items="walletItems"
+              item-title="name"
+              item-value="id"
+              label="Conta Vinculada"
+              variant="underlined"
+              class="imput"
+              :rules="[rules.required]"
+            >
+              <template #selection="{ item }">
+                <div class="d-flex align-center text-truncate">
+                  <v-icon
+                    :icon="getBankIcon(item.raw.icon || '')"
+                    size="25"
+                    class="mr-2"
+                  />
+                  <span class="text-truncate">{{ item?.raw?.name ?? 'Nenhuma' }}</span>
+                </div>
+              </template>
+              <template #item="{ props: itemProps, item }">
+                <v-list-item
+                  v-bind="itemProps"
+                  :prepend-icon="getBankIcon(item.raw.icon || '')"
+                  :title="item.raw.name"
+                />
+              </template>
+            </v-select>
+
+            <v-text-field
+              v-model="form.dia_fechamento"
+              label="Dia do Fechamento"
+              variant="underlined"
+              class="imput"
+              readonly
+              :rules="[rules.required]"
+              @click="menuFechamento = true"
+            >
+              <template #prepend-inner>
+                <v-icon icon="mdi-calendar-remove-outline" />
+              </template>
+            </v-text-field>
+            
+            <v-text-field
+              v-model="form.dia_vencimento"
+              label="Dia do Vencimento"
+              variant="underlined"
+              class="imput"
+              readonly
+              :rules="[rules.required]"
+              @click="menuVencimento = true"
+            >
+              <template #prepend-inner>
+                <v-icon icon="mdi-calendar-today-outline" />
+              </template>
+            </v-text-field>
+          </div>
+        </div>
+      </div>
+    </v-form>
+
+    <v-menu
+      v-model="menuFechamento"
+      :close-on-content-click="false"
+      location="top center"
+    >
+      <v-card max-width="320px">
+        <v-card-text>
+          <div class="d-flex flex-wrap justify-center">
+            <v-btn
+              v-for="dia in diasDoMes"
+              :key="dia"
+              :active="form.dia_fechamento === dia"
+              size="small"
+              @click="selecionarDiaFechamento(dia)"
+            >
+              {{ dia }}
+            </v-btn>
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-menu>
+
+    <v-menu
+      v-model="menuVencimento"
+      :close-on-content-click="false"
+      location="top center"
+    >
+      <v-card max-width="320px">
+        <v-card-text>
+          <div class="d-flex flex-wrap justify-center">
+            <v-btn
+              v-for="dia in diasDoMes"
+              :key="dia"
+              :active="form.dia_vencimento === dia"
+              size="small"
+              @click="selecionarDiaVencimento(dia)"
+            >
+              {{ dia }}
+            </v-btn>
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-menu>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useWalletsStore } from "@/store/wallets";
-import { onClickOutside } from "@vueuse/core";
-import { computed, nextTick, PropType, ref } from "vue";
-
-// Assets das bandeiras
 import type { Wallet } from "@/types/accounts.types";
-import { formatValue } from "@/utils/formatValue";
 import { getBankIcon, iconCardMap, iconsBank } from "@/utils/iconMapper";
+import { onClickOutside } from "@vueuse/core";
+import { computed, PropType, ref } from "vue";
 
-const DEFAULT_ICON = "mdi-bank-outline";
-
-const diasDoMes = Array.from({ length: 30 }, (_, i) => i + 1);
-
-const menuFechamento = ref(false);
-
-const selecionarDiaFechamento = (dia: number) => {
-  form.value.dia_fechamento = dia; // Atualiza o valor no formulário
-  menuFechamento.value = false;   // Fecha o menu
-};
-
-const menuVencimento = ref(false);
-const selecionarDiaVencimento = (dia: number) => {
-  form.value.dia_vencimento = dia; // Atualiza o valor no formulário
-  menuVencimento.value = false;   // Fecha o menu
-};
-
-const menu = ref(false);
+// --- CONSTANTES ---
+const diasDoMes = Array.from({ length: 31 }, (_, i) => i + 1);
+const DEFAULT_ITEM = { id: -1, name: "Nenhuma", icon: "mdi-bank-off-outline" };
 
 // --- PROPS E EMITS ---
 const props = defineProps({
@@ -418,167 +716,54 @@ const props = defineProps({
   },
   wallets: {
     type: Array as PropType<Wallet[]>,
-    // type: Array as PropType<Array<Wallet>>,
     required: true,
   }
 });
-
-/** Item padrão (nenhuma conta selecionada) */
-const DEFAULT_ITEM = { id: -1, name: "Nenhuma", icon: "mdi-bank-off-outline" };
-
-/** Lista exibida no select: item padrão + carteiras reais */
-const walletItems = computed(() => [DEFAULT_ITEM, ...props.wallets]);
-
-/** Conta selecionada (objeto) a partir do id do form */
-const selectedWallet = computed<Wallet>(() => {
-  if (form.value.conta_id == null) return null;
-  return walletItems.value.find(w => w.id === form.value.conta_id) ?? null;
-});
-
-const displayIcon = computed<string>(() => {
-  // 1) Se usuário já selecionou no form
-  if (form.value.icon) return getBankIcon(form.value.icon as string);
-  // 2) Se estiver editando e o form.icon já foi populado pelo wallet, essa linha acima já cobre
-  // 3) Caso contrário, use o ícone padrão
-  return DEFAULT_ICON;
-});
-
-
-const toggleCardDropdown = async () => {
-  isIconDropdownOpen.value = !isIconDropdownOpen.value;
-  if (isIconDropdownOpen.value) {
-    await nextTick();
-    const container = cardDropdownContainerRef.value;
-    if (container && form.value.icon) {
-      const selectedItem = container.querySelector(
-        `[data-card-id="${form.value.icon}"]`
-      ) as HTMLElement | null;
-
-      if (selectedItem) {
-        // Tenta centralizar de forma nativa
-        try {
-          selectedItem.scrollIntoView({ block: "center", inline: "nearest", behavior: "auto" });
-        } catch {
-          // Fallback manual caso block:'center' não seja suportado
-          const top = selectedItem.offsetTop - (container.clientHeight / 2 - selectedItem.clientHeight / 2);
-          container.scrollTop = top;
-        }
-      }
-    }
-  }
-};
-
-
-type IconItem = { name: string } // ajuste se seu iconsBank tiver outra estrutura
-const selectCard = (icon: IconItem) => {
-  form.value.icon = icon.name;
-  isIconDropdownOpen.value = false;
-};
-
-const cards =  ref(iconCardMap);
-
-const selectedBrandIcon = computed(() => {
-  const brand = cards.value.find(b => b.name === form.value.bandeira);
-  return brand?.icon ?? null;
-});
+const emit = defineEmits(["closeForm", "updateData"]);
 
 // --- STATE MANAGEMENT ---
-const useWallets = useWalletsStore();
+const walletsStore = useWalletsStore();
 const loading = ref(false);
 
-// 2. CONTROLES DE VISIBILIDADE DOS MODAIS
-const showIconModal = ref(false);
-const showColorModal = ref(false);
-
+// --- REFS DO FORMULÁRIO ---
 const form = ref<Partial<Wallet>>({
   name: "",
-  icon: "",
-  color: "#0c99ed",
-  tipo_conta: props.walletType === "Conta" ? "Carteira" : "Cartão de Crédito",
-  saldo_inicial: formatValue(Number("0,00")) || "0,00",
-  saldo: formatValue(Number("0,00")) || "0,00",
+  icon: props.walletType === "Conta" ? "Outros" : "MasterCard",
+  color: "#163dc0",
+  saldo_inicial: "0,00",
   incluir_em_soma_inicial: true,
-  limite: formatValue(Number("0,00")) || "0,00",
-  conta_id: DEFAULT_ITEM.id as number | null,
-  bandeira: "MasterCard",
+  tipo_conta: props.walletType === "Conta" ? "Carteira" : "Cartão de Crédito",
+  limite: "0,00",
+  conta_pai_id: null,
   dia_fechamento: null,
   dia_vencimento: null,
 });
 
-
-
-type MoneyKeys = "saldo" | "limite";
-
-const formatCurrencyInput = (value: string): string => {
-  if (!value) return "0,00";
-
-  // 1. Pega apenas os dígitos
-  let digits = value.replace(/\D/g, "");
-
-  // 2. Remove zeros à esquerda, tratando o caso de ser tudo zero
-  digits = digits.replace(/^0+/, "") || "0";
-
-  // 3. Garante pelo menos 3 dígitos para a formatação (ex: 50 vira 050)
-  while (digits.length < 3) {
-    digits = "0" + digits;
-  }
-
-  // 4. Separa a parte inteira e a decimal
-  const integerPart = digits.slice(0, -2);
-  const decimalPart = digits.slice(-2);
-
-  // 5. Formata a parte inteira com pontos
-  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-  // 6. Retorna o valor final formatado
-  return `${formattedIntegerPart},${decimalPart}`;
-};
-
-const formatValueSave = (campo: MoneyKeys) => {
-
-  const raw = String(form.value[campo] ?? "");
-  // 1. Pega apenas os dígitos do valor
-  let digits = raw.replace(/\D/g, "");
-
-  // 2. Remove zeros à esquerda, tratando o caso de ser tudo zero
-  digits = digits.replace(/^0+/, "") || "0";
-
-  // 3. Garante que o valor tenha pelo menos 3 dígitos para a formatação (ex: 50 vira 050)
-  while (digits.length < 3) {
-    digits = "0" + digits;
-  }
-
-  // 4. Separa a parte inteira e a decimal
-  const integerPart = digits.slice(0, -2);
-  const decimalPart = digits.slice(-2);
-
-  // 5. Formata a parte inteira com pontos como separadores de milhar
-  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-  // 6. Monta o valor final formatado
-  form.value[campo] = `${formattedIntegerPart},${decimalPart}`;
-};
-
+// --- CONTROLES DE UI ---
+const menu = ref(false);
+const menuFechamento = ref(false);
+const menuVencimento = ref(false);
 const isIconDropdownOpen = ref(false);
 const cardSelectRef = ref<HTMLElement | null>(null);
 const cardDropdownContainerRef = ref<HTMLElement | null>(null);
-
 onClickOutside(cardSelectRef, () => { isIconDropdownOpen.value = false; });
+
+// --- DADOS ---
+const cards = ref(iconCardMap);
+
+// --- COMPUTED PROPERTIES ---
+const walletItems = computed(() => [DEFAULT_ITEM, ...props.wallets]);
+
+const selectedBrandIcon = computed(() => {
+  if (!form.value.icon) return null;
+  const brand = cards.value.find(b => b.name === form.value.icon);
+  return brand?.icon ?? null;
+});
 
 // --- VALIDAÇÃO ---
 const rules = {
   required: (value: any) => !!value || "Campo obrigatório.",
-  positive: (value: number) => value > 0 || "O valor deve ser positivo.",
-  dayOfMonth: (value: number) => (value >= 1 && value <= 31) || "Dia inválido.",
   requiredValor: (value: string) => !!value || "O campo valor é obrigatório",
-  requiredValorMaiorQue0: (value: string) => {
-    if (!value) return "O campo valor é obrigatório";
-    const numericValue = parseFloat(value.replace(/\./g, "").replace(",", "."));
-    return (
-      (!isNaN(numericValue) && numericValue > 0) ||
-      "O campo valor deve ser maior que zero"
-    );
-  }
 };
 
 const isFormValid = computed(() => {
@@ -586,30 +771,52 @@ const isFormValid = computed(() => {
     return !!form.value.name && !!form.value.tipo_conta;
   }
   if (props.walletType === "Cartão") {
-    const diaFechamentoValido =
-      form.value.dia_fechamento && form.value.dia_fechamento >= 1 && form.value.dia_fechamento <= 31;
-    const diaVencimentoValido =
-      form.value.dia_vencimento && form.value.dia_vencimento >= 1 && form.value.dia_vencimento <= 31;
-    return !!form.value.name && !!form.value.limite && !!form.value.bandeira && diaFechamentoValido && diaVencimentoValido;
+    return !!form.value.name && !!form.value.limite && !!form.value.icon && !!form.value.dia_fechamento && !!form.value.dia_vencimento;
   }
   return false;
 });
 
 // --- MÉTODOS ---
-const emit = defineEmits(["closeForm", "updateData"]);
+const formatCurrencyInput = (value: string): string => {
+  if (!value) return "0,00";
+  let digits = value.replace(/\D/g, "");
+  digits = digits.replace(/^0+/, "") || "0";
+  while (digits.length < 3) digits = "0" + digits;
+  const integerPart = digits.slice(0, -2);
+  const decimalPart = digits.slice(-2);
+  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return `${formattedIntegerPart},${decimalPart}`;
+};
+
+const selecionarDiaFechamento = (dia: number) => {
+  form.value.dia_fechamento = dia;
+  menuFechamento.value = false;
+};
+
+const selecionarDiaVencimento = (dia: number) => {
+  form.value.dia_vencimento = dia;
+  menuVencimento.value = false;
+};
+
+const toggleIconDropdown = () => {
+  isIconDropdownOpen.value = !isIconDropdownOpen.value;
+};
+
+const selectIcon = (iconName: string) => {
+  form.value.icon = iconName;
+  isIconDropdownOpen.value = false;
+};
 
 const submitForm = async () => {
   if (!isFormValid.value) return;
   loading.value = true;
   try {
-    const payload = {
-      ...form.value,
-      tipo_conta: props.walletType === "Cartão" ? "Cartão de Crédito" : form.value.tipo_conta,
-      conta_id: form.value.conta_id === DEFAULT_ITEM.id ? null : form.value.conta_id,
-      // saldo: form.value.saldoInicial,
-    };
-    const response = await useWallets.saveWallet(payload);
-    console.log("Resposta do servidor:", response);
+    const payload = { ...form.value };
+    // Remove o campo 'bandeira' se ele ainda existir acidentalmente
+    delete payload.bandeira; 
+    
+    const response = await walletsStore.saveWallet(payload);
+    walletsStore.setWalletsData(response.wallets);
     emit("updateData", response.wallets);
     closeForm();
   } catch (error) {
@@ -621,17 +828,6 @@ const submitForm = async () => {
 
 const closeForm = () => {
   emit("closeForm");
-};
-
-// 3. MÉTODOS PARA ATUALIZAR FORMULÁRIO COM DADOS DOS MODAIS
-const handleIconSelect = (iconName: string) => {
-  form.value.icon = iconName;
-  showIconModal.value = false;
-};
-
-const handleColorSelect = (colorHex: string) => {
-  form.value.color = colorHex;
-  showColorModal.value = false;
 };
 </script>
 

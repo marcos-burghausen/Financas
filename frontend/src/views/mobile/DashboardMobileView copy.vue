@@ -143,15 +143,15 @@
               <span
                 :style="{
                   color:
-                    totalBalance < 0
+                    saldoAtual < 0
                       ? '#d45959ff'
-                      : totalBalance > 0
+                      : saldoAtual > 0
                         ? 'green'
                         : '#757575',
                 }"
                 style="font-size: 18px"
               >
-                R$ {{ formatValue(totalBalance) }}
+                R$ {{ formatValue(saldoAtual) }}
               </span>
             </div>
           </div>
@@ -277,7 +277,8 @@ let valuePendingRevenues = ref(useRevenues.revenuesData?.valuePending);
 let valuePendingExpenses = ref(useExpenses.expensesData?.valuePending);
 let valueReceived = ref(useRevenues.revenuesData?.valuePay);
 let totalBalance = ref(useWallets.walletsData?.contas[0].saldo);
-let saldoInicial = ref(useWallets.walletsData?.saldoInicial);
+let saldoAtual = ref(useWallets.walletsData?.saldo_atual);
+let saldoInicial = ref(useWallets.walletsData?.saldo_inicial);
 let valuePay = ref(useExpenses.expensesData?.valuePay);
 // let name = ref(useUser.userData.name.split(" ")[0]);
 let valorPrevisto = ref(

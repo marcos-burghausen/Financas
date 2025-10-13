@@ -3,7 +3,6 @@
 namespace App\Http\Traits;
 
 use App\Models\CreditCardInvoice;
-use App\Http\Traits\ReleasesMonthTrait;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -14,7 +13,6 @@ trait UserDataTrait
     /**
      * Busca os dados do usuário de forma seletiva.
      */
-
     private function getUserData(object $user, $date = null, array $sections = []): array
     {
         $mes = $date ?? Carbon::now()->format('Y-m');
@@ -29,12 +27,12 @@ trait UserDataTrait
             $despesasDoMes = $user->expenses()
                 ->with('contaModel:id,name')
                 ->where('tipo_lancamento', '!=', 'CARTAO_CREDITO')
-                ->whereYear('data_lancamento', $year)
-                ->whereMonth('data_lancamento', $month)
+                ->whereYear('data_vencimento', $year)
+                ->whereMonth('data_vencimento', $month)
                 ->get();
 
-            $categoriasDespesas = $user->categories()->whereIn('type', ['ambas', 'despesa'])->get(['id', 'name', 'color', 'icon', 'editable', 'type']);
-            $subcategoriasDespesas = $user->subcategories()->whereIn('type', ['ambas', 'despesa'])->get(['id', 'category_id', 'name', 'color', 'icon', 'editable', 'type']);
+            $categoriasDespesas = $user->categories()->whereIn('type', ['ambas', 'despesa'])->get();
+            $subcategoriasDespesas = $user->subcategories()->whereIn('type', ['ambas', 'despesa'])->get();
             foreach ($categoriasDespesas as $categoria) {
                 $subcategories = [];
                 foreach ($subcategoriasDespesas as $subcategoria) {
@@ -55,12 +53,12 @@ trait UserDataTrait
         if ($fetchAll || in_array('revenues', $sections)) {
             $receitasDoMes = $user->revenues()
                 ->with('contaModel:id,name')
-                ->whereYear('data_lancamento', $year)
-                ->whereMonth('data_lancamento', $month)
+                ->whereYear('data_vencimento', $year)
+                ->whereMonth('data_vencimento', $month)
                 ->get();
 
-            $categoriasReceitas = $user->categories()->whereIn('type', ['ambas', 'receita'])->get(['id', 'name', 'color', 'icon', 'editable', 'type']);
-            $subcategoriasReceitas = $user->subcategories()->whereIn('type', ['ambas', 'receita'])->get(['id', 'category_id', 'name', 'color', 'icon', 'editable', 'type']);
+            $categoriasReceitas = $user->categories()->whereIn('type', ['ambas', 'receita'])->get();
+            $subcategoriasReceitas = $user->subcategories()->whereIn('type', ['ambas', 'receita'])->get();
             foreach ($categoriasReceitas as $categoria) {
                 $subcategories = [];
                 foreach ($subcategoriasReceitas as $subcategoria) {
@@ -82,44 +80,58 @@ trait UserDataTrait
             $dataToReturn['wallets'] = [
                 'contas' => $user->contas()
                     ->where('tipo_conta', '!=', 'Cartão de Crédito')
-                    ->get(['id', 'name', 'icon', 'saldo', 'saldo_inicial', 'color', 'descricao', 'tipo_conta', 'incluir_em_soma_inicial']),
+                    // ->get(['id', 'name', 'icon', 'color', 'saldo', 'saldo_inicial', 'descricao', 'tipo_conta', 'incluir_em_soma_inicial']),
+                    ->get()
+                    ->map(function ($conta) {
+                        // Calcula a soma de todas as receitas para esta conta
+                        $totalReceitas = DB::table('lancamentos')
+                            ->where('conta_id', $conta->id)
+                            ->where('tipo_lancamento', 'RECEITA')
+                            ->sum('valor');
+
+                        // Calcula a soma de todas as despesas para esta conta
+                        $totalDespesas = DB::table('lancamentos')
+                            ->where('conta_id', $conta->id)
+                            ->where('tipo_lancamento', 'DESPESA')
+                            ->sum('valor');
+
+                        // Define o novo atributo no objeto da conta
+                        $conta->saldo_previsto = $conta->saldo_inicial + $totalReceitas - $totalDespesas;
+
+                        return $conta;
+                    }),
 
                 'cartoes' => $user->contas()
                     ->where('tipo_conta', 'Cartão de Crédito')
                     ->with('parentAccount')
-                    ->get(['id', 'name', 'icon', 'saldo', 'descricao', 'tipo_conta', 'incluir_em_soma_inicial', 'conta_pai_id', 'bandeira', 'limite', 'color'])
+                    // CORRIGIDO: Adicionados dia_fechamento e dia_vencimento à seleção
+                    ->get(['id', 'name', 'icon', 'saldo', 'descricao', 'tipo_conta', 'incluir_em_soma_inicial', 'conta_pai_id', 'limite', 'color', 'dia_fechamento', 'dia_vencimento'])
                     ->map(function ($cartao) {
-                        // 1. Determina a competência da fatura atual/vigente.
                         $today = Carbon::today();
                         if ($today->day > $cartao->dia_fechamento) {
-                            // Se o dia de hoje já passou do dia do fechamento, a fatura vigente é a do próximo mês.
-                            $competenciaDate = $today->addMonth();
+                            $competenciaDate = (clone $today)->addMonth();
                         } else {
-                            // Senão, a fatura vigente é a do mês atual.
                             $competenciaDate = $today;
                         }
                         $competencia = $competenciaDate->format('Y-m');
 
-                        // 2. Busca a fatura no banco de dados.
                         $faturaVigente = CreditCardInvoice::where('conta_id', $cartao->id)
                             ->where('competencia', $competencia)
                             ->with('lancamentos')
                             ->first();
 
-                        // Soma o (total da fatura - valor pago) para todas as faturas que não estão 'PAGA'.
                         $valorEmAberto = CreditCardInvoice::where('conta_id', $cartao->id)
                             ->where('status_fatura', '!=', 'PAGA')
                             ->sum(DB::raw('total_fatura - valor_pago'));
 
-                        // 3. Adiciona os novos campos ao objeto do cartão.
-                        $cartao->total_fatura = $faturaVigente ? $faturaVigente->total_fatura : 0;
-                        $cartao->lancamentos_fatura = $faturaVigente ? $faturaVigente->lancamentos : [];
+                        // Adiciona os novos campos ao objeto do cartão.
+                        $cartao->total_fatura_vigente = $faturaVigente ? $faturaVigente->total_fatura : 0;
+                        $cartao->lancamentos_fatura_vigente = $faturaVigente ? $faturaVigente->lancamentos : [];
                         $cartao->conta_pai_name = $cartao->parentAccount ? $cartao->parentAccount->name : null;
                         $cartao->data_fechamento = $faturaVigente ? $faturaVigente->data_fechamento : null;
                         $cartao->data_vencimento = $faturaVigente ? $faturaVigente->data_vencimento : null;
-                        $cartao->status_fatura = $faturaVigente ? $faturaVigente->status_fatura : null;
+                        $cartao->status_fatura = $faturaVigente ? $faturaVigente->status_fatura : 'INEXISTENTE';
                         $cartao->valor_em_aberto = $valorEmAberto;
-
 
                         unset($cartao->parentAccount);
 
@@ -127,9 +139,9 @@ trait UserDataTrait
                     }),
 
                 'contasNames' => $user->contas()->pluck("name"),
-                'saldoInicial' => $this->obterSaldoInicial($user, $mes),
-                'saldoAtual' => $this->obterSaldoAtual($user, $mes),
-                "categories" => $user->categories()->where('type', 'contas')->get(['id', 'name', 'color', 'icon', 'editable', 'type']),
+                'saldo_inicial' => $this->obterSaldoInicial($user, $mes),
+                'saldo_atual' => $this->obterSaldoAtual($user, $mes),
+                "categories" => $user->categories()->where('type', 'contas')->get(),
             ];
         }
 

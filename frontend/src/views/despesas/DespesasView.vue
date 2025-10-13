@@ -130,7 +130,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, ref } from "vue";
 
 import FormLancamentos from "@/components/FormLancamentos.vue";
 import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
@@ -148,7 +148,7 @@ import type { Lancamento, TransactionsData } from "@/types";
 
 import { formatValue } from "@/utils/formatValue";
 
-import { isToday, isPast, differenceInCalendarDays, parseISO } from "date-fns";
+import { differenceInCalendarDays, parseISO } from "date-fns";
 
 const useRevenues = useRevenuesStore();
 const useWallets = useWalletsStore();
@@ -170,20 +170,20 @@ interface ApiError {
 }
 
 const getIconForExpense = (expense: Lancamento) => {
-  if (expense.status === "Efetivada") {
+  if (expense.status_lancamento === "EFETIVADA") {
     return "mdi-check";
   }
 
-  if (expense.status === "Pendente") {
-    if (!expense.dataVencimento) {
+  if (expense.status_lancamento === "PENDENTE") {
+    if (!expense.data_vencimento) {
       return "mdi-calendar-question";
     }
 
     let dataVencimento: Date;
-    if (typeof expense.dataVencimento === "string") {
-      dataVencimento = parseISO(expense.dataVencimento);
+    if (typeof expense.data_vencimento === "string") {
+      dataVencimento = parseISO(expense.data_vencimento);
     } else {
-      dataVencimento = expense.dataVencimento;
+      dataVencimento = expense.data_vencimento;
     }
     
     const hoje = new Date();
@@ -205,20 +205,20 @@ const getIconForExpense = (expense: Lancamento) => {
 };
 
 const getClassForExpense = (expense: Lancamento) => {
-  if (expense.status === "Efetivada") {
+  if (expense.status_lancamento === "EFETIVADA") {
     return "paga";
   }
 
-  if (expense.status === "Pendente") {
-    if (!expense.dataVencimento) {
+  if (expense.status_lancamento === "PENDENTE") {
+    if (!expense.data_vencimento) {
       return "pendente";
     }
 
     let dataVencimento: Date;
-    if (typeof expense.dataVencimento === "string") {
-      dataVencimento = parseISO(expense.dataVencimento);
+    if (typeof expense.data_vencimento === "string") {
+      dataVencimento = parseISO(expense.data_vencimento);
     } else {
-      dataVencimento = expense.dataVencimento;
+      dataVencimento = expense.data_vencimento;
     }
     
     const hoje = new Date();

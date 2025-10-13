@@ -62,12 +62,12 @@
                 class="mdicon__lacamento"
                 size="30"
                 :disabled="revenue.status_lancamento === 'EFETIVADA'"
-                @click="receiveRevenue(revenue.id!, revenue.conta_id!)"
+                @click="receiveRevenue(revenue.id!)"
               />
             </v-container>
             <div style="width: 100%">
               <div class="header__visao_geral">
-                <span style="text-align: start; height: 22px">{{ revenue.conta_model.name }}</span>
+                <span style="text-align: start; height: 22px">{{ revenue.conta_model.name || null }}</span>
                 <div>
                   <span>{{ revenue.data_vencimento }}</span>
                   <span>
@@ -342,13 +342,12 @@ const deletar = async (revenue: Lancamento) => {
   }
 };
 
-const receiveRevenue = async (revenueId: number, conta: string) => {
+const receiveRevenue = async (revenueId: number) => {
   try {
     const payload = {
-      conta,
       mesAno: mesAno.value,
     };
-    const res = await http.patch(`/lancamentos/${revenueId}`, payload);
+    const res = await http.post(`/lancamentos/${revenueId}/efetivar`, payload);
     useRevenues.setRevenuesData(res.data.revenues);
     valueTotalRevenuesMonth.value = res.data.revenues.valueTotalMonth;
     revenuesMonth.value = res.data.revenues.byMonth;
