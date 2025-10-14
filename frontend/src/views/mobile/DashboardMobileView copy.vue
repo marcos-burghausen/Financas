@@ -128,9 +128,9 @@
             >
               <v-icon
                 :icon="
-                  totalBalance < 0
+                  (totalBalance ?? 0) < 0
                     ? 'mdi-minus-circle-outline'
-                    : totalBalance > 0
+                    : (totalBalance ?? 0) > 0
                       ? 'mdi-heart-circle'
                       : 'mdi-circle-outline'
                 "

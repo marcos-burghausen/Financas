@@ -2,12 +2,13 @@ import BBIcon from "@/assets/icons/bb.svg";
 import CaixaIcon from "@/assets/icons/caixa.svg";
 import NubankIcon from "@/assets/icons/nubank.svg";
 import SicrediIcon from "@/assets/icons/sicredi.svg";
+import { DefineComponent } from 'vue';
 
 import MasterCardIcon from "@/assets/icons/mastercard.svg";
 import VisaIcon from "@/assets/icons/visa.svg";
 
 // Mapeia o nome do banco (como está salvo no DB) ao ícone importado
-const iconBankMap: { [key: string]: string } = {
+const iconBankMap: { [key: string]: DefineComponent<{}, {}, any> } = {
   "Sicredi": SicrediIcon,
   "Nubank": NubankIcon,
   "Caixa Economica": CaixaIcon,
@@ -17,8 +18,8 @@ const iconBankMap: { [key: string]: string } = {
 };
 
 // Função que retorna o ícone correspondente ou um ícone padrão
-export const getBankIcon = (bankName: string): string => {
-  return iconBankMap[bankName] || "mdi-credit-card-outline"; // Retorna um ícone padrão do Vuetify se não encontrar
+export const getBankIcon = (bankName: string): DefineComponent<{}, {}, any> | string => {
+  return iconBankMap[bankName] || "mdi-credit-card-outline";
 };
 
 export const iconsBank = [

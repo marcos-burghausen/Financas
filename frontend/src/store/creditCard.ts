@@ -38,7 +38,12 @@ export const useCreditCardStore = defineStore("creditCard", {
       const dataStore = useDataStore();
       try {
         const { data } = await http.post("/lancamento/pagar-fatura", payload);
-        dataStore.setData(data); // Atualiza dados globais
+        if (data.totalCreditCard !== undefined) {
+          dataStore.setTotalCreditCard(data.totalCreditCard);
+        }
+        if (data.totalBalance !== undefined) {
+          dataStore.setTotalBalance(data.totalBalance);
+        }
         const invoice = this.invoices.find(inv => inv.id === payload.invoice_id);
         if (invoice) {
           invoice.status = "Paga";

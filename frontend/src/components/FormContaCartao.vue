@@ -698,6 +698,7 @@
 </template>
 
 <script setup lang="ts">
+import { useUserStore } from "@/store/user";
 import { useWalletsStore } from "@/store/wallets";
 import type { Wallet } from "@/types/accounts.types";
 import { getBankIcon, iconCardMap, iconsBank } from "@/utils/iconMapper";
@@ -809,9 +810,20 @@ const selectIcon = (iconName: string) => {
 
 const submitForm = async () => {
   if (!isFormValid.value) return;
+  const userId = useUserStore().userData?.id;
+
+  if (!userId) {
+    // Handle the error, e.g., show a message to the user
+    console.error("User ID is not available.");
+    return;
+  }
   loading.value = true;
   try {
-    const payload = { ...form.value };
+    const payload: Wallet = {
+    ...form.value,
+    user_id: userId, // Ensure user_id is assigned here
+    // ... other properties
+  };
     // Remove o campo 'bandeira' se ele ainda existir acidentalmente
     delete payload.bandeira; 
     

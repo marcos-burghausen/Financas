@@ -1,6 +1,6 @@
 
 export interface Wallet {
-  id?: number;
+  id?: number | null;
   user_id: number;
   name: string;
   icon: string;

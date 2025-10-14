@@ -110,14 +110,14 @@ import { ref } from "vue";
 import { useErrorStore } from "@/store/error";
 import { useUserStore } from "@/store/user";
 import { useWalletsStore } from "@/store/wallets";
-import type { Account, ApiErrorResponse, Category } from "@/types";
+import type { ApiErrorResponse, Category, Wallet } from "@/types";
 import type { AxiosError } from "axios";
 
 const useWallets = useWalletsStore();
 const errorStore = useErrorStore();
 const useUser = useUserStore();
 const emit = defineEmits<{
-  (e: "updateContas", wallets: Account): void
+  (e: "updateContas", wallets: Wallet): void
   (e: "updateCategoriasReceitas", categorias: Category): void
   (e: "updateCategoriasDespesas", categorias: Category): void
 }>();

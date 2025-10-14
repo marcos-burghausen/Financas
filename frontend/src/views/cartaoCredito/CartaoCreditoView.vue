@@ -95,22 +95,22 @@
               </div>
               <div class="info-item text-center">
                 <span class="label">Em aberto</span>
-                <span class="value">R$ {{ formatValue(card.valor_em_aberto) }}</span>
+                <span class="value">R$ {{ formatValue(Number(card.saldo)) }}</span>
               </div>
               <div class="info-item text-right">
                 <span class="label">Lim. disponível</span>
-                <span class="value">R$ {{ formatValue(card.limite - card.valor_em_aberto) }}</span>
+                <span class="value">R$ {{ formatValue(Number(card.limite) - Number(card.valor_em_aberto)) }}</span>
               </div>
             </div>
 
             <div class="progress__bar__container">
               <v-progress-linear
-                :model-value="((card.limite - card.valor_em_aberto) / card.limite).toFixed(0)"
+                :model-value="((Number(card.limite) - Number(card.saldo)) / Number(card.limite)).toFixed(0)"
                 :color="card.color"
                 height="15"
                 rounded
               />
-              <span class="progress-label">{{ ((card.limite - card.valor_em_aberto) / card.limite * 100).toFixed(0) }}% </span>
+              <span class="progress-label">{{ ((Number(card.limite) - Number(card.saldo)) / Number(card.limite) * 100).toFixed(0) }}% </span>
             </div>
             <v-divider />
             <div class="info-row mt-3">

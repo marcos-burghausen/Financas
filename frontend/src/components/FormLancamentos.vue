@@ -284,7 +284,7 @@
             >
               <div class="prefix">
                 <v-icon
-                  :icon="getBankIcon(selectedCreditCard?.name)"
+                  :icon="getBankIcon(selectedCreditCard?.name || '')"
                   size="25"
                   class="me-2"
                 />
@@ -292,7 +292,7 @@
               </div>
               <div class="selection">
                 <v-icon
-                  :icon="getBankIcon(selectedCreditCard?.bandeira)"
+                  :icon="getBankIcon(selectedCreditCard?.bandeira || '')"
                   size="20"
                   class="ms-2"
                 />
@@ -309,7 +309,7 @@
               >
                 <div
                   v-for="card in props.wallets"
-                  :key="card.id"
+                  :key="card.id ?? undefined"
                   class="dropdown__item"
                   :class="{ 'is__selected': card.id === formReleases.cartao_id }"
                   :data-card-id="card.id"
@@ -317,14 +317,14 @@
                 >
                   <div class="dropdown__item__content">
                     <v-icon
-                      :icon="getBankIcon(card.name)"
+                      :icon="getBankIcon(card.name || '')"
                       size="25"
                       class="me-2"
                     />
                     <span>{{ card.name }}</span>
                   </div>
                   <v-icon
-                    :icon="getBankIcon(card.bandeira)"
+                    :icon="getBankIcon(card.bandeira || '')"
                     size="20"
                   />
                 </div>
@@ -479,7 +479,7 @@
           variant="underlined"
           readonly
           class="imput mb-5"
-          :prepend-inner-icon="getBankIcon(linkedAccount?.name)"
+          :prepend-inner-icon="getBankIcon(linkedAccount?.name || '')"
         />
 
         <v-select
@@ -688,7 +688,7 @@ const errorStore = useErrorStore();
 const formReleases = ref<Partial<Lancamento>>({
   id: props.releases?.id || null,
   descricao: props.releases?.descricao || "",
-  valor: props.releases?.valor || "0,00",
+  valor: formatValue(props.releases?.valor) || "0,00",
   tipo_lancamento: props.transactionType,
   recorrencia: props.releases?.recorrencia || "Não recorrente",
   num_parcela: props.releases?.num_parcela || null,
@@ -742,7 +742,7 @@ const tiposRecorrencia = ref<("Não recorrente" | "Fixa" | "Parcelado")[]>([
 const isEditMode = computed(() => !!props.releases?.id);
 
 const creditCardAccounts = computed<Wallet[]>(() => 
-  props.wallets.filter(w => w.tipo_conta === 'Cartão de Crédito') || []
+  props.wallets?.filter(w => w.tipo_conta === 'Cartão de Crédito') || []
 );
 
 const availableBankAccounts = computed<Wallet[]>(() => 
@@ -751,12 +751,12 @@ const availableBankAccounts = computed<Wallet[]>(() =>
 
 const selectedCreditCard = computed(() => {
   if (!formReleases.value.cartao_id) return null;
-  return props.wallets.find(c => c.id === formReleases.value.cartao_id);
+  return props.wallets?.find(c => c.id === formReleases.value.cartao_id);
 });
 
 const linkedAccount = computed(() => {
   if (!selectedCreditCard.value?.conta_pai_id) return null;
-  return availableBankAccounts.value.find(acc => acc.id === selectedCreditCard.value.conta_pai_id);
+  return availableBankAccounts.value.find(acc => acc.id === selectedCreditCard.value?.conta_pai_id);
 });
 
 const linkedAccountName = computed(() => {

@@ -67,7 +67,7 @@
             </v-container>
             <div style="width: 100%">
               <div class="header__visao_geral">
-                <span style="text-align: start; height: 22px">{{ revenue.conta_model.name || null }}</span>
+                <span style="text-align: start; height: 22px">{{ revenue.conta_model?.nome || null }}</span>
                 <div>
                   <span>{{ revenue.data_vencimento }}</span>
                   <span>

@@ -24,7 +24,7 @@
           <span class="fs-5"> Contas </span>
           <span class="valor">
             <!-- R$ {{ formatValue(valueTotalRevenuesMonth) }} -->
-            R$ {{ "0,00" }}
+            R$ {{ formatValue(saldoAtual) }}
           </span>
         </div>
       </div>
@@ -132,6 +132,8 @@ const useUser = useUserStore();
 let wallets = ref(useWallets.walletsData.contas);
 const mesAno = ref<string>(useUser.mesAno || "");
 const formulario = ref(false);
+
+const saldoAtual = ref(useWallets.walletsData.saldo_atual || 0);
 
 
 const updateData = (newData: WalletData) => {

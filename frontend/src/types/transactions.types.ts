@@ -18,7 +18,7 @@ export interface Lancamento {
   subcategoria?: string;
   data_lancamento: string | Date;
   data_efetivacao: string | Date | null;
-  periodicidade: "Mensal" | "Diario" | "Semanal" | "Quinzenal" | "Trimenstral" | "Anual" | null;
+  periodicidade: "Mensal" | "Diario" | "Semanal" | "Quinzenal" | "Bimestral" | "Trimenstral" | "Anual" | null;
   conta_id?: number | null;
   cartao_id?: number | null;
   fatura?: string | null; // "YYYY-MM"

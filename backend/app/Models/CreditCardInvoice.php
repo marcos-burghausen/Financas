@@ -22,13 +22,26 @@ class CreditCardInvoice extends Model
         'lancamento_pagamento_id'
     ];
 
+    /**
+     * Adicionado o tipo de dados para os campos de data.
+     */
+    protected $casts = [
+        'data_fechamento' => 'date',
+        'data_vencimento' => 'date',
+    ];
+
+
+    /**
+     * Define o relacionamento com a Conta (o cartão de crédito).
+     */
     public function conta()
     {
-        return $this->belongsTo(Conta::class);
+        return $this->belongsTo(Conta::class, 'conta_id');
     }
 
     /**
-     * Relacionamento com os lançamentos que compõem a fatura.
+     * CORRIGIDO: Adicionado o relacionamento com os lançamentos que compõem a fatura.
+     * Uma fatura (Invoice) tem muitos lançamentos (Lancamentos).
      */
     public function lancamentos()
     {

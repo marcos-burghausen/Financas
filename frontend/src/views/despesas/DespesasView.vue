@@ -61,15 +61,15 @@
                 :icon="getIconForExpense(expense)"
                 class="mdicon__lancamento"
                 size="30"
-                :disabled="expense.status === 'Efetivada'"
-                @click="payExpense(expense.id!, expense.conta!)"
+                :disabled="expense.status_lancamento  === 'Efetivada'"
+                @click="payExpense(expense.id!, expense.conta_model!)"
               />
             </v-container>
             <div style="width: 100%">
               <div class="header__visao_geral">
-                <span style="text-align: start; height: 22px">{{ expense.conta }}</span>
+                <span style="text-align: start; height: 22px">{{ expense.conta_model?.name }}</span>
                 <div>
-                  <span>{{ expense.dataVencimento }}</span>
+                  <span>{{ expense.data_vencimento }}</span>
                   <span>
                     <v-icon icon="mdi-dots-vertical" class="mdicon" size="25" />
                     <v-menu

@@ -1,5 +1,5 @@
 import http from '@/services/http';
-import type { Account, WalletData } from "@/types";
+import type { Wallet, WalletData } from "@/types";
 import { defineStore } from "pinia";
 import { ref, type Ref } from "vue";
 
@@ -23,7 +23,7 @@ export const useWalletsStore = defineStore("wallets", () => {
         localStorage.setItem("walletsData", JSON.stringify( walletsData.value));
     }
 
-    function setContas(wallets: Account[]): void {
+    function setContas(wallets: Wallet[]): void {
         if (walletsData.value) {
         walletsData.value.contas = wallets;
         localStorage.setItem("walletsData", JSON.stringify(walletsData.value));
@@ -37,7 +37,7 @@ export const useWalletsStore = defineStore("wallets", () => {
           }
     }
 
-    async function saveWallet(walletData: Account): Promise<any> {
+    async function saveWallet(walletData: Wallet): Promise<any> {
       try {
         const response = await http.post('/wallet', walletData);
         console.log(response);

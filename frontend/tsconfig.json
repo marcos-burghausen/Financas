@@ -27,7 +27,8 @@
       "vite/client"
     ],
     "jsx": "preserve",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noEmitOnError": false
   },
   "include": [
     "src/**/*",
