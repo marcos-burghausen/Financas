@@ -2,9 +2,15 @@
   <div class="box p-3">
     <div class="container__dados">
       <figure class="figure">
-        <img src="@/assets/img/2.png" class="img" alt="logo" />
+        <img
+          src="@/assets/img/2.png"
+          class="img"
+          alt="logo"
+        >
       </figure>
-      <h2 class="title">Bem vido ao Mr Finanças</h2>
+      <h2 class="title">
+        Bem vido ao Mr Finanças
+      </h2>
       <div class="social__media">
         <ul class="list__social__media">
           <a
@@ -13,13 +19,20 @@
             @click="initiateFacebookLogin()"
           >
             <li class="item__social__media">
-              <v-icon class="icon__modify" icon="mdi-facebook" />
+              <v-icon
+                class="icon__modify"
+                icon="mdi-facebook"
+              />
             </li>
           </a>
         </ul>
       </div>
       <ErrorMessage />
-      <v-form v-model="validForm" class="form" @submit.prevent="login">
+      <v-form
+        v-model="validForm"
+        class="form"
+        @submit.prevent="login"
+      >
         <v-combobox
           v-model="user.email"
           variant="underlined"
@@ -47,8 +60,15 @@
         />
 
         <div class="container__button">
-          <a class="link" href="#">esqueceu sua senha?</a>
-          <a class="btn__register" href="#" @click.prevent="emits('nextStep')">
+          <a
+            class="link"
+            href="#"
+          >esqueceu sua senha?</a>
+          <a
+            class="btn__register"
+            href="#"
+            @click.prevent="emits('nextStep')"
+          >
             cadastre-se.
           </a>
         </div>
@@ -73,11 +93,9 @@ import ErrorMessage from "@/components/ErrorMessage.vue";
 import ErrorsForm from "@/components/ModalErrorsForm.vue";
 import {
   useAuthStore,
+  useDashboardStore,
   useErrorStore,
-  useExpensesStore,
-  useRevenuesStore,
   useUserStore,
-  useWalletsStore,
 } from "@/store";
 import http from "@/services/http";
 import { useRouter } from "vue-router";
@@ -86,10 +104,8 @@ import type { AxiosError, AxiosResponse } from "axios";
 import { ref } from "vue";
 
 const emits = defineEmits(["nextStep"]);
-const useExpenses = useExpensesStore();
-const useRevenues = useRevenuesStore();
-const useWallets = useWalletsStore();
 const useUser = useUserStore();
+const dashboardStore = useDashboardStore();
 const errorStore = useErrorStore();
 const router = useRouter();
 const useAuth = useAuthStore();
@@ -124,12 +140,12 @@ const login = async () => {
       "/auth",
       user.value
     );
+    
+    // Armazena apenas dados essenciais
     useAuth.setToken(response.data.token);
-    useUser.setUserData(response.data.userData);
+    useUser.setUserData(response.data.user);
     useUser.setMesAno(response.data.mesAno);
-    useExpenses.setExpensesData(response.data.expenses);
-    useRevenues.setRevenuesData(response.data.revenues);
-    useWallets.setWalletsData(response.data.wallets);
+    dashboardStore.setSummary(response.data.summary);
 
     router.push({ name: "dashboard" });
   } catch (error) {

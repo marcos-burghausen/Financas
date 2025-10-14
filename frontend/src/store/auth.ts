@@ -1,8 +1,7 @@
 import http from "@/services/http";
 import { Token } from "@/types";
 import { defineStore } from "pinia";
-import { computed, onMounted, ref, watchEffect } from "vue";
-
+import { computed, ref, watchEffect } from "vue";
 
 export const useAuthStore = defineStore("auth", () => {
     const token = ref<Token>({
@@ -12,19 +11,21 @@ export const useAuthStore = defineStore("auth", () => {
         iat: 0,
         expires: 0,
     });
-            
-
-    onMounted(() => {
-        const storedToken = localStorage.getItem("token");
-        if (storedToken) {
-            token.value = JSON.parse(storedToken);
-        }
-
-    });
 
     function setToken(tokenValue: Token) {
-        localStorage.setItem("token", JSON.stringify(tokenValue));
+        sessionStorage.setItem("token", JSON.stringify(tokenValue));
         token.value = tokenValue;
+    }
+
+    function loadFromSession() {
+        const storedToken = sessionStorage.getItem("token");
+        if (storedToken) {
+            try {
+                token.value = JSON.parse(storedToken);
+            } catch {
+                console.warn("Erro ao carregar token");
+            }
+        }
     }
 
     const isAuthenticated = computed(() => {
@@ -32,7 +33,6 @@ export const useAuthStore = defineStore("auth", () => {
             return false;
         }
         // Convertendo o timestamp de expiração para milissegundos
-        // pois o Date.now() retorna o tempo em milessegundos
         const expirationTime = token.value.expires * 1000;
         const currentTime = Date.now();
 
@@ -44,12 +44,13 @@ export const useAuthStore = defineStore("auth", () => {
     });
 
     function clear() {
-        localStorage.removeItem("revenuesData");
-        localStorage.removeItem("expensesData");
-        localStorage.removeItem("token");
-        localStorage.removeItem("userData");
-        localStorage.removeItem("walletsData");
-        localStorage.removeItem("mesAno");
+        sessionStorage.removeItem("revenuesData");
+        sessionStorage.removeItem("expensesData");
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("userData");
+        sessionStorage.removeItem("walletsData");
+        sessionStorage.removeItem("mesAno");
+        sessionStorage.removeItem("dashboardSummary");
         token.value = {
             token: "",
             tokenType: "",
@@ -59,7 +60,7 @@ export const useAuthStore = defineStore("auth", () => {
         };
     }
 
-    function expiredTokem() {
+    function expiredToken() {
         clear();
         setTimeout(() => {
             window.location.href = "/";
@@ -83,8 +84,17 @@ export const useAuthStore = defineStore("auth", () => {
     }
 
     // Função para iniciar o monitoramento da expiração do token
+    let monitorInterval: NodeJS.Timeout | null = null;
+    
     function monitorTokenExpiration() {
-        setInterval(() => {
+        // Limpa intervalo anterior se existir
+        if (monitorInterval) {
+            clearInterval(monitorInterval);
+        }
+
+        monitorInterval = setInterval(() => {
+            if (!token.value.expires) return;
+
             const expirationTime = token.value.expires * 1000;
             const currentTime = Date.now();
             const timeRemaining = expirationTime - currentTime;
@@ -100,16 +110,19 @@ export const useAuthStore = defineStore("auth", () => {
     watchEffect(() => {
         if (isAuthenticated.value) {
             monitorTokenExpiration();
+        } else if (monitorInterval) {
+            clearInterval(monitorInterval);
+            monitorInterval = null;
         }
     });
 
     return {
         token,
         setToken,
+        loadFromSession,
         isAuthenticated,
         clear,
-        expiredTokem,
+        expiredToken,
         refreshToken,
     };
-
 });

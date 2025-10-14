@@ -6,6 +6,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\WalletsController;
 use App\Http\Controllers\LancamentoController;
 use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\UserDataController;
 use Illuminate\Support\Facades\Route;
 
 // Route::options('{any?}', function () {
@@ -61,4 +62,10 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('/delete-category', [CategoryController::class, 'deleteCategory']);
 
     Route::post('/buscar-dados-mes', [BuscaDadosMesCntroller::class, 'buscarDadosMes']);
+
+    // Rotas otimizadas para buscar dados sob demanda
+    Route::get('/user-data/expenses', [UserDataController::class, 'getExpenses']);
+    Route::get('/user-data/revenues', [UserDataController::class, 'getRevenues']);
+    Route::get('/user-data/wallets', [UserDataController::class, 'getWallets']);
+    Route::post('/user-data/invalidate-cache', [UserDataController::class, 'invalidateCache']);
 });

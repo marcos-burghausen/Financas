@@ -4,46 +4,51 @@ import { ref } from "vue";
 import type { User } from "@/types";
 
 export const useUserStore = defineStore("user", () => {
-    // state
-    const userData = ref<User>(
-        localStorage.getItem("userData")
-            ? JSON.parse(localStorage.getItem("userData") as string)
-            : "");
-    const mesAno = ref(
-        localStorage.getItem("mesAno")
-    );
-
-    // getters
-    // const getCarteias = () => {
-    //     return userData.value.carteiras;
-    // };
+    const userData = ref<User | null>(null);
+    const mesAno = ref<string>(new Date().toISOString().slice(0, 7));
 
     // actions
-    function setUserData(data: User): void {
+    function setUserData(data: User | null): void {
         userData.value = data;
-        localStorage.setItem("userData", JSON.stringify(userData.value));
+        if (data) {
+            sessionStorage.setItem("userData", JSON.stringify(data));
+        } else {
+            sessionStorage.removeItem("userData");
+        }
     }
-
-    // function setCategoriasDespesas(categoriasDespesas: Category) {
-    //     userData.value.categoriasDespesas = categoriasDespesas;
-    //     localStorage.setItem("userData", JSON.stringify(userData.value));
-    // }
-
-    // function setCategoriasReceitas(categoriasReceitas: Category) {
-    //     userData.value.categoriasReceitas = categoriasReceitas;
-    //     localStorage.setItem("userData", JSON.stringify(userData.value));
-    // }
 
     function setMesAno(mes_ano: string) {
         mesAno.value = mes_ano;
-        localStorage.setItem("mesAno", JSON.stringify(mesAno.value));
-        
+        sessionStorage.setItem("mesAno", mes_ano);
     }
 
-    function getMesAno() {
-        return localStorage.getItem("mesAno");
+    function getMesAno(): string {
+        return mesAno.value;
     }
 
+    function loadFromSession(): void {
+        const storedUser = sessionStorage.getItem("userData");
+        const storedMes = sessionStorage.getItem("mesAno");
+
+        if (storedUser) {
+            try {
+                userData.value = JSON.parse(storedUser);
+            } catch {
+                console.warn("Erro ao carregar dados do usuário");
+            }
+        }
+
+        if (storedMes) {
+            mesAno.value = storedMes;
+        }
+    }
+
+    function clear(): void {
+        userData.value = null;
+        mesAno.value = new Date().toISOString().slice(0, 7);
+        sessionStorage.removeItem("userData");
+        sessionStorage.removeItem("mesAno");
+    }
 
     return {
         userData,
@@ -51,7 +56,7 @@ export const useUserStore = defineStore("user", () => {
         getMesAno,
         setUserData,
         setMesAno,
-        // setCategoriasDespesas,
-        // setCategoriasReceitas,
+        loadFromSession,
+        clear,
     };
 });

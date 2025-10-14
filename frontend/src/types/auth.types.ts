@@ -17,29 +17,18 @@ export interface User {
   type: string;
 }
 
+export interface DashboardSummary {
+  saldoAtual: number;
+  saldoInicial: number;
+  totalReceitas: number;
+  totalDespesas: number;
+}
+
 export interface LoginResponse {
-  expenses: {
-    byCategory: Lancamento[];
-    byMonth: Lancamento[];
-    categories: CategoryData[];
-    totalDay: number;
-    valuePay: number;
-    valuePending: number;
-    valueTotalMonth: number;
-  };
-  mesAno: string;
-  revenues: {
-    byCategory: Lancamento[];
-    byMonth: Lancamento[];
-    categories: CategoryData[];
-    totalDay: number;
-    valuePay: number;
-    valuePending: number;
-    valueTotalMonth: number;
-  };
   token: Token;
-  userData: User;
-  wallets: WalletData;
+  user: User;
+  mesAno: string;
+  summary: DashboardSummary;
 }
 
 

@@ -53,33 +53,67 @@ class AuthController extends Controller
         }
 
         //usuário autenticado com sucesso
-        /* O metodo put espera 3 valores
-            o primeiro valor é o valor da chave como se fosse o nome de uma variavel
-            o segundo valor é valor da chave
-            o terceiro é o tempo em segundos que a informação vai permanecer no banco
-        */
         FinancasCache::put(CacheKeys::FLOW_TITLE->append($request->email), [
             CacheNaming::EMAIL->value => $request->email,
         ], 30);
 
         $token = $this->respondWithToken($token);
         $user = auth()->user();
-        $data = $this->getUserData($user);
+        $mesAno = $request->query('mesAno', now()->format('Y-m'));
+
+        // Cache por 10 minutos
+        $cacheKey = "login_data_user_{$user->id}_month_{$mesAno}";
+        $loginData = cache()->remember($cacheKey, 600, function () use ($user, $mesAno, $token) {
+            $summary = $this->getDashboardSummary($user, $mesAno);
+
+            return [
+                'token' => $token->original,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'type' => $user->user_type,
+                ],
+                'mesAno' => $mesAno,
+                'summary' => $summary,
+            ];
+        });
 
         LogController::addsLog($request->email, Actions::LOGIN);
-
         Mail::to('rafaelburghausen@gmail.com')->queue(new NotificationMail($user, 'Login', 'Login', $user->name));
 
-        return response()->json([
-            'token'     => $token->original,
-            'userData'  => $user = [
-                'id'    => $user->id,
-                'name'  => $user->name,
-                'email' => $user->email,
-                'type'  => $user->user_type,
-            ],
-            ...$data
-        ]);
+        return response()->json($loginData);
+    }
+
+    /**
+     * Busca apenas dados agregados para o dashboard
+     */
+    private function getDashboardSummary($user, $mesAno)
+    {
+        [$ano, $mes] = explode('-', $mesAno);
+
+        return [
+            'saldoAtual' => DB::table('contas')
+                ->where('user_id', $user->id)
+                ->where('tipo_conta', '!=', 'Cartão de Crédito')
+                ->sum('saldo'),
+            'saldoInicial' => DB::table('contas')
+                ->where('user_id', $user->id)
+                ->where('incluir_em_soma_inicial', true)
+                ->sum('saldo_inicial'),
+            'totalReceitas' => DB::table('lancamentos')
+                ->where('user_id', $user->id)
+                ->where('tipo_lancamento', 'RECEITA')
+                ->whereYear('data_vencimento', $ano)
+                ->whereMonth('data_vencimento', $mes)
+                ->sum('valor'),
+            'totalDespesas' => DB::table('lancamentos')
+                ->where('user_id', $user->id)
+                ->where('tipo_lancamento', 'DESPESA')
+                ->whereYear('data_vencimento', $ano)
+                ->whereMonth('data_vencimento', $mes)
+                ->sum('valor'),
+        ];
     }
 
     public function authSocial(Request $request)
