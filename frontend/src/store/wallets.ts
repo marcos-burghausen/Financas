@@ -24,25 +24,25 @@ export const useWalletsStore = defineStore("wallets", () => {
             saldo_atual: wallets?.saldo_atual ?? 0,
             categories: wallets?.categories ?? [],
         };
-        sessionStorage.setItem("walletsData", JSON.stringify(walletsData.value));
+        localStorage.setItem("walletsData", JSON.stringify(walletsData.value));
     }
 
     function setContas(wallets: Wallet[]): void {
         if (walletsData.value) {
             walletsData.value.contas = wallets;
-            sessionStorage.setItem("walletsData", JSON.stringify(walletsData.value));
+            localStorage.setItem("walletsData", JSON.stringify(walletsData.value));
         }
     }
     
     function setSaldoInicial(saldoInicial: number): void {
         if (walletsData.value) {
             walletsData.value.saldo_inicial = saldoInicial;
-            sessionStorage.setItem("walletsData", JSON.stringify(walletsData.value));
+            localStorage.setItem("walletsData", JSON.stringify(walletsData.value));
         }
     }
 
     function loadFromSession(): void {
-        const stored = sessionStorage.getItem("walletsData");
+        const stored = localStorage.getItem("walletsData");
         if (stored) {
             try {
                 walletsData.value = JSON.parse(stored);
@@ -54,7 +54,7 @@ export const useWalletsStore = defineStore("wallets", () => {
 
     function clear(): void {
         walletsData.value = getDefaultWalletData();
-        sessionStorage.removeItem("walletsData");
+        localStorage.removeItem("walletsData");
     }
 
     async function saveWallet(walletData: Wallet): Promise<any> {

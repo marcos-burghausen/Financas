@@ -26,11 +26,11 @@ export const useDashboardStore = defineStore("dashboard", () => {
 
   function setSummary(data: DashboardSummary) {
     summary.value = data;
-    sessionStorage.setItem("dashboardSummary", JSON.stringify(data));
+    localStorage.setItem("dashboardSummary", JSON.stringify(data));
   }
 
   function loadFromSession() {
-    const stored = sessionStorage.getItem("dashboardSummary");
+    const stored = localStorage.getItem("dashboardSummary");
     if (stored) {
       try {
         summary.value = JSON.parse(stored);
@@ -47,7 +47,7 @@ export const useDashboardStore = defineStore("dashboard", () => {
       totalReceitas: 0,
       totalDespesas: 0,
     };
-    sessionStorage.removeItem("dashboardSummary");
+    localStorage.removeItem("dashboardSummary");
   }
 
   return {

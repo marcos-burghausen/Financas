@@ -13,17 +13,26 @@ export const useAuthStore = defineStore("auth", () => {
     });
 
     function setToken(tokenValue: Token) {
-        sessionStorage.setItem("token", JSON.stringify(tokenValue));
+        console.log('=== SETTOKEN DEBUG ===');
+        console.log('tokenValue recebido:', tokenValue);
+        console.log('Tipo de tokenValue:', typeof tokenValue);
+        console.log('tokenValue stringificado:', JSON.stringify(tokenValue));
+        
+        localStorage.setItem("token", JSON.stringify(tokenValue));
         token.value = tokenValue;
+        
+        console.log('Verificando o que foi salvo no localStorage:', localStorage.getItem('token'));
+        console.log('token.value atualizado:', token.value);
+        console.log('=== FIM SETTOKEN DEBUG ===');
     }
 
     function loadFromSession() {
-        const storedToken = sessionStorage.getItem("token");
+        const storedToken = localStorage.getItem("token");
         if (storedToken) {
             try {
                 token.value = JSON.parse(storedToken);
             } catch {
-                console.warn("Erro ao carregar token");
+                console.warn("Erro ao carregar token do localStorage");
             }
         }
     }
@@ -44,13 +53,13 @@ export const useAuthStore = defineStore("auth", () => {
     });
 
     function clear() {
-        sessionStorage.removeItem("revenuesData");
-        sessionStorage.removeItem("expensesData");
-        sessionStorage.removeItem("token");
-        sessionStorage.removeItem("userData");
-        sessionStorage.removeItem("walletsData");
-        sessionStorage.removeItem("mesAno");
-        sessionStorage.removeItem("dashboardSummary");
+        localStorage.removeItem("revenuesData");
+        localStorage.removeItem("expensesData");
+        localStorage.removeItem("token");
+        localStorage.removeItem("userData");
+        localStorage.removeItem("walletsData");
+        localStorage.removeItem("mesAno");
+        localStorage.removeItem("dashboardSummary");
         token.value = {
             token: "",
             tokenType: "",

@@ -6,7 +6,7 @@
       rota="expense"
       :mes-ano="mesAno"
       transaction-type="Despesa"
-      @update-data="updateData"
+      @update-data="handleUpdateData"
       @close-form="closeForm"
     />
     <div v-if="!formulario" class="receitas">
@@ -130,7 +130,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 
 import FormLancamentos from "@/components/FormLancamentos.vue";
 import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
@@ -150,16 +150,46 @@ import { formatValue } from "@/utils/formatValue";
 
 import { differenceInCalendarDays, parseISO } from "date-fns";
 
+import { useLancamentos } from "@/composables/useLancamentos";
+
 const useRevenues = useRevenuesStore();
 const useWallets = useWalletsStore();
 const useExpenses = useExpensesStore();
 const useUser = useUserStore();
 
-const formulario = ref(false);
-const selectedRelease = ref<Lancamento | undefined>(undefined);
+const {
+  formulario,
+  selectedRelease,
+  loading,
+  error,
+  openCreateForm,
+  openEditForm,
+  closeForm,
+  updateData: updateDataComposable,
+  invalidateCache,
+} = useLancamentos("despesa");
+
+onMounted(async () => {
+  await updateDataComposable();
+});
+
+// const formulario = ref(false);
+// const selectedRelease = ref<Lancamento | undefined>(undefined);
 const mesAno = ref<string>(useUser.mesAno || "");
 const valueTotalExpensesMonth = ref(useExpenses.expensesData?.valueTotalMonth);
 const expensesMonth = ref<Lancamento[]>(useExpenses.expensesData?.byMonth || []);
+
+// Watch para atualizar as variáveis reativas quando o store mudar
+watch(
+  () => useExpenses.expensesData,
+  (newData) => {
+    if (newData) {
+      valueTotalExpensesMonth.value = newData.valueTotalMonth;
+      expensesMonth.value = newData.byMonth || [];
+    }
+  },
+  { deep: true }
+);
 
 interface ApiError {
   response?: {
@@ -264,25 +294,16 @@ const mesPorExtenso = computed(() => {
   return `${mesAbreviado}./${ano.slice(2)}`;
 });
 
-const openCreateForm = () => {
-  selectedRelease.value = undefined;
-  formulario.value = true;
-};
-
 const editExpense = (expense: Lancamento) => {
-  selectedRelease.value = { ...expense };
-  formulario.value = true;
+  openEditForm(expense);
 };
 
-const closeForm = () => {
-  formulario.value = false;
-  selectedRelease.value = undefined;
-};
-
-const updateData = (newData: TransactionsData) => {
+// Função para lidar com os dados retornados do FormLancamentos
+const handleUpdateData = (newData: TransactionsData) => {
   useExpenses.setExpensesData(newData);
   valueTotalExpensesMonth.value = newData.valueTotalMonth;
   expensesMonth.value = newData.byMonth || [];
+  invalidateCache(useUser.mesAno);
   closeForm();
 };
 

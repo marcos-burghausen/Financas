@@ -247,12 +247,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 
 import http from "@/services/http";
 import {
   useAuthStore,
+  useDashboardStore,
   useExpensesStore,
   useRevenuesStore,
   useUserStore,
@@ -260,32 +261,72 @@ import {
 } from "@/store";
 import { formatValue } from "@/utils/formatValue";
 
+const dashboardStore = useDashboardStore();
 const useExpenses = useExpensesStore();
 const useRevenues = useRevenuesStore();
 const useWallets = useWalletsStore();
 const useAuth = useAuthStore();
-const useUser = useUserStore();
+const userStore  = useUserStore();
 const router = useRouter();
 
-// let expensesAddTotalValueMonth = ref(useExpenses.expensesData.expenses?.ExpensesAddTotalValueMonth);
-// let revenuesAddTotalValueMonth = ref(useRevenues.revenuesData.revenues?.RevenuesAddTotalValueMonth);
-let valueTotalExpensesMonth = ref(useExpenses.expensesData?.valueTotalMonth);
-let valueTotalRevenuesMonth = ref(useRevenues.revenuesData?.valueTotalMonth);
-let totalByCategoryExpenses = ref(useExpenses.expensesData?.byCategory);
-const mesAno = ref<string>(useUser.mesAno || "");
-let valuePendingRevenues = ref(useRevenues.revenuesData?.valuePending);
-let valuePendingExpenses = ref(useExpenses.expensesData?.valuePending);
-let valueReceived = ref(useRevenues.revenuesData?.valuePay);
-let totalBalance = ref(useWallets.walletsData?.contas[0].saldo);
-let saldoAtual = ref(useWallets.walletsData?.saldo_atual);
-let saldoInicial = ref(useWallets.walletsData?.saldo_inicial);
-let valuePay = ref(useExpenses.expensesData?.valuePay);
-// let name = ref(useUser.userData.name.split(" ")[0]);
-let valorPrevisto = ref(
-  saldoInicial.value +
-    valueTotalRevenuesMonth.value -
-    valueTotalExpensesMonth.value
-);
+onMounted(async () => {
+  // Carrega dados do localStorage
+  useAuth.loadFromSession();
+  userStore.loadFromSession();
+  dashboardStore.loadFromSession();
+  useExpenses.loadFromSession();
+  useRevenues.loadFromSession();
+  useWallets.loadFromSession();
+  
+  // Verifica se está autenticado antes de buscar dados
+  if (!useAuth.isAuthenticated) {
+    console.warn('Usuário não autenticado, redirecionando para login');
+    router.push({ name: 'home' });
+    return;
+  }
+  
+  // Só busca dados do backend se realmente não tiver nada no localStorage
+  const hasExpensesData = useExpenses.expensesData.byMonth && useExpenses.expensesData.byMonth.length > 0;
+  const hasRevenuesData = useRevenues.revenuesData.byMonth && useRevenues.revenuesData.byMonth.length > 0;
+  
+  if (!hasExpensesData && !hasRevenuesData && userStore.mesAno) {
+    await buscarDadosMes(userStore.mesAno);
+  }
+});
+
+const saldoAtual = computed(() => dashboardStore.summary.saldoAtual);
+const totalReceitas = computed(() => dashboardStore.summary.totalReceitas);
+const totalDespesas = computed(() => dashboardStore.summary.totalDespesas);
+const saldoPrevisto = computed(() => dashboardStore.saldoPrevisto);
+
+// Variáveis computadas baseadas nos stores
+const valueTotalExpensesMonth = computed(() => useExpenses.expensesData?.valueTotalMonth || 0);
+const valueTotalRevenuesMonth = computed(() => useRevenues.revenuesData?.valueTotalMonth || 0);
+const valuePay = computed(() => useExpenses.expensesData?.valuePay || 0);
+const valueReceived = computed(() => useRevenues.revenuesData?.valuePay || 0);
+const valuePendingExpenses = computed(() => useExpenses.expensesData?.valuePending || 0);
+const valuePendingRevenues = computed(() => useRevenues.revenuesData?.valuePending || 0);
+const saldoInicial = computed(() => useWallets.walletsData?.saldo_inicial || 0);
+
+// Valor previsto calculado
+const valorPrevisto = computed(() => {
+  return saldoInicial.value + valueTotalRevenuesMonth.value - valueTotalExpensesMonth.value;
+});
+
+const mesAno = ref<string>(userStore.mesAno || "");
+// let valuePendingRevenues = ref(useRevenues.revenuesData?.valuePending);
+// let valuePendingExpenses = ref(useExpenses.expensesData?.valuePending);
+// let valueReceived = ref(useRevenues.revenuesData?.valuePay);
+// let totalBalance = ref(useWallets.walletsData?.contas[0].saldo);
+// // let saldoAtual = ref(useWallets.walletsData?.saldo_atual);
+// let saldoInicial = ref(useWallets.walletsData?.saldo_inicial);
+// let valuePay = ref(useExpenses.expensesData?.valuePay);
+// // let name = ref(useUser.userData.name.split(" ")[0]);
+// let valorPrevisto = ref(
+//   saldoInicial.value +
+//     valueTotalRevenuesMonth.value -
+//     valueTotalExpensesMonth.value
+// );
 let elementoAtivoSideBar = ref(0);
 // let totalCreditCard = ref(0);
 
@@ -379,13 +420,13 @@ const filteredItensSideBar = computed(() => {
   return itensSideBar.value.filter((item) => {
     if (item.adminOnly) {
       return (
-        useUser.userData.type === "ADMIM" || useUser.userData.type === "FULL"
+        userStore.userData.type === "ADMIM" || userStore.userData.type === "FULL"
       );
     } else if (item.traderOnly) {
       return (
-        useUser.userData.type === "TRADER" ||
-        useUser.userData.type === "USER_TRADER" ||
-        useUser.userData.type === "FULL"
+        userStore.userData.type === "TRADER" ||
+        userStore.userData.type === "USER_TRADER" ||
+        userStore.userData.type === "FULL"
       );
     }
     return true; // Exibe os outros itens normalmente
@@ -411,7 +452,15 @@ watch(group, () => {
 async function logout() {
   try {
     await http.post("/logout");
+    
+    // Limpa todos os stores
     useAuth.clear();
+    userStore.clear();
+    dashboardStore.clear();
+    useExpenses.clear();
+    useRevenues.clear();
+    useWallets.clear();
+    
     router.push({ name: "home" });
   } catch (error) {
     // console.log(error);
@@ -467,34 +516,14 @@ const proximoMes = () => {
 
 const buscarDadosMes = async (data: string) => {
   try {
-    const res = await http.post("/buscar-dados-mes", { mes: data });
-    useUser.setMesAno(res.data.mesAno);
+    const res = await http.post("/buscar-dados-mes", { mesAno: data });
+    userStore.setMesAno(res.data.mesAno);
     useExpenses.setExpensesData(res.data.expenses);
     useRevenues.setRevenuesData(res.data.revenues);
     useWallets.setWalletsData(res.data.wallets);
-
     mesAno.value = res.data.mesAno;
-
-    saldoInicial.value = res.data.wallets.saldoInicial;
-    totalBalance.value = res.data.wallets.saldo;
-
-    valueTotalExpensesMonth.value = res.data.expenses.valueTotalMonth;
-    valueTotalRevenuesMonth.value = res.data.revenues.valueTotalMonth;
-
-    valorPrevisto.value =
-      saldoInicial.value +
-      valueTotalRevenuesMonth.value -
-      valueTotalExpensesMonth.value;
-
-    valuePay.value = res.data.expenses.valuePay;
-    valueReceived.value = res.data.revenues.valuePay;
-
-    totalByCategoryExpenses.value = res.data.expenses.byCategory;
-
-    valuePendingRevenues.value = res.data.revenues.valuePending;
-    valuePendingExpenses.value = res.data.expenses.valuePending;
   } catch (error) {
-    //
+    console.error("Erro ao buscar dados do mês:", error);
   }
 };
 

@@ -26,11 +26,11 @@ export const useExpensesStore = defineStore("expenses", () => {
             categories: expenses?.categories ?? [],
             totalDays: expenses?.totalDays ?? 0,
         };
-        sessionStorage.setItem("expensesData", JSON.stringify(expensesData.value));
+        localStorage.setItem("expensesData", JSON.stringify(expensesData.value));
     }
 
     function loadFromSession(): void {
-        const stored = sessionStorage.getItem("expensesData");
+        const stored = localStorage.getItem("expensesData");
         if (stored) {
             try {
                 expensesData.value = JSON.parse(stored);
@@ -42,7 +42,7 @@ export const useExpensesStore = defineStore("expenses", () => {
 
     function clear(): void {
         expensesData.value = getDefaultTransactionsData();
-        sessionStorage.removeItem("expensesData");
+        localStorage.removeItem("expensesData");
     }
 
     return {

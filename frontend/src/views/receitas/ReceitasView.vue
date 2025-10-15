@@ -6,7 +6,7 @@
       rota="revenue"
       :mes-ano="mesAno"
       transaction-type="Receita"
-      @update-data="updateData"
+      @update-data="handleUpdateData"
       @close-form="closeForm"
     />
     <div v-if="!formulario" class="receitas">
@@ -130,7 +130,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 
 import FormLancamentos from "@/components/FormLancamentos.vue";
 import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
@@ -150,16 +150,49 @@ import { formatValue } from "@/utils/formatValue";
 
 import { differenceInCalendarDays, parseISO } from "date-fns";
 
+import { useLancamentos } from "@/composables/useLancamentos";
+
+
+
+
 const useRevenues = useRevenuesStore();
 const useWallets = useWalletsStore();
 const useExpenses = useExpensesStore();
-const useUser = useUserStore();
+const userStore = useUserStore();
 
-const formulario = ref(false);
-const selectedRelease = ref<Lancamento | undefined>(undefined);
-const mesAno = ref<string>(useUser.mesAno || "");
+const {
+  formulario,
+  selectedRelease,
+  loading,
+  error,
+  openCreateForm,
+  openEditForm,
+  closeForm,
+  updateData,
+  invalidateCache,
+} = useLancamentos("receita");
+
+onMounted(async () => {
+  await updateData();
+});
+
+// const formulario = ref(false);
+// const selectedRelease = ref<Lancamento | undefined>(undefined);
+const mesAno = ref<string>(userStore.mesAno || "");
 const valueTotalRevenuesMonth = ref(useRevenues.revenuesData?.valueTotalMonth);
 const revenuesMonth = ref<Lancamento[]>(useRevenues.revenuesData?.byMonth || []);
+
+// Watch para atualizar as variáveis reativas quando o store mudar
+watch(
+  () => useRevenues.revenuesData,
+  (newData) => {
+    if (newData) {
+      valueTotalRevenuesMonth.value = newData.valueTotalMonth;
+      revenuesMonth.value = newData.byMonth || [];
+    }
+  },
+  { deep: true }
+);
 
 interface ApiError {
   response?: {
@@ -264,26 +297,17 @@ const mesPorExtenso = computed(() => {
   return `${mesAbreviado}./${ano.slice(2)}`;
 });
 
-const openCreateForm = () => {
-  selectedRelease.value = undefined;
-  formulario.value = true;
-};
-
-const editRevenue = (revenue: Lancamento) => {
-  selectedRelease.value = { ...revenue };
-  formulario.value = true;
-};
-
-const closeForm = () => {
-  formulario.value = false;
-  selectedRelease.value = undefined;
-};
-
-const updateData = (newData: TransactionsData) => {
+// Função para lidar com os dados retornados do FormLancamentos
+const handleUpdateData = (newData: TransactionsData) => {
   useRevenues.setRevenuesData(newData);
   valueTotalRevenuesMonth.value = newData.valueTotalMonth;
   revenuesMonth.value = newData.byMonth || [];
+  invalidateCache(userStore.mesAno);
   closeForm();
+};
+
+const editRevenue = (revenue: Lancamento) => {
+  openEditForm(revenue);
 };
 
 const mesAnterior = () => {
@@ -309,7 +333,7 @@ const proximoMes = () => {
 const buscarDadosMes = async (data: string) => {
   try {
     const res = await http.post("/buscar-dados-mes", { mesAno: data });
-    useUser.setMesAno(res.data.mesAno);
+    userStore.setMesAno(res.data.mesAno);
     useExpenses.setExpensesData(res.data.expenses);
     useRevenues.setRevenuesData(res.data.revenues);
     useWallets.setWalletsData(res.data.wallets);
@@ -353,7 +377,7 @@ const receiveRevenue = async (revenueId: number) => {
     revenuesMonth.value = res.data.revenues.byMonth;
     useWallets.setSaldoInicial(res.data.wallets.saldoInicial);
     useWallets.setWalletsData(res.data.wallets);
-    useUser.setMesAno(res.data.mesAno);
+    userStore.setMesAno(res.data.mesAno);
     mesAno.value = res.data.mesAno;
   } catch (error) {
     const apiError = error as ApiError;

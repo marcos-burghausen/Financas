@@ -3,17 +3,32 @@
 </template>
 
 <script setup lang="ts">
-// import MenuLateralMobile from "@/components/mobile/MenuLateralMobile.vue";
-// import TesteView from "./components/TesteView.vue";
-// import Cabecalho from "@/components/Cabecalho.vue";
-// import CabecalhoMobile from "@/components/mobile/CabecalhoMobile.vue";
+import { onMounted } from "vue";
+import {
+  useAuthStore,
+  useUserStore,
+  useDashboardStore,
+  useExpensesStore,
+  useRevenuesStore,
+  useWalletsStore,
+} from "@/store";
 
-// import { ref } from "vue";
-// import { useAuthStore } from "@/store/auth.js";
+const authStore = useAuthStore();
+const userStore = useUserStore();
+const dashboardStore = useDashboardStore();
+const expensesStore = useExpensesStore();
+const revenuesStore = useRevenuesStore();
+const walletsStore = useWalletsStore();
 
-// const useAuth = useAuthStore();
-
-// const menuExpandido = ref(false);
+onMounted(() => {
+  // Carrega dados da sessão ao inicializar
+  authStore.loadFromSession();
+  userStore.loadFromSession();
+  dashboardStore.loadFromSession();
+  expensesStore.loadFromSession();
+  revenuesStore.loadFromSession();
+  walletsStore.loadFromSession();
+});
 </script>
 
 <style scoped></style>

@@ -91,17 +91,17 @@
 <script setup lang="ts">
 import ErrorMessage from "@/components/ErrorMessage.vue";
 import ErrorsForm from "@/components/ModalErrorsForm.vue";
+import http from "@/services/http";
 import {
   useAuthStore,
   useDashboardStore,
   useErrorStore,
   useUserStore,
 } from "@/store";
-import http from "@/services/http";
-import { useRouter } from "vue-router";
-import type { FormLogin, LoginResponse, ApiErrorResponse } from "@/types";
+import type { ApiErrorResponse, FormLogin, LoginResponse } from "@/types";
 import type { AxiosError, AxiosResponse } from "axios";
 import { ref } from "vue";
+import { useRouter } from "vue-router";
 
 const emits = defineEmits(["nextStep"]);
 const useUser = useUserStore();
@@ -141,12 +141,22 @@ const login = async () => {
       user.value
     );
     
+    console.log('=== LOGIN RESPONSE DEBUG ===');
+    console.log('Response completo:', response.data);
+    console.log('Token recebido:', response.data.token);
+    console.log('User recebido:', response.data.user);
+    console.log('MesAno recebido:', response.data.mesAno);
+    console.log('Summary recebido:', response.data.summary);
+    
     // Armazena apenas dados essenciais
     useAuth.setToken(response.data.token);
+    console.log('Token salvo. Verificando localStorage:', localStorage.getItem('token'));
+    
     useUser.setUserData(response.data.user);
     useUser.setMesAno(response.data.mesAno);
     dashboardStore.setSummary(response.data.summary);
 
+    console.log('=== FIM LOGIN DEBUG ===');
     router.push({ name: "dashboard" });
   } catch (error) {
     const axiosError = error as AxiosError<ApiErrorResponse>;

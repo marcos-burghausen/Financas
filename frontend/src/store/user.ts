@@ -11,15 +11,15 @@ export const useUserStore = defineStore("user", () => {
     function setUserData(data: User | null): void {
         userData.value = data;
         if (data) {
-            sessionStorage.setItem("userData", JSON.stringify(data));
+            localStorage.setItem("userData", JSON.stringify(data));
         } else {
-            sessionStorage.removeItem("userData");
+            localStorage.removeItem("userData");
         }
     }
 
     function setMesAno(mes_ano: string) {
         mesAno.value = mes_ano;
-        sessionStorage.setItem("mesAno", mes_ano);
+        localStorage.setItem("mesAno", mes_ano);
     }
 
     function getMesAno(): string {
@@ -27,8 +27,8 @@ export const useUserStore = defineStore("user", () => {
     }
 
     function loadFromSession(): void {
-        const storedUser = sessionStorage.getItem("userData");
-        const storedMes = sessionStorage.getItem("mesAno");
+        const storedUser = localStorage.getItem("userData");
+        const storedMes = localStorage.getItem("mesAno");
 
         if (storedUser) {
             try {
@@ -46,8 +46,8 @@ export const useUserStore = defineStore("user", () => {
     function clear(): void {
         userData.value = null;
         mesAno.value = new Date().toISOString().slice(0, 7);
-        sessionStorage.removeItem("userData");
-        sessionStorage.removeItem("mesAno");
+        localStorage.removeItem("userData");
+        localStorage.removeItem("mesAno");
     }
 
     return {
