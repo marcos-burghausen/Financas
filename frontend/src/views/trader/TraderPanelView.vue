@@ -2,11 +2,20 @@
   <v-container fluid class="trader-panel pa-6">
     <v-row>
       <v-col cols="12">
-        <h1 class="text-h4 mb-2 d-flex align-center">
-          <v-icon icon="mdi-chart-line" size="36" class="mr-3" color="success" />
-          Painel do Trader
-        </h1>
-        <p class="text-subtitle-1 text-grey mb-6">
+        <div class="d-flex align-center mb-2">
+          <v-btn
+            icon="mdi-arrow-left"
+            variant="text"
+            color="success"
+            @click="$router.push({ name: 'dashboard' })"
+            class="mr-3"
+          />
+          <h1 class="text-h4 d-flex align-center">
+            <v-icon icon="mdi-chart-line" size="36" class="mr-3" color="success" />
+            Painel do Trader
+          </h1>
+        </div>
+        <p class="text-subtitle-1 text-grey mb-6 ml-14">
           Acompanhe seus investimentos e análises do mercado
         </p>
       </v-col>

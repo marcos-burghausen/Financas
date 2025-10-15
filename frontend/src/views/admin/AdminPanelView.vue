@@ -2,11 +2,20 @@
   <v-container fluid class="admin-panel pa-6">
     <v-row>
       <v-col cols="12">
-        <h1 class="text-h4 mb-2 d-flex align-center">
-          <v-icon icon="mdi-shield-crown" size="36" class="mr-3" color="primary" />
-          Painel Administrativo
-        </h1>
-        <p class="text-subtitle-1 text-grey mb-6">
+        <div class="d-flex align-center mb-2">
+          <v-btn
+            icon="mdi-arrow-left"
+            variant="text"
+            color="primary"
+            @click="$router.push({ name: 'dashboard' })"
+            class="mr-3"
+          />
+          <h1 class="text-h4 d-flex align-center">
+            <v-icon icon="mdi-shield-crown" size="36" class="mr-3" color="primary" />
+            Painel Administrativo
+          </h1>
+        </div>
+        <p class="text-subtitle-1 text-grey mb-6 ml-14">
           Gerencie usuários, permissões e visualize estatísticas do sistema
         </p>
       </v-col>

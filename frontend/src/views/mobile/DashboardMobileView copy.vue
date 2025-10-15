@@ -429,6 +429,14 @@ const itensSideBar = ref([
     action: () => router.push({ name: "categorias" }),
   },
   {
+    name: "Cartões de Crédito",
+    icon: "mdi-credit-card-outline",
+    route: "contas",
+    adminOnly: false,
+    traderOnly: false,
+    action: () => router.push({ name: "contas" }),
+  },
+  {
     name: "Notificações",
     icon: "mdi-bell-ring",
     route: "notificacoes",

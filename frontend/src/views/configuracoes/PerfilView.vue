@@ -6,6 +6,13 @@
         <v-card elevation="0" class="mb-6">
           <v-card-text>
             <div class="d-flex align-center">
+              <v-btn
+                icon="mdi-arrow-left"
+                variant="text"
+                color="primary"
+                @click="$router.push({ name: 'dashboard' })"
+                class="mr-2"
+              />
               <v-avatar size="80" color="primary" class="mr-4">
                 <v-icon size="50" color="white">mdi-account</v-icon>
               </v-avatar>

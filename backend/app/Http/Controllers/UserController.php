@@ -78,8 +78,8 @@ class UserController extends Controller
 
         $stats = [
             'contas' => $user->contas()->count(),
-            'receitas' => $user->lancamentos()->where('tipo', 'RECEITA')->count(),
-            'despesas' => $user->lancamentos()->where('tipo', 'DESPESA')->count(),
+            'receitas' => $user->lancamentos()->where('tipo_lancamento', 'RECEITA')->count(),
+            'despesas' => $user->lancamentos()->where('tipo_lancamento', 'DESPESA')->count(),
             'categorias' => $user->categorias()->count(),
         ];
 
