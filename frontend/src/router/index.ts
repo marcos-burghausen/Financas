@@ -72,6 +72,40 @@ const router = createRouter({
                 auth: true
             }
         },
+        {
+            path: "/admin",
+            name: "admin",
+            component: () => import("../views/admin/AdminPanelView.vue"),
+            meta: {
+                auth: true,
+                requiresAdmin: true
+            }
+        },
+        {
+            path: "/trader",
+            name: "trader",
+            component: () => import("../views/trader/TraderPanelView.vue"),
+            meta: {
+                auth: true,
+                requiresTrader: true
+            }
+        },
+        {
+            path: "/configuracoes/notificacoes",
+            name: "notificacoes",
+            component: () => import("../views/configuracoes/NotificacoesView.vue"),
+            meta: {
+                auth: true
+            }
+        },
+        {
+            path: "/perfil",
+            name: "perfil",
+            component: () => import("../views/configuracoes/PerfilView.vue"),
+            meta: {
+                auth: true
+            }
+        },
     ]
 });
 

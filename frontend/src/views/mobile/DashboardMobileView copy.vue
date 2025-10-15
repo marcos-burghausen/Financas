@@ -252,13 +252,14 @@ import { useRouter } from "vue-router";
 
 import http from "@/services/http";
 import {
-  useAuthStore,
-  useDashboardStore,
-  useExpensesStore,
-  useRevenuesStore,
-  useUserStore,
-  useWalletsStore,
+    useAuthStore,
+    useDashboardStore,
+    useExpensesStore,
+    useRevenuesStore,
+    useUserStore,
+    useWalletsStore,
 } from "@/store";
+import { useRolesStore } from "@/store/roles";
 import { formatValue } from "@/utils/formatValue";
 
 const dashboardStore = useDashboardStore();
@@ -267,6 +268,7 @@ const useRevenues = useRevenuesStore();
 const useWallets = useWalletsStore();
 const useAuth = useAuthStore();
 const userStore  = useUserStore();
+const rolesStore = useRolesStore();
 const router = useRouter();
 
 onMounted(async () => {
@@ -283,6 +285,15 @@ onMounted(async () => {
     console.warn('Usuário não autenticado, redirecionando para login');
     router.push({ name: 'home' });
     return;
+  }
+  
+  // Carregar permissões do usuário se ainda não foram carregadas
+  if (rolesStore.myRoles.length === 0) {
+    try {
+      await rolesStore.fetchMyPermissions();
+    } catch (error) {
+      console.error('Erro ao carregar permissões no dashboard:', error);
+    }
   }
   
   // Só busca dados do backend se realmente não tiver nada no localStorage
@@ -332,20 +343,32 @@ let elementoAtivoSideBar = ref(0);
 
 watch(router, (value) => {
   switch (value.currentRoute.value.name) {
-    case "dashboard":
+    case "admin":
       elementoAtivoSideBar.value = 0;
       break;
-    case "contas":
+    case "trader":
       elementoAtivoSideBar.value = 1;
       break;
-    case "receitas":
+    case "dashboard":
       elementoAtivoSideBar.value = 2;
       break;
-    case "despesas":
+    case "contas":
       elementoAtivoSideBar.value = 3;
       break;
-    case "categorias":
+    case "receitas":
       elementoAtivoSideBar.value = 4;
+      break;
+    case "despesas":
+      elementoAtivoSideBar.value = 5;
+      break;
+    case "categorias":
+      elementoAtivoSideBar.value = 6;
+      break;
+    case "notificacoes":
+      elementoAtivoSideBar.value = 7;
+      break;
+    case "perfil":
+      elementoAtivoSideBar.value = 8;
       break;
   }
 });
@@ -353,17 +376,17 @@ watch(router, (value) => {
 const itensSideBar = ref([
   {
     name: "Admin",
-    icon: "view-dashboard",
-    route: "dashAdmim",
+    icon: "mdi-shield-crown",
+    route: "admin",
     adminOnly: true,
-    action: () => router.push({ name: "dashAdmim" }),
+    action: () => router.push({ name: "admin" }),
   },
   {
     name: "Trader",
-    icon: "chart-line",
-    route: "dashAdmim",
+    icon: "mdi-chart-line",
+    route: "trader",
     traderOnly: true,
-    action: () => router.push({ name: "dashAdmim" }),
+    action: () => router.push({ name: "trader" }),
   },
   {
     name: "Dashboard",
@@ -397,37 +420,40 @@ const itensSideBar = ref([
     traderOnly: false,
     action: () => router.push({ name: "despesas" }),
   },
-  // {
-  //   name: "Categorias",
-  //   icon: "mdi-bookmark-minus-outline",
-  //   route: "categorias",
-  //   adminOnly: false,
-  //   traderOnly: false,
-  //   action: () => router.push({ name: "categorias" }),
-  // },
   {
-    name: "Cartões de crédito",
+    name: "Categorias",
     icon: "mdi-bookmark-minus-outline",
-    route: "cartoes",
+    route: "categorias",
     adminOnly: false,
     traderOnly: false,
-    action: () => router.push({ name: "cartoes" }),
+    action: () => router.push({ name: "categorias" }),
   },
-  // { name: "Mais Opçõs", icon: "dots-horizontal", route: "dashboard" },
+  {
+    name: "Notificações",
+    icon: "mdi-bell-ring",
+    route: "notificacoes",
+    adminOnly: false,
+    traderOnly: false,
+    action: () => router.push({ name: "notificacoes" }),
+  },
+  {
+    name: "Perfil",
+    icon: "mdi-account-circle",
+    route: "perfil",
+    adminOnly: false,
+    traderOnly: false,
+    action: () => router.push({ name: "perfil" }),
+  },
 ]);
 
 const filteredItensSideBar = computed(() => {
   return itensSideBar.value.filter((item) => {
     if (item.adminOnly) {
-      return (
-        userStore.userData.type === "ADMIM" || userStore.userData.type === "FULL"
-      );
+      // Usa rolesStore em vez de userStore.userData.type
+      return rolesStore.isAdmin;
     } else if (item.traderOnly) {
-      return (
-        userStore.userData.type === "TRADER" ||
-        userStore.userData.type === "USER_TRADER" ||
-        userStore.userData.type === "FULL"
-      );
+      // Usa rolesStore para verificar roles de trader
+      return rolesStore.hasAnyPermission(['USER_TRADER', 'TRADER', 'FULL']);
     }
     return true; // Exibe os outros itens normalmente
   });
@@ -451,7 +477,8 @@ watch(group, () => {
 
 async function logout() {
   try {
-    await http.post("/logout");
+    // Sanctum: endpoint atualizado
+    await http.post("/sanctum/logout");
     
     // Limpa todos os stores
     useAuth.clear();
@@ -461,9 +488,17 @@ async function logout() {
     useRevenues.clear();
     useWallets.clear();
     
-    router.push({ name: "home" });
+    // Força reload completo para limpar tudo da memória
+    window.location.href = "/";
   } catch (error) {
-    // console.log(error);
+    // Se falhar a requisição, ainda limpa localmente
+    useAuth.clear();
+    userStore.clear();
+    dashboardStore.clear();
+    useExpenses.clear();
+    useRevenues.clear();
+    useWallets.clear();
+    window.location.href = "/";
   }
 }
 

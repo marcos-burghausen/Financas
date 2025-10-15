@@ -32,6 +32,7 @@ class Lancamento extends Model
         'status_lancamento',
         'categoria',
         'subcategoria',
+        'observacoes',
         'data_lancamento',
         'data_efetivacao',
         'conta_id',

@@ -56,6 +56,7 @@ class StoreLancamentoRequest extends FormRequest
             'status_lancamento'    => 'required | in:EFETIVADA,PENDENTE',
             'categoria'            => 'required | string|max:30',
             'subcategoria'         => 'required | string|max:30',
+            'observacoes'          => 'nullable | string | max:1000',
             'conta_id'             => 'required | exists:contas,id',
             'mesAno'               => 'required | string | regex:/^\d{4}-\d{2}$/',
             'invoice_id'           => 'nullable | required_if:tipo_lancamento,CARTAO_CREDITO | exists:credit_card_invoices,id',

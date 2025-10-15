@@ -13,6 +13,15 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         $schedule->command('app:notify-upcoming-expenses-and-revenues')->dailyAt('12:00');
+
+        // Notificação de vencimento de contas - executar às 9h todos os dias
+        $schedule->command('notifications:vencimento')->dailyAt('09:00');
+
+        // Notificação de limite de cartão - executar às 10h todos os dias
+        $schedule->command('notifications:limite-cartao')->dailyAt('10:00');
+
+        // Notificação de desvio de orçamento - executar às 20h todos os dias
+        $schedule->command('notifications:desvio-orcamento')->dailyAt('20:00');
     }
 
     /**

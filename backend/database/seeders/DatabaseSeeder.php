@@ -2,21 +2,29 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
     /**
      * Seed the application's database.
+     * 
+     * Executa os seeders na ordem correta:
+     * 1. RolesSeeder - Cria as roles e permissões do sistema
+     * 2. DemoDataSeeder - Cria usuários de teste com dados completos
      */
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
+        $this->call([
+            RolesSeeder::class,
+            DemoDataSeeder::class,
+            LogSeeder::class,
+        ]);
 
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        $this->command->newLine(2);
+        $this->command->info('🎉 Database seeding completo!');
+        $this->command->newLine();
+        $this->command->info('📝 Sistema pronto para testes com 5 usuários completos');
+        $this->command->info('🔑 Senha padrão para todos: senha123');
     }
 }

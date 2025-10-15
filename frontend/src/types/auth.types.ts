@@ -1,7 +1,8 @@
 // src/types/auth.types.ts
 // Defines the structure of the login API response
-import type { CategoryData, Lancamento, WalletData } from "./index";
 
+// REMOVIDO: Interface Token não é mais necessária com Sanctum
+// JWT Token structure (deprecated - migrado para Sanctum)
 export interface Token {
   expires: number;
   expiresIn: number;
@@ -24,8 +25,9 @@ export interface DashboardSummary {
   totalDespesas: number;
 }
 
+// Sanctum: token é string simples, não objeto
 export interface LoginResponse {
-  token: Token;
+  token: string; // Sanctum retorna string, não objeto Token
   user: User;
   mesAno: string;
   summary: DashboardSummary;

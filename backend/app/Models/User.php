@@ -3,13 +3,12 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable implements JWTSubject
+class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -51,26 +50,6 @@ class User extends Authenticatable implements JWTSubject
     ];
 
     /**
-     * Get the identifier that will be stored in the subject claim of the JWT.
-     *
-     * @return mixed
-     */
-    public function getJWTIdentifier()
-    {
-        return $this->getKey();
-    }
-
-    /**
-     * Return a key value array, containing any custom claims to be added to the JWT.
-     *
-     * @return array
-     */
-    public function getJWTCustomClaims()
-    {
-        return [];
-    }
-
-    /**
      * A relação principal e única para todos os lançamentos do usuário.
      */
     public function lancamentos()
@@ -107,6 +86,124 @@ class User extends Authenticatable implements JWTSubject
     public function subcategories()
     {
         return $this->hasMany(Subcategory::class);
+    }
+
+    /**
+     * Relacionamento com configurações de notificação
+     */
+    public function notificationSettings()
+    {
+        return $this->hasOne(UserNotificationSettings::class);
+    }
+
+    /**
+     * Obter ou criar configurações de notificação
+     */
+    public function getOrCreateNotificationSettings()
+    {
+        return $this->notificationSettings()->firstOrCreate(
+            ['user_id' => $this->id]
+        );
+    }
+
+    /**
+     * Roles (perfis) do usuário
+     */
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'role_user')
+            ->withTimestamps();
+    }
+
+    /**
+     * Verifica se o usuário possui uma role específica
+     */
+    public function hasRole(string $roleName): bool
+    {
+        return $this->roles()->where('name', $roleName)->exists();
+    }
+
+    /**
+     * Verifica se o usuário possui qualquer uma das roles fornecidas
+     */
+    public function hasAnyRole(array $roleNames): bool
+    {
+        return $this->roles()->whereIn('name', $roleNames)->exists();
+    }
+
+    /**
+     * Verifica se o usuário possui todas as roles fornecidas
+     */
+    public function hasAllRoles(array $roleNames): bool
+    {
+        $userRoles = $this->roles()->pluck('name')->toArray();
+        return count(array_intersect($roleNames, $userRoles)) === count($roleNames);
+    }
+
+    /**
+     * Verifica se o usuário possui uma permissão específica
+     */
+    public function hasPermission(string $permission): bool
+    {
+        foreach ($this->roles as $role) {
+            if ($role->hasPermission($permission)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Atribui uma ou mais roles ao usuário
+     */
+    public function assignRole(...$roles): void
+    {
+        $roleIds = collect($roles)->map(function ($role) {
+            if (is_string($role)) {
+                return Role::where('name', $role)->firstOrFail()->id;
+            }
+            return is_object($role) ? $role->id : $role;
+        });
+
+        $this->roles()->syncWithoutDetaching($roleIds);
+    }
+
+    /**
+     * Remove uma ou mais roles do usuário
+     */
+    public function removeRole(...$roles): void
+    {
+        $roleIds = collect($roles)->map(function ($role) {
+            if (is_string($role)) {
+                return Role::where('name', $role)->firstOrFail()->id;
+            }
+            return is_object($role) ? $role->id : $role;
+        });
+
+        $this->roles()->detach($roleIds);
+    }
+
+    /**
+     * Sincroniza as roles do usuário (remove antigas e adiciona novas)
+     */
+    public function syncRoles(...$roles): void
+    {
+        $roleIds = collect($roles)->map(function ($role) {
+            if (is_string($role)) {
+                return Role::where('name', $role)->firstOrFail()->id;
+            }
+            return is_object($role) ? $role->id : $role;
+        });
+
+        $this->roles()->sync($roleIds);
+    }
+
+    /**
+     * Verifica se o usuário é admin ou tem acesso completo
+     */
+    public function isAdmin(): bool
+    {
+        return $this->hasAnyRole([Role::ADMIN, Role::FULL]);
     }
 
     protected static function boot()

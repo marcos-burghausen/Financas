@@ -61,10 +61,11 @@ class AuthController extends Controller
         $user = auth()->user();
         $mesAno = $request->query('mesAno', now()->format('Y-m'));
 
-        // Cache por 10 minutos
+        // Cache por 10 minutos - Usando getUserData granular para buscar apenas o necessário
         $cacheKey = "login_data_user_{$user->id}_month_{$mesAno}";
         $loginData = cache()->remember($cacheKey, 600, function () use ($user, $mesAno, $token) {
-            $summary = $this->getDashboardSummary($user, $mesAno);
+            // Busca apenas o resumo do dashboard no login (performance)
+            $userData = $this->getUserData($user, $mesAno, ['summary']);
 
             return [
                 'token' => $token->original,
@@ -75,7 +76,7 @@ class AuthController extends Controller
                     'type' => $user->user_type,
                 ],
                 'mesAno' => $mesAno,
-                'summary' => $summary,
+                'summary' => $userData['summary'],
             ];
         });
 
@@ -83,37 +84,6 @@ class AuthController extends Controller
         Mail::to('rafaelburghausen@gmail.com')->queue(new NotificationMail($user, 'Login', 'Login', $user->name));
 
         return response()->json($loginData);
-    }
-
-    /**
-     * Busca apenas dados agregados para o dashboard
-     */
-    private function getDashboardSummary($user, $mesAno)
-    {
-        [$ano, $mes] = explode('-', $mesAno);
-
-        return [
-            'saldoAtual' => DB::table('contas')
-                ->where('user_id', $user->id)
-                ->where('tipo_conta', '!=', 'Cartão de Crédito')
-                ->sum('saldo'),
-            'saldoInicial' => DB::table('contas')
-                ->where('user_id', $user->id)
-                ->where('incluir_em_soma_inicial', true)
-                ->sum('saldo_inicial'),
-            'totalReceitas' => DB::table('lancamentos')
-                ->where('user_id', $user->id)
-                ->where('tipo_lancamento', 'RECEITA')
-                ->whereYear('data_vencimento', $ano)
-                ->whereMonth('data_vencimento', $mes)
-                ->sum('valor'),
-            'totalDespesas' => DB::table('lancamentos')
-                ->where('user_id', $user->id)
-                ->where('tipo_lancamento', 'DESPESA')
-                ->whereYear('data_vencimento', $ano)
-                ->whereMonth('data_vencimento', $mes)
-                ->sum('valor'),
-        ];
     }
 
     public function authSocial(Request $request)
@@ -157,52 +127,26 @@ class AuthController extends Controller
     }
 
     /**
-     * Get the token array structure.
-     *
-     * @param  string $token
+     * Retorna dados completos do usuário autenticado.
+     * Usa getUserData granular para buscar todas as seções necessárias.
      *
      * @return \Illuminate\Http\JsonResponse
      */
     public function me()
     {
-        if ($user = auth()->user()) {
+        $user = auth()->user();
 
-            $revenuesData = $this->classifiesReleases(auth()->user()->revenues()->get(), 'Revenues');
-            $expensesData = $this->classifiesReleases(auth()->user()->expenses()->get(), 'Expenses');
-            // $walletsNames = Conta::pluck('name')->toArray();
-            // $walletsData = Conta::select('name', 'saldo')->get();
-            $walletsData = auth()->user()->contas()->get();
-            $walletsName = $walletsData->pluck('name');
-            $user['walletsName'] = $walletsName;
-            $wallets = [];
-            foreach ($walletsData as $wallet) {
-                $wallets[$wallet['name']] = [
-                    'name' => $wallet['name'],
-                    'valor' => $wallet['valor'],
-                    'icon' => $wallet['icon'],
-                    'tipoConta' => $wallet['tipoConta'],
-                ];
-            }
-            // return response(['revenuesData' => $revenuesData, 'expensesData' => $expensesData]);
-
-
-            $totalCreditCard = 5000;
-            $totalBalance = 5000;
-
-            LogController::addsLog($user->email, Actions::ME);
-
-            return response()->json([
-                'user' => $user,
-                'expensesData' => $expensesData,
-                'revenuesData' => $revenuesData,
-                'wallets' => $wallets,
-                // 'totalBalance'  => $totalBalance,
-                // 'totalCreditCard'  => $totalCreditCard,
-
-            ]);
+        if (!$user) {
+            return Errors::ERROR_WHILE_GETTING_USER_DATA->response();
         }
 
-        return Errors::ERROR_WHILE_GETTING_USER_DATA->response();
+        // Busca todos os dados do usuário usando a função granular
+        // Se não passar seções, retorna tudo
+        $userData = $this->getUserData($user);
+
+        LogController::addsLog($user->email, Actions::ME);
+
+        return response()->json($userData);
     }
 
     public function logout()
@@ -275,6 +219,8 @@ class AuthController extends Controller
 
             // Gera o token JWT sem necessidade de senha
             $token = auth('api')->login($user);
+
+            // Busca dados completos do usuário usando getUserData granular
             $userData = $this->getUserData($user);
 
             // Cache e log (similar ao seu método original)
@@ -285,9 +231,15 @@ class AuthController extends Controller
             $token = $this->respondWithToken($token);
 
             LogController::addsLog($user->email, Actions::SOCIAL_LOGIN);
+
             return response()->json([
                 'token' => $token->original,
-                'user'  => $user,
+                'user'  => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'type' => $user->user_type,
+                ],
                 'userData' => $userData
             ]);
         } catch (\Throwable $th) {

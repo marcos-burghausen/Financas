@@ -31,15 +31,16 @@
 <script setup>
 // import ErrorMessage from "@/components/ErrorMessage.vue";
 
-import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
-import { useAuthStore } from "@/store/auth";
-import { useUserStore } from "@/store/user";
 import http from "@/services/http";
+import { useAuthStore } from "@/store/auth";
+import { useErrorStore } from "@/store/error";
 import { useExpensesStore } from "@/store/expenses";
 import { useRevenuesStore } from "@/store/revenues";
+import { useRolesStore } from "@/store/roles";
+import { useUserStore } from "@/store/user";
 import { useWalletsStore } from "@/store/wallets";
-import { useErrorStore } from "@/store/error";
+import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 
 const router = useRouter();
 const useAuth = useAuthStore();
@@ -48,6 +49,7 @@ const useExpenses = useExpensesStore();
 const useRevenues = useRevenuesStore();
 const useWallets = useWalletsStore();
 const errorStore = useErrorStore();
+const rolesStore = useRolesStore();
 
 const loading = ref(true);
 const erro = ref(null);
@@ -75,6 +77,10 @@ const handleFacebookCallback = async () => {
             useWallets.setWalletsData(response.data.userData.walletsData);
             // data.setTotalCreditCard(response.data.userData.totalCreditCard);
             // data.setTotalBalance(response.data.userData.totalBalance);
+            
+            // Carregar permissões e roles do usuário após login do Facebook
+            await rolesStore.fetchMyPermissions();
+            
             router.push({name:"dashboard"});
         } else {
             throw new Error("Dados de autenticação incompletos na resposta");

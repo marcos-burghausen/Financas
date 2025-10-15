@@ -53,10 +53,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { useRolesStore } from "@/store/roles";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
+const rolesStore = useRolesStore();
 
 let elementoAtivoSideBar = ref();
 
@@ -77,6 +79,18 @@ watch(route, (value) => {
     case "categorias":
         elementoAtivoSideBar.value = 4;
         break;
+    case "notificacoes":
+        elementoAtivoSideBar.value = 5;
+        break;
+    case "perfil":
+        elementoAtivoSideBar.value = 6;
+        break;
+    case "admin":
+        elementoAtivoSideBar.value = 7;
+        break;
+    case "trader":
+        elementoAtivoSideBar.value = 8;
+        break;
     }
 
 });
@@ -85,14 +99,62 @@ const props = defineProps({
     menuExpandido: Boolean
 });
 
-const itensSideBar = ref([
+const baseItems = [
     { name: "DashBoard", icon: "view-dashboard", route: "dashboard" },
     { name: "Contas", icon: "bank-outline", route: "contas" },
     { name: "Receitas", icon: "arrow-top-right-bold-outline", route: "receitas" },
     { name: "Despesas", icon: "arrow-bottom-right-bold-outline", route: "despesas" },
     { name: "Categorias", icon: "bookmark-minus-outline", route: "categorias" },
-    // { name: "Mais Opçõs", icon: "dots-horizontal", route: "dashboard" },
-]);
+    { name: "Notificações", icon: "bell-ring", route: "notificacoes" },
+    { name: "Perfil", icon: "account-circle", route: "perfil" },
+];
+
+const itensSideBar = computed(() => {
+    const items = [...baseItems];
+    
+    // Forçar reatividade acessando os valores diretamente
+    const roles = rolesStore.myRoles;
+    const adminStatus = rolesStore.isAdmin;
+    
+    // DEBUG: Verificar itens do menu
+    console.log('🔍 MenuLateral - Base Items:', baseItems.length);
+    console.log('🔍 MenuLateral - Items com base:', items.map(i => i.name));
+    
+    // Adicionar item Admin se usuário for admin
+    if (adminStatus) {
+        items.push({ name: "Admin", icon: "shield-crown", route: "admin" });
+        console.log('✅ MenuLateral - Admin adicionado');
+    }
+    
+    // Adicionar item Trader se usuário tiver permissão
+    const hasTraderRole = roles.includes('TRADER') || 
+                         roles.includes('USER_TRADER') || 
+                         roles.includes('FULL');
+    if (hasTraderRole) {
+        items.push({ name: "Trader", icon: "chart-line", route: "trader" });
+        console.log('✅ MenuLateral - Trader adicionado');
+    }
+    
+    console.log('🎯 MenuLateral - Items finais:', items.length, items.map(i => i.name));
+    
+    return items;
+});
+
+// Carregar permissões ao montar o componente
+onMounted(async () => {
+    if (rolesStore.myRoles.length === 0) {
+        try {
+            await rolesStore.fetchMyPermissions();
+        } catch (error) {
+            console.error('Erro ao carregar permissões:', error);
+        }
+    }
+});
+
+// Watch para monitorar mudanças nas roles
+watch(() => rolesStore.myRoles, (newRoles) => {
+    // Reativa o computed quando as roles mudam
+}, { deep: true });
 </script>
 
 <style scoped>
@@ -104,8 +166,28 @@ const itensSideBar = ref([
   /* box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23; */
   /* transition: 0.5s; */
   height: 100%;
-  
+  overflow-y: auto; /* ADICIONADO: Permitir scroll */
+  overflow-x: hidden;
 }
+
+/* ADICIONADO: Estilizar scrollbar */
+.menu-lateral::-webkit-scrollbar {
+  width: 6px;
+}
+
+.menu-lateral::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.menu-lateral::-webkit-scrollbar-thumb {
+  background: #77d08e;
+  border-radius: 10px;
+}
+
+.menu-lateral::-webkit-scrollbar-thumb:hover {
+  background: #5fb876;
+}
+
 .fundo__menu {
   background-color: rgba(0, 0, 0, 0.6);
   position: fixed;

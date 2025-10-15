@@ -472,6 +472,23 @@
         </template>
       </v-autocomplete>
 
+      <!-- Campo de Observações -->
+      <v-textarea
+        v-model="formReleases.observacoes"
+        label="Observações (opcional)"
+        placeholder="Adicione notas ou detalhes sobre este lançamento..."
+        variant="underlined"
+        rows="3"
+        auto-grow
+        counter
+        maxlength="1000"
+        class="mb-6"
+      >
+        <template #prepend-inner>
+          <v-icon icon="mdi-note-text-outline" />
+        </template>
+      </v-textarea>
+
       <v-text-field
           v-if="isCard"
           :model-value="linkedAccountName"
@@ -699,6 +716,7 @@ const formReleases = ref<Partial<Lancamento>>({
   status_lancamento: props.releases?.status_lancamento || "PENDENTE",
   categoria: props.releases?.categoria || "Outros",
   subcategoria: props.releases?.subcategoria || "Outros",
+  observacoes: props.releases?.observacoes || null,
   conta_id: props.releases?.conta_id || null,
   fatura: props.releases?.fatura || null,
   data_lancamento: props.releases?.data_lancamento || format(new Date(), "yyyy-MM-dd"),

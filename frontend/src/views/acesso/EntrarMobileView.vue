@@ -98,6 +98,7 @@ import {
   useErrorStore,
   useUserStore,
 } from "@/store";
+import { useRolesStore } from "@/store/roles";
 import type { ApiErrorResponse, FormLogin, LoginResponse } from "@/types";
 import type { AxiosError, AxiosResponse } from "axios";
 import { ref } from "vue";
@@ -109,6 +110,7 @@ const dashboardStore = useDashboardStore();
 const errorStore = useErrorStore();
 const router = useRouter();
 const useAuth = useAuthStore();
+const rolesStore = useRolesStore();
 
 const user = ref<FormLogin>({
   email: "",
@@ -134,29 +136,28 @@ async function initiateFacebookLogin() {
 const login = async () => {
   if (!validForm.value) return;
   errorStore.unsetError();
+  
+  // Limpa tokens antigos (tanto JWT quanto Sanctum)
+  localStorage.removeItem('token');
+  localStorage.removeItem('sanctum_token');
+  
   try {
     loading.value = true;
+    // Migrado para Sanctum
     const response: AxiosResponse<LoginResponse> = await http.post(
-      "/auth",
+      "/sanctum/login",
       user.value
     );
     
-    console.log('=== LOGIN RESPONSE DEBUG ===');
-    console.log('Response completo:', response.data);
-    console.log('Token recebido:', response.data.token);
-    console.log('User recebido:', response.data.user);
-    console.log('MesAno recebido:', response.data.mesAno);
-    console.log('Summary recebido:', response.data.summary);
-    
-    // Armazena apenas dados essenciais
+    // Sanctum: token é string simples, não objeto
     useAuth.setToken(response.data.token);
-    console.log('Token salvo. Verificando localStorage:', localStorage.getItem('token'));
-    
     useUser.setUserData(response.data.user);
     useUser.setMesAno(response.data.mesAno);
     dashboardStore.setSummary(response.data.summary);
 
-    console.log('=== FIM LOGIN DEBUG ===');
+    // Carregar permissões e roles do usuário após login
+    await rolesStore.fetchMyPermissions();
+
     router.push({ name: "dashboard" });
   } catch (error) {
     const axiosError = error as AxiosError<ApiErrorResponse>;

@@ -16,6 +16,7 @@ export interface Lancamento {
   tipo_parcela: "total" | "parcela" | null;
   categoria?: string;
   subcategoria?: string;
+  observacoes?: string | null; // ← NOVO: Campo de observações (max 1000 chars)
   data_lancamento: string | Date;
   data_efetivacao: string | Date | null;
   periodicidade: "Mensal" | "Diario" | "Semanal" | "Quinzenal" | "Bimestral" | "Trimenstral" | "Anual" | null;

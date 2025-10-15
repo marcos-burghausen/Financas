@@ -1,10 +1,38 @@
 # ✅ Checklist de Implementações Realizadas
 
-## 📦 Backend
+## � Autenticação - Migração JWT → Sanctum (CONCLUÍDO ✅)
+
+### Problema Resolvido:
+
+- ❌ Erro 401 após logout (JWT blacklist em cache nunca expira)
+- ✅ Migrado para Laravel Sanctum
+- ✅ Bug do `cache()->remember()` corrigido
+
+### Arquivos Backend:
+
+- [x] `backend/app/Http/Controllers/SanctumAuthController.php` - Novo controller Sanctum
+- [x] `backend/routes/api.php` - Rotas Sanctum adicionadas
+- [x] `backend/app/Models/User.php` - Mantido HasApiTokens trait
+
+### Arquivos Frontend:
+
+- [x] `frontend/src/store/auth.ts` - Token simplificado (string)
+- [x] `frontend/src/types/auth.types.ts` - LoginResponse atualizada
+- [x] `frontend/src/services/http.ts` - Interceptor simplificado
+- [x] `frontend/src/views/acesso/EntrarMobileView.vue` - Endpoint `/sanctum/login`
+
+### Documentação:
+
+- [x] `docs/MIGRACAO_SANCTUM.md` - Documentação completa da migração
+
+---
+
+## �📦 Backend
 
 ### Arquivos Criados:
 
 - [x] `backend/app/Http/Controllers/UserDataController.php` - Novo controller para dados sob demanda
+- [x] `backend/app/Http/Controllers/SanctumAuthController.php` - Controller Sanctum
 - [x] `db/performance_indexes.sql` - Script SQL com índices de performance
 
 ### Arquivos Modificados:
@@ -14,7 +42,8 @@
   - Login retorna apenas dados essenciais (`summary`)
   - Cache de 10 minutos
 - [x] `backend/routes/api.php`
-  - Adicionadas 4 novas rotas:
+  - Adicionadas rotas Sanctum (`/sanctum/login`, `/sanctum/logout`, etc)
+  - Adicionadas 4 novas rotas de dados sob demanda:
     - `GET /user-data/expenses`
     - `GET /user-data/revenues`
     - `GET /user-data/wallets`

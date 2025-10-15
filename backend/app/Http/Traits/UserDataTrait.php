@@ -46,12 +46,6 @@ trait UserDataTrait
                 ->whereBetween('data_vencimento', [$startDate, $endDate])
                 ->get();
 
-            // --- INÍCIO DA DEPURAÇÃO ---
-            // 2. Adicionados logs para verificar o conteúdo das variáveis.
-            info('Despesas Padrão Encontradas:', $standardExpenses->toArray());
-            info('Faturas de Cartão Encontradas:', $creditCardInvoices->toArray());
-            // --- FIM DA DEPURAÇÃO ---
-
             $invoiceExpenses = $creditCardInvoices->map(function ($invoice) {
                 $statusLancamento = $invoice->status_fatura === 'PAGA' ? 'EFETIVADA' : 'PENDENTE';
 
@@ -115,21 +109,51 @@ trait UserDataTrait
             ];
         }
 
+        // --- Seção de Resumo do Dashboard (Summary) ---
+        if ($fetchAll || in_array('summary', $sections)) {
+            $dataToReturn['summary'] = [
+                'saldoAtual' => DB::table('contas')
+                    ->where('user_id', $user->id)
+                    ->where('tipo_conta', '!=', 'Cartão de Crédito')
+                    ->sum('saldo'),
+                'saldoInicial' => DB::table('contas')
+                    ->where('user_id', $user->id)
+                    ->where('incluir_em_soma_inicial', true)
+                    ->sum('saldo_inicial'),
+                'totalReceitas' => DB::table('lancamentos')
+                    ->where('user_id', $user->id)
+                    ->where('tipo_lancamento', 'RECEITA')
+                    ->whereYear('data_vencimento', $year)
+                    ->whereMonth('data_vencimento', $month)
+                    ->sum('valor'),
+                'totalDespesas' => DB::table('lancamentos')
+                    ->where('user_id', $user->id)
+                    ->where('tipo_lancamento', 'DESPESA')
+                    ->whereYear('data_vencimento', $year)
+                    ->whereMonth('data_vencimento', $month)
+                    ->sum('valor'),
+            ];
+        }
+
         // --- Seção de Carteiras (Wallets) ---
         if ($fetchAll || in_array('wallets', $sections)) {
             $dataToReturn['wallets'] = [
                 'contas' => $user->contas()
                     ->where('tipo_conta', '!=', 'Cartão de Crédito')
                     ->get()
-                    ->map(function ($conta) {
+                    ->map(function ($conta) use ($year, $month) {
                         $totalReceitas = DB::table('lancamentos')
                             ->where('conta_id', $conta->id)
                             ->where('tipo_lancamento', 'RECEITA')
+                            ->whereYear('data_vencimento', $year)
+                            ->whereMonth('data_vencimento', $month)
                             ->sum('valor');
 
                         $totalDespesas = DB::table('lancamentos')
                             ->where('conta_id', $conta->id)
                             ->where('tipo_lancamento', 'DESPESA')
+                            ->whereYear('data_vencimento', $year)
+                            ->whereMonth('data_vencimento', $month)
                             ->sum('valor');
 
                         $conta->saldo_previsto = $conta->saldo_inicial + $totalReceitas - $totalDespesas;

@@ -111,6 +111,10 @@
                   class="sub__categoria px-3"
                 >{{ expense.subcategoria }}</span>
               </div>
+              <div v-if="expense.observacoes" class="observacoes-container mt-2">
+                <v-icon icon="mdi-note-text-outline" size="small" class="observacoes-icon" />
+                <span class="observacoes-text">{{ expense.observacoes }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -138,10 +142,10 @@ import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
 import http from "@/services/http";
 
 import {
-  useExpensesStore,
-  useRevenuesStore,
-  useUserStore,
-  useWalletsStore,
+    useExpensesStore,
+    useRevenuesStore,
+    useUserStore,
+    useWalletsStore,
 } from "@/store";
 
 import type { Lancamento, TransactionsData } from "@/types";
@@ -505,6 +509,24 @@ const payExpense = async (expenseId: number, conta: string) => {
   background: #1dbb01;
   margin-right: 5px;
   padding-inline: 2px;
-  border-radius: 15px;
+}
+.observacoes-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.observacoes-icon {
+  color: #9e9e9e;
+  margin-top: 2px;
+}
+.observacoes-text {
+  font-size: 13px;
+  color: #9e9e9e;
+  font-style: italic;
+  line-height: 1.4;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 </style>
