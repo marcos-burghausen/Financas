@@ -1,5 +1,13 @@
 # 🚨 CORREÇÕES CRÍTICAS - .env Produção (Coolify)
 
+## ⚠️ ATUALIZAÇÃO IMPORTANTE (16/10/2025)
+
+**Redis causou erro de build!** Ver solução completa em: `ERRO_REDIS_BUILD_SOLUCAO.md`
+
+**Correção aplicada:** Usar `file` ao invés de `redis` até instalar extensão PHP Redis.
+
+---
+
 ## ❌ PROBLEMAS ENCONTRADOS no seu .env
 
 ### 🔴 CRÍTICOS (CORRIGIR IMEDIATAMENTE)
@@ -64,31 +72,21 @@ FACEBOOK_REDIRECT_URI=https://mrfinancas.burghausen.dev/api/auth/callback
 
 ---
 
-#### 5. **SESSION_DRIVER deveria ser Redis (melhor performance)**
+#### 5. **SESSION_DRIVER e CACHE_DRIVER - MANTIDOS COMO FILE** ⚠️
 
 ```bash
-# ❌ ATUAL (file não é ideal para produção)
+# ✅ MANTER file por enquanto
 SESSION_DRIVER=file
-
-# ✅ RECOMENDADO (você já tem Redis configurado!)
-SESSION_DRIVER=redis
-```
-
-**Por quê?** Você já tem Redis ativo. File pode ter problemas em ambientes containerizados.
-
----
-
-#### 6. **CACHE_DRIVER deveria ser Redis**
-
-```bash
-# ❌ ATUAL
 CACHE_DRIVER=file
-
-# ✅ RECOMENDADO
-CACHE_DRIVER=redis
 ```
 
-**Benefício:** 10x mais rápido que file cache.
+**⚠️ IMPORTANTE:**
+
+- **NÃO USE redis** até instalar a extensão PHP Redis!
+- Causou erro de build: "Class Redis not found"
+- Ver solução completa em: `ERRO_REDIS_BUILD_SOLUCAO.md`
+
+**Futuro:** Depois de instalar extensão Redis, pode mudar para `redis` (melhor performance).
 
 ---
 
@@ -141,7 +139,7 @@ SANCTUM_STATEFUL_DOMAINS=mrfinancas.burghausen.dev # ← AJUSTE SE FRONTEND TIVE
 # ========================================
 # SESSÃO (CRÍTICO - FALTAVA CONFIG!)
 # ========================================
-SESSION_DRIVER=redis                  # ← CORRIGIDO (era 'file')
+SESSION_DRIVER=file                   # ← file por enquanto (redis precisa extensão)
 SESSION_LIFETIME=120
 SESSION_DOMAIN=.burghausen.dev        # ← ADICIONADO (com ponto inicial!)
 SESSION_SECURE_COOKIE=true            # ← ADICIONADO (HTTPS obrigatório)
@@ -150,7 +148,7 @@ SESSION_SAME_SITE=lax                 # ← ADICIONADO
 # ========================================
 # CACHE & QUEUE
 # ========================================
-CACHE_DRIVER=redis                    # ← CORRIGIDO (era 'file')
+CACHE_DRIVER=file                     # ← file por enquanto (redis precisa extensão)
 QUEUE_CONNECTION=database
 BROADCAST_DRIVER=log
 
@@ -407,7 +405,8 @@ Antes de testar, verifique:
 - [ ] `FRONTEND_URL` configurado
 - [ ] `SANCTUM_STATEFUL_DOMAINS` configurado
 - [ ] `SESSION_DOMAIN=.burghausen.dev` configurado
-- [ ] `SESSION_DRIVER=redis` configurado
+- [ ] `SESSION_DRIVER=file` configurado (⚠️ NÃO usar redis ainda!)
+- [ ] `CACHE_DRIVER=file` configurado (⚠️ NÃO usar redis ainda!)
 - [ ] `SESSION_SECURE_COOKIE=true` configurado
 - [ ] `FACEBOOK_REDIRECT_URI` com URL de produção
 - [ ] Aplicação reiniciada no Coolify
