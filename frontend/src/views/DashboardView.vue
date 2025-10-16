@@ -487,7 +487,7 @@ const itensSideBar = ref([
   {
     name: "Cartões de Crédito",
     icon: "mdi-credit-card-outline",
-    route: "contas",
+    route: "cartoes",
     adminOnly: false,
     traderOnly: false,
   },

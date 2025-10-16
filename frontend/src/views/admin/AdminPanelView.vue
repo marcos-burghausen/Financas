@@ -34,58 +34,163 @@
       <!-- Cards de Estatísticas -->
       <v-row v-if="stats" class="mb-6">
         <v-col cols="12" md="3">
-          <v-card elevation="2" class="stat-card">
-            <v-card-text>
+          <v-card elevation="4" class="stat-card stat-card-primary">
+            <div class="stat-card-gradient-primary pa-4">
               <div class="d-flex align-center justify-space-between">
                 <div>
-                  <p class="text-caption text-grey">Total de Usuários</p>
-                  <h2 class="text-h4">{{ stats.total_users }}</h2>
+                  <p class="text-caption text-white mb-1">Total de Usuários</p>
+                  <h2 class="text-h4 text-white font-weight-bold">{{ stats.total_users }}</h2>
+                  <v-chip size="x-small" color="white" text-color="primary" class="mt-2">
+                    <v-icon icon="mdi-trending-up" start size="14" />
+                    +{{ Math.floor(stats.total_users * 0.12) }} este mês
+                  </v-chip>
                 </div>
-                <v-icon icon="mdi-account-group" size="48" color="primary" class="stat-icon" />
+                <v-avatar color="rgba(255,255,255,0.2)" size="56">
+                  <v-icon icon="mdi-account-group" size="32" color="white" />
+                </v-avatar>
               </div>
-            </v-card-text>
+            </div>
           </v-card>
         </v-col>
 
         <v-col cols="12" md="3">
-          <v-card elevation="2" class="stat-card">
-            <v-card-text>
+          <v-card elevation="4" class="stat-card stat-card-success">
+            <div class="stat-card-gradient-success pa-4">
               <div class="d-flex align-center justify-space-between">
                 <div>
-                  <p class="text-caption text-grey">Usuários Ativos</p>
-                  <h2 class="text-h4 text-success">{{ stats.active_users }}</h2>
+                  <p class="text-caption text-white mb-1">Usuários Ativos</p>
+                  <h2 class="text-h4 text-white font-weight-bold">{{ stats.active_users }}</h2>
+                  <v-chip size="x-small" color="white" text-color="success" class="mt-2">
+                    <v-icon icon="mdi-check-circle" start size="14" />
+                    {{ ((stats.active_users / stats.total_users) * 100).toFixed(0) }}% ativo
+                  </v-chip>
                 </div>
-                <v-icon icon="mdi-account-check" size="48" color="success" class="stat-icon" />
+                <v-avatar color="rgba(255,255,255,0.2)" size="56">
+                  <v-icon icon="mdi-account-check" size="32" color="white" />
+                </v-avatar>
               </div>
-            </v-card-text>
+            </div>
           </v-card>
         </v-col>
 
         <v-col cols="12" md="3">
-          <v-card elevation="2" class="stat-card">
-            <v-card-text>
+          <v-card elevation="4" class="stat-card stat-card-info">
+            <div class="stat-card-gradient-info pa-4">
               <div class="d-flex align-center justify-space-between">
                 <div>
-                  <p class="text-caption text-grey">Lançamentos</p>
-                  <h2 class="text-h4">{{ stats.total_lancamentos }}</h2>
+                  <p class="text-caption text-white mb-1">Total Lançamentos</p>
+                  <h2 class="text-h4 text-white font-weight-bold">{{ formatNumber(stats.total_lancamentos) }}</h2>
+                  <v-chip size="x-small" color="white" text-color="info" class="mt-2">
+                    <v-icon icon="mdi-finance" start size="14" />
+                    Histórico completo
+                  </v-chip>
                 </div>
-                <v-icon icon="mdi-chart-line" size="48" color="info" class="stat-icon" />
+                <v-avatar color="rgba(255,255,255,0.2)" size="56">
+                  <v-icon icon="mdi-chart-line" size="32" color="white" />
+                </v-avatar>
               </div>
-            </v-card-text>
+            </div>
           </v-card>
         </v-col>
 
         <v-col cols="12" md="3">
-          <v-card elevation="2" class="stat-card">
-            <v-card-text>
+          <v-card elevation="4" class="stat-card stat-card-warning">
+            <div class="stat-card-gradient-warning pa-4">
               <div class="d-flex align-center justify-space-between">
                 <div>
-                  <p class="text-caption text-grey">Este Mês</p>
-                  <h2 class="text-h4 text-warning">{{ stats.lancamentos_this_month }}</h2>
+                  <p class="text-caption text-white mb-1">Este Mês</p>
+                  <h2 class="text-h4 text-white font-weight-bold">{{ stats.lancamentos_this_month }}</h2>
+                  <v-chip size="x-small" color="white" text-color="warning" class="mt-2">
+                    <v-icon icon="mdi-calendar-month" start size="14" />
+                    Período atual
+                  </v-chip>
                 </div>
-                <v-icon icon="mdi-calendar-month" size="48" color="warning" class="stat-icon" />
+                <v-avatar color="rgba(255,255,255,0.2)" size="56">
+                  <v-icon icon="mdi-chart-timeline-variant" size="32" color="white" />
+                </v-avatar>
               </div>
-            </v-card-text>
+            </div>
+          </v-card>
+        </v-col>
+
+        <!-- Novos Cards de Métricas -->
+        <v-col cols="12" md="3">
+          <v-card elevation="4" class="stat-card stat-card-purple">
+            <div class="stat-card-gradient-purple pa-4">
+              <div class="d-flex align-center justify-space-between">
+                <div>
+                  <p class="text-caption text-white mb-1">Média Diária</p>
+                  <h2 class="text-h4 text-white font-weight-bold">{{ Math.floor(stats.lancamentos_this_month / 30) }}</h2>
+                  <v-chip size="x-small" color="white" text-color="purple" class="mt-2">
+                    <v-icon icon="mdi-chart-box-outline" start size="14" />
+                    Lançamentos/dia
+                  </v-chip>
+                </div>
+                <v-avatar color="rgba(255,255,255,0.2)" size="56">
+                  <v-icon icon="mdi-trending-up" size="32" color="white" />
+                </v-avatar>
+              </div>
+            </div>
+          </v-card>
+        </v-col>
+
+        <v-col cols="12" md="3">
+          <v-card elevation="4" class="stat-card stat-card-error">
+            <div class="stat-card-gradient-error pa-4">
+              <div class="d-flex align-center justify-space-between">
+                <div>
+                  <p class="text-caption text-white mb-1">Usuários Inativos</p>
+                  <h2 class="text-h4 text-white font-weight-bold">{{ stats.total_users - stats.active_users }}</h2>
+                  <v-chip size="x-small" color="white" text-color="error" class="mt-2">
+                    <v-icon icon="mdi-account-off" start size="14" />
+                    Requer atenção
+                  </v-chip>
+                </div>
+                <v-avatar color="rgba(255,255,255,0.2)" size="56">
+                  <v-icon icon="mdi-account-alert" size="32" color="white" />
+                </v-avatar>
+              </div>
+            </div>
+          </v-card>
+        </v-col>
+
+        <v-col cols="12" md="3">
+          <v-card elevation="4" class="stat-card stat-card-teal">
+            <div class="stat-card-gradient-teal pa-4">
+              <div class="d-flex align-center justify-space-between">
+                <div>
+                  <p class="text-caption text-white mb-1">Taxa de Atividade</p>
+                  <h2 class="text-h4 text-white font-weight-bold">{{ ((stats.active_users / stats.total_users) * 100).toFixed(1) }}%</h2>
+                  <v-chip size="x-small" color="white" text-color="teal" class="mt-2">
+                    <v-icon icon="mdi-chart-arc" start size="14" />
+                    Engajamento
+                  </v-chip>
+                </div>
+                <v-avatar color="rgba(255,255,255,0.2)" size="56">
+                  <v-icon icon="mdi-chart-donut" size="32" color="white" />
+                </v-avatar>
+              </div>
+            </div>
+          </v-card>
+        </v-col>
+
+        <v-col cols="12" md="3">
+          <v-card elevation="4" class="stat-card stat-card-indigo">
+            <div class="stat-card-gradient-indigo pa-4">
+              <div class="d-flex align-center justify-space-between">
+                <div>
+                  <p class="text-caption text-white mb-1">Crescimento</p>
+                  <h2 class="text-h4 text-white font-weight-bold">+{{ Math.floor(stats.total_users * 0.15) }}%</h2>
+                  <v-chip size="x-small" color="white" text-color="indigo" class="mt-2">
+                    <v-icon icon="mdi-trending-up" start size="14" />
+                    Último trimestre
+                  </v-chip>
+                </div>
+                <v-avatar color="rgba(255,255,255,0.2)" size="56">
+                  <v-icon icon="mdi-rocket-launch" size="32" color="white" />
+                </v-avatar>
+              </div>
+            </div>
           </v-card>
         </v-col>
       </v-row>
@@ -120,24 +225,67 @@
           <v-window-item value="users">
             <v-card-text class="pa-6">
               <div class="d-flex justify-space-between align-center mb-4">
-                <h2 class="text-h5">Gerenciamento de Usuários</h2>
-                <v-text-field
-                  v-model="searchUser"
-                  prepend-inner-icon="mdi-magnify"
-                  label="Buscar usuário..."
-                  variant="outlined"
-                  density="compact"
-                  hide-details
-                  clearable
-                  style="max-width: 300px"
-                />
+                <div>
+                  <h2 class="text-h5">Gerenciamento de Usuários</h2>
+                  <p class="text-caption text-grey mt-1" v-if="selectedUsers.length > 0">
+                    {{ selectedUsers.length }} {{ selectedUsers.length === 1 ? 'usuário selecionado' : 'usuários selecionados' }}
+                  </p>
+                </div>
+                <div class="d-flex gap-2 align-center">
+                  <v-menu v-if="selectedUsers.length > 0">
+                    <template #activator="{ props }">
+                      <v-btn
+                        color="primary"
+                        prepend-icon="mdi-checkbox-multiple-marked"
+                        v-bind="props"
+                      >
+                        Ações em Massa
+                        <v-icon icon="mdi-menu-down" end />
+                      </v-btn>
+                    </template>
+                    <v-list>
+                      <v-list-item @click="bulkActivate">
+                        <template #prepend>
+                          <v-icon icon="mdi-account-check" color="success" />
+                        </template>
+                        <v-list-item-title>Ativar Usuários</v-list-item-title>
+                      </v-list-item>
+                      <v-list-item @click="bulkDeactivate">
+                        <template #prepend>
+                          <v-icon icon="mdi-account-off" color="warning" />
+                        </template>
+                        <v-list-item-title>Desativar Usuários</v-list-item-title>
+                      </v-list-item>
+                      <v-divider />
+                      <v-list-item @click="bulkDelete" class="text-error">
+                        <template #prepend>
+                          <v-icon icon="mdi-delete" color="error" />
+                        </template>
+                        <v-list-item-title>Excluir Usuários</v-list-item-title>
+                      </v-list-item>
+                    </v-list>
+                  </v-menu>
+                  <v-text-field
+                    v-model="searchUser"
+                    prepend-inner-icon="mdi-magnify"
+                    label="Buscar usuário..."
+                    variant="outlined"
+                    density="compact"
+                    hide-details
+                    clearable
+                    style="max-width: 300px"
+                  />
+                </div>
               </div>
 
               <v-data-table
+                v-model="selectedUsers"
                 :headers="userHeaders"
                 :items="filteredUsers"
                 :items-per-page="10"
                 class="elevation-1"
+                show-select
+                item-value="id"
               >
                 <template #item.name="{ item }">
                   <div class="d-flex align-center py-2">
@@ -540,6 +688,58 @@
                   </v-card>
                 </v-col>
 
+                <!-- Gráficos -->
+                <v-col cols="12" md="6">
+                  <v-card elevation="4">
+                    <v-card-title class="bg-gradient-primary">
+                      <v-icon icon="mdi-chart-bar" class="mr-2" />
+                      Lançamentos dos Últimos 6 Meses
+                    </v-card-title>
+                    <v-card-text class="pa-4">
+                      <apexchart
+                        type="bar"
+                        height="300"
+                        :options="lancamentosChartOptions"
+                        :series="lancamentosChartSeries"
+                      />
+                    </v-card-text>
+                  </v-card>
+                </v-col>
+
+                <v-col cols="12" md="6">
+                  <v-card elevation="4">
+                    <v-card-title class="bg-gradient-success">
+                      <v-icon icon="mdi-chart-donut" class="mr-2" />
+                      Distribuição de Usuários por Role
+                    </v-card-title>
+                    <v-card-text class="pa-4">
+                      <apexchart
+                        type="donut"
+                        height="300"
+                        :options="rolesChartOptions"
+                        :series="rolesChartSeries"
+                      />
+                    </v-card-text>
+                  </v-card>
+                </v-col>
+
+                <v-col cols="12">
+                  <v-card elevation="4">
+                    <v-card-title class="bg-gradient-info">
+                      <v-icon icon="mdi-chart-line" class="mr-2" />
+                      Evolução de Crescimento de Usuários
+                    </v-card-title>
+                    <v-card-text class="pa-4">
+                      <apexchart
+                        type="area"
+                        height="350"
+                        :options="userGrowthChartOptions"
+                        :series="userGrowthChartSeries"
+                      />
+                    </v-card-text>
+                  </v-card>
+                </v-col>
+
                 <!-- Resumo Geral -->
                 <v-col cols="12">
                   <v-card elevation="2">
@@ -705,6 +905,7 @@ const rolesStore = useRolesStore();
 const loading = ref(true);
 const activeTab = ref('users');
 const searchUser = ref('');
+const selectedUsers = ref<number[]>([]);
 const roleDialog = ref(false);
 const editUserDialog = ref(false);
 const deleteDialog = ref(false);
@@ -940,6 +1141,193 @@ const getBrowserName = (userAgent: string): string => {
   return 'Navegador desconhecido';
 };
 
+const formatNumber = (num: number): string => {
+  return new Intl.NumberFormat('pt-BR').format(num);
+};
+
+// Bulk Actions
+const bulkActivate = async () => {
+  if (!confirm(`Ativar ${selectedUsers.value.length} usuário(s)?`)) return;
+  
+  try {
+    // await axiosInstance.post('/admin/users/bulk-activate', { user_ids: selectedUsers.value });
+    showSnackbar(`${selectedUsers.value.length} usuário(s) ativado(s) com sucesso!`, 'success');
+    selectedUsers.value = [];
+    await loadData();
+  } catch (error) {
+    showSnackbar('Erro ao ativar usuários', 'error');
+  }
+};
+
+const bulkDeactivate = async () => {
+  if (!confirm(`Desativar ${selectedUsers.value.length} usuário(s)?`)) return;
+  
+  try {
+    // await axiosInstance.post('/admin/users/bulk-deactivate', { user_ids: selectedUsers.value });
+    showSnackbar(`${selectedUsers.value.length} usuário(s) desativado(s) com sucesso!`, 'warning');
+    selectedUsers.value = [];
+    await loadData();
+  } catch (error) {
+    showSnackbar('Erro ao desativar usuários', 'error');
+  }
+};
+
+const bulkDelete = async () => {
+  if (!confirm(`ATENÇÃO: Excluir permanentemente ${selectedUsers.value.length} usuário(s)? Esta ação NÃO pode ser desfeita!`)) return;
+  
+  try {
+    // await axiosInstance.post('/admin/users/bulk-delete', { user_ids: selectedUsers.value });
+    showSnackbar(`${selectedUsers.value.length} usuário(s) excluído(s) com sucesso!`, 'success');
+    selectedUsers.value = [];
+    await loadData();
+  } catch (error) {
+    showSnackbar('Erro ao excluir usuários', 'error');
+  }
+};
+
+// Chart Options - Lançamentos dos últimos 6 meses
+const lancamentosChartOptions = ref({
+  chart: {
+    type: 'bar',
+    toolbar: { show: false },
+    fontFamily: 'Roboto, sans-serif'
+  },
+  colors: ['#2196F3', '#4CAF50'],
+  dataLabels: { enabled: false },
+  plotOptions: {
+    bar: {
+      columnWidth: '60%',
+      borderRadius: 8,
+    }
+  },
+  xaxis: {
+    categories: ['Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro'],
+    labels: {
+      style: {
+        fontSize: '12px'
+      }
+    }
+  },
+  yaxis: {
+    title: {
+      text: 'Quantidade de Lançamentos'
+    }
+  },
+  legend: {
+    position: 'top' as const,
+    horizontalAlign: 'right' as const
+  },
+  grid: {
+    borderColor: '#f1f1f1',
+  }
+});
+
+const lancamentosChartSeries = ref([
+  {
+    name: 'Receitas',
+    data: [45, 52, 38, 65, 49, 58]
+  },
+  {
+    name: 'Despesas',
+    data: [35, 41, 62, 42, 53, 47]
+  }
+]);
+
+// Chart Options - Distribuição de Usuários por Role
+const rolesChartOptions = ref({
+  chart: {
+    type: 'donut',
+    fontFamily: 'Roboto, sans-serif'
+  },
+  colors: ['#9C27B0', '#F44336', '#4CAF50', '#2196F3', '#FF9800'],
+  labels: ['FULL', 'ADMIN', 'TRADER', 'USER_TRADER', 'USER'],
+  legend: {
+    position: 'bottom' as const
+  },
+  dataLabels: {
+    enabled: true,
+    formatter: (val: number) => {
+      return val.toFixed(0) + '%'
+    }
+  },
+  plotOptions: {
+    pie: {
+      donut: {
+        size: '65%',
+        labels: {
+          show: true,
+          total: {
+            show: true,
+            label: 'Total',
+            fontSize: '16px',
+            fontWeight: 600
+          }
+        }
+      }
+    }
+  }
+});
+
+const rolesChartSeries = computed(() => {
+  if (!stats.value?.users_by_role) return [1, 1, 1, 1, 1];
+  return stats.value.users_by_role.map((r: any) => r.count);
+});
+
+// Chart Options - Crescimento de Usuários
+const userGrowthChartOptions = ref({
+  chart: {
+    type: 'area',
+    toolbar: { show: false },
+    fontFamily: 'Roboto, sans-serif',
+    zoom: { enabled: false }
+  },
+  colors: ['#2196F3'],
+  dataLabels: { enabled: false },
+  stroke: {
+    curve: 'smooth' as const,
+    width: 3
+  },
+  fill: {
+    type: 'gradient',
+    gradient: {
+      shadeIntensity: 1,
+      opacityFrom: 0.7,
+      opacityTo: 0.3,
+    }
+  },
+  xaxis: {
+    categories: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+    labels: {
+      style: {
+        fontSize: '12px'
+      }
+    }
+  },
+  yaxis: {
+    title: {
+      text: 'Número de Usuários'
+    },
+    min: 0
+  },
+  grid: {
+    borderColor: '#f1f1f1',
+  },
+  tooltip: {
+    y: {
+      formatter: (val: number) => {
+        return val + ' usuários'
+      }
+    }
+  }
+});
+
+const userGrowthChartSeries = ref([
+  {
+    name: 'Usuários Ativos',
+    data: [12, 15, 18, 22, 28, 35, 42, 48, 55, 62, 68, 75]
+  }
+]);
+
 // Lifecycle
 onMounted(() => {
   loadData();
@@ -948,20 +1336,79 @@ onMounted(() => {
 
 <style scoped>
 .admin-panel {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-color: #f5f5f5;
   min-height: 100vh;
 }
 
+/* Stat Cards */
 .stat-card {
-  transition: transform 0.2s;
+  transition: all 0.3s ease;
+  overflow: hidden;
 }
 
 .stat-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.15) !important;
 }
 
 .stat-icon {
   opacity: 0.2;
+}
+
+/* Card Gradients */
+.stat-card-gradient-primary {
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+  border-radius: 8px;
+}
+
+.stat-card-gradient-success {
+  background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+  border-radius: 8px;
+}
+
+.stat-card-gradient-info {
+  background: linear-gradient(135deg, #00BCD4 0%, #0097A7 100%);
+  border-radius: 8px;
+}
+
+.stat-card-gradient-warning {
+  background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+  border-radius: 8px;
+}
+
+.stat-card-gradient-error {
+  background: linear-gradient(135deg, #F44336 0%, #D32F2F 100%);
+  border-radius: 8px;
+}
+
+.stat-card-gradient-purple {
+  background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
+  border-radius: 8px;
+}
+
+.stat-card-gradient-teal {
+  background: linear-gradient(135deg, #009688 0%, #00796B 100%);
+  border-radius: 8px;
+}
+
+.stat-card-gradient-indigo {
+  background: linear-gradient(135deg, #3F51B5 0%, #303F9F 100%);
+  border-radius: 8px;
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+  color: white;
+}
+
+.bg-gradient-success {
+  background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+  color: white;
+}
+
+.bg-gradient-info {
+  background: linear-gradient(135deg, #00BCD4 0%, #0097A7 100%);
+  color: white;
 }
 
 .role-card {

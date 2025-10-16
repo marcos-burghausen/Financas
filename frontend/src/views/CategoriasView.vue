@@ -477,7 +477,7 @@ const itensSideBar = ref([
   { name: "Receitas", icon: "mdi-cash-plus", route: "receitas" },
   { name: "Despesas", icon: "mdi-cash-minus", route: "despesas" },
   { name: "Categorias", icon: "mdi-tag-multiple", route: "categorias" },
-  { name: "Cartões de Crédito", icon: "mdi-credit-card-outline", route: "contas" },
+  { name: "Cartões de Crédito", icon: "mdi-credit-card-outline", route: "cartoes" },
   { name: "Notificações", icon: "mdi-bell", route: "notificacoes" },
   { name: "Perfil", icon: "mdi-account", route: "perfil" },
 ])

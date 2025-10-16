@@ -7,6 +7,7 @@ export * from "./error";
 export * from "./expenses";
 export * from "./revenues";
 export * from "./roles";
+export * from "./theme";
 export * from "./user";
 export * from "./wallets";
 

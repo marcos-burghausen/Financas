@@ -252,12 +252,12 @@ import { useRouter } from "vue-router";
 
 import http from "@/services/http";
 import {
-    useAuthStore,
-    useDashboardStore,
-    useExpensesStore,
-    useRevenuesStore,
-    useUserStore,
-    useWalletsStore,
+  useAuthStore,
+  useDashboardStore,
+  useExpensesStore,
+  useRevenuesStore,
+  useUserStore,
+  useWalletsStore,
 } from "@/store";
 import { useRolesStore } from "@/store/roles";
 import { formatValue } from "@/utils/formatValue";
@@ -431,10 +431,10 @@ const itensSideBar = ref([
   {
     name: "Cartões de Crédito",
     icon: "mdi-credit-card-outline",
-    route: "contas",
+    route: "cartoes",
     adminOnly: false,
     traderOnly: false,
-    action: () => router.push({ name: "contas" }),
+    action: () => router.push({ name: "cartoes" }),
   },
   {
     name: "Notificações",

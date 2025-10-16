@@ -227,6 +227,53 @@
           </v-card-text>
         </v-card>
 
+        <!-- Card de Preferências de Tema -->
+        <v-card elevation="2" class="mb-4">
+          <v-card-title class="bg-primary">
+            <v-icon left>mdi-theme-light-dark</v-icon>
+            Aparência
+          </v-card-title>
+          
+          <v-card-text class="pt-4">
+            <div class="d-flex flex-column gap-3">
+              <p class="text-subtitle-2 text-grey mb-0">
+                Escolha o tema da aplicação
+              </p>
+              
+              <v-btn-toggle
+                :model-value="themeStore.themeName"
+                @update:model-value="changeTheme"
+                mandatory
+                divided
+                variant="outlined"
+                color="primary"
+                class="theme-toggle"
+              >
+                <v-btn value="light" class="flex-grow-1">
+                  <v-icon start>mdi-white-balance-sunny</v-icon>
+                  Claro
+                </v-btn>
+                <v-btn value="dark" class="flex-grow-1">
+                  <v-icon start>mdi-moon-waning-crescent</v-icon>
+                  Escuro
+                </v-btn>
+              </v-btn-toggle>
+
+              <v-alert
+                :color="themeStore.isDark ? 'info' : 'warning'"
+                variant="tonal"
+                density="compact"
+                class="mt-2"
+              >
+                <template #prepend>
+                  <v-icon>mdi-information</v-icon>
+                </template>
+                Tema {{ themeStore.isDark ? 'escuro' : 'claro' }} ativado
+              </v-alert>
+            </div>
+          </v-card-text>
+        </v-card>
+
         <!-- Card de Estatísticas -->
         <v-card elevation="2">
           <v-card-title class="bg-info">
@@ -298,10 +345,14 @@
 import axiosInstance from '@/services/http';
 import { useAuthStore } from '@/store/auth';
 import { useRolesStore } from '@/store/roles';
+import { useThemeStore } from '@/store/theme';
 import { computed, onMounted, reactive, ref } from 'vue';
+import { useTheme } from 'vuetify';
 
 const authStore = useAuthStore();
 const rolesStore = useRolesStore();
+const themeStore = useThemeStore();
+const vuetifyTheme = useTheme();
 
 // Refs
 const editing = ref(false);
@@ -483,8 +534,17 @@ const changePassword = async () => {
   }
 };
 
+const changeTheme = (theme: 'light' | 'dark') => {
+  themeStore.setTheme(theme);
+  vuetifyTheme.global.name.value = theme;
+  showSnackbar(`Tema ${theme === 'dark' ? 'escuro' : 'claro'} ativado!`, 'info');
+};
+
 // Lifecycle
 onMounted(async () => {
+  // Aplicar tema salvo
+  vuetifyTheme.global.name.value = themeStore.themeName;
+  
   await loadUserData();
   await loadStats();
   
@@ -524,5 +584,13 @@ onMounted(async () => {
 
 .bg-info {
   background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.theme-toggle {
+  width: 100%;
+}
+
+.theme-toggle .v-btn {
+  min-height: 48px;
 }
 </style>
