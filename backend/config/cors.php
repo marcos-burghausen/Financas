@@ -19,7 +19,9 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [env('FRONTEND_URL', env('APP_URL'))],
+    // TESTE: Temporariamente aceitar qualquer origem
+    'allowed_origins' => ['*'],
+    // 'allowed_origins' => [env('FRONTEND_URL', env('APP_URL'))],
 
     'allowed_origins_patterns' => [],
 
