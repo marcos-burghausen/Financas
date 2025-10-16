@@ -1,10 +1,10 @@
 <template>
-  <div class="home__mobile">
-    <EntrarMobile
+  <div class="home-container">
+    <LoginView
       v-if="step === 0"
       @next-step="step = 1"
     />
-    <CadastroMobile
+    <RegisterView
       v-if="step === 1"
       @next-step="step = 0"
     />
@@ -12,37 +12,17 @@
 </template>
 
 <script setup lang="ts">
-import EntrarMobile from "./acesso/EntrarMobileView.vue";
-import CadastroMobile from "./acesso/CadastroView.vue";
 import { ref } from "vue";
+import LoginView from "./acesso/LoginView.vue";
+import RegisterView from "./acesso/RegisterView.vue";
 
 const step = ref(0);
 </script>
+
 <style scoped>
-.home__mobile {
-  height: 100%;
+.home-container {
+  height: 100vh;
   width: 100%;
-  display: flex;
-  padding-top: 50px;
-  align-items: flex-start;
-  justify-content: center;
-}
-.home__web {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* @media screen and (min-width: 501px) {
-  .home__mobile {
-    display: none;
-  }
-} */
-
-@media screen and (max-width: 500px) {
-  .home__web {
-    display: none;
-  }
+  overflow: hidden;
 }
 </style>

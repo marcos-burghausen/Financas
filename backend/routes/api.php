@@ -42,7 +42,9 @@ Route::post('/create', [RegisterController::class, 'create']);
 // ============================================================================
 // NOVAS ROTAS SANCTUM (usar estas)
 // ============================================================================
-Route::post('/sanctum/login', [SanctumAuthController::class, 'login']);
+// Rota pública de login (FORA do middleware auth:sanctum)
+Route::post('/login', [SanctumAuthController::class, 'login']);
+Route::post('/sanctum/login', [SanctumAuthController::class, 'login']); // Alias para compatibilidade
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/sanctum/me', [SanctumAuthController::class, 'me']);
