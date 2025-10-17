@@ -535,10 +535,10 @@
 <script setup lang="ts">
 import { useNotificationsStore } from '@/store/notifications';
 import {
-    NOTIFICATION_COLORS,
-    NOTIFICATION_DESCRIPTIONS,
-    NOTIFICATION_ICONS,
-    type NotificationType,
+  NOTIFICATION_COLORS,
+  NOTIFICATION_DESCRIPTIONS,
+  NOTIFICATION_ICONS,
+  type NotificationType,
 } from '@/types/notifications.types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';

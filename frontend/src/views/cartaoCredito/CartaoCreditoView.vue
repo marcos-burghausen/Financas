@@ -1,801 +1,393 @@
 <template>
-  <div class="content-wrapper">
-    <FormCartaoCredito
-      v-if="formCartao"
-      :mes-ano="mesAno"
-      wallet-type="Cartão"
-      :wallets="wallets"
-      @update-data="updateData"
-      @close-form="closeForm"
-    />
-    <FormLancamentos
-      v-if="formLancCartao"
-      rota="expense"
-      :mes-ano="mesAno"
-      :wallets="creditCards"
-      :credit-cards="creditCards"
-      transaction-type="Despesa"
-      :is-card="true"
-      @update-data="updateData"
-      @close-form="closeFormLancCartao"
-    />
-    <div
-      v-if="!formCartao && !formLancCartao"
-      class="receitas"
-    >
-      <div class="header">
-        <router-link
-          class="link me-7 d-flex align-items-center opaco"
-          :to="{ name: 'dashboard' }"
-        >
-          <v-icon
-            icon="mdi-arrow-left"
-            size="25"
-          />
-        </router-link>
-        <div class="header__items">
-          <div class="d-flex flex-column">
-            <span class="title__page fs-5"> Cartão de Crédito </span>
-            <span class="valor">
-              R$
-              <!-- {{ formatValue(valueTotalRevenuesMonth) }} -->
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div class="container__mes">
-        <v-icon
-          icon="mdi-chevron-left"
-          class="mdicon text-white"
-          size="30"
-          @click="$emit('mesAnterior')"
-        />
-        <span class="mes text-white fs-3"> {{ mesPorExtenso }} </span>
-        <v-icon
-          icon="mdi-chevron-right"
-          class="mdicon text-white"
-          size="30"
-          @click="$emit('proximoMes')"
-        />
-      </div>
-
-      <div
-        v-if="creditCards && creditCards.length > 0"
-        class="container__cards"
-      >
-        <div
-          v-for="(card, index) in creditCards"
+  <v-layout>
+    <v-navigation-drawer v-model="drawer" temporary color="#212529" width="280">
+      <v-list>
+        <v-list-item
+          v-for="(item, index) in filteredItensSideBar"
           :key="index"
-          class="__card mb-2"
+          :to="{ name: item.route }"
+          :class="{ 'bg-primary': isActiveRoute(item.route) }"
         >
-          <div class="card__header">
-            <div class="card__title">
-              <IconeSicredi class="logo__sicredi" />
-              <div class="card__details">
-                <span> {{ card.name }}</span>
-                <div class="type__card d-flex align-items-center">
-                  <IconeMastercard class="logo__mastercard" />
-                  <small> {{ card.bandeira }}</small>
+          <template #prepend>
+            <v-icon :icon="item.icon" />
+          </template>
+          <v-list-item-title>{{ item.name }}</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-navigation-drawer>
+
+    <v-main>
+      <v-container fluid class="pa-6">
+        <v-row class="mb-4">
+          <v-col cols="12">
+            <div class="d-flex align-center justify-space-between mb-2">
+              <div class="d-flex align-center">
+                <v-btn icon variant="text" @click="drawer = !drawer" class="mr-2 d-lg-none">
+                  <v-icon icon="mdi-menu" size="28" />
+                </v-btn>
+                <div>
+                  <h1 class="text-h4 mb-1 d-flex align-center">
+                    <v-icon icon="mdi-credit-card-outline" size="36" class="mr-3" color="primary" />
+                    Cartões de Crédito
+                  </h1>
+                  <p class="text-subtitle-1 text-grey mb-0">
+                    Gerencie seus cartões e faturas
+                  </p>
                 </div>
               </div>
+              <v-btn color="primary" @click="openAddCardDialog" prepend-icon="mdi-plus-circle">
+                Novo Cartão
+              </v-btn>
             </div>
-            <div class="card-actions">
-              <v-icon>mdi-plus</v-icon>
-              <v-icon>mdi-magnify</v-icon>
-              <v-icon>mdi-dots-vertical</v-icon>
-            </div>
-          </div>
+          </v-col>
+        </v-row>
 
-          <div class="card__body">
-            <div class="info-row">
-              <div class="info-item">
-                <span class="label">Limite</span>
-                <span class="value">R$ {{ formatValue(card.limite) }}</span>
-              </div>
-              <div class="info-item text-center">
-                <span class="label">Em aberto</span>
-                <span class="value">R$ {{ formatValue(Number(card.saldo)) }}</span>
-              </div>
-              <div class="info-item text-right">
-                <span class="label">Lim. disponível</span>
-                <span class="value">R$ {{ formatValue(Number(card.limite) - Number(card.valor_em_aberto)) }}</span>
-              </div>
-            </div>
+        <v-row v-if="loading">
+          <v-col cols="12" class="text-center py-12">
+            <v-progress-circular indeterminate color="primary" size="64" />
+            <p class="text-grey mt-4">Carregando cartões...</p>
+          </v-col>
+        </v-row>
 
-            <div class="progress__bar__container">
-              <v-progress-linear
-                :model-value="((Number(card.limite) - Number(card.saldo)) / Number(card.limite)).toFixed(0)"
-                :color="card.color"
-                height="15"
-                rounded
-              />
-              <span class="progress-label">{{ ((Number(card.limite) - Number(card.saldo)) / Number(card.limite) * 100).toFixed(0) }}% </span>
-            </div>
-            <v-divider />
-            <div class="info-row mt-3">
-              <div class="info-item">
-                <span class="label">Conta</span>
-                <span class="value-small">{{ card.conta_pai_name }}</span>
-              </div>
-              <div class="info-item text-center">
-                <span class="label">Fechamento</span>
-                <span class="value-small">{{ formatarDataFatura(card.data_fechamento) }}</span>
-              </div>
-              <div class="info-item text-right">
-                <span class="label">Vencimento</span>
-                <span class="value-small">{{ formatarDataFatura(card.data_vencimento) }}</span>
-              </div>
-            </div>
-          </div>
+        <v-row v-else-if="!creditCards || creditCards.length === 0">
+          <v-col cols="12">
+            <v-card class="text-center py-12" elevation="2">
+              <v-icon icon="mdi-credit-card-off-outline" size="64" color="grey-lighten-1" />
+              <h2 class="text-h6 text-grey mt-4">Nenhum cartão de crédito encontrado</h2>
+              <p class="text-grey-darken-1">Adicione seu primeiro cartão para começar a gerenciar.</p>
+              <v-btn color="primary" @click="openAddCardDialog" class="mt-4">
+                Adicionar Cartão
+              </v-btn>
+            </v-card>
+          </v-col>
+        </v-row>
 
-          <div class="card__footer">
-            <div class="fatura-info">
-              <span class="fatura-label">Fatura</span>
-              <span class="fatura-value">R$ {{ formatValue(card.total_fatura_vigente) }}</span>
-            </div>
-            <div class="fatura-actions">
-              <span
-                class="status__fechada"
-                :style="{ backgroundColor: card.status_fatura === 'FECHADA' ? '#d33a3a' : '#3d8eff' }"
-              >
-                <v-icon
-                  size="14"
-                  class="me-1"
-                  :icon="card.status_fatura === 'FECHADA' ? 'mdi-lock-outline' : 'mdi-lock-open-outline'"
-                />
-                {{ card.status_fatura === 'FECHADA' ? 'Fechada' : 'Aberta' }}
-              </span>
-              <a
-                href="#"
-                class="register__payment"
-              >
-                <v-icon
-                  size="18"
-                  color="#3d8eff"
-                  class="me-1"
-                >
-                  mdi-check-circle
-                </v-icon>
-                Registrar pagamento
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <NoDataComponent v-else />
-    </div>
-
-    <v-bottom-sheet
-      v-if="!formCartao && !formLancCartao"
-      v-model="sheet"
-    >
-      <template #activator="{ props: activatorProps }">
-        <div class="text-center pa-8">
-          <v-btn
-            v-bind="activatorProps"
-            color="primary"
-            size="50"
-            class="btn__nova__conta"
+        <v-row v-else>
+          <v-col
+            v-for="card in creditCards"
+            :key="card.id"
+            cols="12"
+            md="6"
+            lg="4"
           >
-            <v-icon size="35">
-              mdi-plus
-            </v-icon>
-          </v-btn>
-        </div>
+            <v-card elevation="4" class="h-100 d-flex flex-column">
+              <v-card-title class="d-flex align-center justify-space-between">
+                <div>
+                  <v-icon :icon="card.icon || 'mdi-credit-card'" class="mr-2" />
+                  {{ card.nome }}
+                </div>
+                <v-menu>
+                  <template v-slot:activator="{ props }">
+                    <v-btn icon="mdi-dots-vertical" variant="text" v-bind="props" />
+                  </template>
+                  <v-list>
+                    <v-list-item @click="openEditCardDialog(card)">
+                      <template #prepend>
+                        <v-icon icon="mdi-pencil" />
+                      </template>
+                      <v-list-item-title>Editar</v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="openDeleteCardDialog(card)">
+                      <template #prepend>
+                        <v-icon icon="mdi-delete" />
+                      </template>
+                      <v-list-item-title>Excluir</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+              </v-card-title>
+              <v-card-text>
+                <div class="d-flex justify-space-between mb-2">
+                  <span class="font-weight-medium">Limite:</span>
+                  <span>{{ formatCurrency(card.limite) }}</span>
+                </div>
+                <div class="d-flex justify-space-between mb-2">
+                  <span class="font-weight-medium">Vencimento:</span>
+                  <span>Dia {{ card.dia_vencimento }}</span>
+                </div>
+                <div class="d-flex justify-space-between">
+                  <span class="font-weight-medium">Fechamento:</span>
+                  <span>Dia {{ card.dia_fechamento }}</span>
+                </div>
+              </v-card-text>
+              <v-spacer />
+              <v-card-actions class="px-4 pb-4">
+                <v-btn
+                  block
+                  color="primary"
+                  variant="tonal"
+                  @click="viewInvoices(card)"
+                  prepend-icon="mdi-text-box-outline"
+                >
+                  Ver Faturas
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-col>
+        </v-row>
+
+        <v-row v-if="selectedCard" class="mt-6">
+          <v-col cols="12">
+            <v-card elevation="4">
+              <div class="card-gradient card-gradient-primary pa-4">
+                <div class="d-flex align-center justify-space-between">
+                  <div class="d-flex align-center">
+                    <v-icon icon="mdi-text-box-outline" size="28" color="white" class="mr-3" />
+                    <div>
+                      <h3 class="text-h6 text-white font-weight-bold">
+                        Faturas de {{ selectedCard.nome }}
+                      </h3>
+                    </div>
+                  </div>
+                  <v-btn icon="mdi-close" variant="text" color="white" @click="selectedCard = null" />
+                </div>
+              </div>
+
+              <v-card-text v-if="loadingInvoices" class="text-center py-12">
+                <v-progress-circular indeterminate color="primary" size="48" />
+                <p class="text-grey mt-4">Carregando faturas...</p>
+              </v-card-text>
+              
+              <v-table v-else-if="invoices.length > 0">
+                <thead>
+                  <tr>
+                    <th>Mês/Ano</th>
+                    <th>Valor Total</th>
+                    <th>Data de Vencimento</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="invoice in invoices" :key="invoice.id">
+                    <td>{{ invoice.mes }}/{{ invoice.ano }}</td>
+                    <td>{{ formatCurrency(invoice.valor_total) }}</td>
+                    <td>{{ formatDate(invoice.data_vencimento) }}</td>
+                    <td>
+                      <v-chip :color="invoice.pago ? 'success' : 'warning'" size="small">
+                        {{ invoice.pago ? 'Paga' : 'Aberta' }}
+                      </v-chip>
+                    </td>
+                  </tr>
+                </tbody>
+              </v-table>
+              
+              <v-card-text v-else class="text-center py-12">
+                <v-icon icon="mdi-file-document-outline" size="48" color="grey-lighten-1" />
+                <p class="text-grey mt-2">Nenhuma fatura encontrada</p>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-main>
+
+    <v-dialog v-model="dialog" persistent max-width="600px">
+      <v-card>
+        <v-card-title>
+          <span class="text-h5">{{ isEditing ? 'Editar' : 'Adicionar' }} Cartão de Crédito</span>
+        </v-card-title>
+        <v-card-text>
+          <FormContaCartao
+            ref="formContaCartaoRef"
+            :initialData="editableCard"
+            :isCard="true"
+            @salvar="saveCard"
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn color="blue darken-1" text @click="closeDialog">Cancelar</v-btn>
+          <v-btn color="blue darken-1" @click="submitForm">Salvar</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    
+    <v-dialog v-model="deleteDialog" persistent max-width="400px">
+        <v-card>
+            <v-card-title class="text-h5">Confirmar Exclusão</v-card-title>
+            <v-card-text>
+                Tem certeza que deseja excluir o cartão <strong>{{ cardToDelete?.nome }}</strong>? Esta ação não pode ser desfeita.
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer />
+                <v-btn text @click="deleteDialog = false">Cancelar</v-btn>
+                <v-btn color="error" @click="confirmDelete">Excluir</v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+
+    <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000" location="top right">
+      {{ snackbar.message }}
+      <template #actions>
+        <v-btn variant="text" @click="snackbar.show = false">Fechar</v-btn>
       </template>
-
-      <v-list
-        class="position-fixed rounded"
-        style="bottom: 10px; right: 10px;"
-      >
-        <v-list-item
-          v-for="tile in tiles"
-          :key="tile.title"
-          :prepend-icon="tile.img"
-          :title="tile.title"
-          :disabled="(['Novo estorno', 'Despesa cartão'].includes(tile.title)) && (!creditCards || creditCards.length === 0)"
-          @click="sheet = false, tile.action()"
-        />
-      </v-list>
-    </v-bottom-sheet>
-
-    <!-- <div v-if="!formCartao" class="fixed-bottom d-flex justify-end pe-6 pb-6">
-      <v-icon
-        type="button"
-        title="Adicionar nova despesa"
-        icon="mdi-plus"
-        class="mdicon__add"
-        @click="openCreateForm"
-      />
-    </div> -->
-  </div>
+    </v-snackbar>
+  </v-layout>
 </template>
 
 <script setup lang="ts">
-import IconeMastercard from "@/assets/icons/mastercard.svg";
-import IconeSicredi from "@/assets/icons/sicredi35.svg";
+import FormContaCartao from '@/components/FormContaCartao.vue';
+import { useRolesStore } from '@/store/roles';
+import type { CreditCard, CreditCardInvoice, NewCreditCard } from '@/types/accounts.types';
+import { computed, onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
 
-import FormCartaoCredito from "@/components/FormContaCartao.vue";
-import FormLancamentos from "@/components/FormLancamentos.vue";
-import NoDataComponent from "@/components/mobile/NoDataComponent.vue";
-// import ModalNovaConta from "@/components/ModalNovaConta.vue";
-import { formatValue } from "@/utils/formatValue";
-import { computed } from "vue";
+// Stores
+const rolesStore = useRolesStore();
+const route = useRoute();
 
-import { useUserStore, useWalletsStore } from "@/store";
-import { useCreditCardStore } from "@/store/creditCard";
-import { WalletData } from "@/types";
-import { format, getYear, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { ref, shallowRef } from "vue";
+// State
+const dialog = ref(false);
+const deleteDialog = ref(false);
+const isEditing = ref(false);
+const editableCard = ref<CreditCard | null>(null);
+const cardToDelete = ref<CreditCard | null>(null);
+const selectedCard = ref<CreditCard | null>(null);
+const drawer = ref(false);
+const loading = ref(true);
+const loadingInvoices = ref(false);
 
+const formContaCartaoRef = ref<InstanceType<typeof FormContaCartao> | null>(null);
 
-const sheet = shallowRef(false);
-const creditCardStore = useCreditCardStore();
-const valorEstorno = ref(0);
-const tiles = [
-  { img: "mdi-credit-card-plus-outline", title: "Novo cartão", action: () => { openCreateForm(); } },
-  { img: "mdi-gift-outline", title: "Novo estorno" },
-  { img: "mdi-credit-card-outline", title: "Despesa cartão", action: () => { openFormLancCartao(); } },
-];
-
-const useWallets = useWalletsStore();
-const useUser = useUserStore();
-let creditCards = ref(useWallets.walletsData.cartoes);
-const contaVinculo = ref(useWallets.walletsData.contas);
-let wallets = ref(useWallets.walletsData.contas);
-const mesAno = ref<string>(useUser.mesAno || "");
-const formCartao = ref(false);
-const formLancCartao = ref(false);
-
-// const updateContas = (novoValor) => {
-//     wallets.value = novoValor;
-// };
-
-const formatarDataFatura = (dateString: string | null): string => {
-  if (!dateString) return "N/A"; // Retorna 'Não Aplicável' se a data for nula
-
-  const date = parseISO(dateString);
-  const currentYear = getYear(new Date());
-  const dateYear = getYear(date);
-
-  // Formata 'dd/MMM' -> '10/nov.'
-  let dayAndMonth = format(date, "dd/MMM", { locale: ptBR });
-  // Remove o ponto -> '10/nov'
-  dayAndMonth = dayAndMonth.replace(".", "");
-  // Converte para maiúsculas -> '10/NOV'
-  dayAndMonth = dayAndMonth.toUpperCase();
-
-  if (currentYear === dateYear) {
-    // Se o ano for o atual, retorna só "DD/MÊS"
-    return dayAndMonth;
-  } else {
-    // Se for um ano diferente, adiciona o ano ao final
-    const yearString = getYear(date);
-    const [day, month] = dayAndMonth.split("/");
-    
-    return `${day}/${month}./${yearString}`;
-  }
-};
-
-const mesPorExtenso = computed(() => {
-  if (!mesAno.value) return "";
-  const [ano, mes] = mesAno.value.split("-");
-  const anoAtual = new Date().getFullYear();
-  const mesesPorExtenso = [
-    "Janeiro",
-    "Fevereiro",
-    "Março",
-    "Abril",
-    "Maio",
-    "Junho",
-    "Julho",
-    "Agosto",
-    "Setembro",
-    "Outubro",
-    "Novembro",
-    "Dezembro",
-  ];
-  if (parseInt(ano, 10) === anoAtual) {
-    return mesesPorExtenso[parseInt(mes, 10) - 1];
-  }
-  const mesAbreviado = mesesPorExtenso[parseInt(mes, 10) - 1].slice(0, 3);
-  return `${mesAbreviado}./${ano.slice(2)}`;
+const snackbar = ref({
+  show: false,
+  message: '',
+  color: 'success',
 });
 
-const openCreateForm = () => {
-  // selectedRelease.value = undefined;
-  formCartao.value = true;
+// Mock Data
+const creditCards = ref<CreditCard[]>([]);
+const invoices = ref<CreditCardInvoice[]>([]);
+
+// Menu Items (for navigation drawer)
+const itensSideBar = ref([
+    { name: "Admin", icon: "mdi-shield-crown", route: "admin", adminOnly: true, traderOnly: false },
+    { name: "Trader", icon: "mdi-chart-line", route: "trader", adminOnly: false, traderOnly: true },
+    { name: "Dashboard", icon: "mdi-view-dashboard", route: "dashboard", adminOnly: false, traderOnly: false },
+    { name: "Contas", icon: "mdi-bank", route: "contas", adminOnly: false, traderOnly: false },
+    { name: "Receitas", icon: "mdi-cash-plus", route: "receitas", adminOnly: false, traderOnly: false },
+    { name: "Despesas", icon: "mdi-cash-minus", route: "despesas", adminOnly: false, traderOnly: false },
+    { name: "Categorias", icon: "mdi-tag-multiple", route: "categorias", adminOnly: false, traderOnly: false },
+    { name: "Cartões de Crédito", icon: "mdi-credit-card-outline", route: "cartoes", adminOnly: false, traderOnly: false },
+    { name: "Notificações", icon: "mdi-bell", route: "notificacoes", adminOnly: false, traderOnly: false },
+    { name: "Perfil", icon: "mdi-account", route: "perfil", adminOnly: false, traderOnly: false },
+]);
+
+const filteredItensSideBar = computed(() => {
+  return itensSideBar.value.filter((item) => {
+    if (item.adminOnly && !rolesStore.isAdmin) return false;
+    const isTrader = rolesStore.myRoles.includes('TRADER') || rolesStore.myRoles.includes('USER_TRADER') || rolesStore.myRoles.includes('FULL');
+    if (item.traderOnly && !isTrader) return false;
+    return true;
+  });
+});
+
+const isActiveRoute = (routeName: string): boolean => {
+  return route.name === routeName;
 };
 
-const closeForm = () => {
-  formCartao.value = false;
-  // selectedRelease.value = undefined;
+// Methods
+const openAddCardDialog = () => {
+  isEditing.value = false;
+  editableCard.value = null;
+  dialog.value = true;
 };
 
-const openFormLancCartao = () => {
-  formLancCartao.value = true;
-};
-const closeFormLancCartao = () => {
-  formLancCartao.value = false;
-  // selectedRelease.value = undefined;
+const openEditCardDialog = (card: CreditCard) => {
+  isEditing.value = true;
+  editableCard.value = { ...card };
+  dialog.value = true;
 };
 
+const openDeleteCardDialog = (card: CreditCard) => {
+    cardToDelete.value = card;
+    deleteDialog.value = true;
+}
 
-// const estornarLancamento = async (lancamentoId: number) => {
-//   await creditCardStore.createRefund({ id: lancamentoId, valor_estorno: valorEstorno.value });
-//   // Lógica para fechar o modal e atualizar a lista
-// };
-
-const updateData = (newData: WalletData) => {
-  // A resposta da API (newData) contém tanto 'cartoes' quanto 'contas'.
-  // Atualizamos ambos para manter a consistência.
-  creditCards.value = newData.cartoes;
-  wallets.value = newData.contas; 
-  
-  // Fecha qualquer formulário que estiver aberto
-  closeForm();
-  closeFormLancCartao();
+const closeDialog = () => {
+  dialog.value = false;
+  editableCard.value = null;
 };
+
+const submitForm = async () => {
+  if (formContaCartaoRef.value) {
+    await formContaCartaoRef.value.submit();
+  }
+};
+
+const saveCard = async (cardData: NewCreditCard | CreditCard) => {
+    showSnackbar(isEditing.value ? 'Cartão editado com sucesso!' : 'Cartão salvo com sucesso!', 'success');
+    closeDialog();
+};
+
+const confirmDelete = async () => {
+    showSnackbar('Cartão excluído com sucesso!', 'success');
+    deleteDialog.value = false;
+}
+
+const viewInvoices = async (card: CreditCard) => {
+  selectedCard.value = card;
+  loadingInvoices.value = true;
+  setTimeout(() => { // Simula a busca das faturas
+    invoices.value = [
+      { id: 1, conta_id: card.id, mes: 10, ano: 2025, valor_total: 1580.50, data_vencimento: '2025-10-25', pago: true },
+      { id: 2, conta_id: card.id, mes: 9, ano: 2025, valor_total: 1230.00, data_vencimento: '2025-09-25', pago: true },
+      { id: 3, conta_id: card.id, mes: 8, ano: 2025, valor_total: 2100.75, data_vencimento: '2025-08-25', pago: true },
+    ];
+    loadingInvoices.value = false;
+  }, 1000);
+};
+
+const showSnackbar = (message: string, color: string) => {
+  snackbar.value = { show: true, message, color };
+};
+
+// Formatting
+const formatCurrency = (value: number): string => {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+};
+
+const formatDate = (date: string): string => {
+  return new Date(date).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+};
+
+// MOCK DATA LOADER
+const fetchMockData = () => {
+    loading.value = true;
+    setTimeout(() => {
+        creditCards.value = [
+            { id: 1, nome: 'Nubank', limite: 5000, dia_vencimento: 10, dia_fechamento: 3, icon: 'mdi-credit-card-chip' },
+            { id: 2, nome: 'Inter', limite: 12000, dia_vencimento: 15, dia_fechamento: 8, icon: 'mdi-credit-card-outline' },
+            { id: 3, nome: 'Santander SX', limite: 7500, dia_vencimento: 25, dia_fechamento: 18, icon: 'mdi-credit-card-check' },
+        ];
+        loading.value = false;
+    }, 1500); // Simula atraso da rede
+}
+
+
+// Lifecycle
+onMounted(() => {
+  fetchMockData();
+  if (rolesStore.myRoles.length === 0) {
+    // Para o menu funcionar, precisamos de um mock das roles também
+    rolesStore.$patch({ myRoles: ['USER', 'FULL'] }); 
+  }
+});
 </script>
 
 <style scoped>
-.content-wrapper {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-.title__page {
-  color: #fefefe;
-}
-.card__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.card__title {
-  display: flex;
-  align-items: center;
-}
-.brand__icon {
-  background-color: #fefefe;
-  border-radius: 50%;
-  padding: 4px;
-  margin-right: 12px;
-}
-.card__details {
-  display: flex;
-  flex-direction: column;
-}
-.card__details span {
-  font-weight: bold;
-  font-size: 1.1rem;
-  color: #fefefe;
-  margin-top: 0;
-}
-.mdicon__add {
-  height: 45px;
-  width: 45px;
-  cursor: pointer;
-  padding: 10px;
-  border-radius: 50px;
-  background-color: #0c99ed;
-  color: #fefefe;
-}
-.card__details small {
-  font-size: 0.9rem;
-  color: #a0a0a0;
-}
-.logo__sicredi {
-  width: 35px;
-  height: 35px;
-  margin-right: 5px;
-}
-.type__card {
-  margin-top: -5px;
-}
-.card-actions {
-  display: flex;
-  gap: 16px;
-  color: #a0a0a0;
+.dashboard-view {
+  background-color: #f5f5f5;
+  min-height: 100vh;
 }
 
-.card__body {
-  margin-top: 15px;
+.card-gradient {
+  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+  border-radius: 8px 8px 0 0;
 }
 
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  flex-basis: 33%;
-}
-
-.text-center {
-  text-align: center;
-}
-.text-right {
-  text-align: right;
-}
-
-.label {
-  font-size: 0.8rem;
-  color: #a0a0a0;
-  margin-bottom: 4px;
-}
-
-.value {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: #fefefe;
-}
-
-.value-small {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: #fefefe;
-}
-
-.progress__bar__container {
-  margin-top: 5px;
-  position: relative;
-}
-
-/* .progress-bar {
-  background-color: #444;
-  border-radius: 5px;
-  height: 10px;
-  width: 100%;
-}
-
-.progress {
-  background-color: #32c770;
-  border-radius: 5px;
-  height: 100%;
-  width: 83%;
-} */
-
-.progress-label {
-  position: absolute;
-  right: 8px;
-  top: 80%;
-  transform: translateY(-50%);
-  font-size: 0.7rem;
-  font-weight: bold;
-  color: #92999eff;
-}
-
-.card__footer {
-  border-top: 1px solid #444;
-  margin-top: 10px;
-  padding-top: 10px;
-}
-
-.fatura-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.fatura-label {
-  font-size: 1rem;
-  color: #fefefe;
-}
-
-.fatura-value {
-  font-size: 1.1rem;
-  font-weight: bold;
-  color: #fefefe;
-}
-
-.fatura-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 12px;
-}
-
-.status__fechada {
-  
-  padding: 4px 10px;
-  border-radius: 15px;
-  font-size: 0.8rem;
-  display: flex;
-  align-items: center;
-}
-
-.register__payment {
-  color: #3d8eff;
-  text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-}
-
-.header {
-  display: flex;
-  padding: 10px;
-  color: #bdbdbd;
-}
-.link {
-  text-decoration: none;
-  color: #fefefe;
-}
-.opaco {
-  color: #6c757d !important;
-}
-.header__items {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-.valor {
-  font-size: 13px;
-}
-.__limite {
-  width: 33%;
-}
-.__em_aberto {
-  width: 33%;
-}
-.__limite_disponivel {
-  width: 33%;
-}
-.descricao__limite {
-  font-size: 13px;
-  padding: 0;
-}
-.descricao__em_aberto {
-  font-size: 13px;
-  text-align: center;
-}
-.descricao__limite_disponivel {
-  font-size: 13px;
-  padding: 0;
-  text-align: end;
-}
-.valor__limite {
-  font-size: 13px;
-  padding: 0;
-}
-.valor__em_aberto {
-  font-size: 13px;
-  text-align: center;
-}
-.valor__limite_disponivel {
-  font-size: 13px;
-  padding: 0;
-  text-align: end;
-}
-.porcentagem__utilizado {
-  border: 1px solid red;
-  height: 8px;
-  margin-top: 5px;
-  border-radius: 5px;
-}
-.porcentagem__barra {
-  height: 100%;
-  background: #77d08e;
-  border-radius: 5px;
-}
-.container__mes {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  margin-block: 20px;
-}
-.mdicon {
-  cursor: pointer;
-  /* padding: 10px; */
-  /* box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23; */
-  border-radius: 20px;
-}
-
-.container__cards {
-  width: 100%;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  padding-inline: 10px;
-}
-.__card {
-  width: 100%;
-  background-color: #2a2d30;
-  border-radius: 12px;
-  padding: 10px;
-  color: #fff;
-  font-family: sans-serif;
-}
-.card__new__conta {
-  height: 248px;
-  width: 49%;
-  margin-block: 10px;
-  border-radius: 15px;
-  box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.btn__new__conta {
-  background: transparent;
-  height: 50%;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  color: #77d08e;
-  font-weight: 100;
-}
-.plus {
-  height: 68px;
-  width: 68px;
-  border: solid 1px #77d08e;
-  border-radius: 50px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.add__conta {
-  font-size: 20px;
-  font-weight: 400;
-  color: #77d08e;
-}
-.carteira {
-  box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
-  height: 248px;
-  width: 49%;
-  margin-block: 10px;
-  border-radius: 15px;
-  display: flex;
-  flex-direction: column;
-  padding-inline: 10px;
-}
-.header__carteira {
-  height: 45px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.container__detalhes {
-  width: 320px;
-  height: 52px;
-  background: transparent;
-  color: #fefefe;
-  font-size: 20px;
-  cursor: pointer;
-}
-.icon {
-  color: #77d08e;
-}
-span {
-  color: #77d08e;
-  margin-top: -5px;
-}
-.card__type {
-  all: unset;
-  display: inline-block;
-  line-height: 1;
-  margin-top: -10px;
-}
-.btn__opcoes {
-  height: 52px;
-  width: 52px;
-  border-radius: 30px;
-  color: white;
-}
-.btn__opcoes:hover {
-  background-color: rgba(254, 254, 254, 0.1);
-}
-.body__carteira {
-  /* height: 50%; */
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  padding-inline: 5px;
-}
-.saldo {
-  display: flex;
-  justify-content: space-around;
-}
-.saldo__atual {
-  font-size: 12px;
-  color: #fefefe;
-}
-.valor {
-  font-size: 12px;
-  color: #06bb64;
-}
-.footer__carteira {
-  height: 25%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.btn__add__despesa {
-  color: #77d08e;
-  padding: 10px;
-  border-radius: 25px;
-}
-.btn__add__despesa:hover {
-  background-color: rgba(254, 254, 254, 0.1);
-}
-.container__card__atual_previsto {
-  width: 33%;
-  height: 248px;
-  margin-block: 10px;
-  border-radius: 15px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-.card__valor {
-  box-shadow: -4px -4px 5px #3e4247, 7px 7px 7px #1d1f23;
-  height: 110px;
-  width: 100%;
-  border-radius: 15px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-inline: 15px;
-}
-.saldo__card {
-  color: #fefefe;
-  font-size: 25px;
-}
-.valor__card {
-  color: #06bb64;
-  font-size: 25px;
-}
-.pc {
-  display: flex;
-}
-.btn__nova__conta {
-  position: fixed;
-  /* Calcula a posição relativa ao centro do #app */
-  /* right: calc(
-    (100vw - 500px) / 2 + 55px
-  ); */
-  right: 15px;
-  bottom: 15px;
-  background-color: #1dbb01;
-  border: none;
-  border-radius: 50%;
-  padding: 10px;
-  color: #fefefe;
-}
-
-@media screen and (max-width: 600px) {
-  .pc {
-    display: none;
-  }
-  .carteira {
-    height: 150px;
-    width: 95%;
-    margin: 20px 10px 0 10px;
-    padding: 20px 10px;
-  }
-  .btn__new__conta {
-    height: 80px;
-    width: 100%;
-    margin-block: 10px;
-    padding: 0 10px;
-    display: flex;
-    justify-content: center;
-    align-items: end;
-  }
-  .body__carteira {
-    margin: 20px 0 30px 0;
-  }
+.card-gradient-primary {
+  --gradient-start: #2196F3;
+  --gradient-end: #1976D2;
 }
 </style>

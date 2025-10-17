@@ -159,10 +159,10 @@ import ErrorMessage from "@/components/ErrorMessage.vue";
 import ErrorsForm from "@/components/ModalErrorsForm.vue";
 import http from "@/services/http";
 import {
-    useAuthStore,
-    useDashboardStore,
-    useErrorStore,
-    useUserStore,
+  useAuthStore,
+  useDashboardStore,
+  useErrorStore,
+  useUserStore,
 } from "@/store";
 import { useRolesStore } from "@/store/roles";
 import type { ApiErrorResponse, FormLogin, LoginResponse } from "@/types";
@@ -307,7 +307,7 @@ const login = async () => {
 }
 
 .logo-large {
-  width: 120px;
+  width: 150px;
   height: auto;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
 }
@@ -347,7 +347,7 @@ const login = async () => {
 /* Lado do Formulário */
 .form-side {
   flex: 1;
-  background: white;
+  background: rgba(58, 58, 58, 0.041);
   padding: 60px 50px;
   display: flex;
   align-items: center;
@@ -373,13 +373,13 @@ const login = async () => {
 .form-title {
   font-size: 1.875rem;
   font-weight: 700;
-  color: #1a202c;
+  color: #fefefe;
   margin-bottom: 8px;
 }
 
 .form-subtitle {
   font-size: 1rem;
-  color: #718096;
+  color: #818a97;
   margin-bottom: 32px;
 }
 
@@ -389,10 +389,11 @@ const login = async () => {
 }
 
 .social-btn {
-  border: 2px solid #e2e8f0;
+  /* border: 2px solid #e2e8f0; */
   font-weight: 600;
   text-transform: none;
   letter-spacing: 0;
+  background: rgb(14, 10, 236);
 }
 
 /* Divider */
@@ -405,7 +406,7 @@ const login = async () => {
 .divider::before {
   content: "";
   position: absolute;
-  top: 50%;
+  top: 85%;
   left: 0;
   right: 0;
   height: 1px;
@@ -414,9 +415,9 @@ const login = async () => {
 
 .divider-text {
   position: relative;
-  background: white;
+  background: rgba(58, 58, 58, 0.041);
   padding: 0 16px;
-  color: #718096;
+  color: #fefefe;
   font-size: 0.875rem;
 }
 

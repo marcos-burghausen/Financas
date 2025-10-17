@@ -13,7 +13,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import LoginView from "./acesso/LoginView.vue";
+import LoginView from "./acesso/EntrarMobileView.vue";
 import RegisterView from "./acesso/RegisterView.vue";
 
 const step = ref(0);

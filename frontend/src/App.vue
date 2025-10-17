@@ -1,16 +1,18 @@
 <template>
-  <router-view />
+  <v-app :theme="themeStore.theme">
+    <router-view />
+  </v-app>
 </template>
 
 <script setup lang="ts">
 import {
-    useAuthStore,
-    useDashboardStore,
-    useExpensesStore,
-    useRevenuesStore,
-    useThemeStore,
-    useUserStore,
-    useWalletsStore,
+  useAuthStore,
+  useDashboardStore,
+  useExpensesStore,
+  useRevenuesStore,
+  useThemeStore,
+  useUserStore,
+  useWalletsStore,
 } from "@/store";
 import { onMounted } from "vue";
 import { useTheme } from "vuetify";
@@ -26,7 +28,7 @@ const vuetifyTheme = useTheme();
 
 onMounted(() => {
   // Aplica o tema salvo
-  vuetifyTheme.global.name.value = themeStore.themeName;
+  // vuetifyTheme.global.name.value = themeStore.theme;
   
   // Carrega dados da sessão ao inicializar
   authStore.loadFromSession();

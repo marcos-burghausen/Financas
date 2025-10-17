@@ -544,10 +544,16 @@
 </template>
 
 <script setup lang="ts">
-import axiosInstance from '@/services/http'
-import { useRolesStore } from '@/store/roles'
-import { computed, onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import axiosInstance from '@/services/http';
+import {
+  useExpensesStore,
+  useRevenuesStore,
+  useRolesStore,
+  useUserStore,
+  useWalletsStore,
+} from "@/store";
+import { computed, onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 // Router
 const router = useRouter()
@@ -555,6 +561,10 @@ const route = useRoute()
 
 // Stores
 const rolesStore = useRolesStore()
+const revenuesStore = useRevenuesStore();
+const walletsStore = useWalletsStore();
+const expensesStore = useExpensesStore();
+const userStore = useUserStore();
 
 // Drawer state
 const drawer = ref(false)
@@ -640,18 +650,21 @@ const headers = [
   { title: 'Ações', key: 'actions', sortable: false, align: 'center' }
 ]
 
+
+
 // Computed
 const summary = computed(() => {
-  const totalMes = receitas.value.reduce((sum, r) => sum + r.valor, 0)
-  const recebido = receitas.value.filter(r => r.status === 'RECEBIDO').reduce((sum, r) => sum + r.valor, 0)
-  const pendente = receitas.value.filter(r => r.status === 'PENDENTE').reduce((sum, r) => sum + r.valor, 0)
+  // const totalMes = receitas.value.reduce((sum, r) => sum + r.valor, 0)
+  const totalMes = revenuesStore.revenuesData?.valueTotalMonth
+  const recebido = revenuesStore.revenuesData?.valuePay
+  const pendente = revenuesStore.revenuesData?.valuePending
   
   return {
     totalMes,
     recebido,
     pendente,
     mediaMensal: totalMes, // Simplificado - deveria calcular média real
-    qtdMes: receitas.value.length,
+    qtdMes: revenuesStore.revenuesData?.byMonth.length,
     qtdRecebido: receitas.value.filter(r => r.status === 'RECEBIDO').length,
     qtdPendente: receitas.value.filter(r => r.status === 'PENDENTE').length
   }

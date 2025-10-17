@@ -1,6 +1,5 @@
 <template>
   <v-layout>
-    <!-- Navigation Drawer -->
     <v-navigation-drawer
       v-model="drawer"
       temporary
@@ -11,8 +10,9 @@
         <v-list-item
           v-for="(item, index) in filteredItensSideBar"
           :key="index"
-          :to="{ name: item.route }"
+          :to="item.route ? { name: item.route } : undefined"
           :class="{ 'bg-primary': isActiveRoute(item.route) }"
+          @click="item.action ? handleAction(item.action) : null"
         >
           <template #prepend>
             <v-icon :icon="item.icon" />
@@ -22,10 +22,8 @@
       </v-list>
     </v-navigation-drawer>
 
-    <!-- Main Content -->
     <v-main>
-      <v-container fluid class="dashboard-view pa-6">
-        <!-- Header -->
+      <v-container fluid class="pa-6">
         <v-row class="mb-4">
           <v-col cols="12">
             <div class="d-flex align-center justify-space-between mb-2">
@@ -52,7 +50,6 @@
           </v-col>
         </v-row>
 
-    <!-- Loading -->
     <v-row v-if="loading">
       <v-col cols="12" class="text-center py-12">
         <v-progress-circular indeterminate color="primary" size="64" />
@@ -60,9 +57,7 @@
       </v-col>
     </v-row>
 
-    <!-- Summary Cards -->
     <v-row v-else>
-      <!-- Receitas do Mês -->
       <v-col cols="12" sm="6" md="3">
         <v-card elevation="4" class="summary-card h-100">
           <div class="card-gradient card-gradient-success pa-4">
@@ -85,7 +80,6 @@
         </v-card>
       </v-col>
 
-      <!-- Despesas do Mês -->
       <v-col cols="12" sm="6" md="3">
         <v-card elevation="4" class="summary-card h-100">
           <div class="card-gradient card-gradient-error pa-4">
@@ -108,7 +102,6 @@
         </v-card>
       </v-col>
 
-      <!-- Saldo Atual -->
       <v-col cols="12" sm="6" md="3">
         <v-card elevation="4" class="summary-card h-100">
           <div class="card-gradient card-gradient-primary pa-4">
@@ -140,7 +133,6 @@
         </v-card>
       </v-col>
 
-      <!-- Pendências -->
       <v-col cols="12" sm="6" md="3">
         <v-card elevation="4" class="summary-card h-100">
           <div class="card-gradient card-gradient-warning pa-4">
@@ -164,9 +156,7 @@
       </v-col>
     </v-row>
 
-    <!-- Charts Row -->
     <v-row v-if="!loading" class="mt-2">
-      <!-- Evolução Mensal -->
       <v-col cols="12" lg="8">
         <v-card elevation="4" class="h-100">
           <div class="card-gradient card-gradient-primary pa-4">
@@ -196,7 +186,6 @@
         </v-card>
       </v-col>
 
-      <!-- Despesas por Categoria -->
       <v-col cols="12" lg="4">
         <v-card elevation="4" class="h-100">
           <div class="card-gradient card-gradient-error pa-4">
@@ -227,9 +216,7 @@
       </v-col>
     </v-row>
 
-    <!-- Recent Transactions & Alerts -->
     <v-row v-if="!loading" class="mt-2">
-      <!-- Últimos Lançamentos -->
       <v-col cols="12" lg="8">
         <v-card elevation="4">
           <div class="card-gradient card-gradient-info pa-4">
@@ -308,9 +295,7 @@
         </v-card>
       </v-col>
 
-      <!-- Alerts & Quick Actions -->
       <v-col cols="12" lg="4">
-        <!-- Alertas -->
         <v-card elevation="4" class="mb-4">
           <div class="card-gradient card-gradient-warning pa-4">
             <div class="d-flex align-center">
@@ -348,7 +333,6 @@
           </v-card-text>
         </v-card>
 
-        <!-- Quick Actions -->
         <v-card elevation="4">
           <div class="card-gradient card-gradient-primary pa-4">
             <div class="d-flex align-center">
@@ -397,7 +381,6 @@
       </v-col>
     </v-row>
 
-    <!-- Snackbar -->
     <v-snackbar
       v-model="snackbar.show"
       :color="snackbar.color"
@@ -421,13 +404,21 @@
 
 
 <script setup lang="ts">
-import { useRolesStore } from '@/store/roles'
-import { computed, onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import http from "@/services/http";
+import { useAuthStore, useDashboardStore, useExpensesStore, useRevenuesStore, useUserStore, useWalletsStore } from '@/store';
+import { useRolesStore } from '@/store/roles';
+import { computed, onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 // Router
 const router = useRouter()
 const route = useRoute()
+const useAuth = useAuthStore();
+const userStore  = useUserStore();
+const dashboardStore = useDashboardStore();
+const useExpenses = useExpensesStore();
+const useRevenues = useRevenuesStore();
+const useWallets = useWalletsStore();
 
 // Stores
 const rolesStore = useRolesStore()
@@ -505,15 +496,26 @@ const itensSideBar = ref([
     adminOnly: false,
     traderOnly: false,
   },
+  // Item "Sair" modificado para usar 'action' em vez de 'route'
+  {
+    name: "Sair",
+    icon: "mdi-logout", // Ícone alterado para um mais apropriado
+    action: "logout",
+    adminOnly: false,
+    traderOnly: false,
+  },
 ])
 
-// Filter menu items based on user roles
 const filteredItensSideBar = computed(() => {
+  const isTrader = rolesStore.myRoles.includes('TRADER') || 
+                   rolesStore.myRoles.includes('USER_TRADER') || 
+                   rolesStore.myRoles.includes('FULL');
+
   return itensSideBar.value.filter((item) => {
     if (item.adminOnly && !rolesStore.isAdmin) {
       return false
     }
-    if (item.traderOnly && !rolesStore.isTrader) {
+    if (item.traderOnly && !isTrader) {
       return false
     }
     return true
@@ -521,7 +523,8 @@ const filteredItensSideBar = computed(() => {
 })
 
 // Check if route is active
-const isActiveRoute = (routeName: string): boolean => {
+const isActiveRoute = (routeName: string | undefined): boolean => {
+  if (!routeName) return false;
   return route.name === routeName
 }
 
@@ -596,191 +599,50 @@ const fetchDashboardData = async () => {
   try {
     loading.value = true
 
-    // Mock data for now - replace with real API calls when backend is ready
-    
-    // Summary data
+    // Mock data for now
     summary.value = {
-      receitasMes: 850000, // R$ 8.500,00
-      despesasMes: 520000, // R$ 5.200,00
-      saldoAtual: 330000, // R$ 3.300,00
-      pendencias: 150000, // R$ 1.500,00
+      receitasMes: 850000,
+      despesasMes: 520000,
+      saldoAtual: 330000,
+      pendencias: 150000,
       receitasRecebidas: 12,
       despesasPagas: 18,
       totalPendencias: 5
     }
-
-    // Chart data - Bar chart (last 6 months)
     const months = ['Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
     chartOptions.value.bar = {
-      chart: {
-        type: 'bar',
-        height: 350,
-        toolbar: {
-          show: false
-        }
-      },
-      plotOptions: {
-        bar: {
-          horizontal: false,
-          columnWidth: '55%',
-          borderRadius: 5
-        }
-      },
-      dataLabels: {
-        enabled: false
-      },
-      stroke: {
-        show: true,
-        width: 2,
-        colors: ['transparent']
-      },
-      xaxis: {
-        categories: months
-      },
-      yaxis: {
-        title: {
-          text: 'R$ (milhares)'
-        },
-        labels: {
-          formatter: (value: number) => {
-            return `R$ ${(value / 1000).toFixed(0)}k`
-          }
-        }
-      },
-      fill: {
-        opacity: 1
-      },
-      tooltip: {
-        y: {
-          formatter: (val: number) => {
-            return new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL'
-            }).format(val / 100)
-          }
-        }
-      },
+      chart: { type: 'bar', height: 350, toolbar: { show: false } },
+      plotOptions: { bar: { horizontal: false, columnWidth: '55%', borderRadius: 5 } },
+      dataLabels: { enabled: false },
+      stroke: { show: true, width: 2, colors: ['transparent'] },
+      xaxis: { categories: months },
+      yaxis: { title: { text: 'R$ (milhares)' }, labels: { formatter: (value: number) => `R$ ${(value / 1000).toFixed(0)}k` } },
+      fill: { opacity: 1 },
+      tooltip: { y: { formatter: (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val / 100) } },
       colors: ['#4CAF50', '#F44336'],
-      legend: {
-        position: 'top',
-        horizontalAlign: 'right'
-      }
+      legend: { position: 'top', horizontalAlign: 'right' }
     }
-
-    chartSeries.value.bar = [
-      {
-        name: 'Receitas',
-        data: [650000, 720000, 680000, 850000, 790000, 850000] // Valores em centavos
-      },
-      {
-        name: 'Despesas',
-        data: [450000, 520000, 480000, 550000, 500000, 520000]
-      }
-    ]
-
-    // Chart data - Pie chart (categories)
+    chartSeries.value.bar = [ { name: 'Receitas', data: [650000, 720000, 680000, 850000, 790000, 850000] }, { name: 'Despesas', data: [450000, 520000, 480000, 550000, 500000, 520000] } ]
     chartOptions.value.pie = {
-      chart: {
-        type: 'donut',
-        height: 350
-      },
+      chart: { type: 'donut', height: 350 },
       labels: ['Alimentação', 'Transporte', 'Moradia', 'Lazer', 'Outros'],
       colors: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
-      legend: {
-        position: 'bottom'
-      },
-      dataLabels: {
-        enabled: true,
-        formatter: (val: number) => {
-          return `${val.toFixed(1)}%`
-        }
-      },
-      tooltip: {
-        y: {
-          formatter: (val: number) => {
-            return new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL'
-            }).format(val / 100)
-          }
-        }
-      }
+      legend: { position: 'bottom' },
+      dataLabels: { enabled: true, formatter: (val: number) => `${val.toFixed(1)}%` },
+      tooltip: { y: { formatter: (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val / 100) } }
     }
-
-    chartSeries.value.pie = [180000, 120000, 150000, 50000, 20000] // Valores em centavos
-
-    // Recent transactions
+    chartSeries.value.pie = [180000, 120000, 150000, 50000, 20000]
     recentTransactions.value = [
-      {
-        id: 1,
-        data: '2024-12-15',
-        descricao: 'Salário',
-        categoria: 'Salário',
-        tipo: 'RECEITA',
-        status: 'RECEBIDO',
-        valor: 550000
-      },
-      {
-        id: 2,
-        data: '2024-12-10',
-        descricao: 'Aluguel',
-        categoria: 'Moradia',
-        tipo: 'DESPESA',
-        status: 'PAGO',
-        valor: 150000
-      },
-      {
-        id: 3,
-        data: '2024-12-08',
-        descricao: 'Supermercado',
-        categoria: 'Alimentação',
-        tipo: 'DESPESA',
-        status: 'PAGO',
-        valor: 35000
-      },
-      {
-        id: 4,
-        data: '2024-12-05',
-        descricao: 'Freelance',
-        categoria: 'Receita Extra',
-        tipo: 'RECEITA',
-        status: 'RECEBIDO',
-        valor: 120000
-      },
-      {
-        id: 5,
-        data: '2024-12-20',
-        descricao: 'Conta de luz',
-        categoria: 'Moradia',
-        tipo: 'DESPESA',
-        status: 'PENDENTE',
-        valor: 18000
-      }
+      { id: 1, data: '2024-12-15', descricao: 'Salário', categoria: 'Salário', tipo: 'RECEITA', status: 'RECEBIDO', valor: 550000 },
+      { id: 2, data: '2024-12-10', descricao: 'Aluguel', categoria: 'Moradia', tipo: 'DESPESA', status: 'PAGO', valor: 150000 },
+      { id: 3, data: '2024-12-08', descricao: 'Supermercado', categoria: 'Alimentação', tipo: 'DESPESA', status: 'PAGO', valor: 35000 },
+      { id: 4, data: '2024-12-05', descricao: 'Freelance', categoria: 'Receita Extra', tipo: 'RECEITA', status: 'RECEBIDO', valor: 120000 },
+      { id: 5, data: '2024-12-20', descricao: 'Conta de luz', categoria: 'Moradia', tipo: 'DESPESA', status: 'PENDENTE', valor: 18000 }
     ]
-
-    // Alerts
     alerts.value = [
-      {
-        id: 1,
-        icon: 'mdi-alert-circle',
-        color: 'warning',
-        title: 'Conta de água vence em 3 dias',
-        subtitle: 'R$ 85,00'
-      },
-      {
-        id: 2,
-        icon: 'mdi-credit-card-alert',
-        color: 'error',
-        title: 'Fatura do cartão vence amanhã',
-        subtitle: 'R$ 1.250,00'
-      },
-      {
-        id: 3,
-        icon: 'mdi-calendar-alert',
-        color: 'info',
-        title: 'Parcela do curso vence em 5 dias',
-        subtitle: 'R$ 350,00'
-      }
+      { id: 1, icon: 'mdi-alert-circle', color: 'warning', title: 'Conta de água vence em 3 dias', subtitle: 'R$ 85,00' },
+      { id: 2, icon: 'mdi-credit-card-alert', color: 'error', title: 'Fatura do cartão vence amanhã', subtitle: 'R$ 1.250,00' },
+      { id: 3, icon: 'mdi-calendar-alert', color: 'info', title: 'Parcela do curso vence em 5 dias', subtitle: 'R$ 350,00' }
     ]
 
   } catch (error: any) {
@@ -799,11 +661,41 @@ const fetchDashboardData = async () => {
 onMounted(() => {
   fetchDashboardData()
 })
+
+async function logout() {
+  try {
+    await http.post("/sanctum/logout");
+    
+    useAuth.clear();
+    userStore.clear();
+    dashboardStore.clear();
+    useExpenses.clear();
+    useRevenues.clear();
+    useWallets.clear();
+    
+    window.location.href = "/";
+  } catch (error) {
+    useAuth.clear();
+    userStore.clear();
+    dashboardStore.clear();
+    useExpenses.clear();
+    useRevenues.clear();
+    useWallets.clear();
+    window.location.href = "/";
+  }
+}
+
+// Nova função para lidar com ações do menu
+function handleAction(actionName: string) {
+  if (actionName === 'logout') {
+    logout();
+  }
+}
 </script>
 <style scoped>
 
 .dashboard-view {
-  background-color: #f5f5f5;
+/* background-color: #f5f5f5; */
   min-height: 100vh;
 }
 

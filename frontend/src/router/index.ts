@@ -26,7 +26,8 @@ const router = createRouter({
         {
             path: "/dashboard",
             name: "dashboard",
-            component: () => import("../views/DashboardView.vue"),
+            // component: () => import("../views/DashboardView.vue"),
+            component: () => import("../views/mobile/DashboardMobileView copy.vue"),
             meta: {
                 auth: true
             }
@@ -50,8 +51,8 @@ const router = createRouter({
         {
             path: "/receitas",
             name: "receitas",
+            // component: () => import("../views/receitas/ReceitasView_OLD.vue"),
             component: () => import("../views/receitas/ReceitasView.vue"),
-            // component: () => import("../views/receitas/ReceitasView copy.vue"),
             meta: {
                 auth: true
             }

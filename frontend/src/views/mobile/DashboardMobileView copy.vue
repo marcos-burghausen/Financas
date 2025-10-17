@@ -1,9 +1,9 @@
 <template>
-  <v-card
-    color="transparent"
-    style="width: 100%"
+  <v-container
+    fluid
+    class="dashboard__view p-0"
   >
-    <v-layout>
+    <!-- <v-layout>
       <v-app-bar color="transparent">
         <v-app-bar-nav-icon
           variant="text"
@@ -69,10 +69,6 @@
           </v-list>
         </v-menu>
 
-        <!-- <v-btn
-          icon="dots-vertical"
-          variant="text"
-        /> -->
       </v-app-bar>
 
       <v-navigation-drawer
@@ -89,15 +85,12 @@
             :to="{ name: item.route }"
             @click="item.action"
           >
-            <!-- <router-link style="text-decoration: none"> -->
             <span class="icon">
               <v-icon :icon="item.icon" />
-              <!-- Ícone do item -->
             </span>
             <span class="txt__link">
               {{ item.name }}
             </span>
-            <!-- </router-link> -->
           </v-list-item>
         </v-list>
       </v-navigation-drawer>
@@ -139,7 +132,6 @@
               Saldo
             </span>
             <div style="display: flex; align-items: center">
-              <!-- <dir style="background: green; width:5px; height: 45px; margin-inline-end: 10px; margin-top: 5px;"></dir> -->
               <span
                 :style="{
                   color:
@@ -161,9 +153,6 @@
                 icon="mdi-clock-outline"
                 size="20"
               />
-              <!-- <mdicon name="plus-circle-outline" />
-                    <mdicon name="minus-circle-outline" />
-                    <mdicon name="clock-outline" /> -->
               Previsto
             </span>
             <div style="display: flex; align-items: center">
@@ -242,13 +231,422 @@
           </router-link>
         </div>
       </v-main>
+    </v-layout> -->
+
+
+    <v-layout>
+      <v-navigation-drawer
+        v-model="drawer"
+        temporary
+        color="#212529"
+        width="280"
+      >
+        <v-list>
+          <v-list-item
+            v-for="(item, index) in filteredItensSideBar"
+            :key="index"
+            :to="item.route ? { name: item.route } : undefined"
+            :class="{ 'bg-primary': isActiveRoute(item.route) }"
+            @click="item.action ? handleAction(item.action) : null"
+          >
+            <template #prepend>
+              <v-icon :icon="item.icon" />
+            </template>
+            <v-list-item-title>{{ item.name }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-navigation-drawer>
+
+      <v-main>
+        <v-container fluid class="">
+          <v-row class="mb-4">
+            <v-col cols="12"  md="8">
+              <div class="d-flex align-center justify-space-between mb-2">
+                <div class="d-flex align-center">
+                  <v-btn
+                    icon
+                    variant="text"
+                    @click="drawer = !drawer"
+                    class="mr-2"
+                  >
+                    <v-icon icon="mdi-menu" size="28" />
+                  </v-btn>
+                  <div>
+                    <h1 class="text-h4 mb-1 d-flex align-center">
+                      <v-icon icon="mdi-view-dashboard" size="36" class="mr-3" color="primary" />
+                      Dashboard Financeiro
+                    </h1>
+                    <p class="text-subtitle-1 text-grey mb-0">
+                      Visão geral das suas finanças
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </v-col>
+          </v-row>
+
+          <v-row v-if="loading">
+            <v-col cols="12" class="text-center py-12">
+              <v-progress-circular indeterminate color="primary" size="64" />
+              <p class="text-grey mt-4">Carregando dados...</p>
+            </v-col>
+          </v-row>
+
+          <v-row v-else>
+            <v-col cols="12" sm="6" md="3">
+              <v-card elevation="4" class="summary__card h-100">
+                <div class="card-gradient card-gradient-success pa-4">
+                  <div class="d-flex justify-space-between align-start mb-3">
+                    <div>
+                      <p class="text-body-2 text-white mb-1">Receitas do Mês</p>
+                      <h2 class="text-h5 text-white font-weight-bold">
+                        {{ formatCurrency(receitasMes) }}
+                      </h2>
+                    </div>
+                    <v-avatar color="rgba(255,255,255,0.2)" size="48">
+                      <v-icon icon="mdi-arrow-up-circle" color="white" size="28" />
+                    </v-avatar>
+                  </div>
+                  <v-chip size="small" color="white" text-color="success" class="font-weight-medium">
+                    <v-icon icon="mdi-trending-up" start size="16" />
+                    {{ receitasRecebidas.length }} recebidas
+                  </v-chip>
+                </div>
+              </v-card>
+            </v-col>
+
+            <v-col cols="12" sm="6" md="3">
+              <v-card elevation="4" class="summary__card h-100">
+                <div class="card-gradient card-gradient-error pa-4">
+                  <div class="d-flex justify-space-between align-start mb-3">
+                    <div>
+                      <p class="text-body-2 text-white mb-1">Despesas do Mês</p>
+                      <h2 class="text-h5 text-white font-weight-bold">
+                        {{ formatCurrency(despesasMes) }}
+                      </h2>
+                    </div>
+                    <v-avatar color="rgba(255,255,255,0.2)" size="48">
+                      <v-icon icon="mdi-arrow-down-circle" color="white" size="28" />
+                    </v-avatar>
+                  </div>
+                  <v-chip size="small" color="white" text-color="error" class="font-weight-medium">
+                    <v-icon icon="mdi-trending-down" start size="16" />
+                    {{ despesasPagas.length }} pagas
+                  </v-chip>
+                </div>
+              </v-card>
+            </v-col>
+
+            <v-col cols="12" sm="6" md="3">
+              <v-card elevation="4" class="summary__card h-100">
+                <div class="card-gradient card-gradient-primary pa-4">
+                  <div class="d-flex justify-space-between align-start mb-3">
+                    <div>
+                      <p class="text-body-2 text-white mb-1">Saldo Atual</p>
+                      <h2 class="text-h5 text-white font-weight-bold">
+                        {{ formatCurrency(saldoAtual) }}
+                      </h2>
+                    </div>
+                    <v-avatar color="rgba(255,255,255,0.2)" size="48">
+                      <v-icon icon="mdi-wallet" color="white" size="28" />
+                    </v-avatar>
+                  </div>
+                  <v-chip 
+                    size="small" 
+                    :color="saldoAtual >= 0 ? 'white' : 'error'"
+                    :text-color="saldoAtual >= 0 ? 'primary' : 'white'" 
+                    class="font-weight-medium"
+                  >
+                    <v-icon 
+                      :icon="saldoAtual >= 0 ? 'mdi-check-circle' : 'mdi-alert'" 
+                      start 
+                      size="16" 
+                    />
+                    {{ saldoAtual >= 0 ? 'Positivo' : 'Atenção' }}
+                  </v-chip>
+                </div>
+              </v-card>
+            </v-col>
+
+            <v-col cols="12" sm="6" md="3">
+              <v-card elevation="4" class="summary__card h-100">
+                <div class="card-gradient card-gradient-warning pa-4">
+                  <div class="d-flex justify-space-between align-start mb-3">
+                    <div>
+                      <p class="text-body-2 text-white mb-1">Pendências</p>
+                      <h2 class="text-h5 text-white font-weight-bold">
+                        {{ formatCurrency(111) }}
+                      </h2>
+                    </div>
+                    <v-avatar color="rgba(255,255,255,0.2)" size="48">
+                      <v-icon icon="mdi-clock-alert" color="white" size="28" />
+                    </v-avatar>
+                  </div>
+                  <v-chip size="small" color="white" text-color="warning" class="font-weight-medium">
+                    <v-icon icon="mdi-alert-circle" start size="16" />
+                    {{ 2 }} itens
+                  </v-chip>
+                </div>
+              </v-card>
+            </v-col>
+          </v-row>
+
+          <v-row v-if="!loading" class="mt-2">
+            <v-col cols="12" lg="8">
+              <v-card elevation="4" class="h-100">
+                <div class="card-gradient card-gradient-primary pa-4">
+                  <div class="d-flex align-center">
+                    <v-icon icon="mdi-chart-bar" size="28" color="white" class="mr-3" />
+                    <div>
+                      <h3 class="text-h6 text-white font-weight-bold">Evolução Mensal</h3>
+                      <p class="text-body-2 text-white opacity-90 mb-0">
+                        Últimos 6 meses
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <v-card-text class="pa-4">
+                  <apexchart
+                    v-if="chartOptions.bar"
+                    type="bar"
+                    height="350"
+                    :options="chartOptions.bar"
+                    :series="chartSeries.bar"
+                  />
+                  <div v-else class="text-center py-12">
+                    <v-icon icon="mdi-chart-bar-stacked" size="64" color="grey-lighten-1" />
+                    <p class="text-grey mt-4">Sem dados para exibir</p>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+
+            <v-col cols="12" lg="4">
+              <v-card elevation="4" class="h-100">
+                <div class="card-gradient card-gradient-error pa-4">
+                  <div class="d-flex align-center">
+                    <v-icon icon="mdi-chart-pie" size="28" color="white" class="mr-3" />
+                    <div>
+                      <h3 class="text-h6 text-white font-weight-bold">Por Categoria</h3>
+                      <p class="text-body-2 text-white opacity-90 mb-0">
+                        Despesas do mês
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <v-card-text class="pa-4">
+                  <apexchart
+                    v-if="chartOptions.pie"
+                    type="donut"
+                    height="350"
+                    :options="chartOptions.pie"
+                    :series="chartSeries.pie"
+                  />
+                  <div v-else class="text-center py-12">
+                    <v-icon icon="mdi-chart-donut" size="64" color="grey-lighten-1" />
+                    <p class="text-grey mt-4">Sem dados para exibir</p>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+
+          <v-row v-if="!loading" class="mt-2">
+            <v-col cols="12" lg="8">
+              <v-card elevation="4">
+                <div class="card-gradient card-gradient-info pa-4">
+                  <div class="d-flex align-center justify-space-between">
+                    <div class="d-flex align-center">
+                      <v-icon icon="mdi-history" size="28" color="white" class="mr-3" />
+                      <div>
+                        <h3 class="text-h6 text-white font-weight-bold">Últimos Lançamentos</h3>
+                        <p class="text-body-2 text-white opacity-90 mb-0">
+                          10 mais recentes
+                        </p>
+                      </div>
+                    </div>
+                    <v-btn
+                      variant="text"
+                      color="white"
+                      prepend-icon="mdi-eye"
+                      @click="$router.push('/dashboard')"
+                    >
+                      Ver todos
+                    </v-btn>
+                  </div>
+                </div>
+                <v-card-text class="pa-0">
+                  <v-table>
+                    <thead>
+                      <tr>
+                        <th>Data</th>
+                        <th>Descrição</th>
+                        <th>Categoria</th>
+                        <th>Status</th>
+                        <th class="text-right">Valor</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-if="recentTransactions.length === 0">
+                        <td colspan="5" class="text-center py-8">
+                          <v-icon icon="mdi-file-document-outline" size="48" color="grey-lighten-1" />
+                          <p class="text-grey mt-2">Nenhum lançamento encontrado</p>
+                        </td>
+                      </tr>
+                      <tr v-for="transaction in recentTransactions" :key="transaction.id">
+                        <td>{{ formatDate(transaction.data_vencimento) }}</td>
+                        <td>
+                          <div class="d-flex align-center">
+                            <v-icon 
+                              :icon="transaction.tipo_lancamento === 'RECEITA' ? 'mdi-arrow-up' : 'mdi-arrow-down'" 
+                              :color="transaction.tipo_lancamento === 'RECEITA' ? 'success' : 'error'"
+                              size="20"
+                              class="mr-2"
+                            />
+                            {{ transaction.descricao }}
+                          </div>
+                        </td>
+                        <td>
+                          <v-chip size="small" variant="tonal">
+                            {{ transaction.categoria }}
+                          </v-chip>
+                        </td>
+                        <td>
+                          <v-chip 
+                            size="small" 
+                            :color="getStatusColor(transaction.status_lancamento)"
+                            variant="flat"
+                          >
+                            {{ transaction.status_lancamento }}
+                          </v-chip>
+                        </td>
+                        <td class="text-right font-weight-bold" :class="transaction.tipo === 'RECEITA' ? 'text-success' : 'text-error'">
+                          {{ formatCurrency(transaction.valor) }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </v-table>
+                </v-card-text>
+              </v-card>
+            </v-col>
+
+            <v-col cols="12" lg="4">
+              <v-card elevation="4" class="mb-4">
+                <div class="card-gradient card-gradient-warning pa-4">
+                  <div class="d-flex align-center">
+                    <v-icon icon="mdi-bell-alert" size="28" color="white" class="mr-3" />
+                    <div>
+                      <h3 class="text-h6 text-white font-weight-bold">Alertas</h3>
+                      <p class="text-body-2 text-white opacity-90 mb-0">
+                        Contas a vencer
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <v-card-text class="pa-4">
+                  <div v-if="alerts.length === 0" class="text-center py-6">
+                    <v-icon icon="mdi-check-circle" size="48" color="success" />
+                    <p class="text-grey mt-2">Nenhum alerta no momento</p>
+                  </div>
+                  <v-list v-else density="compact">
+                    <v-list-item
+                      v-for="alert in alerts"
+                      :key="alert.id"
+                      class="px-0 mb-2"
+                    >
+                      <template #prepend>
+                        <v-icon :icon="alert.icon" :color="alert.color" />
+                      </template>
+                      <v-list-item-title class="text-body-2">
+                        {{ alert.title }}
+                      </v-list-item-title>
+                      <v-list-item-subtitle class="text-caption">
+                        {{ alert.subtitle }}
+                      </v-list-item-subtitle>
+                    </v-list-item>
+                  </v-list>
+                </v-card-text>
+              </v-card>
+
+              <v-card elevation="4">
+                <div class="card-gradient card-gradient-primary pa-4">
+                  <div class="d-flex align-center">
+                    <v-icon icon="mdi-lightning-bolt" size="28" color="white" class="mr-3" />
+                    <h3 class="text-h6 text-white font-weight-bold">Ações Rápidas</h3>
+                  </div>
+                </div>
+                <v-card-text class="pa-4">
+                  <v-btn
+                    block
+                    color="success"
+                    prepend-icon="mdi-plus-circle"
+                    class="mb-2"
+                    @click="$router.push('/receitas')"
+                  >
+                    Nova Receita
+                  </v-btn>
+                  <v-btn
+                    block
+                    color="error"
+                    prepend-icon="mdi-minus-circle"
+                    class="mb-2"
+                    @click="$router.push('/despesas')"
+                  >
+                    Nova Despesa
+                  </v-btn>
+                  <v-btn
+                    block
+                    color="primary"
+                    prepend-icon="mdi-bank"
+                    class="mb-2"
+                    @click="$router.push('/contas')"
+                  >
+                    Gerenciar Contas
+                  </v-btn>
+                  <v-btn
+                    block
+                    color="info"
+                    prepend-icon="mdi-tag-multiple"
+                    @click="$router.push('/categorias')"
+                  >
+                    Categorias
+                  </v-btn>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+
+
+
+          <v-snackbar
+            v-model="snackbar.show"
+            :color="snackbar.color"
+            :timeout="3000"
+            location="top right"
+          >
+            {{ snackbar.message }}
+            <template #actions>
+              <v-btn
+                variant="text"
+                @click="snackbar.show = false"
+              >
+                Fechar
+              </v-btn>
+            </template>
+          </v-snackbar>
+
+        </v-container>
+      </v-main>
     </v-layout>
-  </v-card>
+
+
+
+  </v-container>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 import http from "@/services/http";
 import {
@@ -260,7 +658,6 @@ import {
   useWalletsStore,
 } from "@/store";
 import { useRolesStore } from "@/store/roles";
-import { formatValue } from "@/utils/formatValue";
 
 const dashboardStore = useDashboardStore();
 const useExpenses = useExpensesStore();
@@ -270,44 +667,163 @@ const useAuth = useAuthStore();
 const userStore  = useUserStore();
 const rolesStore = useRolesStore();
 const router = useRouter();
+const route = useRoute()
+
+// Check if route is active
+const isActiveRoute = (routeName: string | undefined): boolean => {
+  if (!routeName) return false;
+  return route.name === routeName
+}
+
+function handleAction(actionName: string) {
+  if (actionName === 'logout') {
+    logout();
+  }
+}
+
+// Format currency
+const formatCurrency = (value: number): string => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(value / 100)
+}
+
+// Format date
+const formatDate = (date: string): string => {
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  }).format(new Date(date))
+}
+
+// Get status color
+const getStatusColor = (status: string): string => {
+  const colors: Record<string, string> = {
+    'RECEBIDO': 'success',
+    'PAGO': 'success',
+    'PENDENTE': 'warning',
+    'VENCIDO': 'error'
+  }
+  return colors[status] || 'grey'
+}
+
+// Snackbar
+const snackbar = ref({
+  show: false,
+  message: '',
+  color: 'success'
+})
+
+// Chart data
+const chartOptions = ref<any>({
+  bar: null,
+  pie: null
+})
+
+const chartSeries = ref<any>({
+  bar: [],
+  pie: []
+})
+
+// Recent transactions
+const recentTransactions = ref(useRevenues.revenuesData.byMonth)
+
+// Alerts
+const alerts = ref<any[]>([])
 
 onMounted(async () => {
-  // Carrega dados do localStorage
-  useAuth.loadFromSession();
-  userStore.loadFromSession();
-  dashboardStore.loadFromSession();
-  useExpenses.loadFromSession();
-  useRevenues.loadFromSession();
-  useWallets.loadFromSession();
-  
-  // Verifica se está autenticado antes de buscar dados
-  if (!useAuth.isAuthenticated) {
-    console.warn('Usuário não autenticado, redirecionando para login');
-    router.push({ name: 'home' });
-    return;
-  }
-  
-  // Carregar permissões do usuário se ainda não foram carregadas
-  if (rolesStore.myRoles.length === 0) {
-    try {
-      await rolesStore.fetchMyPermissions();
-    } catch (error) {
-      console.error('Erro ao carregar permissões no dashboard:', error);
+  try {
+    loading.value = true
+    // Carrega dados do localStorage
+    useAuth.loadFromSession();
+    userStore.loadFromSession();
+    dashboardStore.loadFromSession();
+    useExpenses.loadFromSession();
+    useRevenues.loadFromSession();
+    useWallets.loadFromSession();
+    
+    // Verifica se está autenticado antes de buscar dados
+    if (!useAuth.isAuthenticated) {
+      console.warn('Usuário não autenticado, redirecionando para login');
+      router.push({ name: 'home' });
+      return;
     }
-  }
-  
-  // Só busca dados do backend se realmente não tiver nada no localStorage
-  const hasExpensesData = useExpenses.expensesData.byMonth && useExpenses.expensesData.byMonth.length > 0;
-  const hasRevenuesData = useRevenues.revenuesData.byMonth && useRevenues.revenuesData.byMonth.length > 0;
-  
-  if (!hasExpensesData && !hasRevenuesData && userStore.mesAno) {
-    await buscarDadosMes(userStore.mesAno);
-  }
+    
+    // Carregar permissões do usuário se ainda não foram carregadas
+    if (rolesStore.myRoles.length === 0) {
+      try {
+        await rolesStore.fetchMyPermissions();
+      } catch (error) {
+        console.error('Erro ao carregar permissões no dashboard:', error);
+      }
+    }
+    
+    // Só busca dados do backend se realmente não tiver nada no localStorage
+    const hasExpensesData = useExpenses.expensesData.byMonth && useExpenses.expensesData.byMonth.length > 0;
+    const hasRevenuesData = useRevenues.revenuesData.byMonth && useRevenues.revenuesData.byMonth.length > 0;
+    
+    if (!hasExpensesData && !hasRevenuesData && userStore.mesAno) {
+      const response = await buscarDadosMes(userStore.mesAno);
+    }
+
+    const months = ['Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+    chartOptions.value.bar = {
+      chart: { type: 'bar', height: 350, toolbar: { show: false } },
+      plotOptions: { bar: { horizontal: false, columnWidth: '55%', borderRadius: 5 } },
+      dataLabels: { enabled: false },
+      stroke: { show: true, width: 2, colors: ['transparent'] },
+      xaxis: { categories: months },
+      yaxis: { title: { text: 'R$ (milhares)' }, labels: { formatter: (value: number) => `R$ ${(value / 1000).toFixed(0)}k` } },
+      fill: { opacity: 1 },
+      tooltip: { y: { formatter: (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val / 100) } },
+      colors: ['#4CAF50', '#F44336'],
+      legend: { position: 'top', horizontalAlign: 'right' }
+    }
+    chartSeries.value.bar = [ { name: 'Receitas', data: [650000, 720000, 680000, 850000, 790000, 850000] }, { name: 'Despesas', data: [450000, 520000, 480000, 550000, 500000, 520000] } ]
+    chartOptions.value.pie = {
+      chart: { type: 'donut', height: 350 },
+      labels: ['Alimentação', 'Transporte', 'Moradia', 'Lazer', 'Outros'],
+      colors: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
+      legend: { position: 'bottom' },
+      dataLabels: { enabled: true, formatter: (val: number) => `${val.toFixed(1)}%` },
+      tooltip: { y: { formatter: (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val / 100) } }
+    }
+    chartSeries.value.pie = [180000, 120000, 150000, 50000, 20000]
+    // recentTransactions.value = [
+    //   { id: 1, data: '2024-12-15', descricao: 'Salário', categoria: 'Salário', tipo: 'RECEITA', status: 'RECEBIDO', valor: 550000 },
+    //   { id: 2, data: '2024-12-10', descricao: 'Aluguel', categoria: 'Moradia', tipo: 'DESPESA', status: 'PAGO', valor: 150000 },
+    //   { id: 3, data: '2024-12-08', descricao: 'Supermercado', categoria: 'Alimentação', tipo: 'DESPESA', status: 'PAGO', valor: 35000 },
+    //   { id: 4, data: '2024-12-05', descricao: 'Freelance', categoria: 'Receita Extra', tipo: 'RECEITA', status: 'RECEBIDO', valor: 120000 },
+    //   { id: 5, data: '2024-12-20', descricao: 'Conta de luz', categoria: 'Moradia', tipo: 'DESPESA', status: 'PENDENTE', valor: 18000 }
+    // ]
+    alerts.value = [
+      { id: 1, icon: 'mdi-alert-circle', color: 'warning', title: 'Conta de água vence em 3 dias', subtitle: 'R$ 85,00' },
+      { id: 2, icon: 'mdi-credit-card-alert', color: 'error', title: 'Fatura do cartão vence amanhã', subtitle: 'R$ 1.250,00' },
+      { id: 3, icon: 'mdi-calendar-alert', color: 'info', title: 'Parcela do curso vence em 5 dias', subtitle: 'R$ 350,00' }
+    ]
+
+    } catch (error: any) {
+      console.error('Erro ao carregar dashboard:', error)
+      snackbar.value = {
+        show: true,
+        message: error.response?.data?.message || 'Erro ao carregar dados do dashboard',
+        color: 'error'
+      }
+    } finally {
+      loading.value = false
+    }
 });
 
+// Loading state
+const loading = ref(true)
+
 const saldoAtual = computed(() => dashboardStore.summary.saldoAtual);
-const totalReceitas = computed(() => dashboardStore.summary.totalReceitas);
-const totalDespesas = computed(() => dashboardStore.summary.totalDespesas);
+const receitasMes = computed(() => useRevenues.revenuesData?.valuePay || 0);
+const receitasRecebidas = computed(() => useRevenues.revenuesData?.byMonth.filter(receita => receita.status_lancamento === "EFETIVADA"));
+const despesasMes = computed(() => useExpenses.expensesData?.valuePay || 0);
+const despesasPagas = computed(() => useExpenses.expensesData?.byMonth.filter(despesa => despesa.status_lancamento === "EFETIVADA"));
 const saldoPrevisto = computed(() => dashboardStore.saldoPrevisto);
 
 // Variáveis computadas baseadas nos stores
@@ -379,14 +895,12 @@ const itensSideBar = ref([
     icon: "mdi-shield-crown",
     route: "admin",
     adminOnly: true,
-    action: () => router.push({ name: "admin" }),
   },
   {
     name: "Trader",
     icon: "mdi-chart-line",
     route: "trader",
     traderOnly: true,
-    action: () => router.push({ name: "trader" }),
   },
   {
     name: "Dashboard",
@@ -394,39 +908,34 @@ const itensSideBar = ref([
     route: "dashboard",
     adminOnly: false,
     traderOnly: false,
-    action: () => router.push({ name: "dashboard" }),
   },
   {
     name: "Contas",
-    icon: "mdi-bank-outline",
+    icon: "mdi-bank",
     route: "contas",
     adminOnly: false,
     traderOnly: false,
-    action: () => router.push({ name: "contas" }),
   },
   {
     name: "Receitas",
-    icon: "mdi-arrow-top-right-bold-outline",
+    icon: "mdi-cash-plus",
     route: "receitas",
     adminOnly: false,
     traderOnly: false,
-    action: () => router.push({ name: "receitas" }),
   },
   {
     name: "Despesas",
-    icon: "mdi-arrow-bottom-right-bold-outline",
+    icon: "mdi-cash-minus",
     route: "despesas",
     adminOnly: false,
     traderOnly: false,
-    action: () => router.push({ name: "despesas" }),
   },
   {
     name: "Categorias",
-    icon: "mdi-bookmark-minus-outline",
+    icon: "mdi-tag-multiple",
     route: "categorias",
     adminOnly: false,
     traderOnly: false,
-    action: () => router.push({ name: "categorias" }),
   },
   {
     name: "Cartões de Crédito",
@@ -434,38 +943,45 @@ const itensSideBar = ref([
     route: "cartoes",
     adminOnly: false,
     traderOnly: false,
-    action: () => router.push({ name: "cartoes" }),
   },
   {
     name: "Notificações",
-    icon: "mdi-bell-ring",
+    icon: "mdi-bell",
     route: "notificacoes",
     adminOnly: false,
     traderOnly: false,
-    action: () => router.push({ name: "notificacoes" }),
   },
   {
     name: "Perfil",
-    icon: "mdi-account-circle",
+    icon: "mdi-account",
     route: "perfil",
     adminOnly: false,
     traderOnly: false,
-    action: () => router.push({ name: "perfil" }),
   },
-]);
+  {
+    name: "Sair",
+    icon: "mdi-logout",
+    action: "logout",
+    adminOnly: false,
+    traderOnly: false,
+  },
+])
 
 const filteredItensSideBar = computed(() => {
+  const isTrader = rolesStore.myRoles.includes('TRADER') || 
+                   rolesStore.myRoles.includes('USER_TRADER') || 
+                   rolesStore.myRoles.includes('FULL');
+
   return itensSideBar.value.filter((item) => {
-    if (item.adminOnly) {
-      // Usa rolesStore em vez de userStore.userData.type
-      return rolesStore.isAdmin;
-    } else if (item.traderOnly) {
-      // Usa rolesStore para verificar roles de trader
-      return rolesStore.hasAnyPermission(['USER_TRADER', 'TRADER', 'FULL']);
+    if (item.adminOnly && !rolesStore.isAdmin) {
+      return false
     }
-    return true; // Exibe os outros itens normalmente
-  });
-});
+    if (item.traderOnly && !isTrader) {
+      return false
+    }
+    return true
+  })
+})
 
 const items = ref([{ title: "Sair", icon: "mdi-power", action: logout }]);
 
@@ -645,6 +1161,52 @@ const buscarDadosMes = async (data: string) => {
 </script>
 
 <style scoped>
+.dashboard__view {
+  min-height: 100vh;
+  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+}
+
+/* Card gradients */
+.card-gradient {
+  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+  border-radius: 8px 8px 0 0;
+}
+
+.card-gradient-success {
+  --gradient-start: #4CAF50;
+  --gradient-end: #388E3C;
+}
+
+.card-gradient-error {
+  --gradient-start: #F44336;
+  --gradient-end: #D32F2F;
+}
+
+.card-gradient-primary {
+  --gradient-start: #2196F3;
+  --gradient-end: #1976D2;
+}
+
+.card-gradient-warning {
+  --gradient-start: #FF9800;
+  --gradient-end: #F57C00;
+}
+
+.card-gradient-info {
+  --gradient-start: #00BCD4;
+  --gradient-end: #0097A7;
+}
+
+/* Summary cards */
+.summary__card {
+  transition: transform 0.2s;
+}
+
+.summary__card:hover {
+  transform: translateY(-4px);
+}
+
+
 .containe__mobile {
   /* position: relative; */
   width: 100%;

@@ -1,48 +1,27 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
+// frontend/src/store/theme.ts
+import { defineStore } from 'pinia';
+import { ref, watch } from 'vue';
 
-export const useThemeStore = defineStore(
-  'theme',
-  () => {
-    // State
-    const isDark = ref<boolean>(true) // Default dark theme
-    const themeName = ref<'light' | 'dark'>('dark')
+export const useThemeStore = defineStore('theme', () => {
+    // Tenta carregar o tema do localStorage, ou usa 'light' como padrão
+    const theme = ref(localStorage.getItem('theme') || 'light');
 
-    // Actions
-    const toggleTheme = () => {
-      isDark.value = !isDark.value
-      themeName.value = isDark.value ? 'dark' : 'light'
+    function setTheme(newTheme: string) {
+        theme.value = newTheme;
     }
 
-    const setTheme = (theme: 'light' | 'dark') => {
-      themeName.value = theme
-      isDark.value = theme === 'dark'
+    function toggleTheme() {
+        setTheme(theme.value === 'light' ? 'dark' : 'light');
     }
 
-    const setDarkTheme = () => {
-      setTheme('dark')
-    }
-
-    const setLightTheme = () => {
-      setTheme('light')
-    }
+    // Assiste a mudanças na ref 'theme' e salva no localStorage
+    watch(theme, (newTheme) => {
+        localStorage.setItem('theme', newTheme);
+    });
 
     return {
-      // State
-      isDark,
-      themeName,
-      
-      // Actions
-      toggleTheme,
-      setTheme,
-      setDarkTheme,
-      setLightTheme,
-    }
-  },
-  {
-    persist: {
-      key: 'financas-theme',
-      storage: localStorage,
-    }
-  }
-)
+        theme,
+        setTheme,
+        toggleTheme,
+    };
+});
