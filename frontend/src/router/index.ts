@@ -26,8 +26,8 @@ const router = createRouter({
         {
             path: "/dashboard",
             name: "dashboard",
-            // component: () => import("../views/DashboardView.vue"),
-            component: () => import("../views/mobile/DashboardMobileView copy.vue"),
+            component: () => import("../views/DashboardView.vue"),
+            // component: () => import("../views/mobile/DashboardMobileView copy.vue"),
             meta: {
                 auth: true
             }
