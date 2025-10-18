@@ -141,7 +141,7 @@
 </template>
 
 <script setup lang="ts">
-import { authService } from '@/services/auth.service'
+import authService from '@/services/auth.service'
 import { useAuthStore } from '@/store/auth'
 import { useToastStore } from '@/store/toast'
 import { useUserStore } from '@/store/user'
