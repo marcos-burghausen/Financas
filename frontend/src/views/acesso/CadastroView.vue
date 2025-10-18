@@ -186,10 +186,17 @@
 </template>
 
 <script setup lang="ts">
+import authService, { type RegisterRequest } from '@/services/auth.service'
+import { useAuthStore } from '@/store/auth'
+import { useToastStore } from '@/store/toast'
+import { useUserStore } from '@/store/user'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const authStore = useAuthStore()
+const userStore = useUserStore()
+const toastStore = useToastStore()
 
 const formData = ref({
   nome: '',
@@ -204,6 +211,7 @@ const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 const loading = ref(false)
 const form = ref()
+const validationErrors = ref<Record<string, string[]>>({})
 
 const tiposAccount = [
   { title: 'Usuário Comum', value: 'USER' },
@@ -211,23 +219,156 @@ const tiposAccount = [
   { title: 'Usuário + Trader', value: 'USER_TRADER' }
 ]
 
+/**
+ * Obtém a mensagem de erro para um campo
+ */
+function getFieldError(field: string): string {
+  const errors = validationErrors.value[field]
+  return errors ? errors[0] : ''
+}
+
+/**
+ * Limpar erros de validação
+ */
+function clearValidationErrors() {
+  validationErrors.value = {}
+}
+
+/**
+ * Handler para o cadastro
+ */
 async function handleCadastro() {
   const { valid } = await (form.value as any).validate()
   if (!valid) return
 
+  clearValidationErrors()
   loading.value = true
-  
-  // Simular delay de cadastro
-  setTimeout(() => {
-    // Mock: registra usuário
-    localStorage.setItem('userEmail', formData.value.email)
-    localStorage.setItem('userName', formData.value.nome)
-    localStorage.setItem('userType', formData.value.tipo)
+
+  try {
+    // Preparar dados para a API
+    const registerData: RegisterRequest = {
+      name: formData.value.nome,
+      email: formData.value.email,
+      password: formData.value.password,
+      password_confirmation: formData.value.confirmPassword,
+      type: formData.value.tipo
+    }
+
+    // Chamar o serviço de autenticação
+    const response = await authService.register(registerData)
+
+    // Validar resposta da API
+    if (!response) {
+      throw new Error('Resposta inválida do servidor')
+    }
+
+    // Salvar token no localStorage se fornecido (será interceptado pelo http.ts)
+    if (response.token) {
+      localStorage.setItem('sanctum_token', response.token)
+      authStore.setToken(response.token)
+    }
     
-    // Redirecionar para dashboard
-    router.push({ name: 'dashboard' })
+    // Extrair dados do usuário da resposta (com fallback seguro)
+    const userData = response.user || {
+      id: undefined,
+      name: formData.value.nome,
+      email: formData.value.email,
+      type: formData.value.tipo
+    }
+    
+    userStore.setUserData({
+      id: userData.id,
+      name: userData.name,
+      email: userData.email,
+      type: userData.type
+    } as any)
+
+    // Mostrar notificação de sucesso
+    toastStore.addToast({
+      message: 'Sua conta foi criada com sucesso! Redirecionando...',
+      color: 'success',
+      timeout: 2000,
+      icon: 'mdi-check-circle'
+    })
+
+    // Aguardar um pouco antes de redirecionar
+    setTimeout(() => {
+      router.push({ name: 'dashboard' })
+    }, 1000)
+  } catch (error: any) {
+    console.error('Erro no cadastro:', error)
+    
+    // Extrair informações do erro
+    const errorData = error || {}
+    let errorMessage = 'Ocorreu um erro ao criar sua conta. Tente novamente.'
+    
+    // Mapear erros comuns para português
+    const errorTranslations: Record<string, string> = {
+      'Resposta inválida do servidor: token não recebido': 'Erro ao processar resposta do servidor. Tente novamente.',
+      'Cannot read properties of undefined': 'Erro ao processar dados. Contate o suporte.',
+      'Network error': 'Erro de conexão. Verifique sua internet.',
+      'Timeout': 'A requisição demorou muito. Tente novamente.',
+      'CORS error': 'Erro de acesso. Tente novamente.'
+    }
+    
+    // Prioridade 1: Usar message se disponível
+    if (errorData.message) {
+      errorMessage = errorData.message
+      
+      // Traduzir se for um erro em inglês comum
+      for (const [en, pt] of Object.entries(errorTranslations)) {
+        if (errorMessage.includes(en)) {
+          errorMessage = pt
+          break
+        }
+      }
+    } 
+    // Prioridade 2: Usar error se disponível
+    else if (errorData.error) {
+      errorMessage = errorData.error
+    }
+    // Prioridade 3: Se for um erro do JavaScript, traduzir
+    else if (error instanceof TypeError) {
+      errorMessage = 'Erro ao processar dados. Contate o suporte.'
+    }
+    else if (error instanceof Error) {
+      errorMessage = error.message || 'Erro desconhecido. Tente novamente.'
+      
+      // Traduzir se necessário
+      for (const [en, pt] of Object.entries(errorTranslations)) {
+        if (errorMessage.includes(en)) {
+          errorMessage = pt
+          break
+        }
+      }
+    }
+    
+    // Se houver erros de validação específicos do campo
+    if (errorData.validation_errors && typeof errorData.validation_errors === 'object') {
+      validationErrors.value = errorData.validation_errors
+
+      // Mostrar toast com o primeiro erro de validação
+      const firstField = Object.keys(errorData.validation_errors)[0]
+      const firstError = errorData.validation_errors[firstField]?.[0]
+
+      toastStore.addToast({
+        message: firstError || errorMessage,
+        color: 'warning',
+        timeout: 5000,
+        icon: 'mdi-alert-circle'
+      })
+    } else {
+      // Erro geral - sempre mostrar algo para o usuário
+      toastStore.addToast({
+        message: errorMessage,
+        color: 'error',
+        timeout: 5000,
+        icon: 'mdi-alert'
+      })
+    }
+  } finally {
     loading.value = false
-  }, 1500)
+  }
 }
 </script>
 

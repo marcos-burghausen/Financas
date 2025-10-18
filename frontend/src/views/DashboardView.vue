@@ -355,9 +355,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
-import ApexChart from "vue3-apexcharts";
+import { useToastStore } from "@/store/toast";
+import { useUserStore } from "@/store/user";
+import { computed, onMounted, ref } from "vue";
 
+const userStore = useUserStore();
+const toastStore = useToastStore();
 const loading = ref(true);
 
 // Summary data
@@ -365,6 +368,9 @@ const summary = ref({
   receitasMes: 0,
   despesasMes: 0,
   saldoAtual: 0,
+  saldoInicial: 0,
+  totalReceitas: 0,
+  totalDespesas: 0,
   pendencias: 0,
   receitasRecebidas: 0,
   despesasPagas: 0,
@@ -409,11 +415,17 @@ const formatCurrency = (value: number): string => {
 // Load data
 const loadDashboardData = () => {
   try {
-    // Simular dados da API
+    // Usar dados reais da API (recebidos no login ou chamada API)
+    // Ou usar dados mock se não houver dados reais
+    const userData = userStore.userData;
+    
     summary.value = {
-      receitasMes: 850000,
-      despesasMes: 520000,
-      saldoAtual: 330000,
+      receitasMes: userData?.summary?.totalReceitas || 850000,
+      despesasMes: userData?.summary?.totalDespesas || 520000,
+      saldoAtual: userData?.summary?.saldoAtual || 330000,
+      saldoInicial: userData?.summary?.saldoInicial || 0,
+      totalReceitas: userData?.summary?.totalReceitas || 850000,
+      totalDespesas: userData?.summary?.totalDespesas || 520000,
       pendencias: 150000,
       receitasRecebidas: 12,
       despesasPagas: 18,

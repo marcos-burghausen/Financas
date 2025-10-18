@@ -141,10 +141,17 @@
 </template>
 
 <script setup lang="ts">
+import { authService } from '@/services/auth.service'
+import { useAuthStore } from '@/store/auth'
+import { useToastStore } from '@/store/toast'
+import { useUserStore } from '@/store/user'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const authStore = useAuthStore()
+const userStore = useUserStore()
+const toastStore = useToastStore()
 
 const formData = ref({
   email: '',
@@ -156,25 +163,99 @@ const showPassword = ref(false)
 const loading = ref(false)
 const form = ref()
 
+const errorTranslations: { [key: string]: string } = {
+  'The provided credentials are incorrect': 'Email ou senha incorretos',
+  'These credentials do not match our records': 'Email ou senha incorretos',
+  'User not found': 'Usuário não encontrado',
+  'Invalid credentials': 'Credenciais inválidas',
+  'Network error': 'Erro de conexão com o servidor',
+  'Timeout': 'A requisição demorou muito tempo',
+  'Cannot read properties of undefined': 'Resposta inválida do servidor'
+}
+
+function translateError(error: string): string {
+  for (const [en, pt] of Object.entries(errorTranslations)) {
+    if (error.includes(en)) {
+      return pt
+    }
+  }
+  return error
+}
+
 async function handleLogin() {
   const { valid } = await (form.value as any).validate()
   if (!valid) return
 
   loading.value = true
   
-  // Simular delay de login
-  setTimeout(() => {
-    // Mock: aceita email/senha (demo)
-    if (formData.value.email && formData.value.password) {
-      // Salvar dados mock no localStorage
-      localStorage.setItem('userEmail', formData.value.email)
-      localStorage.setItem('userName', 'Usuário Teste')
-      
-      // Redirecionar para dashboard
-      router.push({ name: 'dashboard' })
+  try {
+    const response = await authService.login({
+      email: formData.value.email,
+      password: formData.value.password
+    })
+
+    if (!response) {
+      throw new Error('Resposta inválida do servidor')
     }
+
+    // Salvar token no localStorage se fornecido
+    if (response.token) {
+      localStorage.setItem('sanctum_token', response.token)
+      authStore.setToken(response.token)
+    }
+
+    // Extrair dados do usuário com fallback para dados do formulário
+    const userData = response.user || {
+      id: undefined,
+      name: formData.value.email.split('@')[0],
+      email: formData.value.email,
+      type: 'USER'
+    }
+
+    userStore.setUserData(userData)
+
+    // Salvar preferência de "lembrar-me"
+    if (formData.value.remember) {
+      localStorage.setItem('rememberMe', 'true')
+      localStorage.setItem('rememberedEmail', formData.value.email)
+    }
+
+    toastStore.addToast({
+      message: 'Login realizado com sucesso!',
+      color: 'success',
+      timeout: 2000,
+      icon: 'mdi-check-circle'
+    })
+
+    // Aguardar um pouco antes de redirecionar
+    setTimeout(() => {
+      router.push({ name: 'dashboard' })
+    }, 1000)
+  } catch (error: any) {
+    console.error('Erro no login:', error)
+    
+    // Tentar extrair mensagem de erro
+    let errorMessage = 'Erro ao fazer login'
+    
+    if (error.response?.data?.message) {
+      errorMessage = error.response.data.message
+    } else if (error.response?.data?.error) {
+      errorMessage = error.response.data.error
+    } else if (error.message) {
+      errorMessage = error.message
+    }
+
+    const translatedError = translateError(errorMessage)
+
+    toastStore.addToast({
+      message: translatedError,
+      color: 'error',
+      timeout: 4000,
+      icon: 'mdi-alert-circle'
+    })
+  } finally {
     loading.value = false
-  }, 1500)
+  }
 }
 </script>
 

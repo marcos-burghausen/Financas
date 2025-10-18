@@ -33,7 +33,7 @@ class RegisterController extends Controller
                     'min:8',
                     'regex:/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\\¨~?´`!@#$%^&*()_+={}:;.<>,|\[\]\-\/])[0-9a-zA-Z\\¨~?´`!@#$%^&*()_+={}:;.<>,|\[\]\-\/]{8,}$/',
                 ],
-                'confirmPassword' => [
+                'password_confirmation' => [
                     'required',
                     'same:password',
                 ]
@@ -45,11 +45,11 @@ class RegisterController extends Controller
                 'email.unique'         => 'Já existe um usuário cadastrado com esse email ',
                 'email.regex'          => 'O campo email deve ter um formato válido',
                 'password.regex'       => 'A senha deve ter pelo menos 8 caracteres sendo uma letra maiúcula, uma minúscula, um número e um caracter especial exeto aspas simples e dupla',
-                'confirmPassword.same' => 'A confirmação de senha deve ser igual à senha',
+                'password_confirmation.same' => 'A confirmação de senha deve ser igual à senha',
             ],
             [
                 'password'        => 'senha',
-                'confirmPassword' => 'confirmar senha'
+                'password_confirmation' => 'confirmar senha'
             ]
         );
 
@@ -84,6 +84,18 @@ class RegisterController extends Controller
             return Errors::USER_CREATE_FAILED->response();
         }
 
-        return response()->json(['success' => 'Usuario cadastrado com sucesso.'], 200);
+        // Gerar token Sanctum
+        $token = $lastUser->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'success' => 'Usuario cadastrado com sucesso.',
+            'token' => $token,
+            'user' => [
+                'id' => $lastUser->id,
+                'name' => $lastUser->name,
+                'email' => $lastUser->email,
+                'type' => $lastUser->type ?? 'USER'
+            ]
+        ], 200);
     }
 }

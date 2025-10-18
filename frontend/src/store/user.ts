@@ -1,20 +1,28 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
-import type { User } from "@/types";
+import type { DashboardSummary, User } from "@/types";
 
 export const useUserStore = defineStore("user", () => {
-    const userData = ref<User | null>(null);
+    const userData = ref<(User & { summary?: DashboardSummary }) | null>(null);
     const mesAno = ref<string>(new Date().toISOString().slice(0, 7));
+    const summary = ref<DashboardSummary | null>(null);
 
     // actions
-    function setUserData(data: User | null): void {
+    function setUserData(data: (User & { summary?: DashboardSummary }) | null): void {
         userData.value = data;
+        if (data?.summary) {
+            summary.value = data.summary;
+        }
         if (data) {
             localStorage.setItem("userData", JSON.stringify(data));
         } else {
             localStorage.removeItem("userData");
         }
+    }
+
+    function setSummary(summaryData: DashboardSummary): void {
+        summary.value = summaryData;
     }
 
     function setMesAno(mes_ano: string) {
