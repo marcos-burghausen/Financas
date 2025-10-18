@@ -347,7 +347,12 @@
 </template>
 
 <script setup lang="ts">
+import { useToastStore } from '@/store/toast';
+import { useUserStore } from '@/store/user';
 import { computed, onMounted, ref } from 'vue';
+
+const toastStore = useToastStore();
+const userStore = useUserStore();
 
 // State
 const dialog = ref(false);
@@ -509,8 +514,26 @@ const resetFilters = () => {
   selectedCategoria.value = '';
 };
 
+// Carregar despesas da API
+const loadDespesas = async () => {
+  try {
+    const mesAno = userStore.getMesAno?.();
+    const data = await despesasService.list(mesAno);
+    if (data && data.length > 0) {
+      despesas.value = data.map((d: any) => ({
+        ...d,
+        valor: d.valor || 0,
+        status: d.status || 'pendente'
+      }));
+    }
+  } catch (error: any) {
+    console.warn('Erro ao carregar despesas, usando dados mock:', error?.message);
+    // Manter dados mock se API falhar
+  }
+};
+
 onMounted(() => {
-  // Carregar dados da API aqui
+  loadDespesas();
 });
 </script>
 

@@ -16,31 +16,24 @@ export interface Despesa {
   observacao?: string
   recorrencia?: string
   forma_pagamento?: string
-}
-
-export interface DespesaResponse {
-  success: string
-  data?: Despesa | Despesa[]
-  despesas?: Despesa[]
+  tipo: 'despesa' // Tipo de lancamento
 }
 
 class DespesasService {
   /**
-   * Listar despesas do mês
+   * Listar despesas (lancamentos do tipo despesa)
    */
   async list(mesAno?: string): Promise<Despesa[]> {
     try {
-      const params = mesAno ? { mesAno } : {}
-      const response = await http.get<any>('/despesas', { params })
+      const params = mesAno ? { mesAno, tipo: 'despesa' } : { tipo: 'despesa' }
+      const response = await http.get<any>('/lancamentos', { params })
       
-      // Suportar diferentes formatos de resposta
-      if (Array.isArray(response.data)) return response.data
-      if (response.data?.despesas) return response.data.despesas
-      if (response.data?.data) return response.data.data
-      
-      return []
+      // Filtrar apenas despesas
+      const data = Array.isArray(response.data) ? response.data : response.data?.data || []
+      return data.filter((item: any) => item.tipo === 'despesa' || item.tipo_lancamento === 'DESPESA')
     } catch (error) {
-      throw this.handleError(error)
+      console.error('Erro ao listar despesas:', error)
+      return []
     }
   }
 
@@ -49,7 +42,12 @@ class DespesasService {
    */
   async create(data: Despesa): Promise<Despesa> {
     try {
-      const response = await http.post<any>('/despesas', data)
+      const payload = {
+        ...data,
+        tipo: 'despesa',
+        tipo_lancamento: 'despesa'
+      }
+      const response = await http.post<any>('/lancamentos', payload)
       return response.data?.data || response.data
     } catch (error) {
       throw this.handleError(error)
@@ -61,7 +59,7 @@ class DespesasService {
    */
   async update(id: number, data: Despesa): Promise<Despesa> {
     try {
-      const response = await http.put<any>(`/despesas/${id}`, data)
+      const response = await http.put<any>(`/lancamentos/${id}`, data)
       return response.data?.data || response.data
     } catch (error) {
       throw this.handleError(error)
@@ -73,7 +71,7 @@ class DespesasService {
    */
   async delete(id: number): Promise<void> {
     try {
-      await http.delete(`/despesas/${id}`)
+      await http.delete(`/lancamentos/${id}`)
     } catch (error) {
       throw this.handleError(error)
     }
@@ -84,21 +82,8 @@ class DespesasService {
    */
   async pay(id: number): Promise<Despesa> {
     try {
-      const response = await http.post<any>(`/despesas/${id}/pay`)
+      const response = await http.patch<any>(`/lancamentos/${id}`, { status: 'paga' })
       return response.data?.data || response.data
-    } catch (error) {
-      throw this.handleError(error)
-    }
-  }
-
-  /**
-   * Obter resumo de despesas
-   */
-  async summary(mesAno?: string): Promise<any> {
-    try {
-      const params = mesAno ? { mesAno } : {}
-      const response = await http.get<any>('/despesas/summary', { params })
-      return response.data
     } catch (error) {
       throw this.handleError(error)
     }

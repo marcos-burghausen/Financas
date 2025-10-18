@@ -604,9 +604,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { format, parseISO, isValid, isToday, isYesterday, isTomorrow } from 'date-fns';
+import receitasService from '@/services/receitas.service';
+import { useToastStore } from '@/store/toast';
+import { useUserStore } from '@/store/user';
+import { format, isToday, isTomorrow, isValid, isYesterday, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { computed, onMounted, ref } from 'vue';
+
+const toastStore = useToastStore();
+const userStore = useUserStore();
 
 // State
 const dialog = ref(false);
@@ -929,6 +935,28 @@ const resetFilters = () => {
   selectedStatus.value = '';
   selectedCategoria.value = '';
 };
+
+// Carregar receitas da API
+const loadReceitas = async () => {
+  try {
+    const mesAno = userStore.getMesAno?.();
+    const data = await receitasService.list(mesAno);
+    if (data && data.length > 0) {
+      receitas.value = data.map((r: any) => ({
+        ...r,
+        valor: r.valor || 0,
+        status: r.status || 'pendente'
+      }));
+    }
+  } catch (error: any) {
+    console.warn('Erro ao carregar receitas, usando dados mock:', error?.message);
+    // Manter dados mock se API falhar
+  }
+};
+
+onMounted(() => {
+  loadReceitas();
+});
 </script>
 
 <style scoped lang="scss">
