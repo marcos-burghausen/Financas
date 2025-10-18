@@ -26,6 +26,68 @@ class LancamentoController extends Controller
         $this->lancamentoService = $lancamentoService;
     }
 
+    /**
+     * Lista lançamentos do usuário autenticado
+     * Filtros suportados:
+     * - tipo: receita|despesa|cartao_credito (opcional)
+     * - mesAno: 2025-10 (opcional, padrão: mês atual)
+     * - status: pendente|realizado (opcional)
+     */
+    public function getLancamento(Request $request): JsonResponse
+    {
+        try {
+            /** @var \App\Models\User $user */
+            $user = auth()->user();
+
+            // Parâmetros de filtro
+            $tipo = $request->query('tipo');
+            $mesAno = $request->query('mesAno', date('Y-m'));
+            $status = $request->query('status');
+
+            // Query base
+            $query = Lancamento::where('user_id', $user->id);
+
+            // Filtro por tipo
+            if ($tipo) {
+                $tipoUpper = strtoupper($tipo);
+                if ($tipoUpper === 'RECEITA') {
+                    $query->where('tipo_lancamento', 'RECEITA');
+                } elseif ($tipoUpper === 'DESPESA') {
+                    $query->where('tipo_lancamento', 'DESPESA');
+                } elseif ($tipoUpper === 'CARTAO_CREDITO') {
+                    $query->where('tipo_lancamento', 'CARTAO_CREDITO');
+                }
+            }
+
+            // Filtro por mês/ano
+            if ($mesAno) {
+                $query->whereYear('data_vencimento', substr($mesAno, 0, 4))
+                    ->whereMonth('data_vencimento', substr($mesAno, 5, 2));
+            }
+
+            // Filtro por status
+            if ($status) {
+                if (strtolower($status) === 'pendente') {
+                    $query->where('status_lancamento', '!=', 'REALIZADO');
+                } elseif (strtolower($status) === 'realizado') {
+                    $query->where('status_lancamento', 'REALIZADO');
+                }
+            }
+
+            // Ordenar por data de vencimento descendente
+            $lancamentos = $query->orderBy('data_vencimento', 'desc')->get();
+
+            return response()->json([
+                'success' => true,
+                'count' => $lancamentos->count(),
+                'data' => $lancamentos
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Erro ao listar lançamentos: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Ocorreu um erro ao listar lançamentos.'], 500);
+        }
+    }
+
     public function saveLancamento(StoreLancamentoRequest  $request)
     {
         $validatedData = $request->validated();
@@ -93,6 +155,110 @@ class LancamentoController extends Controller
             DB::rollBack();
             Log::error('Erro ao efetivar lançamento: ' . $e->getMessage(), ['lancamento_id' => $lancamento->id, 'exception' => $e]);
             return response()->json(['error' => 'Ocorreu um erro ao efetivar o lançamento.'], 500);
+        }
+    }
+
+    /**
+     * Edita um lançamento existente
+     */
+    public function editLancamento(Request $request, $id): JsonResponse
+    {
+        try {
+            $lancamento = Lancamento::find($id);
+
+            if (!$lancamento) {
+                return response()->json(['error' => 'Lançamento não encontrado.'], 404);
+            }
+
+            // Verificar permissão
+            if ($lancamento->user_id !== auth()->id()) {
+                return response()->json(['error' => 'Não autorizado.'], 403);
+            }
+
+            DB::beginTransaction();
+
+            $lancamento->update($request->all());
+
+            DB::commit();
+
+            return response()->json([
+                'success' => 'Lançamento atualizado com sucesso!',
+                'data' => $lancamento
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Erro ao editar lançamento: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Ocorreu um erro ao atualizar o lançamento.'], 500);
+        }
+    }
+
+    /**
+     * Marca um lançamento como pago/recebido
+     */
+    public function receivedLancamento(Request $request, $id): JsonResponse
+    {
+        try {
+            $lancamento = Lancamento::find($id);
+
+            if (!$lancamento) {
+                return response()->json(['error' => 'Lançamento não encontrado.'], 404);
+            }
+
+            // Verificar permissão
+            if ($lancamento->user_id !== auth()->id()) {
+                return response()->json(['error' => 'Não autorizado.'], 403);
+            }
+
+            DB::beginTransaction();
+
+            // Atualizar status
+            $lancamento->status_lancamento = 'REALIZADO';
+            $lancamento->data_efetivacao = now();
+            $lancamento->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => 'Status atualizado com sucesso!',
+                'data' => $lancamento
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Erro ao atualizar lançamento: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Ocorreu um erro ao atualizar o lançamento.'], 500);
+        }
+    }
+
+    /**
+     * Deleta um lançamento
+     */
+    public function deleteLancamento(Request $request, $id): JsonResponse
+    {
+        try {
+            $lancamento = Lancamento::find($id);
+
+            if (!$lancamento) {
+                return response()->json(['error' => 'Lançamento não encontrado.'], 404);
+            }
+
+            // Verificar permissão
+            if ($lancamento->user_id !== auth()->id()) {
+                return response()->json(['error' => 'Não autorizado.'], 403);
+            }
+
+            DB::beginTransaction();
+
+            $lancamento->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => 'Lançamento removido com sucesso!'
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Erro ao deletar lançamento: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Ocorreu um erro ao remover o lançamento.'], 500);
         }
     }
 
