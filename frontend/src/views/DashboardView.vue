@@ -355,6 +355,7 @@
 </template>
 
 <script setup lang="ts">
+import dashboardService from "@/services/dashboard.service";
 import { useToastStore } from "@/store/toast";
 import { useUserStore } from "@/store/user";
 import { computed, onMounted, ref } from "vue";
@@ -362,6 +363,12 @@ import { computed, onMounted, ref } from "vue";
 const userStore = useUserStore();
 const toastStore = useToastStore();
 const loading = ref(true);
+const counters = ref({
+  receitasRecebidas: 0,
+  receitasPendentes: 0,
+  despesasPagas: 0,
+  despesasPendentes: 0,
+});
 
 // Summary data
 const summary = ref({
@@ -413,7 +420,7 @@ const formatCurrency = (value: number): string => {
 };
 
 // Load data
-const loadDashboardData = () => {
+const loadDashboardData = async () => {
   try {
     // Usar dados reais do userStore (recebidos no login)
     const realSummary = userStore.summary;
@@ -430,6 +437,15 @@ const loadDashboardData = () => {
       despesasPagas: 0,
       totalPendencias: 0,
     };
+
+    // Carregar contadores de transações
+    const transactionCounters = await dashboardService.getTransactionCounters();
+    counters.value = transactionCounters;
+    
+    // Atualizar contadores no summary
+    summary.value.receitasRecebidas = transactionCounters.receitasRecebidas;
+    summary.value.despesasPagas = transactionCounters.despesasPagas;
+    summary.value.totalPendencias = transactionCounters.receitasPendentes + transactionCounters.despesasPendentes;
 
     const currentMonth = new Date().toLocaleString("pt-BR", { month: "short" });
     const months = [currentMonth];
@@ -483,9 +499,12 @@ const loadDashboardData = () => {
       },
     ];
 
+    // Carregar distribuição de categorias
+    const expensesByCategory = await dashboardService.getExpensesByCategory();
+    
     chartOptions.value.pie = {
       chart: { type: "donut", height: 350 },
-      labels: ["Alimentação", "Transporte", "Moradia", "Lazer", "Outros"],
+      labels: expensesByCategory.labels,
       colors: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"],
       legend: { position: "bottom" },
       dataLabels: {
@@ -503,77 +522,71 @@ const loadDashboardData = () => {
       },
     };
 
-    chartSeries.value.pie = [25.2, 18.5, 30.1, 15.3, 10.9];
+    chartSeries.value.pie = expensesByCategory.values;
 
-    // Sample transactions
-    recentTransactions.value = [
-      {
-        descricao: "Salário - Março",
-        tipo: "receita",
-        valor: 450000,
-        data: "15/10/2025",
-        type: "receita",
-      },
-      {
-        descricao: "Aluguel - Apartamento",
-        tipo: "despesa",
-        valor: 180000,
-        data: "01/10/2025",
-        type: "despesa",
-      },
-      {
-        descricao: "Supermercado",
-        tipo: "despesa",
-        valor: 45000,
-        data: "16/10/2025",
-        type: "despesa",
-      },
-      {
-        descricao: "Freelance - Projeto X",
-        tipo: "receita",
-        valor: 200000,
-        data: "10/10/2025",
-        type: "receita",
-      },
-      {
-        descricao: "Conta de Luz",
-        tipo: "despesa",
-        valor: 28000,
-        data: "05/10/2025",
-        type: "despesa",
-      },
-    ];
+    // Carregar transações recentes
+    const transactions = await dashboardService.getRecentTransactions(10);
+    recentTransactions.value = transactions;
 
-    // Sample alerts
-    alerts.value = [
-      {
-        tipo: "warning",
-        titulo: "Cartão de Crédito",
-        mensagem: "Você atingiu 78% do limite disponível",
-        icon: "mdi-credit-card",
-        type: "warning",
-      },
-      {
-        tipo: "info",
-        titulo: "Meta Mensal",
-        mensagem: "Você economizou R$ 45.000 neste mês",
-        icon: "mdi-target",
-        type: "info",
-      },
-      {
-        tipo: "success",
-        titulo: "Investimentos",
-        mensagem: "Seus investimentos cresceram +3.2%",
-        icon: "mdi-chart-line",
-        type: "success",
-      },
-    ];
+    // Gerar alertas dinâmicos baseado nos dados
+    alerts.value = generateAlerts(transactionCounters);
 
     loading.value = false;
   } catch (error) {
     console.error("Erro ao carregar dados da dashboard:", error);
     loading.value = false;
   }
+};
+
+// Gerar alertas com base nos dados
+const generateAlerts = (counters: any): any[] => {
+  const alerts = [];
+
+  // Alerta de receitas pendentes
+  if (counters.receitasPendentes > 0) {
+    alerts.push({
+      tipo: "warning",
+      titulo: "Receitas Pendentes",
+      mensagem: `Você tem ${counters.receitasPendentes} receita(s) pendente(s)`,
+      icon: "mdi-exclamation-circle",
+      type: "warning",
+    });
+  }
+
+  // Alerta de despesas pendentes
+  if (counters.despesasPendentes > 0) {
+    alerts.push({
+      tipo: "warning",
+      titulo: "Despesas Pendentes",
+      mensagem: `Você tem ${counters.despesasPendentes} despesa(s) pendente(s)`,
+      icon: "mdi-alert-circle",
+      type: "warning",
+    });
+  }
+
+  // Alerta de receitas atrasadas
+  if (counters.receitasAtrasadas > 0) {
+    alerts.push({
+      tipo: "error",
+      titulo: "Receitas Atrasadas",
+      mensagem: `Atenção: ${counters.receitasAtrasadas} receita(s) atrasada(s)`,
+      icon: "mdi-clock-alert",
+      type: "error",
+    });
+  }
+
+  // Se tudo certo, não mostrar nada
+  if (alerts.length === 0) {
+    alerts.push({
+      tipo: "success",
+      titulo: "Tudo em dia",
+      mensagem: "Não há alertas pendentes",
+      icon: "mdi-check-circle",
+      type: "success",
+    });
+  }
+
+  return alerts;
 };
 
 onMounted(() => {

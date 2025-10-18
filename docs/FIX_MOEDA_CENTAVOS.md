@@ -17,6 +17,7 @@ Depois (CORRETO): R$ 18.000,00 ✅
 ## 🔍 Causa Raiz
 
 A API do Laravel retorna valores **em centavos** para evitar problemas com decimais:
+
 - 1 real = 100 centavos
 - R$ 7.500,00 = 750000 centavos
 - R$ 18.000,00 = 1800000 centavos
@@ -26,47 +27,50 @@ As funções `formatCurrency` nas views estavam aplicando `Intl.NumberFormat` di
 ## ✅ Solução Implementada
 
 ### Padrão Correto
+
 ```typescript
 // ❌ ANTES (ERRADO)
 const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value);  // 750000 → R$ 750.000,00
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(value); // 750000 → R$ 750.000,00
 };
 
 // ✅ DEPOIS (CORRETO)
 const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value / 100);  // 750000 / 100 = 7500 → R$ 7.500,00
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(value / 100); // 750000 / 100 = 7500 → R$ 7.500,00
 };
 ```
 
 ### Arquivos Corrigidos
 
-| Arquivo | Linha | Mudança |
-|---------|-------|---------|
-| `DashboardView.vue` | 408-412 | Adicionar `/ 100` |
-| `ReceitasView.vue` | 802-807 | Adicionar `/ 100` |
-| `DespesasView.vue` | 433-438 | Adicionar `/ 100` |
+| Arquivo                      | Linha   | Mudança           |
+| ---------------------------- | ------- | ----------------- |
+| `DashboardView.vue`          | 408-412 | Adicionar `/ 100` |
+| `ReceitasView.vue`           | 802-807 | Adicionar `/ 100` |
+| `DespesasView.vue`           | 433-438 | Adicionar `/ 100` |
 | `DashboardView_IMPROVED.vue` | 401-407 | Adicionar `/ 100` |
 
 ## 📊 Antes e Depois
 
 ### Dashboard
-| Campo | Antes | Depois |
-|-------|-------|--------|
+
+| Campo          | Antes              | Depois          |
+| -------------- | ------------------ | --------------- |
 | Total Receitas | ❌ R$ 1.800.000,00 | ✅ R$ 18.000,00 |
-| Total Despesas | ❌ R$ 0,00 | ✅ R$ 0,00 |
-| Saldo Total | ❌ R$ 750.000,00 | ✅ R$ 7.500,00 |
+| Total Despesas | ❌ R$ 0,00         | ✅ R$ 0,00      |
+| Saldo Total    | ❌ R$ 750.000,00   | ✅ R$ 7.500,00  |
 
 ### Receitas/Despesas
-| Campo | Antes | Depois |
-|-------|-------|--------|
+
+| Campo     | Antes                   | Depois           |
+| --------- | ----------------------- | ---------------- |
 | Cada item | ❌ Multiplicado por 100 | ✅ Valor correto |
-| Soma | ❌ Multiplicada por 100 | ✅ Valor correto |
+| Soma      | ❌ Multiplicada por 100 | ✅ Valor correto |
 
 ## 🧪 Teste
 
@@ -80,12 +84,14 @@ const formatCurrency = (value: number) => {
 ## 💡 Explicação Técnica
 
 ### Por que usar centavos?
+
 - Evita problemas com precisão decimal em JavaScript
 - Simples de armazenar em banco de dados (inteiro)
 - Fácil de calcular sem erros de arredondamento
 - Padrão em muitas APIs financeiras
 
 ### Conversão
+
 ```javascript
 // Centavos → Reais
 valor_reais = valor_centavos / 100
@@ -97,11 +103,12 @@ valor_reais = valor_centavos / 100
 ```
 
 ### Formatação
+
 ```javascript
 // Com formatCurrency corrigido
-formatCurrency(750000)   // → R$ 7.500,00
-formatCurrency(1800000)  // → R$ 18.000,00
-formatCurrency(50000)    // → R$ 500,00
+formatCurrency(750000); // → R$ 7.500,00
+formatCurrency(1800000); // → R$ 18.000,00
+formatCurrency(50000); // → R$ 500,00
 ```
 
 ## 🚀 Impacto
@@ -115,11 +122,11 @@ formatCurrency(50000)    // → R$ 500,00
 
 ```javascript
 // Console para verificar
-import { useUserStore } from '@/store/user'
-const store = useUserStore()
+import { useUserStore } from "@/store/user";
+const store = useUserStore();
 
 // Dados em centavos (do servidor)
-console.log(store.summary)
+console.log(store.summary);
 // { saldoAtual: 750000, totalReceitas: 1800000, ... }
 
 // Na view, é formatado corretamente com / 100
