@@ -404,12 +404,12 @@ const monthYearLabel = computed(() => {
   return `de ${monthDisplay.value}`;
 });
 
-// Format currency
+// Format currency - valores vêm em centavos, dividir por 100
 const formatCurrency = (value: number): string => {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
-  }).format(value);
+  }).format(value / 100);
 };
 
 // Load data
