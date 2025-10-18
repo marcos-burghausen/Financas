@@ -1,281 +1,260 @@
 <template>
-  <div class="box">
-    <div class="container__dados">
-      <figure class="figure">
-        <img
-          src="@/assets/img/2.png"
-          class="image"
-          alt="logo"
-        >
-      </figure>
-      <h2 class="title">
-        Criar Uma Conta
-      </h2>
+  <div class="cadastro-wrapper">
+    <v-container fluid class="cadastro-container">
+      <v-row class="fill-height align-center justify-center">
+        <v-col cols="12" sm="10" md="8" lg="6">
+          <!-- Card Principal -->
+          <v-card elevation="8" rounded="lg" class="cadastro-card">
+            <!-- Logo Section -->
+            <div class="logo-section text-center pa-8 bg-success">
+              <div class="mb-4">
+                <v-icon icon="mdi-account-plus" size="64" color="white" />
+              </div>
+              <h1 class="text-h4 text-white font-weight-bold mb-2">Criar Conta</h1>
+              <p class="text-white text-opacity-70">Junte-se à nossa comunidade de financas</p>
+            </div>
 
-      <ErrorMessage />
+            <!-- Formulário -->
+            <v-card-text class="pa-8">
+              <p class="text-subtitle-2 text-medium-emphasis mb-6">
+                Preencha os dados abaixo para criar sua conta
+              </p>
 
-      <ErrorsForm />
+              <v-form ref="form" @submit.prevent="handleCadastro">
+                <!-- Nome Completo -->
+                <v-text-field
+                  v-model="formData.nome"
+                  label="Nome Completo"
+                  prepend-inner-icon="mdi-account"
+                  variant="outlined"
+                  density="compact"
+                  :rules="[
+                    v => !!v || 'Nome é obrigatório',
+                    v => v.length >= 3 || 'Nome deve ter pelo menos 3 caracteres'
+                  ]"
+                  class="mb-4"
+                />
 
-      <v-form
-        v-model="validForm"
-        class="form"
-        @submit.prevent="create"
-      >
-        <v-combobox
-          v-model="user.name"
-          variant="underlined"
-          type="text"
-          hide-details="auto"
-          label="Nome"
-          :rules="[rules.requiredName]"
-          class="mb-8 mt-4 imput"
-          autofocus
-          autocomplete="on"
-          prepend-inner-icon="mdi-account-outline"
-        />
+                <!-- Email -->
+                <v-text-field
+                  v-model="formData.email"
+                  label="Email"
+                  type="email"
+                  prepend-inner-icon="mdi-email"
+                  variant="outlined"
+                  density="compact"
+                  :rules="[
+                    v => !!v || 'Email é obrigatório',
+                    v => /.+@.+\..+/.test(v) || 'Email deve ser válido'
+                  ]"
+                  class="mb-4"
+                />
 
-        <v-combobox
-          v-model="user.email"
-          variant="underlined"
-          type="email"
-          hide-details="auto"
-          label="Email"
-          :rules="[rules.requiredEmail, rules.emailFormat]"
-          class="mb-8 imput"
-          autocomplete="on"
-          prepend-inner-icon="mdi-email-outline"
-        />
+                <!-- Senha -->
+                <v-text-field
+                  v-model="formData.password"
+                  label="Senha"
+                  :type="showPassword ? 'text' : 'password'"
+                  prepend-inner-icon="mdi-lock"
+                  :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                  @click:append-inner="showPassword = !showPassword"
+                  variant="outlined"
+                  density="compact"
+                  :rules="[
+                    v => !!v || 'Senha é obrigatória',
+                    v => v.length >= 6 || 'Senha deve ter pelo menos 6 caracteres'
+                  ]"
+                  hint="Mínimo 6 caracteres"
+                  class="mb-4"
+                />
 
-        <v-text-field
-          v-model="user.password"
-          variant="underlined"
-          :type="mostrarSenha ? 'text' : 'password'"
-          hide-details="auto"
-          label="Senha"
-          :rules="[rules.requiredSenha, rules.passwordFormat]"
-          class="mb-8 imput"
-          prepend-inner-icon="mdi-lock-outline"
-          :append-inner-icon="mostrarSenha ? 'mdi-eye' : 'mdi-eye-off'"
-          :hint="passwordHint"
-          @click:append-inner="mostrarSenha = !mostrarSenha"
-        />
+                <!-- Confirmar Senha -->
+                <v-text-field
+                  v-model="formData.confirmPassword"
+                  label="Confirmar Senha"
+                  :type="showConfirmPassword ? 'text' : 'password'"
+                  prepend-inner-icon="mdi-lock-check"
+                  :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                  @click:append-inner="showConfirmPassword = !showConfirmPassword"
+                  variant="outlined"
+                  density="compact"
+                  :rules="[
+                    v => !!v || 'Confirmação de senha é obrigatória',
+                    v => v === formData.password || 'Senhas não correspondem'
+                  ]"
+                  class="mb-4"
+                />
 
-        <v-text-field
-          v-model="user.confirmPassword"
-          variant="underlined"
-          :type="mostrarSenha ? 'text' : 'password'"
-          hide-details="auto"
-          label="Confirmar senha"
-          :rules="[rules.requiredConfirmarSenha, rules.passwordsMatch]"
-          class="mb-8 imput"
-          prepend-inner-icon="mdi-lock-outline"
-        />
+                <!-- Tipo de Conta -->
+                <v-select
+                  v-model="formData.tipo"
+                  :items="tiposAccount"
+                  label="Tipo de Conta"
+                  prepend-inner-icon="mdi-account-convert"
+                  variant="outlined"
+                  density="compact"
+                  :rules="[v => !!v || 'Tipo de conta é obrigatório']"
+                  class="mb-6"
+                />
 
-        <div>
-          <a
-            class="btn__register"
-            href="#"
-            @click.prevent="emits('nextStep')"
-          >
-            <span>já tem uma conta </span>conecte-se.
-          </a>
-        </div>
-        <v-btn
-          :disabled="loading || !validForm"
-          :loading="loading"
-          class="btn my-5"
-          block
-          size="large"
-          type="submit"
-        >
-          cadastrar
-        </v-btn>
-      </v-form>
-    </div>
+                <!-- Termos de Uso -->
+                <v-checkbox
+                  v-model="formData.termos"
+                  :rules="[v => !!v || 'Você deve aceitar os termos']"
+                  class="mb-6"
+                >
+                  <template #label>
+                    <span class="text-caption">
+                      Eu concordo com os
+                      <v-btn variant="text" size="x-small" color="primary">
+                        Termos de Uso
+                      </v-btn>
+                      e
+                      <v-btn variant="text" size="x-small" color="primary">
+                        Política de Privacidade
+                      </v-btn>
+                    </span>
+                  </template>
+                </v-checkbox>
+
+                <!-- Botão Cadastro -->
+                <v-btn
+                  type="submit"
+                  color="success"
+                  size="large"
+                  block
+                  class="mb-4"
+                  :loading="loading"
+                >
+                  <v-icon icon="mdi-check-circle" start />
+                  Criar Conta
+                </v-btn>
+              </v-form>
+
+              <!-- Divider -->
+              <div class="d-flex align-center gap-2 my-6">
+                <v-divider />
+                <span class="text-caption text-medium-emphasis">ou</span>
+                <v-divider />
+              </div>
+
+              <!-- Botão Voltar -->
+              <v-btn
+                to="/login"
+                variant="outlined"
+                color="primary"
+                size="large"
+                block
+              >
+                <v-icon icon="mdi-login" start />
+                Já tenho conta - Entrar
+              </v-btn>
+            </v-card-text>
+
+            <!-- Footer -->
+            <v-divider />
+            <v-card-text class="text-center text-caption text-medium-emphasis pa-4">
+              Protegemos seus dados com criptografia de ponta a ponta
+            </v-card-text>
+          </v-card>
+
+          <!-- Benefícios -->
+          <v-row class="mt-6 text-center text-white">
+            <v-col cols="12" sm="4">
+              <div class="d-flex flex-column align-center">
+                <v-icon icon="mdi-shield-check" size="32" class="mb-2" />
+                <span class="text-caption font-weight-bold">Seguro</span>
+              </div>
+            </v-col>
+            <v-col cols="12" sm="4">
+              <div class="d-flex flex-column align-center">
+                <v-icon icon="mdi-lightning-bolt" size="32" class="mb-2" />
+                <span class="text-caption font-weight-bold">Rápido</span>
+              </div>
+            </v-col>
+            <v-col cols="12" sm="4">
+              <div class="d-flex flex-column align-center">
+                <v-icon icon="mdi-chart-line" size="32" class="mb-2" />
+                <span class="text-caption font-weight-bold">Eficiente</span>
+              </div>
+            </v-col>
+          </v-row>
+        </v-col>
+      </v-row>
+    </v-container>
   </div>
 </template>
 
 <script setup lang="ts">
-import ErrorMessage from "@/components/ErrorMessage.vue";
-import ErrorsForm from "@/components/ModalErrorsForm.vue";
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-import http from "@/services/http";
-import { useErrorStore } from "@/store/error";
+const router = useRouter()
 
-import type { FormCadastro } from "@/types";
-import type { AxiosError } from "axios";
-import { computed, ref } from "vue";
+const formData = ref({
+  nome: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+  tipo: 'USER',
+  termos: false
+})
 
-const emits = defineEmits(["nextStep"]);
-const errorStore = useErrorStore();
-const user = ref<FormCadastro>({
-  name: "",
-  email: "",
-  password: "",
-  confirmPassword: "",
-});
+const showPassword = ref(false)
+const showConfirmPassword = ref(false)
+const loading = ref(false)
+const form = ref()
 
-let validForm = ref(false);
-let mostrarSenha = ref(false);
-let loading = ref(false);
+const tiposAccount = [
+  { title: 'Usuário Comum', value: 'USER' },
+  { title: 'Trader', value: 'TRADER' },
+  { title: 'Usuário + Trader', value: 'USER_TRADER' }
+]
 
-interface ApiErrorResponse {
-  errors?: Record<string, string[]>;
-  message?: string;
+async function handleCadastro() {
+  const { valid } = await (form.value as any).validate()
+  if (!valid) return
+
+  loading.value = true
+  
+  // Simular delay de cadastro
+  setTimeout(() => {
+    // Mock: registra usuário
+    localStorage.setItem('userEmail', formData.value.email)
+    localStorage.setItem('userName', formData.value.nome)
+    localStorage.setItem('userType', formData.value.tipo)
+    
+    // Redirecionar para dashboard
+    router.push({ name: 'dashboard' })
+    loading.value = false
+  }, 1500)
 }
-
-async function create() {
-  errorStore.unsetError();
-  try {
-    loading.value = true;
-    await http.post("/create", user.value);
-    emits("nextStep");
-  } catch (error) {
-    const axiosError = error as AxiosError<ApiErrorResponse>;
-    if (axiosError.response?.data.errors) {
-      errorStore.setErrorFromForm(axiosError);
-    } else {
-      errorStore.setErrorFromResponse(axiosError);
-    }
-  } finally {
-    loading.value = false;
-  }
-}
-
-const rules = {
-  requiredName: (value: string) => !!value || "O campo nome é obrigatório",
-  requiredEmail: (value: string) => !!value || "O campo email é obrigatório",
-  emailFormat: (value: string) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) || "Formato de email inválido",
-  requiredSenha: (value: string) => !!value || "O campo senha é obrigatório",
-  passwordFormat: (value: string) => {
-    const regex =
-      /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>[\]\\/-])[A-Za-z\d!@#$%^&*(),.?":{}|<>[\]\\/-]{8,}$/;
-    return (
-      regex.test(value) ||
-      "A senha deve ter pelo menos 8 caracteres, incluindo uma letra maiúscula, uma minúscula, um número e um caractere especial (exceto aspas)"
-    );
-  },
-  requiredConfirmarSenha: (value: string) =>
-    !!value || "O campo confirmar senha é obrigatório",
-  passwordsMatch: (value: string) =>
-    value === user.value.password || "As senhas não são iguais",
-};
-
-const passwordHint = computed(() => {
-  const regex =
-    /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}<>[\]\\/-])[A-Za-z\d!@#$%^&*(),.?":{}<>[\]\\/-]{8,}$/;
-  return regex.test(user.value.password || "")
-    ? ""
-    : "A senha deve ter pelo menos 8 caracteres sendo uma letra maiúcula, uma minúscula, um número e um caracter especial exeto aspas simples e duplas";
-});
 </script>
-<style scoped>
-.box {
+
+<style scoped lang="scss">
+.cadastro-wrapper {
+  min-height: 100vh;
+  background: linear-gradient(135deg, rgb(var(--v-theme-success)) 0%, rgba(var(--v-theme-success), 0.7) 100%);
   display: flex;
-  width: 90%;
-  max-width: 500px;
-}
-.container__dados {
-  border-radius: 10px 0 0 10px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-items: center;
-}
-.figure {
-  display: flex;
-  justify-content: space-evenly;
   align-items: center;
+  justify-content: center;
 }
-.image {
-  width: 200px;
+
+.cadastro-container {
+  padding: 2rem;
 }
-.title {
-  font-size: 30px;
-  font-weight: bold;
-  color: #fefefe;
-  text-align: center;
-}
-.form {
-  display: flex;
-  flex-direction: column;
-  width: 100% !important;
-}
-.imput {
-  color: #ccc;
-  width: 100%;
-}
-.btn__register {
-  color: #0097a7;
-  text-decoration: none;
-}
-.btn__register span {
-  color: #fefefe;
-}
-.btn {
-  text-transform: uppercase;
-  color: #fff;
-  font-size: 10px;
-  cursor: pointer;
-  font-weight: bold;
-  align-self: center;
+
+.cadastro-card {
+  transition: all 0.3s ease;
   border: none;
-  margin-top: 1rem;
-  font-size: 20px;
-  background-color: #77d08e;
-  border: 1px solid #77d08e;
-  transition: background-color 0.5s;
+
+  &:hover {
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2) !important;
+  }
 }
 
-/* @media screen and (max-width: 1201px) {
-  .container__dados {
-    padding: 2rem 4rem;
-  }
-} */
-
-@media screen and (max-width: 920px) {
-  /* .container__dados {
-    width: 100%;
-    padding: 2rem 4rem;
-  } */
-
-  /* .container__decription {
-    display: none;
-  } */
-
-  /* .btn__register {
-    display: inline;
-    color: #0097a7;
-    font-size: 16px;
-    margin: 15px 0;
-    background: transparent;
-    border: none;
-  } */
-
-  /* .container__button {
-    display: flex;
-    justify-content: space-between;
-  } */
+.logo-section {
+  background: linear-gradient(135deg, rgb(var(--v-theme-success)) 0%, rgba(var(--v-theme-success), 0.8) 100%);
+  border-radius: 8px 8px 0 0;
 }
-
-/* @media screen and (max-width: 740px) {
-  .container__dados {
-    padding: 2rem 2rem;
-  }
-
-  .title {
-    font-size: 30px;
-  }
-} */
-
-/* @media screen and (max-width: 440px) {
-  .box {
-    width: 90%;
-  }
-
-  .container__dados {
-    padding: 2rem 1rem;
-  }
-} */
 </style>

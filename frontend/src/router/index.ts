@@ -1,35 +1,48 @@
-// router/index.ts
+import MainLayout from "@/layouts/MainLayout.vue";
 import { createRouter, createWebHistory } from "vue-router";
 import routes from "./routes";
 
 const router = createRouter({
     history: createWebHistory((import.meta as any).env.BASE_URL),
     routes: [
+        // ========================================
+        // ROTAS PÚBLICAS (sem layout)
+        // ========================================
         {
             path: "/",
             name: "home",
             component: () => import("../views/HomeView.vue"),
         },
         {
+            path: "/cadastro",
+            name: "cadastro",
+            component: () => import("../views/acesso/CadastroView.vue"),
+        },
+        {
             path: "/auth/callback",
             name: "facebookCallback",
             component: () => import("../components/FacebookCallback.vue"),
         },
+
+        // ========================================
+        // ROTAS AUTENTICADAS (com MainLayout)
+        // ========================================
         {
             path: "/dashboard-admim",
             name: "dashAdmim",
-            component: () => import("../views/mobile/DashboardAdmimView.vue"),
+            component: () => import("../views/admin/AdminPanelView.vue"),
             meta: {
-                auth: true
+                auth: true,
+                layout: MainLayout
             }
         },
         {
             path: "/dashboard",
             name: "dashboard",
             component: () => import("../views/DashboardView.vue"),
-            // component: () => import("../views/mobile/DashboardMobileView copy.vue"),
             meta: {
-                auth: true
+                auth: true,
+                layout: MainLayout
             }
         },
         {
@@ -37,7 +50,8 @@ const router = createRouter({
             name: "contas",
             component: () => import("../views/contas/ContasView.vue"),
             meta: {
-                auth: true
+                auth: true,
+                layout: MainLayout
             }
         },
         {
@@ -45,16 +59,17 @@ const router = createRouter({
             name: "despesas",
             component: () => import("../views/despesas/DespesasView.vue"),
             meta: {
-                auth: true
+                auth: true,
+                layout: MainLayout
             }
         },
         {
             path: "/receitas",
             name: "receitas",
-            // component: () => import("../views/receitas/ReceitasView_OLD.vue"),
             component: () => import("../views/receitas/ReceitasView.vue"),
             meta: {
-                auth: true
+                auth: true,
+                layout: MainLayout
             }
         },
         {
@@ -62,7 +77,8 @@ const router = createRouter({
             name: "categorias",
             component: () => import("../views/CategoriasView.vue"),
             meta: {
-                auth: true
+                auth: true,
+                layout: MainLayout
             }
         },
         {
@@ -70,7 +86,8 @@ const router = createRouter({
             name: "cartoes",
             component: () => import("../views/cartaoCredito/CartaoCreditoView.vue"),
             meta: {
-                auth: true
+                auth: true,
+                layout: MainLayout
             }
         },
         {
@@ -79,7 +96,8 @@ const router = createRouter({
             component: () => import("../views/admin/AdminPanelView.vue"),
             meta: {
                 auth: true,
-                requiresAdmin: true
+                requiresAdmin: true,
+                layout: MainLayout
             }
         },
         {
@@ -88,7 +106,8 @@ const router = createRouter({
             component: () => import("../views/trader/TraderPanelView.vue"),
             meta: {
                 auth: true,
-                requiresTrader: true
+                requiresTrader: true,
+                layout: MainLayout
             }
         },
         {
@@ -96,7 +115,8 @@ const router = createRouter({
             name: "notificacoes",
             component: () => import("../views/configuracoes/NotificacoesView.vue"),
             meta: {
-                auth: true
+                auth: true,
+                layout: MainLayout
             }
         },
         {
@@ -104,7 +124,8 @@ const router = createRouter({
             name: "perfil",
             component: () => import("../views/configuracoes/PerfilView.vue"),
             meta: {
-                auth: true
+                auth: true,
+                layout: MainLayout
             }
         },
     ]

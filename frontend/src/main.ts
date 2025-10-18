@@ -15,9 +15,14 @@ import { createApp } from "vue";
 import VueApexCharts from "vue3-apexcharts";
 import { aliases, mdi } from "vuetify/iconsets/mdi";
 import App from "./App.vue";
+import ChartColumn from "./components/ChartColumn.vue";
+import ChartLine from "./components/ChartLine.vue";
+import ChartPie from "./components/ChartPie.vue";
+import ToastNotification from "./components/ToastNotification.vue";
 import router from "./router";
 
 import "dayjs/locale/pt-br";
+import "./styles/animations.scss";
 
 const vuetify = createVuetify({
     components: {
@@ -89,6 +94,10 @@ app.use(pinia);
 app.use(router);
 app.use(vuetify);
 app.component("apexchart", VueApexCharts);
+app.component("ToastNotification", ToastNotification);
+app.component("ChartLine", ChartLine);
+app.component("ChartPie", ChartPie);
+app.component("ChartColumn", ChartColumn);
 app.use(mdiVue, {
     icons: mdijs
 });

@@ -1,1255 +1,1075 @@
 <template>
-  <v-layout>
-    <!-- Navigation Drawer -->
-    <v-navigation-drawer
-      v-model="drawer"
-      temporary
-      color="#212529"
-      width="280"
-    >
-      <v-list>
-        <v-list-item
-          v-for="(item, index) in filteredItensSideBar"
-          :key="index"
-          :to="{ name: item.route }"
-          :class="{ 'bg-primary': isActiveRoute(item.route) }"
+  <div class="receitas-view">
+    <!-- Header Section -->
+    <div class="view-header mb-6">
+      <div class="d-flex align-center justify-space-between flex-wrap gap-3">
+        <div>
+          <h1 class="text-h4 font-weight-bold d-flex align-center gap-2 mb-2">
+            <v-icon icon="mdi-cash-plus" size="32" color="success" />
+            Minhas Receitas
+          </h1>
+          <p class="text-subtitle-2 text-medium-emphasis mb-0">
+            Gerencie suas receitas e ganhos
+          </p>
+        </div>
+        <v-btn
+          color="success"
+          size="large"
+          prepend-icon="mdi-plus"
+          @click="openAddDialog"
+          class="flex-shrink-0"
         >
-          <template #prepend>
-            <v-icon :icon="item.icon" />
-          </template>
-          <v-list-item-title>{{ item.name }}</v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-navigation-drawer>
+          Nova Receita
+        </v-btn>
+      </div>
+    </div>
 
-    <!-- Main Content -->
-    <v-main>
-      <v-container
-        fluid
-        class="receitas-view pa-6"
-      >
-        <!-- Header -->
-        <v-row class="mb-4">
-          <v-col cols="12">
-            <div class="d-flex align-center justify-space-between flex-wrap gap-3 mb-2">
-              <div class="d-flex align-center flex-grow-1">
-                <v-btn
-                  icon
-                  variant="text"
-                  class="mr-2 d-lg-none menu-button"
-                  @click="drawer = !drawer"
-                >
-                  <v-icon
-                    icon="mdi-menu"
-                    size="28"
-                  />
-                </v-btn>
-                <div class="header-content">
-                  <h1 class="receitas-title mb-1 d-flex align-center">
-                    <v-icon 
-                      icon="mdi-cash-plus" 
-                      :size="$vuetify.display.xs ? '24' : '36'" 
-                      class="mr-2 mr-md-3" 
-                      color="success" 
-                    />
-                    <span class="d-none d-sm-inline">Minhas Receitas</span>
-                    <span class="d-sm-none">Receitas</span>
-                  </h1>
-                  <p class="text-caption text-sm-subtitle-1 text-grey mb-0 d-none d-sm-block">
-                    Gerencie suas receitas e ganhos
-                  </p>
-                </div>
-              </div>
-              <v-btn
-                color="success"
-                :prepend-icon="$vuetify.display.xs ? '' : 'mdi-plus'"
-                :icon="$vuetify.display.xs ? 'mdi-plus' : false"
-                :size="$vuetify.display.xs ? 'default' : 'large'"
-                class="flex-shrink-0"
-                @click="openAddDialog"
-              >
-                <span v-if="!$vuetify.display.xs">Nova Receita</span>
-              </v-btn>
+    <!-- Summary Cards -->
+    <v-row class="mb-6">
+      <v-col cols="12" sm="6" md="3">
+        <v-card class="h-100 summary-card success-card" elevation="2">
+          <v-card-item>
+            <template #prepend>
+              <v-avatar color="success" icon="mdi-cash-plus" />
+            </template>
+            <v-card-title class="text-caption text-medium-emphasis">
+              Total do Mês
+            </v-card-title>
+          </v-card-item>
+          <v-card-text>
+            <div class="text-h5 font-weight-bold text-success">
+              {{ formatCurrency(summary.totalMes || 0) }}
             </div>
-          </v-col>
-        </v-row>
-
-        <!-- Summary Cards -->
-        <v-row class="mb-4">
-          <v-col
-            cols="12"
-            sm="6"
-            md="3"
-          >
-            <v-card
-              elevation="4"
-              class="summary-card h-100"
-            >
-              <div class="card-gradient card-gradient-success pa-4">
-                <div class="d-flex justify-space-between align-start mb-3">
-                  <div>
-                    <p class="text-body-2 text-white mb-1">
-                      Total do Mês
-                    </p>
-                    <h2 class="text-h5 text-white font-weight-bold">
-                      {{ formatCurrency(summary.totalMes) }}
-                    </h2>
-                  </div>
-                  <v-avatar
-                    color="rgba(255,255,255,0.2)"
-                    size="48"
-                  >
-                    <v-icon
-                      icon="mdi-cash-multiple"
-                      color="white"
-                      size="28"
-                    />
-                  </v-avatar>
-                </div>
-                <v-chip
-                  size="small"
-                  color="white"
-                  text-color="success"
-                  class="font-weight-medium"
-                >
-                  <v-icon
-                    icon="mdi-calendar-month"
-                    start
-                    size="16"
-                  />
-                  {{ summary.qtdMes }} receitas
-                </v-chip>
-              </div>
-            </v-card>
-          </v-col>
-
-          <v-col
-            cols="12"
-            sm="6"
-            md="3"
-          >
-            <v-card
-              elevation="4"
-              class="summary-card h-100"
-            >
-              <div class="card-gradient card-gradient-info pa-4">
-                <div class="d-flex justify-space-between align-start mb-3">
-                  <div>
-                    <p class="text-body-2 text-white mb-1">
-                      Recebido
-                    </p>
-                    <h2 class="text-h5 text-white font-weight-bold">
-                      {{ formatCurrency(summary.recebido) }}
-                    </h2>
-                  </div>
-                  <v-avatar
-                    color="rgba(255,255,255,0.2)"
-                    size="48"
-                  >
-                    <v-icon
-                      icon="mdi-check-circle"
-                      color="white"
-                      size="28"
-                    />
-                  </v-avatar>
-                </div>
-                <v-chip
-                  size="small"
-                  color="white"
-                  text-color="info"
-                  class="font-weight-medium"
-                >
-                  <v-icon
-                    icon="mdi-trending-up"
-                    start
-                    size="16"
-                  />
-                  {{ summary.qtdRecebido }} recebidas
-                </v-chip>
-              </div>
-            </v-card>
-          </v-col>
-
-          <v-col
-            cols="12"
-            sm="6"
-            md="3"
-          >
-            <v-card
-              elevation="4"
-              class="summary-card h-100"
-            >
-              <div class="card-gradient card-gradient-warning pa-4">
-                <div class="d-flex justify-space-between align-start mb-3">
-                  <div>
-                    <p class="text-body-2 text-white mb-1">
-                      Pendente
-                    </p>
-                    <h2 class="text-h5 text-white font-weight-bold">
-                      {{ formatCurrency(summary.pendente) }}
-                    </h2>
-                  </div>
-                  <v-avatar
-                    color="rgba(255,255,255,0.2)"
-                    size="48"
-                  >
-                    <v-icon
-                      icon="mdi-clock-alert"
-                      color="white"
-                      size="28"
-                    />
-                  </v-avatar>
-                </div>
-                <v-chip
-                  size="small"
-                  color="white"
-                  text-color="warning"
-                  class="font-weight-medium"
-                >
-                  <v-icon
-                    icon="mdi-alert-circle"
-                    start
-                    size="16"
-                  />
-                  {{ summary.qtdPendente }} a receber
-                </v-chip>
-              </div>
-            </v-card>
-          </v-col>
-
-          <v-col
-            cols="12"
-            sm="6"
-            md="3"
-          >
-            <v-card
-              elevation="4"
-              class="summary-card h-100"
-            >
-              <div class="card-gradient card-gradient-primary pa-4">
-                <div class="d-flex justify-space-between align-start mb-3">
-                  <div>
-                    <p class="text-body-2 text-white mb-1">
-                      Média Mensal
-                    </p>
-                    <h2 class="text-h5 text-white font-weight-bold">
-                      {{ formatCurrency(summary.mediaMensal) }}
-                    </h2>
-                  </div>
-                  <v-avatar
-                    color="rgba(255,255,255,0.2)"
-                    size="48"
-                  >
-                    <v-icon
-                      icon="mdi-chart-line"
-                      color="white"
-                      size="28"
-                    />
-                  </v-avatar>
-                </div>
-                <v-chip
-                  size="small"
-                  color="white"
-                  text-color="primary"
-                  class="font-weight-medium"
-                >
-                  <v-icon
-                    icon="mdi-chart-timeline-variant"
-                    start
-                    size="16"
-                  />
-                  Últimos 3 meses
-                </v-chip>
-              </div>
-            </v-card>
-          </v-col>
-        </v-row>
-
-        <!-- Filters and Actions -->
-        <v-row class="mb-4">
-          <v-col cols="12">
-            <v-card
-              elevation="2"
-              class="pa-4"
-            >
-              <v-row>
-                <v-col
-                  cols="12"
-                  md="3"
-                >
-                  <v-text-field
-                    v-model="filters.search"
-                    label="Buscar"
-                    prepend-inner-icon="mdi-magnify"
-                    variant="outlined"
-                    density="compact"
-                    clearable
-                    hide-details
-                  />
-                </v-col>
-                <v-col
-                  cols="12"
-                  md="2"
-                >
-                  <v-select
-                    v-model="filters.status"
-                    label="Status"
-                    prepend-inner-icon="mdi-filter"
-                    variant="outlined"
-                    density="compact"
-                    :items="statusOptions"
-                    clearable
-                    hide-details
-                  />
-                </v-col>
-                <v-col
-                  cols="12"
-                  md="3"
-                >
-                  <v-select
-                    v-model="filters.categoria"
-                    label="Categoria"
-                    prepend-inner-icon="mdi-tag"
-                    variant="outlined"
-                    density="compact"
-                    :items="categorias"
-                    clearable
-                    hide-details
-                  />
-                </v-col>
-                <v-col
-                  cols="12"
-                  md="2"
-                >
-                  <v-text-field
-                    v-model="filters.dataInicio"
-                    label="Data Início"
-                    type="date"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
-                  />
-                </v-col>
-                <v-col
-                  cols="12"
-                  md="2"
-                >
-                  <v-text-field
-                    v-model="filters.dataFim"
-                    label="Data Fim"
-                    type="date"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
-                  />
-                </v-col>
-              </v-row>
-            </v-card>
-          </v-col>
-        </v-row>
-
-        <!-- Loading -->
-        <v-row v-if="loading">
-          <v-col
-            cols="12"
-            class="text-center py-12"
-          >
-            <v-progress-circular
-              indeterminate
-              color="success"
-              size="64"
-            />
-            <p class="text-grey mt-4">
-              Carregando receitas...
+            <p class="text-caption text-medium-emphasis mt-2 mb-0">
+              {{ formatPercentage(summary.variacaoMes) }}
+              <v-icon :icon="summary.variacaoMes >= 0 ? 'mdi-trending-up' : 'mdi-trending-down'" :color="summary.variacaoMes >= 0 ? 'success' : 'error'" size="x-small" />
             </p>
-          </v-col>
-        </v-row>
+          </v-card-text>
+        </v-card>
+      </v-col>
 
-        <!-- Empty State -->
-        <v-row v-else-if="filteredReceitas.length === 0">
-          <v-col cols="12">
-            <v-card
-              elevation="2"
-              class="text-center pa-12"
+      <v-col cols="12" sm="6" md="3">
+        <v-card class="h-100 summary-card info-card" elevation="2">
+          <v-card-item>
+            <template #prepend>
+              <v-avatar color="info" icon="mdi-calendar-check" />
+            </template>
+            <v-card-title class="text-caption text-medium-emphasis">
+              Recebidas
+            </v-card-title>
+          </v-card-item>
+          <v-card-text>
+            <div class="text-h5 font-weight-bold text-info">
+              {{ receitasRecebidas }}
+            </div>
+            <p class="text-caption text-medium-emphasis mt-2 mb-0">
+              {{ formatCurrency(somaRecebidas) }}
+            </p>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" sm="6" md="3">
+        <v-card class="h-100 summary-card warning-card" elevation="2">
+          <v-card-item>
+            <template #prepend>
+              <v-avatar color="warning" icon="mdi-clock-outline" />
+            </template>
+            <v-card-title class="text-caption text-medium-emphasis">
+              Pendentes
+            </v-card-title>
+          </v-card-item>
+          <v-card-text>
+            <div class="text-h5 font-weight-bold text-warning">
+              {{ receitasPendentes }}
+            </div>
+            <p class="text-caption text-medium-emphasis mt-2 mb-0">
+              {{ formatCurrency(somaPendentes) }}
+            </p>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" sm="6" md="3">
+        <v-card class="h-100 summary-card error-card" elevation="2">
+          <v-card-item>
+            <template #prepend>
+              <v-avatar color="error" icon="mdi-calendar-remove" />
+            </template>
+            <v-card-title class="text-caption text-medium-emphasis">
+              Atrasadas
+            </v-card-title>
+          </v-card-item>
+          <v-card-text>
+            <div class="text-h5 font-weight-bold text-error">
+              {{ receitasAtrasadas }}
+            </div>
+            <p class="text-caption text-medium-emphasis mt-2 mb-0">
+              {{ formatCurrency(somaAtrasadas) }}
+            </p>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <!-- Filters and Controls -->
+    <v-card class="mb-6" elevation="1">
+      <v-card-text class="pa-4">
+        <v-row class="align-center" dense>
+          <v-col cols="12" sm="6" md="3">
+            <v-text-field
+              v-model="searchText"
+              label="Buscar"
+              prepend-inner-icon="mdi-magnify"
+              variant="outlined"
+              density="compact"
+              clearable
+            />
+          </v-col>
+          <v-col cols="12" sm="6" md="3">
+            <v-select
+              v-model="selectedStatus"
+              label="Status"
+              :items="statusOptions"
+              variant="outlined"
+              density="compact"
+              clearable
+            />
+          </v-col>
+          <v-col cols="12" sm="6" md="3">
+            <v-select
+              v-model="selectedCategoria"
+              label="Categoria"
+              :items="categorias"
+              variant="outlined"
+              density="compact"
+              clearable
+            />
+          </v-col>
+          <v-col cols="12" sm="6" md="3">
+            <v-btn
+              color="primary"
+              variant="outlined"
+              block
+              @click="resetFilters"
             >
-              <v-icon
-                icon="mdi-cash-plus"
-                size="80"
-                color="grey-lighten-1"
-              />
-              <h3 class="text-h5 mt-4 mb-2">
-                Nenhuma receita encontrada
-              </h3>
-              <p class="text-grey mb-4">
-                {{ filters.search || filters.status || filters.categoria 
-                  ? 'Tente ajustar os filtros ou adicionar uma nova receita' 
-                  : 'Adicione sua primeira receita para começar a acompanhar seus ganhos' }}
-              </p>
-              <v-btn
-                color="success"
-                size="large"
-                prepend-icon="mdi-plus"
-                @click="openAddDialog"
-              >
-                Adicionar Receita
-              </v-btn>
-            </v-card>
+              Limpar Filtros
+            </v-btn>
           </v-col>
         </v-row>
+      </v-card-text>
+    </v-card>
 
-        <!-- Receitas Table -->
-        <v-row v-else>
-          <v-col cols="12">
-            <v-card elevation="4">
-              <div class="card-gradient card-gradient-success pa-4">
-                <div class="d-flex align-center justify-space-between">
-                  <div class="d-flex align-center">
-                    <v-icon
-                      icon="mdi-format-list-bulleted"
-                      size="28"
-                      color="white"
-                      class="mr-3"
-                    />
-                    <div>
-                      <h3 class="text-h6 text-white font-weight-bold">
-                        Listagem de Receitas
-                      </h3>
-                      <p class="text-body-2 text-white opacity-90 mb-0">
-                        {{ filteredReceitas.length }} {{ filteredReceitas.length === 1 ? 'receita' : 'receitas' }}
-                      </p>
-                    </div>
-                  </div>
-                  <div class="d-flex gap-2">
-                    <v-btn
-                      variant="text"
-                      color="white"
-                      prepend-icon="mdi-file-excel"
-                      size="small"
-                      @click="exportToExcel"
-                    >
-                      Excel
-                    </v-btn>
-                    <v-btn
-                      variant="text"
-                      color="white"
-                      prepend-icon="mdi-file-pdf-box"
-                      size="small"
-                      @click="exportToPDF"
-                    >
-                      PDF
-                    </v-btn>
-                  </div>
-                </div>
-              </div>
-
-              <v-data-table
-                :headers="headers"
-                :items="filteredReceitas"
-                :items-per-page="10"
-                class="elevation-0"
-                :loading="loading"
-              >
-                <!-- Data -->
-                <template #item.data_vencimento="{ item }">
-                  <div class="d-flex align-center">
-                    <v-icon 
-                      :icon="isVencida(item.data_vencimento) ? 'mdi-alert-circle' : 'mdi-calendar'" 
-                      :color="isVencida(item.data_vencimento) ? 'error' : 'grey'"
-                      size="18"
-                      class="mr-2"
-                    />
-                    {{ formatDate(item.data_vencimento) }}
-                  </div>
-                </template>
-
-                <!-- Descrição -->
-                <template #item.descricao="{ item }">
-                  <div class="py-2">
-                    <div class="font-weight-medium">
-                      {{ item.descricao }}
-                    </div>
-                    <div class="text-caption text-grey">
-                      {{ item.conta }}
-                    </div>
-                  </div>
-                </template>
-
-                <!-- Categoria -->
-                <template #item.categoria="{ item }">
-                  <v-chip
-                    size="small"
-                    variant="tonal"
-                    color="success"
-                  >
-                    <v-icon
-                      :icon="getCategoryIcon(item.categoria)"
-                      start
-                      size="16"
-                    />
-                    {{ item.categoria }}
-                  </v-chip>
-                </template>
-
-                <!-- Status -->
-                <template #item.status="{ item }">
-                  <v-chip
-                    size="small"
-                    :color="getStatusColor(item.status)"
-                    variant="flat"
-                    class="font-weight-medium"
-                  >
-                    <v-icon
-                      :icon="getStatusIcon(item.status)"
-                      start
-                      size="16"
-                    />
-                    {{ item.status }}
-                  </v-chip>
-                </template>
-
-                <!-- Valor -->
-                <template #item.valor="{ item }">
-                  <div class="text-success font-weight-bold text-end">
-                    {{ formatCurrency(item.valor) }}
-                  </div>
-                </template>
-
-                <!-- Actions -->
-                <template #item.actions="{ item }">
-                  <div class="d-flex gap-1">
-                    <v-tooltip
-                      text="Marcar como Recebida"
-                      location="top"
-                    >
-                      <template #activator="{ props }">
-                        <v-btn
-                          v-if="item.status === 'PENDENTE'"
-                          icon
-                          variant="text"
-                          size="small"
-                          color="success"
-                          v-bind="props"
-                          @click="marcarRecebida(item)"
-                        >
-                          <v-icon icon="mdi-check-circle" />
-                        </v-btn>
-                      </template>
-                    </v-tooltip>
-                    
-                    <v-tooltip
-                      text="Editar"
-                      location="top"
-                    >
-                      <template #activator="{ props }">
-                        <v-btn
-                          icon
-                          variant="text"
-                          size="small"
-                          color="primary"
-                          v-bind="props"
-                          @click="editReceita(item)"
-                        >
-                          <v-icon icon="mdi-pencil" />
-                        </v-btn>
-                      </template>
-                    </v-tooltip>
-
-                    <v-tooltip
-                      text="Excluir"
-                      location="top"
-                    >
-                      <template #activator="{ props }">
-                        <v-btn
-                          icon
-                          variant="text"
-                          size="small"
-                          color="error"
-                          v-bind="props"
-                          @click="deleteReceita(item)"
-                        >
-                          <v-icon icon="mdi-delete" />
-                        </v-btn>
-                      </template>
-                    </v-tooltip>
-                  </div>
-                </template>
-              </v-data-table>
-            </v-card>
-          </v-col>
-        </v-row>
-
-        <!-- Add/Edit Dialog -->
-        <v-dialog
-          v-model="dialog"
-          max-width="700"
-        >
-          <v-card>
-            <div class="card-gradient card-gradient-success pa-4">
-              <div class="d-flex align-center justify-space-between">
-                <div class="d-flex align-center">
-                  <v-icon
-                    icon="mdi-cash-plus"
-                    size="32"
-                    color="white"
-                    class="mr-3"
-                  />
-                  <h2 class="text-h5 text-white font-weight-bold">
-                    {{ editMode ? 'Editar Receita' : 'Nova Receita' }}
-                  </h2>
-                </div>
-                <v-btn
-                  icon
-                  variant="text"
-                  @click="dialog = false"
-                >
-                  <v-icon
-                    icon="mdi-close"
-                    color="white"
-                  />
-                </v-btn>
+    <!-- Receitas Table -->
+    <v-card elevation="1">
+      <v-data-table
+        :headers="headers"
+        :items="filteredReceitas"
+        :loading="loading"
+        :items-per-page="itemsPerPage"
+        class="receitas-table"
+      >
+        <!-- Data columns -->
+        <template #item.descricao="{ item }">
+          <div class="d-flex align-center gap-2">
+            <v-avatar size="32" color="success" variant="tonal" icon="mdi-receipt" />
+            <div>
+              <div class="font-weight-500">{{ item.descricao }}</div>
+              <div class="text-caption text-medium-emphasis">
+                {{ formatDate(item.data_vencimento) }}
               </div>
             </div>
+          </div>
+        </template>
 
-            <v-card-text class="pa-6">
-              <v-form
-                ref="form"
-                @submit.prevent="saveReceita"
+        <template #item.valor="{ item }">
+          <div class="text-right font-weight-bold text-success">
+            {{ formatCurrency(item.valor) }}
+          </div>
+        </template>
+
+        <template #item.categoria="{ item }">
+          <v-chip size="small" variant="outlined">
+            {{ item.categoria }}
+          </v-chip>
+        </template>
+
+        <template #item.status="{ item }">
+          <v-chip
+            :color="getStatusColor(item.status)"
+            :text-color="getStatusTextColor(item.status)"
+            size="small"
+            label
+          >
+            {{ getStatusLabel(item.status) }}
+          </v-chip>
+        </template>
+
+        <template #item.acoes="{ item }">
+          <div class="d-flex gap-1 justify-end">
+            <v-btn
+              icon="mdi-pencil"
+              size="x-small"
+              variant="text"
+              color="primary"
+              @click="editReceita(item)"
+            />
+            <v-btn
+              icon="mdi-delete"
+              size="x-small"
+              variant="text"
+              color="error"
+              @click="deleteReceita(item.id)"
+            />
+          </div>
+        </template>
+
+        <template #no-data>
+          <div class="text-center py-6">
+            <v-icon size="48" color="medium-emphasis" class="mb-2">
+              mdi-folder-open-outline
+            </v-icon>
+            <p class="text-medium-emphasis">Nenhuma receita encontrada</p>
+          </div>
+        </template>
+      </v-data-table>
+    </v-card>
+
+    <!-- Dialog Add/Edit -->
+    <v-dialog v-model="dialog" max-width="700px">
+      <v-card>
+        <v-card-title class="d-flex align-center gap-2 pa-6 pb-3">
+          <v-icon :icon="editingId ? 'mdi-pencil' : 'mdi-plus'" color="success" />
+          {{ editingId ? 'Editar Receita' : 'Nova Receita' }}
+        </v-card-title>
+
+        <!-- Dialog Content -->
+        <v-card-text class="pa-6">
+          <v-form ref="formRef" @submit.prevent="saveReceita">
+            <!-- Row 1: Descrição -->
+            <v-text-field
+              v-model="formData.descricao"
+              label="Descrição *"
+              prepend-inner-icon="mdi-text-long"
+              variant="underlined"
+              hide-details="auto"
+              required
+              class="mb-4"
+              :rules="[rules.required, rules.minLength3]"
+            />
+
+            <!-- Row 2: Valor -->
+            <v-text-field
+              v-model="formData.valor"
+              label="Valor *"
+              prepend-inner-icon="mdi-currency-brl"
+              variant="underlined"
+              hide-details="auto"
+              type="tel"
+              class="mb-4"
+              :rules="[rules.required, rules.valorPositivo]"
+              @input="formatValueDisplay"
+            />
+
+            <!-- Row 3: Recorrência -->
+            <div class="custom__input__container mb-4">
+              <div
+                class="custom__input__content"
+                @click="openRecorrenciaModal = true"
               >
-                <v-row>
-                  <v-col cols="12">
-                    <v-text-field
-                      v-model="formData.descricao"
-                      label="Descrição *"
-                      prepend-inner-icon="mdi-text"
-                      variant="outlined"
-                      :rules="[rules.required]"
-                    />
-                  </v-col>
+                <v-icon icon="mdi-refresh" class="me-2" />
+                <div class="d-flex flex-column">
+                  <span>{{ formData.recorrencia }}</span>
+                  <span v-if="detalheRecorrencia" class="detalhe__parcela__interno">
+                    {{ detalheRecorrencia }}
+                  </span>
+                </div>
+                <v-spacer />
+                <v-icon
+                  v-if="formData.recorrencia === 'Parcelado'"
+                  icon="mdi-pencil"
+                  size="x-small"
+                  class="edit__icon"
+                  @click.stop="openParcelas = true"
+                />
+              </div>
 
-                  <v-col
-                    cols="12"
-                    md="6"
-                  >
-                    <v-select
-                      v-model="formData.categoria"
-                      label="Categoria *"
-                      prepend-inner-icon="mdi-tag"
-                      variant="outlined"
-                      :items="categorias"
-                      :rules="[rules.required]"
-                    />
-                  </v-col>
-
-                  <v-col
-                    cols="12"
-                    md="6"
-                  >
-                    <v-select
-                      v-model="formData.conta"
-                      label="Conta *"
-                      prepend-inner-icon="mdi-bank"
-                      variant="outlined"
-                      :items="contas"
-                      :rules="[rules.required]"
-                    />
-                  </v-col>
-
-                  <v-col
-                    cols="12"
-                    md="6"
-                  >
-                    <v-text-field
-                      v-model="formData.valor"
-                      label="Valor *"
-                      prepend-inner-icon="mdi-currency-brl"
-                      variant="outlined"
-                      type="number"
-                      step="0.01"
-                      :rules="[rules.required]"
-                    />
-                  </v-col>
-
-                  <v-col
-                    cols="12"
-                    md="6"
-                  >
-                    <v-text-field
-                      v-model="formData.data_vencimento"
-                      label="Data de Vencimento *"
-                      prepend-inner-icon="mdi-calendar"
-                      variant="outlined"
-                      type="date"
-                      :rules="[rules.required]"
-                    />
-                  </v-col>
-
-                  <v-col cols="12">
-                    <v-select
-                      v-model="formData.status"
-                      label="Status *"
-                      prepend-inner-icon="mdi-checkbox-marked-circle"
-                      variant="outlined"
-                      :items="statusOptions"
-                      :rules="[rules.required]"
-                    />
-                  </v-col>
-
-                  <v-col cols="12">
-                    <v-textarea
-                      v-model="formData.observacao"
-                      label="Observação"
-                      prepend-inner-icon="mdi-note-text"
-                      variant="outlined"
-                      rows="3"
-                    />
-                  </v-col>
-                </v-row>
-              </v-form>
-            </v-card-text>
-
-            <v-card-actions class="pa-6 pt-0">
-              <v-spacer />
-              <v-btn
-                variant="text"
-                @click="dialog = false"
+              <v-btn-toggle
+                v-if="formData.recorrencia === 'Parcelado'"
+                v-model="tipoCalculoParcela"
+                mandatory
+                class="parcela__toggle mt-4"
+                variant="flat"
               >
+                <v-btn class="toggle__btn" value="total" rounded="lg">
+                  Valor total
+                </v-btn>
+                <v-btn class="toggle__btn" value="parcela" rounded="lg">
+                  Valor parcela
+                </v-btn>
+              </v-btn-toggle>
+
+              <div class="custom__underline" />
+            </div>
+
+            <!-- Modal Recorrência -->
+            <v-menu v-model="openRecorrenciaModal" :close-on-content-click="false">
+              <v-card width="300" class="mx-auto">
+                <v-card-text class="pa-4">
+                  <div class="d-flex flex-column gap-2">
+                    <v-btn
+                      v-for="item in tiposRecorrencia"
+                      :key="item"
+                      :class="formData.recorrencia === item ? 'success' : ''"
+                      variant="text"
+                      block
+                      :prepend-icon="
+                        formData.recorrencia === item
+                          ? 'mdi-radiobox-marked'
+                          : 'mdi-checkbox-blank-circle-outline'
+                      "
+                      @click="selecionarRecorrencia(item)"
+                    >
+                      {{ item }}
+                    </v-btn>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-menu>
+
+            <!-- Modal Parcelas -->
+            <v-dialog v-model="openParcelas" max-width="400">
+              <v-card>
+                <v-card-title class="pa-4">Configurar Parcelas</v-card-title>
+                <v-card-text class="pa-6">
+                  <div class="d-flex align-center justify-space-between mb-4">
+                    <span>Parcela Inicial:</span>
+                    <div class="d-flex align-center gap-2">
+                      <v-btn
+                        icon="mdi-minus"
+                        size="x-small"
+                        :disabled="tempParcelaInicial <= 1"
+                        @click="tempParcelaInicial--"
+                      />
+                      <v-text-field
+                        v-model.number="tempParcelaInicial"
+                        type="number"
+                        density="compact"
+                        style="width: 60px"
+                        min="1"
+                      />
+                      <v-btn
+                        icon="mdi-plus"
+                        size="x-small"
+                        @click="tempParcelaInicial++"
+                      />
+                    </div>
+                  </div>
+
+                  <v-divider class="my-4" />
+
+                  <div class="d-flex align-center justify-space-between mb-4">
+                    <span>Quantidade:</span>
+                    <div class="d-flex align-center gap-2">
+                      <v-btn
+                        icon="mdi-minus"
+                        size="x-small"
+                        :disabled="tempNumParcelas <= 2"
+                        @click="tempNumParcelas--"
+                      />
+                      <v-text-field
+                        v-model.number="tempNumParcelas"
+                        type="number"
+                        density="compact"
+                        style="width: 60px"
+                        min="2"
+                      />
+                      <v-btn
+                        icon="mdi-plus"
+                        size="x-small"
+                        @click="tempNumParcelas++"
+                      />
+                    </div>
+                  </div>
+
+                  <v-divider class="my-4" />
+
+                  <v-select
+                    v-model="tempPeriodicidade"
+                    label="Periodicidade"
+                    :items="['Mensal', 'Semanal', 'Quinzenal', 'Bimestral']"
+                    variant="outlined"
+                    density="compact"
+                  />
+                </v-card-text>
+                <v-card-actions class="pa-4">
+                  <v-spacer />
+                  <v-btn variant="text" @click="openParcelas = false">
+                    Cancelar
+                  </v-btn>
+                  <v-btn color="success" @click="concluirParcelas">
+                    Concluído
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+
+            <!-- Row 4: Categoria e Subcategoria -->
+            <v-row>
+              <v-col cols="12" md="6">
+                <v-autocomplete
+                  v-model="formData.categoria"
+                  :items="categoriasNames"
+                  label="Categoria *"
+                  prepend-inner-icon="mdi-tag"
+                  variant="underlined"
+                  hide-details="auto"
+                  class="mb-4"
+                  :rules="[rules.required]"
+                />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-autocomplete
+                  v-model="formData.subcategoria"
+                  :items="subcategoriasDaCategoriaSelecionada"
+                  label="Subcategoria"
+                  prepend-inner-icon="mdi-folder-tag"
+                  variant="underlined"
+                  hide-details="auto"
+                  class="mb-4"
+                />
+              </v-col>
+            </v-row>
+
+            <!-- Row 5: Conta e Status -->
+            <v-row>
+              <v-col cols="12" md="6">
+                <v-select
+                  v-model="formData.conta_id"
+                  label="Conta *"
+                  prepend-inner-icon="mdi-bank"
+                  variant="underlined"
+                  hide-details="auto"
+                  :items="contas"
+                  item-title="name"
+                  item-value="id"
+                  class="mb-4"
+                  :rules="[rules.required]"
+                />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field
+                  :model-value="formData.status_lancamento"
+                  label="Status"
+                  variant="underlined"
+                  hide-details="auto"
+                  type="text"
+                  readonly
+                  class="mb-4"
+                  :prepend-inner-icon="
+                    formData.status_lancamento === 'EFETIVADA'
+                      ? 'mdi-check-circle-outline'
+                      : 'mdi-clock-time-three-outline'
+                  "
+                  @click="toggleStatus"
+                >
+                  <template #append-inner>
+                    <div :class="formData.status_lancamento === 'EFETIVADA' ? 'switch__check__efetivada' : 'switch__check'">
+                      <div :class="formData.status_lancamento === 'EFETIVADA' ? 'switch__check__efetivada--inner' : 'switch__check--inner'" />
+                    </div>
+                  </template>
+                </v-text-field>
+              </v-col>
+            </v-row>
+
+            <!-- Row 6: Data de Vencimento -->
+            <v-menu :close-on-content-click="false" transition="scale-transition">
+              <template #activator="{ props }">
+                <div class="custom__display__input" v-bind="props">
+                  <div class="d-flex align-center text-grey">
+                    <v-icon icon="mdi-calendar" class="me-3" />
+                    <span>Data de Vencimento *</span>
+                  </div>
+                  <v-spacer class="m-0 p-0" />
+                  <span class="font-weight-medium">{{ displayDataVencimento }}</span>
+                </div>
+              </template>
+
+              <v-date-picker
+                v-model="formData.data_vencimento"
+                color="success"
+                hide-header
+                show-adjacent-months
+              />
+            </v-menu>
+
+            <!-- Row 7: Mais Informações Toggle -->
+            <v-btn
+              :append-icon="informacoes ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+              variant="plain"
+              size="x-small"
+              style="color: rgb(var(--v-theme-success))"
+              block
+              class="my-4"
+              @click="informacoes = !informacoes"
+            >
+              Mais informações
+            </v-btn>
+
+            <!-- Row 8: Data de Lançamento (Advanced) -->
+            <v-menu
+              v-if="informacoes"
+              :close-on-content-click="false"
+              transition="scale-transition"
+            >
+              <template #activator="{ props }">
+                <div class="custom__display__input" v-bind="props">
+                  <div class="d-flex align-center text-grey">
+                    <v-icon icon="mdi-calendar" class="me-3" />
+                    <span>Data de Lançamento</span>
+                  </div>
+                  <v-spacer />
+                  <span class="font-weight-medium">{{ displayDataLancamento }}</span>
+                </div>
+              </template>
+
+              <v-date-picker
+                v-model="formData.data_lancamento"
+                color="success"
+                hide-header
+                show-adjacent-months
+              />
+            </v-menu>
+
+            <!-- Row 9: Data de Efetivação (Advanced) -->
+            <v-menu
+              v-if="informacoes"
+              :close-on-content-click="false"
+              transition="scale-transition"
+              class="mt-4"
+            >
+              <template #activator="{ props }">
+                <div class="custom__display__input" v-bind="props">
+                  <div class="d-flex align-center text-grey">
+                    <v-icon icon="mdi-calendar" class="me-3" />
+                    <span>Data de Efetivação</span>
+                  </div>
+                  <v-spacer />
+                  <span class="font-weight-medium">{{ displayDataEfetivacao }}</span>
+                </div>
+              </template>
+
+              <v-date-picker
+                v-model="formData.data_efetivacao"
+                color="success"
+                hide-header
+                show-adjacent-months
+              />
+            </v-menu>
+
+            <!-- Row 10: Observações -->
+            <v-textarea
+              v-if="informacoes"
+              v-model="formData.observacoes"
+              label="Observações (opcional)"
+              placeholder="Adicione notas ou detalhes sobre este lançamento..."
+              prepend-inner-icon="mdi-note-text-outline"
+              variant="underlined"
+              rows="3"
+              auto-grow
+              counter
+              maxlength="1000"
+              class="mt-4"
+            />
+
+            <!-- Buttons -->
+            <div class="d-flex gap-2 justify-end mt-6">
+              <v-btn variant="outlined" @click="dialog = false">
                 Cancelar
               </v-btn>
               <v-btn
                 color="success"
-                :loading="saving"
-                @click="saveReceita"
+                type="submit"
+                :loading="loading"
+                :disabled="loading"
               >
-                {{ editMode ? 'Salvar' : 'Adicionar' }}
+                {{ editingId ? 'Atualizar' : 'Adicionar' }}
               </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-
-        <!-- Snackbar -->
-        <v-snackbar
-          v-model="snackbar.show"
-          :color="snackbar.color"
-          :timeout="3000"
-          location="top right"
-        >
-          {{ snackbar.message }}
-          <template #actions>
-            <v-btn
-              variant="text"
-              @click="snackbar.show = false"
-            >
-              Fechar
-            </v-btn>
-          </template>
-        </v-snackbar>
-      </v-container>
-    </v-main>
-  </v-layout>
+            </div>
+          </v-form>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+  </div>
 </template>
 
 <script setup lang="ts">
-import axiosInstance from "@/services/http";
-import {
-  useExpensesStore,
-  useRevenuesStore,
-  useRolesStore,
-  useUserStore,
-  useWalletsStore,
-} from "@/store";
-import { computed, onMounted, ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { computed, ref } from 'vue';
+import { format, parseISO, isValid, isToday, isYesterday, isTomorrow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
-// Router
-const router = useRouter();
-const route = useRoute();
+// State
+const dialog = ref(false);
+const formRef = ref();
+const loading = ref(false);
+const searchText = ref('');
+const selectedStatus = ref('');
+const selectedCategoria = ref('');
+const editingId = ref<number | null>(null);
+const itemsPerPage = ref(10);
 
-// Stores
-const rolesStore = useRolesStore();
-const revenuesStore = useRevenuesStore();
-const walletsStore = useWalletsStore();
-const expensesStore = useExpensesStore();
-const userStore = useUserStore();
+// Recurrence State
+const openRecorrenciaModal = ref(false);
+const openParcelas = ref(false);
+const informacoes = ref(false);
+const tiposRecorrencia = ref(['Não recorrente', 'Fixa', 'Parcelado']);
+const tipoCalculoParcela = ref('total');
+const tempParcelaInicial = ref(1);
+const tempNumParcelas = ref(2);
+const tempPeriodicidade = ref('Mensal');
 
-// Drawer state
-const drawer = ref(false);
-
-// Menu items
-const itensSideBar = ref([
-  { name: "Admin", icon: "mdi-shield-crown", route: "admin", adminOnly: true },
-  { name: "Trader", icon: "mdi-chart-line", route: "trader", traderOnly: true },
-  { name: "Dashboard", icon: "mdi-view-dashboard", route: "dashboard" },
-  { name: "Contas", icon: "mdi-bank", route: "contas" },
-  { name: "Receitas", icon: "mdi-cash-plus", route: "receitas" },
-  { name: "Despesas", icon: "mdi-cash-minus", route: "despesas" },
-  { name: "Categorias", icon: "mdi-tag-multiple", route: "categorias" },
-  { name: "Cartões de Crédito", icon: "mdi-credit-card-outline", route: "cartoes" },
-  { name: "Notificações", icon: "mdi-bell", route: "notificacoes" },
-  { name: "Perfil", icon: "mdi-account", route: "perfil" },
+// Mock data
+const receitas = ref([
+  {
+    id: 1,
+    descricao: 'Salário',
+    valor: 5000,
+    categoria: 'Salário',
+    conta: 'Conta Principal',
+    data_vencimento: '2025-10-01',
+    status: 'recebida',
+    observacao: 'Salário mensal',
+    recorrencia: 'Fixa',
+    status_lancamento: 'EFETIVADA',
+    subcategoria: 'Salário',
+    conta_id: 1,
+    data_lancamento: '2025-10-01',
+    data_efetivacao: '2025-10-01',
+    observacoes: 'Salário mensal',
+  },
+  {
+    id: 2,
+    descricao: 'Freelancer',
+    valor: 1200,
+    categoria: 'Freelancer',
+    conta: 'Conta Principal',
+    data_vencimento: '2025-10-05',
+    status: 'recebida',
+    observacao: 'Projeto web',
+    recorrencia: 'Não recorrente',
+    status_lancamento: 'EFETIVADA',
+    subcategoria: 'Projeto',
+    conta_id: 1,
+    data_lancamento: '2025-10-05',
+    data_efetivacao: '2025-10-05',
+    observacoes: 'Projeto web',
+  },
+  {
+    id: 3,
+    descricao: 'Bonus',
+    valor: 800,
+    categoria: 'Bonus',
+    conta: 'Conta Principal',
+    data_vencimento: '2025-10-20',
+    status: 'pendente',
+    observacao: 'Bonus do mês',
+    recorrencia: 'Não recorrente',
+    status_lancamento: 'PENDENTE',
+    subcategoria: 'Bônus mensal',
+    conta_id: 1,
+    data_lancamento: '2025-10-20',
+    data_efetivacao: null,
+    observacoes: 'Bonus do mês',
+  },
 ]);
 
-const filteredItensSideBar = computed(() => {
-  return itensSideBar.value.filter((item) => {
-    if (item.adminOnly && !rolesStore.isAdmin) return false;
-    if (item.traderOnly && !rolesStore.isTrader) return false;
-    return true;
+const categorias = ref(['Salário', 'Freelancer', 'Bonus', 'Investimento', 'Outros']);
+const categoriasNames = ref(['Salário', 'Freelancer', 'Bonus', 'Investimento', 'Outros']);
+const subcategorias = ref({
+  'Salário': ['Salário', 'Décimo terceiro'],
+  'Freelancer': ['Projeto', 'Consultoria'],
+  'Bonus': ['Bônus mensal', 'Bônus anual'],
+  'Investimento': ['Ações', 'Renda fixa'],
+  'Outros': ['Outros'],
+});
+
+const contas = ref([
+  { id: 1, name: 'Conta Principal' },
+  { id: 2, name: 'Conta Investimento' },
+  { id: 3, name: 'Poupança' },
+]);
+
+const statusOptions = ref([
+  'recebida',
+  'pendente',
+  'cancelada',
+]);
+
+// Form data
+const formData = ref({
+  descricao: '',
+  categoria: '',
+  conta: '',
+  valor: '0,00',
+  data_vencimento: new Date().toISOString().split('T')[0],
+  status: 'pendente',
+  observacao: '',
+  recorrencia: 'Não recorrente',
+  status_lancamento: 'PENDENTE',
+  subcategoria: '',
+  conta_id: null,
+  data_lancamento: new Date().toISOString().split('T')[0],
+  data_efetivacao: null,
+  observacoes: '',
+});
+
+// Computed properties
+const subcategoriasDaCategoriaSelecionada = computed(() => {
+  return subcategorias.value[formData.value.categoria] || [];
+});
+
+const detalheRecorrencia = computed(() => {
+  if (formData.value.recorrencia === 'Parcelado') {
+    return `${tempNumParcelas.value} parcelas, começando na ${tempParcelaInicial.value}ª - ${tempPeriodicidade.value}`;
+  }
+  return '';
+});
+
+const displayDataVencimento = computed(() => {
+  return formatDateForDisplay(formData.value.data_vencimento);
+});
+
+const displayDataLancamento = computed(() => {
+  return formatDateForDisplay(formData.value.data_lancamento);
+});
+
+const displayDataEfetivacao = computed(() => {
+  return formatDateForDisplay(formData.value.data_efetivacao);
+});
+
+// Summary computed
+const summary = computed(() => ({
+  totalMes: receitas.value.reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, '').replace(',', '.')), 0),
+  variacaoMes: 5.2,
+}));
+
+const receitasRecebidas = computed(() => receitas.value.filter(r => r.status === 'recebida').length);
+const somaRecebidas = computed(() => receitas.value.filter(r => r.status === 'recebida').reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, '').replace(',', '.')), 0));
+
+const receitasPendentes = computed(() => receitas.value.filter(r => r.status === 'pendente').length);
+const somaPendentes = computed(() => receitas.value.filter(r => r.status === 'pendente').reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, '').replace(',', '.')), 0));
+
+const receitasAtrasadas = computed(() => receitas.value.filter(r => r.status === 'cancelada').length);
+const somaAtrasadas = computed(() => receitas.value.filter(r => r.status === 'cancelada').reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, '').replace(',', '.')), 0));
+
+// Filtered receitas
+const filteredReceitas = computed(() => {
+  return receitas.value.filter(r => {
+    const matchText = !searchText.value || r.descricao.toLowerCase().includes(searchText.value.toLowerCase());
+    const matchStatus = !selectedStatus.value || r.status === selectedStatus.value;
+    const matchCategoria = !selectedCategoria.value || r.categoria === selectedCategoria.value;
+    return matchText && matchStatus && matchCategoria;
   });
 });
-
-const isActiveRoute = (routeName: string): boolean => {
-  return route.name === routeName;
-};
-
-// States
-const loading = ref(true);
-const dialog = ref(false);
-const editMode = ref(false);
-const saving = ref(false);
-
-// Snackbar
-const snackbar = ref({
-  show: false,
-  message: "",
-  color: "success"
-});
-
-// Filters
-const filters = ref({
-  search: "",
-  status: null,
-  categoria: null,
-  dataInicio: "",
-  dataFim: ""
-});
-
-// Data
-const receitas = ref<any[]>([]);
-const formData = ref({
-  id: null,
-  descricao: "",
-  categoria: "",
-  conta: "",
-  valor: 0,
-  data_vencimento: "",
-  status: "PENDENTE",
-  observacao: ""
-});
-
-// Options
-const statusOptions = ["PENDENTE", "RECEBIDO", "ATRASADO"];
-const categorias = ["Salário", "Freelance", "Investimentos", "Vendas", "Aluguel", "Outros"];
-const contas = ["Nubank", "Banco do Brasil", "Caixa", "Inter"];
 
 // Validation rules
 const rules = {
-  required: (v: any) => !!v || "Campo obrigatório"
+  required: (v: any) => !!v || 'Campo obrigatório',
+  minLength3: (v: string) => (v && v.length >= 3) || 'Mínimo 3 caracteres',
+  valorPositivo: (v: string) => {
+    if (!v) return 'Valor obrigatório';
+    const numValue = parseFloat(v.replace(/\./g, '').replace(',', '.'));
+    return numValue > 0 || 'Valor deve ser maior que zero';
+  },
 };
 
-// Table headers
+// Headers
 const headers = [
-  { title: "Data", key: "data_vencimento", sortable: true },
-  { title: "Descrição", key: "descricao", sortable: true },
-  { title: "Categoria", key: "categoria", sortable: true },
-  { title: "Status", key: "status", sortable: true },
-  { title: "Valor", key: "valor", sortable: true, align: "end" },
-  { title: "Ações", key: "actions", sortable: false, align: "center" }
+  { title: 'Descrição', align: 'start', key: 'descricao', width: '35%' },
+  { title: 'Categoria', align: 'start', key: 'categoria', width: '15%' },
+  { title: 'Valor', align: 'end', key: 'valor', width: '15%' },
+  { title: 'Status', align: 'center', key: 'status', width: '15%' },
+  { title: 'Ações', align: 'end', key: 'acoes', width: '10%', sortable: false },
 ];
 
-
-
-// Computed
-const summary = computed(() => {
-  // const totalMes = receitas.value.reduce((sum, r) => sum + r.valor, 0)
-  const totalMes = revenuesStore.revenuesData?.valueTotalMonth;
-  const recebido = revenuesStore.revenuesData?.valuePay;
-  const pendente = revenuesStore.revenuesData?.valuePending;
-  
-  return {
-    totalMes,
-    recebido,
-    pendente,
-    mediaMensal: totalMes, // Simplificado - deveria calcular média real
-    qtdMes: revenuesStore.revenuesData?.byMonth.length,
-    qtdRecebido: receitas.value.filter(r => r.status === "RECEBIDO").length,
-    qtdPendente: receitas.value.filter(r => r.status === "PENDENTE").length
-  };
-});
-
-const filteredReceitas = computed(() => {
-  return receitas.value.filter(receita => {
-    if (filters.value.search && !receita.descricao.toLowerCase().includes(filters.value.search.toLowerCase())) {
-      return false;
-    }
-    if (filters.value.status && receita.status !== filters.value.status) {
-      return false;
-    }
-    if (filters.value.categoria && receita.categoria !== filters.value.categoria) {
-      return false;
-    }
-    if (filters.value.dataInicio && receita.data_vencimento < filters.value.dataInicio) {
-      return false;
-    }
-    if (filters.value.dataFim && receita.data_vencimento > filters.value.dataFim) {
-      return false;
-    }
-    return true;
-  });
-});
-
 // Methods
-const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL"
-  }).format(value / 100);
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(value);
 };
 
-const formatDate = (date: string): string => {
-  return new Intl.DateTimeFormat("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric"
-  }).format(new Date(date));
+const formatPercentage = (value: number) => {
+  return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
 };
 
-const isVencida = (date: string): boolean => {
-  return new Date(date) < new Date();
+const formatDate = (date: string) => {
+  return new Date(date).toLocaleDateString('pt-BR');
 };
 
-const getCategoryIcon = (categoria: string): string => {
-  const icons: Record<string, string> = {
-    "Salário": "mdi-briefcase",
-    "Freelance": "mdi-laptop",
-    "Investimentos": "mdi-chart-line",
-    "Vendas": "mdi-cart",
-    "Aluguel": "mdi-home",
-    "Outros": "mdi-dots-horizontal"
-  };
-  return icons[categoria] || "mdi-tag";
+const formatValueDisplay = () => {
+  let digits = (formData.value.valor || '').replace(/\D/g, '');
+  digits = digits.replace(/^0+/, '') || '0';
+  while (digits.length < 3) digits = '0' + digits;
+
+  const integerPart = digits.slice(0, -2);
+  const decimalPart = digits.slice(-2);
+  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+  formData.value.valor = `${formattedIntegerPart},${decimalPart}`;
 };
 
-const getStatusColor = (status: string): string => {
+const formatDateForDisplay = (dateValue: string | Date | undefined | null): string => {
+  if (!dateValue) return 'Selecione...';
+
+  const data = typeof dateValue === 'string' ? parseISO(dateValue) : dateValue;
+  if (!isValid(data)) return 'Data inválida';
+
+  if (isToday(data)) return 'Hoje';
+  if (isYesterday(data)) return 'Ontem';
+  if (isTomorrow(data)) return 'Amanhã';
+
+  const nomeDiaCompleto = format(data, 'EEEE', { locale: ptBR });
+  const diaAbreviadoCapitalizado = nomeDiaCompleto.charAt(0).toUpperCase() + nomeDiaCompleto.slice(1, 3);
+  const dataFormatada = format(data, 'dd/MM/yyyy');
+
+  return `${diaAbreviadoCapitalizado}., ${dataFormatada}`;
+};
+
+const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
-    "RECEBIDO": "success",
-    "PENDENTE": "warning",
-    "ATRASADO": "error"
+    recebida: 'success',
+    pendente: 'warning',
+    cancelada: 'error',
   };
-  return colors[status] || "grey";
+  return colors[status] || 'default';
 };
 
-const getStatusIcon = (status: string): string => {
-  const icons: Record<string, string> = {
-    "RECEBIDO": "mdi-check-circle",
-    "PENDENTE": "mdi-clock-alert",
-    "ATRASADO": "mdi-alert-circle"
+const getStatusTextColor = (status: string) => {
+  return 'white';
+};
+
+const getStatusLabel = (status: string) => {
+  const labels: Record<string, string> = {
+    recebida: 'Recebida',
+    pendente: 'Pendente',
+    cancelada: 'Cancelada',
   };
-  return icons[status] || "mdi-help-circle";
+  return labels[status] || status;
+};
+
+const toggleStatus = () => {
+  formData.value.status_lancamento = formData.value.status_lancamento === 'EFETIVADA' ? 'PENDENTE' : 'EFETIVADA';
+};
+
+const selecionarRecorrencia = (item: string) => {
+  formData.value.recorrencia = item;
+  openRecorrenciaModal.value = false;
+
+  if (item === 'Parcelado') {
+    openParcelas.value = true;
+  }
+};
+
+const concluirParcelas = () => {
+  openParcelas.value = false;
 };
 
 const openAddDialog = () => {
-  editMode.value = false;
+  editingId.value = null;
   formData.value = {
-    id: null,
-    descricao: "",
-    categoria: "",
-    conta: "",
-    valor: 0,
-    data_vencimento: "",
-    status: "PENDENTE",
-    observacao: ""
+    descricao: '',
+    categoria: '',
+    conta: '',
+    valor: '0,00',
+    data_vencimento: new Date().toISOString().split('T')[0],
+    status: 'pendente',
+    observacao: '',
+    recorrencia: 'Não recorrente',
+    status_lancamento: 'PENDENTE',
+    subcategoria: '',
+    conta_id: 1,
+    data_lancamento: new Date().toISOString().split('T')[0],
+    data_efetivacao: null,
+    observacoes: '',
   };
   dialog.value = true;
 };
 
 const editReceita = (receita: any) => {
-  editMode.value = true;
+  editingId.value = receita.id;
   formData.value = { ...receita };
   dialog.value = true;
 };
 
-const deleteReceita = async (receita: any) => {
-  if (!confirm(`Deseja realmente excluir a receita "${receita.descricao}"?`)) return;
-
-  try {
-    await axiosInstance.delete(`/receitas/${receita.id}`);
-    
-    receitas.value = receitas.value.filter(r => r.id !== receita.id);
-    
-    snackbar.value = {
-      show: true,
-      message: "Receita excluída com sucesso!",
-      color: "success"
-    };
-  } catch (error: any) {
-    console.error("Erro ao excluir receita:", error);
-    snackbar.value = {
-      show: true,
-      message: error.response?.data?.message || "Erro ao excluir receita",
-      color: "error"
-    };
+const deleteReceita = (id: number) => {
+  if (confirm('Tem certeza que deseja deletar esta receita?')) {
+    receitas.value = receitas.value.filter(r => r.id !== id);
   }
 };
 
-const marcarRecebida = async (receita: any) => {
-  try {
-    await axiosInstance.patch(`/receitas/${receita.id}/receber`);
-    
-    const index = receitas.value.findIndex(r => r.id === receita.id);
+const saveReceita = () => {
+  if (editingId.value) {
+    // Update
+    const index = receitas.value.findIndex(r => r.id === editingId.value);
     if (index !== -1) {
-      receitas.value[index].status = "RECEBIDO";
+      receitas.value[index] = { ...formData.value, id: editingId.value };
     }
-    
-    snackbar.value = {
-      show: true,
-      message: "Receita marcada como recebida!",
-      color: "success"
-    };
-  } catch (error: any) {
-    console.error("Erro ao marcar receita:", error);
-    snackbar.value = {
-      show: true,
-      message: error.response?.data?.message || "Erro ao marcar receita",
-      color: "error"
-    };
+  } else {
+    // Create
+    const newId = Math.max(...receitas.value.map(r => r.id), 0) + 1;
+    receitas.value.push({ ...formData.value, id: newId });
   }
+  dialog.value = false;
 };
 
-const saveReceita = async () => {
-  try {
-    saving.value = true;
-    
-    if (editMode.value) {
-      await axiosInstance.put(`/receitas/${formData.value.id}`, formData.value);
-      
-      const index = receitas.value.findIndex(r => r.id === formData.value.id);
-      if (index !== -1) {
-        receitas.value[index] = { ...formData.value };
-      }
-      
-      snackbar.value = {
-        show: true,
-        message: "Receita atualizada com sucesso!",
-        color: "success"
-      };
-    } else {
-      const response = await axiosInstance.post("/receitas", formData.value);
-      receitas.value.push(response.data);
-      
-      snackbar.value = {
-        show: true,
-        message: "Receita adicionada com sucesso!",
-        color: "success"
-      };
-    }
-    
-    dialog.value = false;
-  } catch (error: any) {
-    console.error("Erro ao salvar receita:", error);
-    snackbar.value = {
-      show: true,
-      message: error.response?.data?.message || "Erro ao salvar receita",
-      color: "error"
-    };
-  } finally {
-    saving.value = false;
-  }
+const resetFilters = () => {
+  searchText.value = '';
+  selectedStatus.value = '';
+  selectedCategoria.value = '';
 };
-
-const exportToExcel = () => {
-  console.log("Exportar para Excel");
-  snackbar.value = {
-    show: true,
-    message: "Funcionalidade em desenvolvimento",
-    color: "info"
-  };
-};
-
-const exportToPDF = () => {
-  console.log("Exportar para PDF");
-  snackbar.value = {
-    show: true,
-    message: "Funcionalidade em desenvolvimento",
-    color: "info"
-  };
-};
-
-const fetchReceitas = async () => {
-  try {
-    loading.value = true;
-    
-    // Mock data - replace with API call
-    receitas.value = [
-      {
-        id: 1,
-        descricao: "Salário Empresa XYZ",
-        categoria: "Salário",
-        conta: "Nubank",
-        valor: 550000, // R$ 5.500,00
-        data_vencimento: "2024-10-05",
-        status: "RECEBIDO",
-        observacao: ""
-      },
-      {
-        id: 2,
-        descricao: "Freelance - Projeto Web",
-        categoria: "Freelance",
-        conta: "Banco do Brasil",
-        valor: 250000, // R$ 2.500,00
-        data_vencimento: "2024-10-15",
-        status: "PENDENTE",
-        observacao: "Cliente ABC"
-      },
-      {
-        id: 3,
-        descricao: "Dividendos Ações",
-        categoria: "Investimentos",
-        conta: "Inter",
-        valor: 85000, // R$ 850,00
-        data_vencimento: "2024-10-20",
-        status: "PENDENTE",
-        observacao: ""
-      },
-      {
-        id: 4,
-        descricao: "Venda Produto",
-        categoria: "Vendas",
-        conta: "Caixa",
-        valor: 120000, // R$ 1.200,00
-        data_vencimento: "2024-10-10",
-        status: "RECEBIDO",
-        observacao: ""
-      },
-      {
-        id: 5,
-        descricao: "Aluguel Imóvel",
-        categoria: "Aluguel",
-        conta: "Nubank",
-        valor: 180000, // R$ 1.800,00
-        data_vencimento: "2024-10-01",
-        status: "ATRASADO",
-        observacao: "Inquilino atrasado"
-      }
-    ];
-    
-  } catch (error: any) {
-    console.error("Erro ao carregar receitas:", error);
-    snackbar.value = {
-      show: true,
-      message: error.response?.data?.message || "Erro ao carregar receitas",
-      color: "error"
-    };
-  } finally {
-    loading.value = false;
-  }
-};
-
-onMounted(() => {
-  fetchReceitas();
-});
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .receitas-view {
-  /* Background será controlado pelo tema global no App.vue */
-  min-height: 100vh;
-}
+  .view-header {
+    @media (max-width: 600px) {
+      .d-flex {
+        flex-direction: column;
+        align-items: flex-start;
 
-/* Header responsivo */
-.header-content {
-  width: 100%;
-}
-
-/* Botão do menu - garantir visibilidade em mobile */
-.menu-button {
-  display: inline-flex !important;
-}
-
-@media (min-width: 1280px) {
-  .menu-button {
-    display: none !important;
+        .v-btn {
+          width: 100%;
+        }
+      }
+    }
   }
-}
 
-.receitas-title {
-  font-size: 1.5rem;
-}
+  .summary-card {
+    transition: all 0.3s ease;
+    border-left: 4px solid;
 
-@media (min-width: 600px) {
-  .receitas-title {
-    font-size: 2rem;
+    &.success-card {
+      border-left-color: rgb(var(--v-theme-success));
+    }
+
+    &.info-card {
+      border-left-color: rgb(var(--v-theme-info));
+    }
+
+    &.warning-card {
+      border-left-color: rgb(var(--v-theme-warning));
+    }
+
+    &.error-card {
+      border-left-color: rgb(var(--v-theme-error));
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
   }
-}
 
-@media (min-width: 960px) {
-  .receitas-title {
-    font-size: 2.125rem;
+  .custom__input__container {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    padding-bottom: 0.5rem;
   }
-}
 
-/* Gap utility */
-.gap-3 {
-  gap: 12px;
-}
+  .custom__input__content {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: background 0.2s;
 
-/* Card gradients */
-.card-gradient {
-  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
-  border-radius: 8px 8px 0 0;
-}
+    &:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+  }
 
-.card-gradient-success {
-  --gradient-start: #4CAF50;
-  --gradient-end: #388E3C;
-}
+  .detalhe__parcela__interno {
+    font-size: 12px;
+    opacity: 0.7;
+  }
 
-.card-gradient-error {
-  --gradient-start: #F44336;
-  --gradient-end: #D32F2F;
-}
+  .parcela__toggle {
+    width: 100%;
+    margin-top: 1rem;
+  }
 
-.card-gradient-primary {
-  --gradient-start: #2196F3;
-  --gradient-end: #1976D2;
-}
+  .toggle__btn {
+    flex: 1;
+    text-transform: none;
+  }
 
-.card-gradient-warning {
-  --gradient-start: #FF9800;
-  --gradient-end: #F57C00;
-}
+  .custom__underline {
+    width: 100%;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.12);
+    margin-top: 0.5rem;
+  }
 
-.card-gradient-info {
-  --gradient-start: #00BCD4;
-  --gradient-end: #0097A7;
-}
+  .custom__display__input {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    cursor: pointer;
+    transition: all 0.2s;
 
-/* Summary cards */
-.summary-card {
-  transition: transform 0.2s;
-}
+    &:hover {
+      opacity: 0.8;
+    }
+  }
 
-.summary-card:hover {
-  transform: translateY(-4px);
-}
+  .switch__check {
+    width: 40px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    transition: all 0.3s;
 
-/* Table styling */
-:deep(.v-data-table) {
-  background-color: transparent;
-}
+    &--inner {
+      width: 20px;
+      height: 20px;
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: 50%;
+      position: absolute;
+      left: 2px;
+      transition: all 0.3s;
+    }
+  }
 
-:deep(.v-data-table thead th) {
-  font-weight: 600;
-  background-color: rgb(var(--v-theme-surface-variant));
-  color: rgb(var(--v-theme-on-surface));
-}
+  .switch__check__efetivada {
+    width: 40px;
+    height: 24px;
+    background: rgb(var(--v-theme-success));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    transition: all 0.3s;
 
-:deep(.v-data-table tbody tr:hover) {
-  background-color: rgb(var(--v-theme-surface-variant));
-}
+    &--inner {
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      right: 2px;
+      transition: all 0.3s;
+    }
+  }
 
-/* Responsive */
-@media (max-width: 960px) {
-  .receitas-view {
-    padding: 16px !important;
+  .text-grey {
+    opacity: 0.7;
   }
 }
 </style>

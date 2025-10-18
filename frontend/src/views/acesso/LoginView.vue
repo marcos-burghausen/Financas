@@ -1,503 +1,207 @@
 <template>
-  <div class="login-container">
-    <div class="login-content">
-      <!-- Card Principal -->
-      <v-card
-        class="login-card"
-        elevation="24"
-        rounded="xl"
-      >
-        <!-- Lado Esquerdo - Informações -->
-        <div class="info-side">
-          <div class="info-content">
-            <div class="logo-section">
-              <img
-                src="@/assets/img/2.png"
-                alt="Mr Finanças Logo"
-                class="logo-large"
-              >
-            </div>
-            <h1 class="welcome-title">
-              Bem-vindo de volta!
-            </h1>
-            <p class="welcome-subtitle">
-              Gerencie suas finanças com inteligência e simplicidade
-            </p>
-            
-            <div class="features-list">
-              <div
-                v-for="(feature, index) in features"
-                :key="index"
-                class="feature-item"
-              >
-                <v-icon
-                  :icon="feature.icon"
-                  color="white"
-                  size="24"
-                />
-                <span>{{ feature.text }}</span>
+  <div class="login-wrapper">
+    <v-container fluid class="login-container">
+      <v-row class="fill-height align-center justify-center">
+        <v-col cols="12" sm="10" md="8" lg="6">
+          <!-- Card Principal -->
+          <v-card elevation="8" rounded="lg" class="login-card">
+            <!-- Logo Section -->
+            <div class="logo-section text-center pa-8 bg-primary">
+              <div class="mb-4">
+                <v-icon icon="mdi-finance" size="64" color="white" />
               </div>
+              <h1 class="text-h4 text-white font-weight-bold mb-2">MrFinanças</h1>
+              <p class="text-white text-opacity-70">Gerencie suas finanças com inteligência</p>
             </div>
-          </div>
-        </div>
-
-        <!-- Lado Direito - Formulário -->
-        <div class="form-side">
-          <div class="form-content">
-            <!-- Logo Mobile -->
-            <div class="logo-mobile">
-              <img
-                src="@/assets/img/2.png"
-                alt="Mr Finanças"
-                class="logo-small"
-              >
-            </div>
-
-            <h2 class="form-title">
-              Entrar na sua conta
-            </h2>
-            <p class="form-subtitle">
-              Digite suas credenciais para continuar
-            </p>
-
-            <!-- Login Social -->
-            <div class="social-login">
-              <v-btn
-                variant="outlined"
-                size="large"
-                block
-                class="social-btn"
-                prepend-icon="mdi-facebook"
-                @click="initiateFacebookLogin"
-              >
-                Continuar com Facebook
-              </v-btn>
-            </div>
-
-            <div class="divider">
-              <span class="divider-text">ou entre com email</span>
-            </div>
-
-            <!-- Mensagem de Erro -->
-            <ErrorMessage />
 
             <!-- Formulário -->
-            <v-form
-              v-model="validForm"
-              @submit.prevent="login"
-            >
-              <v-text-field
-                v-model="user.email"
-                label="Email"
-                type="email"
-                variant="outlined"
-                prepend-inner-icon="mdi-email-outline"
-                :rules="[rules.requiredEmail]"
-                class="mb-4"
-                autofocus
-                autocomplete="email"
-                density="comfortable"
-              />
+            <v-card-text class="pa-8">
+              <h2 class="text-h5 font-weight-bold mb-2">Entrar na sua conta</h2>
+              <p class="text-subtitle-2 text-medium-emphasis mb-6">
+                Bem-vindo de volta! Digite suas credenciais para continuar
+              </p>
 
-              <v-text-field
-                v-model="user.password"
-                label="Senha"
-                :type="showPassword ? 'text' : 'password'"
-                variant="outlined"
-                prepend-inner-icon="mdi-lock-outline"
-                :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-                :rules="[rules.requiredPassword]"
-                class="mb-2"
-                autocomplete="current-password"
-                density="comfortable"
-                @click:append-inner="showPassword = !showPassword"
-              />
+              <v-form ref="form" @submit.prevent="handleLogin">
+                <!-- Email -->
+                <v-text-field
+                  v-model="formData.email"
+                  label="Email"
+                  type="email"
+                  prepend-inner-icon="mdi-email"
+                  variant="outlined"
+                  density="compact"
+                  :rules="[
+                    v => !!v || 'Email é obrigatório',
+                    v => /.+@.+\..+/.test(v) || 'Email deve ser válido'
+                  ]"
+                  class="mb-4"
+                />
 
-              <div class="forgot-password">
-                <a
-                  href="#"
-                  class="forgot-link"
+                <!-- Senha -->
+                <v-text-field
+                  v-model="formData.password"
+                  :label="'Senha'"
+                  :type="showPassword ? 'text' : 'password'"
+                  prepend-inner-icon="mdi-lock"
+                  :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                  @click:append-inner="showPassword = !showPassword"
+                  variant="outlined"
+                  density="compact"
+                  :rules="[v => !!v || 'Senha é obrigatória']"
+                  class="mb-2"
+                />
+
+                <!-- Lembrar-se -->
+                <div class="d-flex justify-space-between align-center mb-6">
+                  <v-checkbox
+                    v-model="formData.remember"
+                    label="Lembrar-me nesta máquina"
+                    density="compact"
+                  />
+                  <v-btn
+                    to="/"
+                    variant="text"
+                    size="small"
+                    color="primary"
+                  >
+                    Esqueceu a senha?
+                  </v-btn>
+                </div>
+
+                <!-- Botão Login -->
+                <v-btn
+                  type="submit"
+                  color="primary"
+                  size="large"
+                  block
+                  class="mb-4"
+                  :loading="loading"
                 >
-                  Esqueceu sua senha?
-                </a>
+                  <v-icon icon="mdi-login" start />
+                  Entrar
+                </v-btn>
+              </v-form>
+
+              <!-- Divider -->
+              <div class="d-flex align-center gap-2 my-6">
+                <v-divider />
+                <span class="text-caption text-medium-emphasis">ou</span>
+                <v-divider />
               </div>
 
+              <!-- Botão Cadastro -->
               <v-btn
-                type="submit"
+                to="/cadastro"
+                variant="outlined"
                 color="primary"
-                size="x-large"
+                size="large"
                 block
-                class="login-btn mt-6"
-                :loading="loading"
-                :disabled="!validForm || loading"
               >
-                Entrar
+                <v-icon icon="mdi-account-plus" start />
+                Criar nova conta
               </v-btn>
+            </v-card-text>
 
-              <div class="register-link">
-                <span>Não tem uma conta? </span>
-                <a
-                  href="#"
-                  @click.prevent="$emit('nextStep')"
-                >
-                  Cadastre-se
-                </a>
-              </div>
-            </v-form>
+            <!-- Footer -->
+            <v-divider />
+            <v-card-text class="text-center text-caption text-medium-emphasis pa-4">
+              Ao fazer login, você concorda com nossos
+              <v-btn variant="text" size="x-small" color="primary">Termos de Uso</v-btn>
+              e
+              <v-btn variant="text" size="x-small" color="primary">Política de Privacidade</v-btn>
+            </v-card-text>
+          </v-card>
+
+          <!-- Indicadores no Fundo -->
+          <div class="text-center mt-6">
+            <v-chip
+              size="small"
+              variant="flat"
+              color="success"
+              text-color="white"
+              class="mr-2"
+            >
+              <v-icon icon="mdi-check-circle" start size="16" />
+              Sistema Online
+            </v-chip>
+            <v-chip
+              size="small"
+              variant="flat"
+              color="info"
+              text-color="white"
+            >
+              <v-icon icon="mdi-lock-outline" start size="16" />
+              Conexão Segura
+            </v-chip>
           </div>
-        </div>
-      </v-card>
-    </div>
-
-    <!-- Errors Modal -->
-    <ErrorsForm />
+        </v-col>
+      </v-row>
+    </v-container>
   </div>
 </template>
 
 <script setup lang="ts">
-import ErrorMessage from "@/components/ErrorMessage.vue";
-import ErrorsForm from "@/components/ModalErrorsForm.vue";
-import http from "@/services/http";
-import {
-  useAuthStore,
-  useDashboardStore,
-  useErrorStore,
-  useUserStore,
-} from "@/store";
-import { useRolesStore } from "@/store/roles";
-import type { ApiErrorResponse, FormLogin, LoginResponse } from "@/types";
-import type { AxiosError, AxiosResponse } from "axios";
-import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-const emit = defineEmits(["nextStep"]);
+const router = useRouter()
 
-// Stores
-const useUser = useUserStore();
-const dashboardStore = useDashboardStore();
-const errorStore = useErrorStore();
-const router = useRouter();
-const useAuth = useAuthStore();
-const rolesStore = useRolesStore();
+const formData = ref({
+  email: '',
+  password: '',
+  remember: false
+})
 
-// State
-const user = ref<FormLogin>({
-  email: "",
-  password: "",
-});
+const showPassword = ref(false)
+const loading = ref(false)
+const form = ref()
 
-const validForm = ref(false);
-const showPassword = ref(false);
-const loading = ref(false);
+async function handleLogin() {
+  const { valid } = await (form.value as any).validate()
+  if (!valid) return
 
-// Features list
-const features = [
-  { icon: "mdi-chart-line", text: "Controle total das suas finanças" },
-  { icon: "mdi-security", text: "Dados seguros e criptografados" },
-  { icon: "mdi-chart-donut", text: "Relatórios e gráficos detalhados" },
-  { icon: "mdi-credit-card", text: "Gestão de cartões de crédito" },
-];
-
-// Validation Rules
-const rules = {
-  requiredEmail: (value: string) => !!value || "Email é obrigatório",
-  requiredPassword: (value: string) => !!value || "Senha é obrigatória",
-};
-
-// Methods
-async function initiateFacebookLogin() {
-  errorStore.unsetError();
-  try {
-    loading.value = true;
-    const response = await http.get("/auth/redirect");
-    window.location.href = response.data.redirect_url;
-  } catch (error) {
-    console.error("Erro ao iniciar login do Facebook", error);
-    loading.value = false;
-  }
+  loading.value = true
+  
+  // Simular delay de login
+  setTimeout(() => {
+    // Mock: aceita email/senha (demo)
+    if (formData.value.email && formData.value.password) {
+      // Salvar dados mock no localStorage
+      localStorage.setItem('userEmail', formData.value.email)
+      localStorage.setItem('userName', 'Usuário Teste')
+      
+      // Redirecionar para dashboard
+      router.push({ name: 'dashboard' })
+    }
+    loading.value = false
+  }, 1500)
 }
-
-const login = async () => {
-  if (!validForm.value) return;
-  errorStore.unsetError();
-
-  // Limpa tokens antigos
-  localStorage.removeItem("token");
-  localStorage.removeItem("sanctum_token");
-
-  try {
-    loading.value = true;
-    const response: AxiosResponse<LoginResponse> = await http.post(
-      "/sanctum/login",
-      user.value
-    );
-
-    if (response.data.token) {
-      useAuth.setToken(response.data.token);
-      useUser.setUserData(response.data.user);
-      if (response.data.mesAno) {
-        useUser.setMesAno(response.data.mesAno);
-      }
-      dashboardStore.setSummary(response.data.summary);
-
-      // Carregar permissões e roles do usuário após login
-      await rolesStore.fetchMyPermissions();
-
-      // Redireciona baseado nas roles
-      if (rolesStore.isAdmin) {
-        await router.push({ name: "admin" });
-      } else if (rolesStore.hasAnyRole(["TRADER", "USER_TRADER"])) {
-        await router.push({ name: "trader" });
-      } else {
-        await router.push({ name: "dashboard" });
-      }
-    }
-  } catch (error) {
-    const axiosError = error as AxiosError<ApiErrorResponse>;
-    if (axiosError.response?.data.errors) {
-      errorStore.setErrorFromForm(axiosError);
-    } else {
-      errorStore.setErrorFromResponse(axiosError);
-    }
-  } finally {
-    loading.value = false;
-  }
-};
 </script>
 
-<style scoped>
-.login-container {
+<style scoped lang="scss">
+.login-wrapper {
   min-height: 100vh;
+  background: linear-gradient(135deg, rgb(var(--v-theme-primary)) 0%, rgba(var(--v-theme-primary), 0.7) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
 }
 
-.login-content {
-  width: 100%;
-  max-width: 1100px;
+.login-container {
+  padding: 2rem;
 }
 
 .login-card {
-  display: flex;
-  overflow: hidden;
-  min-height: 650px;
-}
+  transition: all 0.3s ease;
+  border: none;
 
-/* Lado de Informações */
-.info-side {
-  flex: 1;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 60px 50px;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.info-content {
-  max-width: 400px;
+  &:hover {
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2) !important;
+  }
 }
 
 .logo-section {
-  text-align: center;
-  margin-bottom: 40px;
-}
-
-.logo-large {
-  width: 150px;
-  height: auto;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
-}
-
-.welcome-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 16px;
-  line-height: 1.2;
-}
-
-.welcome-subtitle {
-  font-size: 1.125rem;
-  opacity: 0.9;
-  margin-bottom: 40px;
-  line-height: 1.6;
-}
-
-.features-list {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.feature-item {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  font-size: 1rem;
-  opacity: 0.95;
-}
-
-.feature-item .v-icon {
-  flex-shrink: 0;
-}
-
-/* Lado do Formulário */
-.form-side {
-  flex: 1;
-  background: rgba(58, 58, 58, 0.041);
-  padding: 60px 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.form-content {
-  width: 100%;
-  max-width: 400px;
-}
-
-.logo-mobile {
-  display: none;
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.logo-small {
-  width: 80px;
-  height: auto;
-}
-
-.form-title {
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: #fefefe;
-  margin-bottom: 8px;
-}
-
-.form-subtitle {
-  font-size: 1rem;
-  color: #818a97;
-  margin-bottom: 32px;
-}
-
-/* Social Login */
-.social-login {
-  margin-bottom: 24px;
-}
-
-.social-btn {
-  /* border: 2px solid #e2e8f0; */
-  font-weight: 600;
-  text-transform: none;
-  letter-spacing: 0;
-  background: rgb(14, 10, 236);
-}
-
-/* Divider */
-.divider {
-  position: relative;
-  text-align: center;
-  margin: 24px 0;
-}
-
-.divider::before {
-  content: "";
-  position: absolute;
-  top: 85%;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: #e2e8f0;
-}
-
-.divider-text {
-  position: relative;
-  background: rgba(58, 58, 58, 0.041);
-  padding: 0 16px;
-  color: #fefefe;
-  font-size: 0.875rem;
-}
-
-/* Form Elements */
-.forgot-password {
-  text-align: right;
-  margin-top: 8px;
-}
-
-.forgot-link {
-  color: #667eea;
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.forgot-link:hover {
-  color: #764ba2;
-}
-
-.login-btn {
-  font-weight: 600;
-  text-transform: none;
-  letter-spacing: 0.5px;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.register-link {
-  text-align: center;
-  margin-top: 24px;
-  font-size: 0.9375rem;
-  color: #718096;
-}
-
-.register-link a {
-  color: #667eea;
-  font-weight: 600;
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.register-link a:hover {
-  color: #764ba2;
-}
-
-/* Responsive */
-@media (max-width: 960px) {
-  .info-side {
-    display: none;
-  }
-
-  .logo-mobile {
-    display: block;
-  }
-
-  .form-side {
-    padding: 40px 30px;
-  }
-
-  .login-card {
-    min-height: auto;
-  }
-}
-
-@media (max-width: 600px) {
-  .login-container {
-    padding: 16px;
-  }
-
-  .form-side {
-    padding: 30px 20px;
-  }
-
-  .form-title {
-    font-size: 1.5rem;
-  }
-
-  .form-subtitle {
-    font-size: 0.875rem;
-  }
+  background: linear-gradient(135deg, rgb(var(--v-theme-primary)) 0%, rgba(var(--v-theme-primary), 0.8) 100%);
+  border-radius: 8px 8px 0 0;
 }
 </style>
