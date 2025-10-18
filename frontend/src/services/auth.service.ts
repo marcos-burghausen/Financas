@@ -23,6 +23,13 @@ export interface AuthResponse {
     email: string
     type: string
   }
+  summary?: {
+    saldoAtual: number
+    saldoInicial: number
+    totalReceitas: number
+    totalDespesas: number
+  }
+  mesAno?: string
 }
 
 export interface ErrorResponse {
@@ -62,7 +69,9 @@ class AuthService {
           name: data.name,
           email: data.email,
           type: data.type
-        }
+        },
+        summary: responseData.summary,
+        mesAno: responseData.mesAno
       }
       
       return normalizedResponse
@@ -97,7 +106,9 @@ class AuthService {
           name: responseData.name || credentials.email.split('@')[0],
           email: credentials.email,
           type: responseData.type || 'USER'
-        }
+        },
+        summary: responseData.summary,
+        mesAno: responseData.mesAno
       }
       
       return normalizedResponse

@@ -415,24 +415,25 @@ const formatCurrency = (value: number): string => {
 // Load data
 const loadDashboardData = () => {
   try {
-    // Usar dados reais da API (recebidos no login ou chamada API)
-    // Ou usar dados mock se não houver dados reais
-    const userData = userStore.userData;
+    // Usar dados reais do userStore (recebidos no login)
+    const realSummary = userStore.summary;
     
     summary.value = {
-      receitasMes: userData?.summary?.totalReceitas || 850000,
-      despesasMes: userData?.summary?.totalDespesas || 520000,
-      saldoAtual: userData?.summary?.saldoAtual || 330000,
-      saldoInicial: userData?.summary?.saldoInicial || 0,
-      totalReceitas: userData?.summary?.totalReceitas || 850000,
-      totalDespesas: userData?.summary?.totalDespesas || 520000,
-      pendencias: 150000,
-      receitasRecebidas: 12,
-      despesasPagas: 18,
-      totalPendencias: 5,
+      receitasMes: realSummary?.totalReceitas || 0,
+      despesasMes: realSummary?.totalDespesas || 0,
+      saldoAtual: realSummary?.saldoAtual || 0,
+      saldoInicial: realSummary?.saldoInicial || 0,
+      totalReceitas: realSummary?.totalReceitas || 0,
+      totalDespesas: realSummary?.totalDespesas || 0,
+      pendencias: 0,
+      receitasRecebidas: 0,
+      despesasPagas: 0,
+      totalPendencias: 0,
     };
 
-    const months = ["Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+    const currentMonth = new Date().toLocaleString("pt-BR", { month: "short" });
+    const months = [currentMonth];
+    
     chartOptions.value.bar = {
       chart: {
         type: "bar",
@@ -474,11 +475,11 @@ const loadDashboardData = () => {
     chartSeries.value.bar = [
       {
         name: "Receitas",
-        data: [650000, 720000, 680000, 850000, 790000, 850000],
+        data: [realSummary?.totalReceitas || 0],
       },
       {
         name: "Despesas",
-        data: [450000, 520000, 480000, 550000, 500000, 520000],
+        data: [realSummary?.totalDespesas || 0],
       },
     ];
 

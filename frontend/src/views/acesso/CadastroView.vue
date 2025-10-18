@@ -276,12 +276,17 @@ async function handleCadastro() {
       type: formData.value.tipo
     }
     
-    userStore.setUserData({
-      id: userData.id,
-      name: userData.name,
-      email: userData.email,
-      type: userData.type
-    } as any)
+    // Incluir summary nos dados do usuário se fornecido
+    if (response.summary) {
+      (userData as any).summary = response.summary
+    }
+    
+    userStore.setUserData(userData as any)
+    
+    // Também salvar mesAno se fornecido
+    if (response.mesAno) {
+      userStore.setMesAno(response.mesAno)
+    }
 
     // Mostrar notificação de sucesso
     toastStore.addToast({

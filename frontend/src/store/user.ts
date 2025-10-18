@@ -61,8 +61,10 @@ export const useUserStore = defineStore("user", () => {
     return {
         userData,
         mesAno,
+        summary,
         getMesAno,
         setUserData,
+        setSummary,
         setMesAno,
         loadFromSession,
         clear,

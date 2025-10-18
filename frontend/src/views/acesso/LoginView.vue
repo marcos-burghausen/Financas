@@ -212,7 +212,17 @@ async function handleLogin() {
       type: 'USER'
     }
 
+    // Incluir summary nos dados do usuário se fornecido
+    if (response.summary) {
+      (userData as any).summary = response.summary
+    }
+
     userStore.setUserData(userData)
+    
+    // Também salvar mesAno se fornecido
+    if (response.mesAno) {
+      userStore.setMesAno(response.mesAno)
+    }
 
     // Salvar preferência de "lembrar-me"
     if (formData.value.remember) {
