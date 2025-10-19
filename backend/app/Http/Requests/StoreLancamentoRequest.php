@@ -24,7 +24,7 @@ class StoreLancamentoRequest extends FormRequest
         $this->merge([
             'valor'             => $this->transformValor(),
             'tipo_lancamento'   => $this->transformTipoLancamento(),
-            'recorrencia'       => $this->transformRecorrencia(),
+            // 'recorrencia'       => $this->transformRecorrencia(),
             // 'status_lancamento' => $this->transformStatus(),
             'tipo_parcela'      => $this->input('tipo_parcela') ? strtoupper($this->input('tipo_parcela')) : null,
             'periodicidade'     => $this->input('periodicidade') ? strtoupper($this->input('periodicidade')) : null,

@@ -196,17 +196,26 @@
 
         <template #item.status="{ item }">
           <v-chip
-            :color="getStatusColor(item.status)"
-            :text-color="getStatusTextColor(item.status)"
+            :color="getStatusColor(getStatusReal(item))"
+            :text-color="getStatusTextColor(getStatusReal(item))"
             size="small"
             label
           >
-            {{ getStatusLabel(item.status) }}
+            {{ getStatusLabel(getStatusReal(item)) }}
           </v-chip>
         </template>
 
         <template #item.acoes="{ item }">
           <div class="d-flex gap-1 justify-end">
+            <v-btn
+              v-if="getStatusReal(item) === 'pendente' || getStatusReal(item) === 'atrasada'"
+              icon="mdi-check-circle"
+              size="x-small"
+              variant="text"
+              color="success"
+              @click="efetivarReceita(item)"
+              title="Marcar como recebida"
+            />
             <v-btn
               icon="mdi-pencil"
               size="x-small"
@@ -357,10 +366,12 @@
                         density="compact"
                         style="width: 60px"
                         min="1"
+                        :max="tempNumParcelas"
                       />
                       <v-btn
                         icon="mdi-plus"
                         size="x-small"
+                        :disabled="tempParcelaInicial >= tempNumParcelas"
                         @click="tempParcelaInicial++"
                       />
                     </div>
@@ -483,7 +494,7 @@
             </v-row>
 
             <!-- Row 6: Data de Vencimento -->
-            <v-menu :close-on-content-click="false" transition="scale-transition">
+            <v-menu v-model="menuDataVencimento" :close-on-content-click="false" transition="scale-transition">
               <template #activator="{ props }">
                 <div class="custom__display__input" v-bind="props">
                   <div class="d-flex align-center text-grey">
@@ -519,6 +530,7 @@
             <!-- Row 8: Data de Lançamento (Advanced) -->
             <v-menu
               v-if="informacoes"
+              v-model="menuDataLancamento"
               :close-on-content-click="false"
               transition="scale-transition"
             >
@@ -544,6 +556,7 @@
             <!-- Row 9: Data de Efetivação (Advanced) -->
             <v-menu
               v-if="informacoes"
+              v-model="menuDataEfetivacao"
               :close-on-content-click="false"
               transition="scale-transition"
               class="mt-4"
@@ -604,15 +617,20 @@
 </template>
 
 <script setup lang="ts">
+import { useLancamentos } from '@/composables/useLancamentos';
 import receitasService from '@/services/receitas.service';
+import { useRevenuesStore } from '@/store/revenues';
 import { useToastStore } from '@/store/toast';
 import { useUserStore } from '@/store/user';
+import { useWalletsStore } from '@/store/wallets';
 import { format, isToday, isTomorrow, isValid, isYesterday, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 
 const toastStore = useToastStore();
 const userStore = useUserStore();
+const revenuesStore = useRevenuesStore();
+const walletsStore = useWalletsStore();
 
 // State
 const dialog = ref(false);
@@ -623,6 +641,11 @@ const selectedStatus = ref('');
 const selectedCategoria = ref('');
 const editingId = ref<number | null>(null);
 const itemsPerPage = ref(10);
+
+// ✅ Refs para controlar date pickers
+const menuDataVencimento = ref(false);
+const menuDataLancamento = ref(false);
+const menuDataEfetivacao = ref(false);
 
 // Recurrence State
 const openRecorrenciaModal = ref(false);
@@ -690,7 +713,13 @@ const receitas = ref([
 ]);
 
 const categorias = ref(['Salário', 'Freelancer', 'Bonus', 'Investimento', 'Outros']);
-const categoriasNames = ref(['Salário', 'Freelancer', 'Bonus', 'Investimento', 'Outros']);
+const categoriasNames = computed(() => {
+  // Usa dados do store se disponível, senão usa hardcoded como fallback
+  if (revenuesStore.revenuesData?.categories && revenuesStore.revenuesData.categories.length > 0) {
+    return revenuesStore.revenuesData.categories.map((cat: any) => cat.name);
+  }
+  return ['Salário', 'Freelancer', 'Bonus', 'Investimento', 'Outros'];
+});
 const subcategorias = ref({
   'Salário': ['Salário', 'Décimo terceiro'],
   'Freelancer': ['Projeto', 'Consultoria'],
@@ -699,11 +728,17 @@ const subcategorias = ref({
   'Outros': ['Outros'],
 });
 
-const contas = ref([
-  { id: 1, name: 'Conta Principal' },
-  { id: 2, name: 'Conta Investimento' },
-  { id: 3, name: 'Poupança' },
-]);
+const contas = computed(() => {
+  // Usa dados do store se disponível, senão usa hardcoded como fallback
+  if (walletsStore.walletsData?.contas && walletsStore.walletsData.contas.length > 0) {
+    return walletsStore.walletsData.contas;
+  }
+  return [
+    { id: 1, name: 'Conta Principal' },
+    { id: 2, name: 'Conta Investimento' },
+    { id: 3, name: 'Poupança' },
+  ];
+});
 
 const statusOptions = ref([
   'recebida',
@@ -731,12 +766,34 @@ const formData = ref({
 
 // Computed properties
 const subcategoriasDaCategoriaSelecionada = computed(() => {
+  // Tenta usar dados do store primeiro
+  if (revenuesStore.revenuesData?.categories && revenuesStore.revenuesData.categories.length > 0) {
+    const categoryFound = revenuesStore.revenuesData.categories.find((cat: any) => cat.name === formData.value.categoria);
+    if (categoryFound && categoryFound.subcategories) {
+      return categoryFound.subcategories.map((sub: any) => sub.name);
+    }
+  }
+  // Fallback para dados hardcoded
   return subcategorias.value[formData.value.categoria] || [];
 });
 
 const detalheRecorrencia = computed(() => {
-  if (formData.value.recorrencia === 'Parcelado') {
-    return `${tempNumParcelas.value} parcelas, começando na ${tempParcelaInicial.value}ª - ${tempPeriodicidade.value}`;
+  if (formData.value.recorrencia === 'Parcelado' && formData.value.valor && tempNumParcelas.value > 0) {
+    const valorInput = parseFloat(formData.value.valor.replace(/\./g, '').replace(',', '.'));
+    if (!isNaN(valorInput) && valorInput > 0) {
+      let valorParcela: number;
+      
+      // Se toggle está em 'total', divide o valor pelo número de parcelas
+      // Se toggle está em 'parcela', o valor já é o valor de uma parcela
+      if (tipoCalculoParcela.value === 'total') {
+        valorParcela = valorInput / tempNumParcelas.value;
+      } else {
+        valorParcela = valorInput;
+      }
+      
+      const valorFormatado = valorParcela.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return `Em ${tempNumParcelas.value}x de R$ ${valorFormatado}`;
+    }
   }
   return '';
 });
@@ -759,20 +816,21 @@ const summary = computed(() => ({
   variacaoMes: 5.2,
 }));
 
-const receitasRecebidas = computed(() => receitas.value.filter(r => r.status === 'recebida').length);
-const somaRecebidas = computed(() => receitas.value.filter(r => r.status === 'recebida').reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, '').replace(',', '.')), 0));
+// ✅ Usar getStatusReal para calcular o status baseado em datas
+const receitasRecebidas = computed(() => receitas.value.filter(r => getStatusReal(r) === 'recebida').length);
+const somaRecebidas = computed(() => receitas.value.filter(r => getStatusReal(r) === 'recebida').reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, '').replace(',', '.')), 0));
 
-const receitasPendentes = computed(() => receitas.value.filter(r => r.status === 'pendente').length);
-const somaPendentes = computed(() => receitas.value.filter(r => r.status === 'pendente').reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, '').replace(',', '.')), 0));
+const receitasPendentes = computed(() => receitas.value.filter(r => getStatusReal(r) === 'pendente').length);
+const somaPendentes = computed(() => receitas.value.filter(r => getStatusReal(r) === 'pendente').reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, '').replace(',', '.')), 0));
 
-const receitasAtrasadas = computed(() => receitas.value.filter(r => r.status === 'cancelada').length);
-const somaAtrasadas = computed(() => receitas.value.filter(r => r.status === 'cancelada').reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, '').replace(',', '.')), 0));
+const receitasAtrasadas = computed(() => receitas.value.filter(r => getStatusReal(r) === 'atrasada').length);
+const somaAtrasadas = computed(() => receitas.value.filter(r => getStatusReal(r) === 'atrasada').reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, '').replace(',', '.')), 0));
 
 // Filtered receitas
 const filteredReceitas = computed(() => {
   return receitas.value.filter(r => {
     const matchText = !searchText.value || r.descricao.toLowerCase().includes(searchText.value.toLowerCase());
-    const matchStatus = !selectedStatus.value || r.status === selectedStatus.value;
+    const matchStatus = !selectedStatus.value || getStatusReal(r) === selectedStatus.value;
     const matchCategoria = !selectedCategoria.value || r.categoria === selectedCategoria.value;
     return matchText && matchStatus && matchCategoria;
   });
@@ -843,10 +901,68 @@ const formatDateForDisplay = (dateValue: string | Date | undefined | null): stri
   return `${diaAbreviadoCapitalizado}., ${dataFormatada}`;
 };
 
+// ✅ Formatar data para enviar ao backend (YYYY-MM-DD)
+const formatDateForBackend = (dateValue: string | Date | undefined | null): string => {
+  if (!dateValue) return '';
+  
+  try {
+    // Se for string ISO com timezone, extrair apenas a data
+    if (typeof dateValue === 'string' && dateValue.includes('T')) {
+      return dateValue.split('T')[0]; // "2025-10-09T03:00:00.000Z" → "2025-10-09"
+    }
+    
+    // Se for string em formato YYYY-MM-DD, retornar como está
+    if (typeof dateValue === 'string' && dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      return dateValue;
+    }
+    
+    // Se for Date object, formatar
+    if (dateValue instanceof Date) {
+      const year = dateValue.getFullYear();
+      const month = String(dateValue.getMonth() + 1).padStart(2, '0');
+      const day = String(dateValue.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+    
+    return '';
+  } catch (error) {
+    console.error('Erro ao formatar data:', dateValue, error);
+    return '';
+  }
+};
+
+// ✅ Função para calcular o status real baseado na data de vencimento
+const getStatusReal = (receita: any): string => {
+  // Se status for EFETIVADA (recebida), retorna recebida
+  if (receita.status_lancamento === 'EFETIVADA') {
+    return 'recebida';
+  }
+  
+  // Se status for PENDENTE, verifica se está atrasada
+  if (receita.status_lancamento === 'PENDENTE') {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    
+    let dataVencimento = new Date(receita.data_vencimento);
+    dataVencimento.setHours(0, 0, 0, 0);
+    
+    // Se a data de vencimento é anterior a hoje, está atrasada
+    if (dataVencimento < hoje) {
+      return 'atrasada';
+    }
+    
+    return 'pendente';
+  }
+  
+  // Fallback
+  return receita.status || 'pendente';
+};
+
 const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
     recebida: 'success',
     pendente: 'warning',
+    atrasada: 'error',
     cancelada: 'error',
   };
   return colors[status] || 'default';
@@ -860,6 +976,7 @@ const getStatusLabel = (status: string) => {
   const labels: Record<string, string> = {
     recebida: 'Recebida',
     pendente: 'Pendente',
+    atrasada: 'Atrasada',
     cancelada: 'Cancelada',
   };
   return labels[status] || status;
@@ -867,6 +984,23 @@ const getStatusLabel = (status: string) => {
 
 const toggleStatus = () => {
   formData.value.status_lancamento = formData.value.status_lancamento === 'EFETIVADA' ? 'PENDENTE' : 'EFETIVADA';
+};
+
+// Carrega dados do formulário da API
+const loadFormData = async () => {
+  try {
+    // Load revenues categories if needed
+    if (!revenuesStore.revenuesData?.categories || revenuesStore.revenuesData.categories.length === 0) {
+      const { updateData: updateRevenuesData } = useLancamentos('receita');
+      await updateRevenuesData();
+    }
+    // Load wallets if needed
+    if (!walletsStore.walletsData?.contas || walletsStore.walletsData.contas.length === 0) {
+      walletsStore.loadFromSession();
+    }
+  } catch (error) {
+    console.error('Erro ao carregar dados do formulário:', error);
+  }
 };
 
 const selecionarRecorrencia = (item: string) => {
@@ -882,8 +1016,10 @@ const concluirParcelas = () => {
   openParcelas.value = false;
 };
 
-const openAddDialog = () => {
+const openAddDialog = async () => {
   editingId.value = null;
+  // Carrega dados dos stores se ainda não estiverem carregados
+  await loadFormData();
   formData.value = {
     descricao: '',
     categoria: '',
@@ -895,7 +1031,7 @@ const openAddDialog = () => {
     recorrencia: 'Não recorrente',
     status_lancamento: 'PENDENTE',
     subcategoria: '',
-    conta_id: 1,
+    conta_id: contas.value[0]?.id || 1,
     data_lancamento: new Date().toISOString().split('T')[0],
     data_efetivacao: null,
     observacoes: '',
@@ -909,25 +1045,130 @@ const editReceita = (receita: any) => {
   dialog.value = true;
 };
 
-const deleteReceita = (id: number) => {
+const deleteReceita = async (id: number) => {
   if (confirm('Tem certeza que deseja deletar esta receita?')) {
-    receitas.value = receitas.value.filter(r => r.id !== id);
+    try {
+      loading.value = true;
+      await receitasService.delete(id);
+      toastStore.success('Receita deletada com sucesso!');
+      await loadReceitas();
+    } catch (error: any) {
+      console.error('Erro ao deletar receita:', error);
+      toastStore.error(error.message || 'Erro ao deletar receita');
+    } finally {
+      loading.value = false;
+    }
   }
 };
 
-const saveReceita = () => {
-  if (editingId.value) {
-    // Update
-    const index = receitas.value.findIndex(r => r.id === editingId.value);
-    if (index !== -1) {
-      receitas.value[index] = { ...formData.value, id: editingId.value };
-    }
-  } else {
-    // Create
-    const newId = Math.max(...receitas.value.map(r => r.id), 0) + 1;
-    receitas.value.push({ ...formData.value, id: newId });
+const efetivarReceita = async (receita: any) => {
+  try {
+    loading.value = true;
+    const payload = {
+      ...receita,
+      status_lancamento: 'EFETIVADA',
+      data_vencimento: formatDateForBackend(receita.data_vencimento),
+      data_lancamento: formatDateForBackend(receita.data_lancamento),
+      data_efetivacao: formatDateForBackend(receita.data_efetivacao),
+      tipo_lancamento: 'Receita'
+    };
+    
+    await receitasService.update(receita.id, payload);
+    toastStore.success('Receita efetivada com sucesso!');
+    await loadReceitas();
+  } catch (error: any) {
+    console.error('Erro ao efetivar receita:', error);
+    toastStore.error(error.message || 'Erro ao efetivar receita');
+  } finally {
+    loading.value = false;
   }
-  dialog.value = false;
+};
+
+const saveReceita = async () => {
+  loading.value = true;
+  try {
+    // Validar formulário
+    if (!formRef.value?.validate()) {
+      throw new Error('Preencha todos os campos obrigatórios');
+    }
+
+    // Mapear recorrência para formato da API (MAIÚSCULAS)
+    const recorrenciaMap: { [key: string]: string } = {
+      'Não recorrente': 'NAO_RECORRENTE',
+      'Fixa': 'FIXA',
+      'Parcelado': 'PARCELADO',
+    };
+
+    // Obter mesAno no formato YYYY-MM
+    const mesAno = userStore.getMesAno?.() || new Date().toISOString().slice(0, 7);
+
+    // ✅ Construir payload com TODOS os campos esperados pelo backend
+    const payload: any = {
+      // Campos obrigatórios
+      descricao: formData.value.descricao,
+      valor: formData.value.valor,  // STRING formatada "10,00", backend faz conversão
+      tipo_lancamento: 'Receita',   // ✅ "Receita" (backend transforma para RECEITA)
+      recorrencia: recorrenciaMap[formData.value.recorrencia] || 'NAO_RECORRENTE',
+      status_lancamento: formData.value.status_lancamento || 'PENDENTE',
+      categoria: formData.value.categoria,
+      subcategoria: formData.value.subcategoria,
+      conta_id: formData.value.conta_id,
+      data_vencimento: formatDateForBackend(formData.value.data_vencimento),  // ✅ Formatar para YYYY-MM-DD
+      data_lancamento: formatDateForBackend(formData.value.data_lancamento),  // ✅ Formatar para YYYY-MM-DD
+      mesAno: mesAno,
+      
+      // Campos da interface Lancamento (preenchidos com valores padrão)
+      id: editingId.value && formData.value.recorrencia === 'Não recorrente' ? editingId.value : null,
+      invoice_id: null,
+      is_estorno: false,
+      original_lancamento_id: null,
+      data_efetivacao: formatDateForBackend(formData.value.data_efetivacao),  // ✅ Formatar se existir
+      observacoes: formData.value.observacoes || null,
+      fatura: null,
+      cartao_id: null,
+      user_id: null,
+    };
+
+    // Se for parcelado, adicionar dados de parcelas (MAIÚSCULAS)
+    if (formData.value.recorrencia === 'Parcelado') {
+      payload.qtd_parcelas = tempNumParcelas.value;
+      payload.num_parcela = tempParcelaInicial.value;
+      payload.tipo_parcela = tipoCalculoParcela.value?.toLowerCase() || 'total'; // total ou parcela
+      payload.periodicidade = tempPeriodicidade.value?.toUpperCase() || 'MENSAL';
+    } else {
+      payload.qtd_parcelas = null;
+      payload.num_parcela = null;
+      payload.tipo_parcela = null;
+      payload.periodicidade = null;
+    }
+
+    console.log('Payload enviado:', payload);
+
+    if (editingId.value && formData.value.recorrencia === 'Não recorrente') {
+      // ATUALIZAR apenas se for Não recorrente
+      await receitasService.update(editingId.value, payload);
+      toastStore.success('Receita atualizada com sucesso!');
+    } else {
+      // CRIAR novo lançamento
+      await receitasService.create(payload);
+      if (editingId.value) {
+        // Se estava editando FIXA ou PARCELADO, apagar o antigo
+        await receitasService.delete(editingId.value);
+        toastStore.success('Receita atualizada com sucesso!');
+      } else {
+        toastStore.success('Receita criada com sucesso!');
+      }
+    }
+
+    // Fechar modal e recarregar dados
+    dialog.value = false;
+    await loadReceitas();
+  } catch (error: any) {
+    console.error('Erro ao salvar receita:', error);
+    toastStore.error(error.message || 'Erro ao salvar receita');
+  } finally {
+    loading.value = false;
+  }
 };
 
 const resetFilters = () => {
@@ -939,20 +1180,57 @@ const resetFilters = () => {
 // Carregar receitas da API
 const loadReceitas = async () => {
   try {
+    loading.value = true;
     const mesAno = userStore.getMesAno?.();
     const data = await receitasService.list(mesAno);
+    
     if (data && data.length > 0) {
       receitas.value = data.map((r: any) => ({
-        ...r,
-        valor: r.valor || 0,
-        status: r.status || 'pendente'
+        id: r.id,
+        descricao: r.descricao,
+        valor: r.valor || 0, // Valor em centavos da API
+        categoria: r.categoria,  // ✅ Sem fallback
+        subcategoria: r.subcategoria,  // ✅ Sem fallback
+        conta: r.conta?.name || 'Conta',
+        conta_id: r.conta_id,
+        data_vencimento: r.data_vencimento,
+        status: r.status_lancamento === 'EFETIVADA' ? 'recebida' : 'pendente',
+        observacao: r.observacao || '',
+        recorrencia: r.recorrencia || 'Não recorrente',
+        status_lancamento: r.status_lancamento || 'PENDENTE',
+        data_lancamento: r.data_lancamento,
+        data_efetivacao: r.data_efetivacao,
+        observacoes: r.observacoes || '',
       }));
+    } else {
+      receitas.value = [];
     }
   } catch (error: any) {
-    console.warn('Erro ao carregar receitas, usando dados mock:', error?.message);
-    // Manter dados mock se API falhar
+    console.warn('Erro ao carregar receitas:', error?.message);
+    toastStore.warning('Erro ao carregar receitas');
+  } finally {
+    loading.value = false;
   }
 };
+
+// ✅ Watchers para fechar date pickers automaticamente após seleção
+watch(() => formData.value.data_vencimento, (newVal) => {
+  if (newVal) {
+    menuDataVencimento.value = false; // Fechar date picker
+  }
+});
+
+watch(() => formData.value.data_lancamento, (newVal) => {
+  if (newVal) {
+    menuDataLancamento.value = false; // Fechar date picker
+  }
+});
+
+watch(() => formData.value.data_efetivacao, (newVal) => {
+  if (newVal) {
+    menuDataEfetivacao.value = false; // Fechar date picker
+  }
+});
 
 onMounted(() => {
   loadReceitas();

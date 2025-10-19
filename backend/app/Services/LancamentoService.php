@@ -24,10 +24,12 @@ class LancamentoService
      */
     public function createLancamento(array $data, User $user): void
     {
+        info($data);
 
         if ($data['tipo_lancamento'] === 'CARTAO_CREDITO') {
             $this->createCreditCardLancamento($data, $user);
         } else {
+            info('Criando lançamento padrão (Receita/Despesa)');
             $this->createStandardLancamento($data, $user);
         }
     }

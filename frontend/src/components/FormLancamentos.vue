@@ -177,10 +177,11 @@
                       @click="decrementParcelaInicial"
                     />
                     <input
-                      v-model="tempParcelaInicial"
+                      v-model.number="tempParcelaInicial"
                       type="number"
                       class="stepper__input"
                       min="1"
+                      :max="tempNumParcelas"
                     >
                     <v-btn
                       prepend-icon="mdi-chevron-up"
@@ -674,6 +675,7 @@ import ErrorMessage from "@/components/ErrorMessage.vue";
 import ErrorsForm from "@/components/ModalErrorsForm.vue";
 
 // Services and Stores
+import { useLancamentos } from "@/composables/useLancamentos";
 import http from "@/services/http";
 import { useErrorStore, useExpensesStore, useRevenuesStore, useUserStore, useWalletsStore } from "@/store";
 
@@ -877,13 +879,36 @@ watch(() => formReleases.value.cartao_id, (newCardId) => {
 
 
 // 6. LIFECYCLE HOOKS
-onMounted(() => {
+onMounted(async () => {
   initializeForm();
+  // Load categories and wallets from API
+  await loadFormData();
 });
 
 // 7. METHODS
 
 // Form Initialization
+const loadFormData = async () => {
+  try {
+    // Load revenues categories if needed
+    if (props.transactionType === "Receita" && (!useRevenues.revenuesData.categories || useRevenues.revenuesData.categories.length === 0)) {
+      const { updateData: updateRevenuesData } = useLancamentos("receita");
+      await updateRevenuesData();
+    }
+    // Load expenses categories if needed
+    if (props.transactionType === "Despesa" && (!useExpenses.expensesData.categories || useExpenses.expensesData.categories.length === 0)) {
+      const { updateData: updateExpensesData } = useLancamentos("despesa");
+      await updateExpensesData();
+    }
+    // Load wallets if needed
+    if (!walletsStore.walletsData.contas || walletsStore.walletsData.contas.length === 0) {
+      walletsStore.loadFromSession();
+    }
+  } catch (error) {
+    console.error("Erro ao carregar dados do formulário:", error);
+  }
+};
+
 const initializeForm = () => {
   const hoje = format(new Date(), "yyyy-MM-dd");
 
@@ -1035,7 +1060,11 @@ const selecionarRecorrencia = (item: "Não recorrente" | "Fixa" | "Parcelado") =
   }
 };
 
-const incrementParcelaInicial = () => tempParcelaInicial.value++;
+const incrementParcelaInicial = () => {
+  if (tempParcelaInicial.value < tempNumParcelas.value) {
+    tempParcelaInicial.value++;
+  }
+};
 const decrementParcelaInicial = () => { if (tempParcelaInicial.value > 1) tempParcelaInicial.value--; };
 const incrementQuantidade = () => tempNumParcelas.value++;
 const decrementQuantidade = () => { if (tempNumParcelas.value > 2) tempNumParcelas.value--; };
@@ -1254,7 +1283,7 @@ const rules = {
   background-color: rgba(255, 255, 255, 0.7);
 }
 .tipo {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;

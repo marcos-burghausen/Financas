@@ -2,21 +2,35 @@
 import http from './http'
 
 export interface Despesa {
-  id?: number
+  id?: number | null
+  user_id?: number | null
+  invoice_id?: number | null
   descricao: string
-  valor: number
+  valor: string // Valor em formato string "10,00" ou número
   categoria: string
   subcategoria?: string
-  conta_id: number
+  conta_id?: number | null
   data_vencimento: string
-  data_lancamento?: string
-  data_efetivacao?: string
-  status: 'pendente' | 'paga' | 'cancelada'
-  status_lancamento?: string
+  data_lancamento?: string | Date
+  data_efetivacao?: string | Date | null
+  status?: 'pendente' | 'paga' | 'cancelada'
+  status_lancamento?: 'EFETIVADA' | 'PENDENTE'
   observacao?: string
-  recorrencia?: string
+  observacoes?: string | null
+  recorrencia?: "Não recorrente" | "Fixa" | "Parcelado"
   forma_pagamento?: string
-  tipo: 'despesa' // Tipo de lancamento
+  tipo?: 'despesa' // Tipo de lancamento (frontend)
+  tipo_lancamento?: string // Tipo de lancamento (API - RECEITA, DESPESA, etc)
+  mesAno?: string // Mês/ano no formato YYYY-MM
+  qtd_parcelas?: number | null
+  num_parcela?: number | null
+  tipo_parcela?: "total" | "parcela" | null
+  periodicidade?: "Mensal" | "Diario" | "Semanal" | "Quinzenal" | "Bimestral" | "Trimenstral" | "Anual" | null
+  is_estorno?: boolean
+  original_lancamento_id?: number | null
+  fatura?: string | null // "YYYY-MM"
+  cartao_id?: number | null
+  conta_model?: { id: number; nome: string }
 }
 
 class DespesasService {
@@ -44,8 +58,8 @@ class DespesasService {
     try {
       const payload = {
         ...data,
-        tipo: 'despesa',
-        tipo_lancamento: 'despesa'
+        // Garantir que tipo_lancamento seja 'DESPESA' (MAIÚSCULA)
+        tipo_lancamento: data.tipo_lancamento || 'DESPESA'
       }
       const response = await http.post<any>('/lancamentos', payload)
       return response.data?.data || response.data
@@ -93,13 +107,40 @@ class DespesasService {
    * Tratamento de erros padronizado
    */
   private handleError(error: any): Error {
-    if (error.response?.data?.message) {
-      return new Error(error.response.data.message)
+    console.error('DespesasService Error:', error);
+    
+    // Se temos resposta com erro
+    if (error.response?.data) {
+      const data = error.response.data;
+      
+      // Se tem mensagem de erro
+      if (data.message) {
+        return new Error(data.message);
+      }
+      
+      // Se tem erros de validação (Laravel)
+      if (data.errors) {
+        const errors = data.errors;
+        const firstError = Object.values(errors)[0];
+        if (Array.isArray(firstError)) {
+          return new Error(firstError[0]);
+        }
+        return new Error(JSON.stringify(errors));
+      }
+      
+      // Se tem erro geral
+      if (data.error) {
+        return new Error(data.error);
+      }
     }
-    if (error.response?.data?.error) {
-      return new Error(error.response.data.error)
+    
+    // Se temos mensagem de erro da resposta
+    if (error.response?.statusText) {
+      return new Error(`${error.response.status} - ${error.response.statusText}`);
     }
-    return error
+    
+    // Erro genérico
+    return error || new Error('Erro desconhecido ao salvar despesa');
   }
 }
 

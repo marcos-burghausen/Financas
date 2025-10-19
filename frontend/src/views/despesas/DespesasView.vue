@@ -196,16 +196,25 @@
 
         <template #item.status="{ item }">
           <v-chip
-            :color="getStatusColor(item.status)"
-            :text-color="getStatusTextColor(item.status)"
+            :color="getStatusColor(getStatusReal(item))"
+            :text-color="getStatusTextColor(getStatusReal(item))"
             size="small"
           >
-            {{ getStatusLabel(item.status) }}
+            {{ getStatusLabel(getStatusReal(item)) }}
           </v-chip>
         </template>
 
         <template #item.acoes="{ item }">
           <div class="d-flex gap-2 justify-end">
+            <v-btn
+              v-if="getStatusReal(item) === 'pendente' || getStatusReal(item) === 'atrasada'"
+              icon="mdi-check-circle"
+              variant="text"
+              size="small"
+              color="success"
+              @click="efetivarDespesa(item)"
+              title="Marcar como paga"
+            />
             <v-btn
               icon="mdi-pencil"
               variant="text"
@@ -347,9 +356,10 @@
 </template>
 
 <script setup lang="ts">
+import despesasService from '@/services/despesas.service';
 import { useToastStore } from '@/store/toast';
 import { useUserStore } from '@/store/user';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 
 const toastStore = useToastStore();
 const userStore = useUserStore();
@@ -362,6 +372,11 @@ const selectedStatus = ref('');
 const selectedCategoria = ref('');
 const editingId = ref<number | null>(null);
 const itemsPerPage = ref(10);
+
+// ✅ Refs para controlar date pickers
+const menuDataVencimento = ref(false);
+const menuDataLancamento = ref(false);
+const menuDataEfetivacao = ref(false);
 
 // Mock data
 const despesas = ref([
@@ -410,20 +425,20 @@ const summary = computed(() => ({
   variacaoMes: 8.5,
 }));
 
-const despesasPagas = computed(() => despesas.value.filter(d => d.status === 'paga').length);
-const somaPagas = computed(() => despesas.value.filter(d => d.status === 'paga').reduce((sum, d) => sum + d.valor, 0));
+const despesasPagas = computed(() => despesas.value.filter(d => getStatusReal(d) === 'paga').length);
+const somaPagas = computed(() => despesas.value.filter(d => getStatusReal(d) === 'paga').reduce((sum, d) => sum + d.valor, 0));
 
-const despesasPendentes = computed(() => despesas.value.filter(d => d.status === 'pendente').length);
-const somaPendentes = computed(() => despesas.value.filter(d => d.status === 'pendente').reduce((sum, d) => sum + d.valor, 0));
+const despesasPendentes = computed(() => despesas.value.filter(d => getStatusReal(d) === 'pendente').length);
+const somaPendentes = computed(() => despesas.value.filter(d => getStatusReal(d) === 'pendente').reduce((sum, d) => sum + d.valor, 0));
 
-const despesasAtrasadas = computed(() => despesas.value.filter(d => d.status === 'cancelada').length);
-const somaAtrasadas = computed(() => despesas.value.filter(d => d.status === 'cancelada').reduce((sum, d) => sum + d.valor, 0));
+const despesasAtrasadas = computed(() => despesas.value.filter(d => getStatusReal(d) === 'atrasada').length);
+const somaAtrasadas = computed(() => despesas.value.filter(d => getStatusReal(d) === 'atrasada').reduce((sum, d) => sum + d.valor, 0));
 
 // Filtered despesas
 const filteredDespesas = computed(() => {
   return despesas.value.filter(d => {
     const matchText = !searchText.value || d.descricao.toLowerCase().includes(searchText.value.toLowerCase());
-    const matchStatus = !selectedStatus.value || d.status === selectedStatus.value;
+    const matchStatus = !selectedStatus.value || getStatusReal(d) === selectedStatus.value;
     const matchCategoria = !selectedCategoria.value || d.categoria === selectedCategoria.value;
     return matchText && matchStatus && matchCategoria;
   });
@@ -445,10 +460,38 @@ const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString('pt-BR');
 };
 
+// ✅ Função para calcular o status real baseado na data de vencimento
+const getStatusReal = (despesa: any): string => {
+  // Se status for EFETIVADA (paga), retorna paga
+  if (despesa.status_lancamento === 'EFETIVADA') {
+    return 'paga';
+  }
+  
+  // Se status for PENDENTE, verifica se está atrasada
+  if (despesa.status_lancamento === 'PENDENTE') {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    
+    let dataVencimento = new Date(despesa.data_vencimento);
+    dataVencimento.setHours(0, 0, 0, 0);
+    
+    // Se a data de vencimento é anterior a hoje, está atrasada
+    if (dataVencimento < hoje) {
+      return 'atrasada';
+    }
+    
+    return 'pendente';
+  }
+  
+  // Fallback
+  return despesa.status || 'pendente';
+};
+
 const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
     paga: 'success',
     pendente: 'warning',
+    atrasada: 'error',
     cancelada: 'error',
   };
   return colors[status] || 'default';
@@ -462,6 +505,7 @@ const getStatusLabel = (status: string) => {
   const labels: Record<string, string> = {
     paga: 'Paga',
     pendente: 'Pendente',
+    atrasada: 'Atrasada',
     cancelada: 'Cancelada',
   };
   return labels[status] || status;
@@ -487,25 +531,130 @@ const editDespesa = (despesa: any) => {
   dialog.value = true;
 };
 
-const deleteDespesa = (id: number) => {
+const deleteDespesa = async (id: number) => {
   if (confirm('Tem certeza que deseja deletar esta despesa?')) {
-    despesas.value = despesas.value.filter(d => d.id !== id);
+    try {
+      loading.value = true;
+      await despesasService.delete(id);
+      toastStore.success('Despesa deletada com sucesso!');
+      await loadDespesas();
+    } catch (error: any) {
+      console.error('Erro ao deletar despesa:', error);
+      toastStore.error(error.message || 'Erro ao deletar despesa');
+    } finally {
+      loading.value = false;
+    }
   }
 };
 
-const saveDespesa = () => {
-  if (editingId.value) {
-    // Update
-    const index = despesas.value.findIndex(d => d.id === editingId.value);
-    if (index !== -1) {
-      despesas.value[index] = { ...formData.value, id: editingId.value };
-    }
-  } else {
-    // Create
-    const newId = Math.max(...despesas.value.map(d => d.id), 0) + 1;
-    despesas.value.push({ ...formData.value, id: newId });
+const efetivarDespesa = async (despesa: any) => {
+  try {
+    loading.value = true;
+    const payload = {
+      ...despesa,
+      status_lancamento: 'EFETIVADA',
+      data_vencimento: formatDateForBackend(despesa.data_vencimento),
+      data_lancamento: formatDateForBackend(despesa.data_lancamento),
+      data_efetivacao: formatDateForBackend(despesa.data_efetivacao),
+      tipo_lancamento: 'Despesa'
+    };
+    
+    await despesasService.update(despesa.id, payload);
+    toastStore.success('Despesa paga com sucesso!');
+    await loadDespesas();
+  } catch (error: any) {
+    console.error('Erro ao efetivar despesa:', error);
+    toastStore.error(error.message || 'Erro ao efetivar despesa');
+  } finally {
+    loading.value = false;
   }
-  dialog.value = false;
+};
+
+const saveDespesa = async () => {
+  loading.value = true;
+  try {
+    // Validar formulário
+    if (!formRef.value?.validate()) {
+      throw new Error('Preencha todos os campos obrigatórios');
+    }
+
+    // Mapear recorrência para formato da API (MAIÚSCULAS)
+    const recorrenciaMap: { [key: string]: string } = {
+      'Não recorrente': 'NAO_RECORRENTE',
+      'Fixa': 'FIXA',
+      'Parcelado': 'PARCELADO',
+    };
+
+    // Obter mesAno no formato YYYY-MM
+    const mesAno = userStore.getMesAno?.() || new Date().toISOString().slice(0, 7);
+
+    // ✅ Construir payload com TODOS os campos esperados pelo backend
+    const payload: any = {
+      // Campos obrigatórios
+      descricao: formData.value.descricao,
+      valor: formData.value.valor,  // STRING formatada "10,00", backend faz conversão
+      tipo_lancamento: 'Despesa',   // ✅ "Despesa" (backend transforma para DESPESA)
+      recorrencia: recorrenciaMap[formData.value.recorrencia] || 'NAO_RECORRENTE',
+      status_lancamento: formData.value.status_lancamento || 'PENDENTE',
+      categoria: formData.value.categoria,
+      subcategoria: formData.value.subcategoria,
+      conta_id: formData.value.conta_id,
+      data_vencimento: formatDateForBackend(formData.value.data_vencimento),  // ✅ Formatar para YYYY-MM-DD
+      data_lancamento: formatDateForBackend(formData.value.data_lancamento),  // ✅ Formatar para YYYY-MM-DD
+      mesAno: mesAno,
+      
+      // Campos da interface Lancamento (preenchidos com valores padrão)
+      id: editingId.value && formData.value.recorrencia === 'Não recorrente' ? editingId.value : null,
+      invoice_id: null,
+      is_estorno: false,
+      original_lancamento_id: null,
+      data_efetivacao: formatDateForBackend(formData.value.data_efetivacao),  // ✅ Formatar se existir
+      observacoes: formData.value.observacoes || null,
+      fatura: null,
+      cartao_id: null,
+      user_id: null,
+    };
+
+    // Se for parcelado, adicionar dados de parcelas (MAIÚSCULAS)
+    if (formData.value.recorrencia === 'Parcelado') {
+      payload.qtd_parcelas = tempNumParcelas.value;
+      payload.num_parcela = tempParcelaInicial.value;
+      payload.tipo_parcela = tipoCalculoParcela.value?.toLowerCase() || 'total'; // total ou parcela
+      payload.periodicidade = tempPeriodicidade.value?.toUpperCase() || 'MENSAL';
+    } else {
+      payload.qtd_parcelas = null;
+      payload.num_parcela = null;
+      payload.tipo_parcela = null;
+      payload.periodicidade = null;
+    }
+
+    console.log('Payload enviado:', payload);
+
+    if (editingId.value && formData.value.recorrencia === 'Não recorrente') {
+      // ATUALIZAR apenas se for Não recorrente
+      await despesasService.update(editingId.value, payload);
+      toastStore.success('Despesa atualizada com sucesso!');
+    } else {
+      // CRIAR novo lançamento
+      await despesasService.create(payload);
+      if (editingId.value) {
+        // Se estava editando FIXA ou PARCELADO, apagar o antigo
+        await despesasService.delete(editingId.value);
+        toastStore.success('Despesa atualizada com sucesso!');
+      } else {
+        toastStore.success('Despesa criada com sucesso!');
+      }
+    }
+
+    // Fechar modal e recarregar dados
+    dialog.value = false;
+    await loadDespesas();
+  } catch (error: any) {
+    console.error('Erro ao salvar despesa:', error);
+    toastStore.error(error.message || 'Erro ao salvar despesa');
+  } finally {
+    loading.value = false;
+  }
 };
 
 const resetFilters = () => {
@@ -517,20 +666,86 @@ const resetFilters = () => {
 // Carregar despesas da API
 const loadDespesas = async () => {
   try {
+    loading.value = true;
     const mesAno = userStore.getMesAno?.();
     const data = await despesasService.list(mesAno);
     if (data && data.length > 0) {
       despesas.value = data.map((d: any) => ({
-        ...d,
-        valor: d.valor || 0,
-        status: d.status || 'pendente'
+        id: d.id,
+        descricao: d.descricao,
+        valor: d.valor || 0,  // Valor em centavos da API
+        categoria: d.categoria,  // ✅ Sem fallback
+        subcategoria: d.subcategoria,  // ✅ Sem fallback
+        conta: d.conta?.name || 'Conta',
+        conta_id: d.conta_id,
+        data_vencimento: d.data_vencimento,
+        status: d.status_lancamento === 'EFETIVADA' ? 'paga' : 'pendente',
+        observacao: d.observacao || '',
+        recorrencia: d.recorrencia || 'Não recorrente',
+        status_lancamento: d.status_lancamento || 'PENDENTE',
+        data_lancamento: d.data_lancamento,
+        data_efetivacao: d.data_efetivacao,
+        observacoes: d.observacoes || '',
       }));
+    } else {
+      despesas.value = [];
     }
   } catch (error: any) {
-    console.warn('Erro ao carregar despesas, usando dados mock:', error?.message);
-    // Manter dados mock se API falhar
+    console.warn('Erro ao carregar despesas:', error?.message);
+    toastStore.warning('Erro ao carregar despesas');
+  } finally {
+    loading.value = false;
   }
 };
+
+// ✅ Formatar data para enviar ao backend (YYYY-MM-DD)
+const formatDateForBackend = (dateValue: string | Date | undefined | null): string => {
+  if (!dateValue) return '';
+  
+  try {
+    // Se for string ISO com timezone, extrair apenas a data
+    if (typeof dateValue === 'string' && dateValue.includes('T')) {
+      return dateValue.split('T')[0]; // "2025-10-09T03:00:00.000Z" → "2025-10-09"
+    }
+    
+    // Se for string em formato YYYY-MM-DD, retornar como está
+    if (typeof dateValue === 'string' && dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      return dateValue;
+    }
+    
+    // Se for Date object, formatar
+    if (dateValue instanceof Date) {
+      const year = dateValue.getFullYear();
+      const month = String(dateValue.getMonth() + 1).padStart(2, '0');
+      const day = String(dateValue.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+    
+    return '';
+  } catch (error) {
+    console.error('Erro ao formatar data:', dateValue, error);
+    return '';
+  }
+};
+
+// ✅ Watchers para fechar date pickers automaticamente após seleção
+watch(() => formData.value.data_vencimento, (newVal) => {
+  if (newVal) {
+    menuDataVencimento.value = false; // Fechar date picker
+  }
+});
+
+watch(() => formData.value.data_lancamento, (newVal) => {
+  if (newVal) {
+    menuDataLancamento.value = false; // Fechar date picker
+  }
+});
+
+watch(() => formData.value.data_efetivacao, (newVal) => {
+  if (newVal) {
+    menuDataEfetivacao.value = false; // Fechar date picker
+  }
+});
 
 onMounted(() => {
   loadDespesas();
