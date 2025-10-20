@@ -235,8 +235,8 @@
                 >
                   <div class="d-flex align-center justify-space-between">
                     <div class="d-flex align-center gap-3 flex-grow-1 min-width-0">
-                      <v-avatar size="40" :color="transaction.type === 'receita' ? 'success' : 'error'" variant="tonal">
-                        <v-icon :icon="transaction.type === 'receita' ? 'mdi-cash-plus' : 'mdi-cash-remove'" />
+                      <v-avatar size="40" :color="transaction.tipo === 'receita' ? 'success' : 'error'" variant="tonal">
+                        <v-icon :icon="transaction.tipo === 'receita' ? 'mdi-cash-plus' : 'mdi-cash-remove'" />
                       </v-avatar>
                       <div class="min-width-0">
                         <p class="text-subtitle-2 mb-0 text-truncate">
@@ -249,9 +249,9 @@
                     </div>
                     <p
                       class="text-subtitle-2 font-weight-bold mb-0"
-                      :class="{ 'text-success': transaction.type === 'receita', 'text-error': transaction.type !== 'receita' }"
+                      :class="{ 'text-success': transaction.tipo === 'receita', 'text-error': transaction.tipo !== 'receita' }"
                     >
-                      {{ transaction.type === 'receita' ? '+' : '-' }}{{ formatCurrency(transaction.valor) }}
+                      {{ transaction.tipo === 'receita' ? '+' : '-' }}{{ formatCurrency(transaction.valor) }}
                     </p>
                   </div>
                 </div>

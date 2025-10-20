@@ -24,6 +24,39 @@
       </div>
     </div>
 
+    <!-- 📅 Month Navigation -->
+    <v-card class="mb-6" elevation="1">
+      <v-card-text class="pa-4">
+        <div class="d-flex align-center justify-center gap-4">
+          <v-btn
+            icon="mdi-chevron-left"
+            color="primary"
+            variant="outlined"
+            size="small"
+            @click="goToPreviousMonth"
+            title="Mês anterior"
+          />
+          <div class="text-center" style="min-width: 250px">
+            <v-btn
+              variant="text"
+              :text="getMonthName(selectedMonth).toUpperCase()"
+              @click="goToCurrentMonth"
+              :class="{ 'text-primary font-weight-bold': selectedMonth === new Date().toISOString().slice(0, 7) }"
+              title="Ir para o mês atual"
+            />
+          </div>
+          <v-btn
+            icon="mdi-chevron-right"
+            color="primary"
+            variant="outlined"
+            size="small"
+            @click="goToNextMonth"
+            title="Próximo mês"
+          />
+        </div>
+      </v-card-text>
+    </v-card>
+
     <!-- Summary Cards -->
     <v-row class="mb-6">
       <v-col cols="12" sm="6" md="3">
@@ -657,6 +690,9 @@ const tempParcelaInicial = ref(1);
 const tempNumParcelas = ref(2);
 const tempPeriodicidade = ref('Mensal');
 
+// 📅 Month Navigation State
+const selectedMonth = ref<string>(new Date().toISOString().slice(0, 7)); // YYYY-MM format
+
 // Mock data
 const receitas = ref([
   {
@@ -931,6 +967,40 @@ const formatDateForBackend = (dateValue: string | Date | undefined | null): stri
   }
 };
 
+// 📅 Month Navigation Functions
+const getMonthName = (mesAnoString: string): string => {
+  const [ano, mes] = mesAnoString.split('-');
+  const date = new Date(parseInt(ano), parseInt(mes) - 1, 1);
+  return format(date, 'MMMM yyyy', { locale: ptBR });
+};
+
+const goToPreviousMonth = () => {
+  const [ano, mes] = selectedMonth.value.split('-');
+  const date = new Date(parseInt(ano), parseInt(mes) - 1, 1);
+  date.setMonth(date.getMonth() - 1);
+  const newMonth = date.toISOString().slice(0, 7);
+  selectedMonth.value = newMonth;
+  userStore.setMesAno(newMonth);
+  loadReceitas();
+};
+
+const goToNextMonth = () => {
+  const [ano, mes] = selectedMonth.value.split('-');
+  const date = new Date(parseInt(ano), parseInt(mes) - 1, 1);
+  date.setMonth(date.getMonth() + 1);
+  const newMonth = date.toISOString().slice(0, 7);
+  selectedMonth.value = newMonth;
+  userStore.setMesAno(newMonth);
+  loadReceitas();
+};
+
+const goToCurrentMonth = () => {
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  selectedMonth.value = currentMonth;
+  userStore.setMesAno(currentMonth);
+  loadReceitas();
+};
+
 // ✅ Função para calcular o status real baseado na data de vencimento
 const getStatusReal = (receita: any): string => {
   // Se status for EFETIVADA (recebida), retorna recebida
@@ -1041,7 +1111,15 @@ const openAddDialog = async () => {
 
 const editReceita = (receita: any) => {
   editingId.value = receita.id;
-  formData.value = { ...receita };
+  // ✅ Converter valor de centavos para string formatada "10,00"
+  const valorFormatado = typeof receita.valor === 'number' 
+    ? (receita.valor / 100).toFixed(2).replace('.', ',')
+    : receita.valor;
+  
+  formData.value = { 
+    ...receita,
+    valor: valorFormatado // ✅ Exibir valor formatado no formulário
+  };
   dialog.value = true;
 };
 
@@ -1064,8 +1142,20 @@ const deleteReceita = async (id: number) => {
 const efetivarReceita = async (receita: any) => {
   try {
     loading.value = true;
+    // ✅ Converter valor para centavos (inteiro) para enviar ao backend
+    let valorCentavos = receita.valor;
+    
+    if (typeof receita.valor === 'string') {
+      // Se for string "10,00", converte para 1000
+      valorCentavos = Math.round(parseFloat(receita.valor.replace(',', '.')) * 100);
+    } else if (typeof receita.valor === 'number') {
+      // Se já for número, assume que é centavos, mantém como está
+      valorCentavos = receita.valor;
+    }
+    
     const payload = {
       ...receita,
+      valor: valorCentavos, // ✅ Enviar valor em centavos (número inteiro)
       status_lancamento: 'EFETIVADA',
       data_vencimento: formatDateForBackend(receita.data_vencimento),
       data_lancamento: formatDateForBackend(receita.data_lancamento),

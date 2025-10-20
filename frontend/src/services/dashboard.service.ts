@@ -41,7 +41,9 @@ class DashboardService {
         valor: item.valor || 0,
         data: this.formatDate(item.data || item.created_at),
         status: item.status || 'confirmado',
-        tipo: item.tipo === 'receita' || item.tipo === 'R' ? 'receita' : 'despesa',
+        // Converter para minúscula: backend retorna 'RECEITA', 'Receita', ou 'receita'
+        tipo: (item.tipo_lancamento && item.tipo_lancamento.toLowerCase() === 'receita') || 
+              (item.tipo && (item.tipo === 'receita' || item.tipo === 'R')) ? 'receita' : 'despesa',
         categoria: item.categoria || 'Sem categoria'
       }))
     } catch (error) {

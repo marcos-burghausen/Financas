@@ -24,6 +24,39 @@
       </div>
     </div>
 
+    <!-- 📅 Month Navigation -->
+    <v-card class="mb-6" elevation="1">
+      <v-card-text class="pa-4">
+        <div class="d-flex align-center justify-center gap-4">
+          <v-btn
+            icon="mdi-chevron-left"
+            color="primary"
+            variant="outlined"
+            size="small"
+            @click="goToPreviousMonth"
+            title="Mês anterior"
+          />
+          <div class="text-center" style="min-width: 250px">
+            <v-btn
+              variant="text"
+              :text="getMonthName(selectedMonth).toUpperCase()"
+              @click="goToCurrentMonth"
+              :class="{ 'text-primary font-weight-bold': selectedMonth === new Date().toISOString().slice(0, 7) }"
+              title="Ir para o mês atual"
+            />
+          </div>
+          <v-btn
+            icon="mdi-chevron-right"
+            color="primary"
+            variant="outlined"
+            size="small"
+            @click="goToNextMonth"
+            title="Próximo mês"
+          />
+        </div>
+      </v-card-text>
+    </v-card>
+
     <!-- Summary Cards -->
     <v-row class="mb-6">
       <v-col cols="12" sm="6" md="3">
@@ -359,6 +392,8 @@
 import despesasService from '@/services/despesas.service';
 import { useToastStore } from '@/store/toast';
 import { useUserStore } from '@/store/user';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { computed, onMounted, ref, watch } from 'vue';
 
 const toastStore = useToastStore();
@@ -377,6 +412,9 @@ const itemsPerPage = ref(10);
 const menuDataVencimento = ref(false);
 const menuDataLancamento = ref(false);
 const menuDataEfetivacao = ref(false);
+
+// 📅 Month Navigation State
+const selectedMonth = ref<string>(new Date().toISOString().slice(0, 7)); // YYYY-MM format
 
 // Mock data
 const despesas = ref([
@@ -460,6 +498,40 @@ const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString('pt-BR');
 };
 
+// 📅 Month Navigation Functions
+const getMonthName = (mesAnoString: string): string => {
+  const [ano, mes] = mesAnoString.split('-');
+  const date = new Date(parseInt(ano), parseInt(mes) - 1, 1);
+  return format(date, 'MMMM yyyy', { locale: ptBR });
+};
+
+const goToPreviousMonth = () => {
+  const [ano, mes] = selectedMonth.value.split('-');
+  const date = new Date(parseInt(ano), parseInt(mes) - 1, 1);
+  date.setMonth(date.getMonth() - 1);
+  const newMonth = date.toISOString().slice(0, 7);
+  selectedMonth.value = newMonth;
+  userStore.setMesAno(newMonth);
+  loadDespesas();
+};
+
+const goToNextMonth = () => {
+  const [ano, mes] = selectedMonth.value.split('-');
+  const date = new Date(parseInt(ano), parseInt(mes) - 1, 1);
+  date.setMonth(date.getMonth() + 1);
+  const newMonth = date.toISOString().slice(0, 7);
+  selectedMonth.value = newMonth;
+  userStore.setMesAno(newMonth);
+  loadDespesas();
+};
+
+const goToCurrentMonth = () => {
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  selectedMonth.value = currentMonth;
+  userStore.setMesAno(currentMonth);
+  loadDespesas();
+};
+
 // ✅ Função para calcular o status real baseado na data de vencimento
 const getStatusReal = (despesa: any): string => {
   // Se status for EFETIVADA (paga), retorna paga
@@ -527,7 +599,15 @@ const openAddDialog = () => {
 
 const editDespesa = (despesa: any) => {
   editingId.value = despesa.id;
-  formData.value = { ...despesa };
+  // ✅ Converter valor de centavos para string formatada "10,00"
+  const valorFormatado = typeof despesa.valor === 'number' 
+    ? (despesa.valor / 100).toFixed(2).replace('.', ',')
+    : despesa.valor;
+  
+  formData.value = { 
+    ...despesa,
+    valor: valorFormatado // ✅ Exibir valor formatado no formulário
+  };
   dialog.value = true;
 };
 
@@ -550,8 +630,20 @@ const deleteDespesa = async (id: number) => {
 const efetivarDespesa = async (despesa: any) => {
   try {
     loading.value = true;
+    // ✅ Converter valor para centavos (inteiro) para enviar ao backend
+    let valorCentavos = despesa.valor;
+    
+    if (typeof despesa.valor === 'string') {
+      // Se for string "10,00", converte para 1000
+      valorCentavos = Math.round(parseFloat(despesa.valor.replace(',', '.')) * 100);
+    } else if (typeof despesa.valor === 'number') {
+      // Se já for número, assume que é centavos, mantém como está
+      valorCentavos = despesa.valor;
+    }
+    
     const payload = {
       ...despesa,
+      valor: valorCentavos, // ✅ Enviar valor em centavos (número inteiro)
       status_lancamento: 'EFETIVADA',
       data_vencimento: formatDateForBackend(despesa.data_vencimento),
       data_lancamento: formatDateForBackend(despesa.data_lancamento),

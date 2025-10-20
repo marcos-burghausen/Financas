@@ -161,7 +161,7 @@ class LancamentoController extends Controller
     /**
      * Edita um lançamento existente
      */
-    public function editLancamento(Request $request, $id): JsonResponse
+    public function editLancamento(StoreLancamentoRequest $request, $id): JsonResponse
     {
         try {
             $lancamento = Lancamento::find($id);
@@ -177,7 +177,8 @@ class LancamentoController extends Controller
 
             DB::beginTransaction();
 
-            $lancamento->update($request->all());
+            // ✅ Usar validated() para aplicar transformações do StoreLancamentoRequest
+            $lancamento->update($request->validated());
 
             DB::commit();
 

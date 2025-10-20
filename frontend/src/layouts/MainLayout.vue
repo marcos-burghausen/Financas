@@ -160,7 +160,7 @@
       </div>
 
       <!-- Month/Year Selector -->
-      <div class="month-selector-bar">
+      <!-- <div class="month-selector-bar">
         <div class="month-selector">
           <v-btn
             icon
@@ -182,10 +182,10 @@
             @click="nextMonth"
           >
             <v-icon icon="mdi-chevron-right" />
-          </v-btn>
+          </v-btn> -->
 
           <!-- Go to today button -->
-          <v-btn
+          <!-- <v-btn
             variant="text"
             size="x-small"
             class="ml-2"
@@ -194,8 +194,8 @@
           >
             Hoje
           </v-btn>
-        </div>
-      </div>
+        </div> -->
+      <!-- </div> -->
     </header>
 
     <!-- LAYOUT COM MENU LATERAL E CONTEÚDO -->
@@ -615,7 +615,7 @@ onMounted(() => {
 .layout-wrapper {
   display: flex;
   flex: 1;
-  margin-top: 120px; // 64px header + 56px month bar
+  margin-top: 70px; // 64px header + 56px month bar
 }
 
 /* ========================================
@@ -624,9 +624,9 @@ onMounted(() => {
 .layout-sidebar {
   position: fixed;
   left: 0;
-  top: 120px;
+  top: 60px;
   width: 250px;
-  height: calc(100vh - 120px);
+  height: calc(100vh - 65px);
   background: rgb(var(--v-theme-surface));
   border-right: 1px solid rgba(0, 0, 0, 0.08);
   overflow-y: auto;
