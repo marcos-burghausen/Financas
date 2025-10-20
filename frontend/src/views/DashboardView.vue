@@ -10,6 +10,39 @@
 
     <!-- MAIN CONTENT -->
     <div v-else>
+      <!-- MONTH NAVIGATION BAR -->
+      <v-card class="mb-6" elevation="1">
+        <v-card-text class="pa-4">
+          <div class="d-flex align-center justify-center gap-4">
+            <v-btn
+              icon="mdi-chevron-left"
+              color="primary"
+              variant="outlined"
+              size="small"
+              @click="navigationMonth('prev')"
+              title="Mês anterior"
+            />
+            <div class="text-center" style="min-width: 250px">
+              <v-btn
+                variant="text"
+                :text="monthDisplayFormatted.toUpperCase()"
+                @click="navigationMonth('today')"
+                :class="{ 'text-primary font-weight-bold': isCurrentMonth }"
+                title="Ir para o mês atual"
+              />
+            </div>
+            <v-btn
+              icon="mdi-chevron-right"
+              color="primary"
+              variant="outlined"
+              size="small"
+              @click="navigationMonth('next')"
+              title="Próximo mês"
+            />
+          </div>
+        </v-card-text>
+      </v-card>
+
       <!-- KPI CARDS SECTION -->
       <v-row class="mb-6">
         <!-- Card: Receitas -->
@@ -134,10 +167,10 @@
                     Pendências
                   </p>
                   <h2 class="kpi-value mb-3">
-                    {{ formatCurrency(summary.totalPendencias * 50000) }}
+                    {{ formatCurrency(summary.totalPendencias) }}
                   </h2>
                   <p class="text-caption text-warning mb-0">
-                    {{ summary.totalPendencias }} transações
+                    {{ counters.receitasPendentes + counters.despesasPendentes }} transações
                   </p>
                 </div>
                 <v-avatar size="56" color="warning" variant="tonal">
@@ -150,6 +183,7 @@
                   color="warning"
                   variant="tonal"
                   block
+                  @click="openPendenciasDialog(pendenciasTransacoes)"
                 >
                   Ver Pendências
                 </v-btn>
@@ -351,11 +385,88 @@
         </v-col>
       </v-row>
     </div>
+
+    <!-- DIALOG: PENDÊNCIAS -->
+    <v-dialog v-model="showPendenciasDialog" max-width="800">
+      <v-card>
+        <v-card-title class="d-flex align-center gap-2">
+          <v-icon icon="mdi-clock-alert" color="warning" />
+          Transações Pendentes
+        </v-card-title>
+        <v-divider />
+        <v-card-text class="py-4">
+          <div v-if="pendenciasTransacoes.length" class="pendencias-list">
+            <div
+              v-for="(transaction, idx) in pendenciasTransacoes.filter(t => t.status_lancamento === 'PENDENTE')"
+              :key="idx"
+              class="pendencia-item mb-3 pa-3 rounded border"
+            >
+              <div class="d-flex justify-space-between align-center mb-2">
+                <div class="d-flex align-center gap-2">
+                  <v-avatar
+                    size="40"
+                    :color="transaction.tipo_lancamento?.toLowerCase() === 'receita' ? 'success' : 'error'"
+                    variant="tonal"
+                  >
+                    <v-icon
+                      :icon="transaction.tipo_lancamento?.toLowerCase() === 'receita' ? 'mdi-cash-plus' : 'mdi-cash-remove'"
+                    />
+                  </v-avatar>
+                  <div>
+                    <p class="text-subtitle-2 font-weight-bold mb-0">
+                      {{ transaction.descricao || 'Transação' }}
+                    </p>
+                    <p class="text-caption text-grey mb-0">
+                      {{ transaction.data_vencimento || transaction.data || 'Data não disponível' }}
+                    </p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <p
+                    class="text-subtitle-2 font-weight-bold mb-0"
+                    :class="{
+                      'text-success': transaction.tipo_lancamento?.toLowerCase() === 'receita',
+                      'text-error': transaction.tipo_lancamento?.toLowerCase() !== 'receita'
+                    }"
+                  >
+                    {{ transaction.tipo_lancamento?.toLowerCase() === 'receita' ? '+' : '-' }}{{
+                      formatCurrency(transaction.valor)
+                    }}
+                  </p>
+                  <v-chip
+                    size="small"
+                    variant="outlined"
+                    :color="transaction.status_lancamento === 'PENDENTE' ? 'warning' : 'info'"
+                    class="mt-1"
+                  >
+                    {{ transaction.status_lancamento }}
+                  </v-chip>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="text-center py-8">
+            <v-icon icon="mdi-check-circle" size="64" color="success" class="mb-4" />
+            <p class="text-grey">Nenhuma transação pendente para este período</p>
+          </div>
+        </v-card-text>
+        <v-divider />
+        <v-card-actions>
+          <v-spacer />
+          <v-btn color="primary" variant="text" @click="showPendenciasDialog = false">
+            Fechar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
+```
+
 <script setup lang="ts">
 import dashboardService from "@/services/dashboard.service";
+import http from "@/services/http";
 import { useToastStore } from "@/store/toast";
 import { useUserStore } from "@/store/user";
 import { computed, onMounted, ref, watch } from "vue";
@@ -366,8 +477,10 @@ const loading = ref(true);
 const counters = ref({
   receitasRecebidas: 0,
   receitasPendentes: 0,
+  receitasAtrasadas: 0,
   despesasPagas: 0,
   despesasPendentes: 0,
+  despesasAtrasadas: 0,
 });
 
 // Summary data
@@ -401,17 +514,51 @@ const recentTransactions = ref<any[]>([]);
 // Alerts
 const alerts = ref<any[]>([]);
 
+// Dialog de Pendências
+const showPendenciasDialog = ref(false);
+const pendenciasTransacoes = ref<any[]>([]);
+
+// LOCAL month state - not synced with userStore
+const currentMonth = ref<string>(new Date().toISOString().slice(0, 7)); // YYYY-MM
+
 // Month/Year label
 const monthDisplay = computed(() => {
-  const mesAno = userStore.getMesAno();
-  const [year, month] = mesAno.split('-');
+  const [year, month] = currentMonth.value.split('-');
   const date = new Date(`${year}-${month}-01`);
   return date.toLocaleString("pt-BR", { month: "long", year: "numeric" });
+});
+
+const monthDisplayFormatted = computed(() => {
+  return monthDisplay.value;
 });
 
 const monthYearLabel = computed(() => {
   return `de ${monthDisplay.value}`;
 });
+
+// Check if current month is today
+const isCurrentMonth = computed(() => {
+  const today = new Date().toISOString().slice(0, 7);
+  return currentMonth.value === today;
+});
+
+// Month navigation methods
+const navigationMonth = (action: 'prev' | 'next' | 'today') => {
+  if (action === 'prev') {
+    const [year, month] = currentMonth.value.split('-');
+    const date = new Date(`${year}-${month}-01`);
+    date.setMonth(date.getMonth() - 1);
+    currentMonth.value = date.toISOString().slice(0, 7);
+  } else if (action === 'next') {
+    const [year, month] = currentMonth.value.split('-');
+    const date = new Date(`${year}-${month}-01`);
+    date.setMonth(date.getMonth() + 1);
+    currentMonth.value = date.toISOString().slice(0, 7);
+  } else if (action === 'today') {
+    currentMonth.value = new Date().toISOString().slice(0, 7);
+  }
+  // Watch com immediate: true cuidará de carregar os dados
+};
 
 // Format currency - valores vêm em centavos, dividir por 100
 const formatCurrency = (value: number): string => {
@@ -423,20 +570,14 @@ const formatCurrency = (value: number): string => {
 
 // Calcular variações percentuais (recebidas de mês anterior)
 const receitasVariacao = computed(() => {
-  // Se há receitas recebidas, calcular percentual de aumento
-  // Essa é uma estimativa baseada em contadores
+  // Sem dados de mês anterior, retorna 0
   // Em produção, isso viria do backend comparando meses
-  if (counters.value.receitasRecebidas > 0) {
-    return parseFloat((counters.value.receitasRecebidas * 5).toFixed(1)); // Estimativa
-  }
   return 0;
 });
 
 const despesasVariacao = computed(() => {
-  // Variação negativa (redução de despesas é bom)
-  if (counters.value.despesasPagas > 0) {
-    return parseFloat((counters.value.despesasPagas * 3).toFixed(1)); // Estimativa
-  }
+  // Sem dados de mês anterior, retorna 0
+  // Em produção, isso viria do backend comparando meses
   return 0;
 });
 
@@ -450,77 +591,112 @@ const saldoVariacao = computed(() => {
   return 0;
 });
 
+// Abrir dialog de pendências
+const openPendenciasDialog = (transactions: any[]) => {
+  // Filtrar apenas transações pendentes
+  pendenciasTransacoes.value = transactions.filter(t => t.status_lancamento === 'PENDENTE');
+  showPendenciasDialog.value = true;
+};
+
 // Load data
 const loadDashboardData = async () => {
   try {
     loading.value = true;
     
-    // 1. Carregar dados do userStore (recebidos no login)
-    userStore.loadFromSession();
-    const realSummary = userStore.summary;
-    
-    // 2. Se não tiver dados no store, tentar do backend
-    let finalSummary = realSummary;
-    if (!finalSummary || (finalSummary.totalReceitas === 0 && finalSummary.totalDespesas === 0)) {
+    // 1. Carregar todos os lançamentos do mês usando currentMonth
+    let allTransactions: any[] = [];
+    try {
+      // Usar http.get com o mês correto
+      const response = await http.get('/lancamentos', {
+        params: {
+          mesAno: currentMonth.value, // YYYY-MM format
+          limit: 1000
+        }
+      });
+      
+      const data = response.data || response;
+      allTransactions = data.data || data.lancamentos || [];
+    } catch (err) {
+      console.warn('Erro ao carregar transações:', err);
       try {
-        const response = await dashboardService.getTransactionCounters();
-        // Construir summary a partir dos contadores
-        finalSummary = {
-          totalReceitas: response.receitasRecebidas * 50000, // Estimativa
-          totalDespesas: response.despesasPagas * 30000,     // Estimativa
-          saldoAtual: 0,
-          saldoInicial: 0,
-        };
-      } catch (err) {
-        console.warn('Erro ao carregar contadores, usando valores vazios');
-        finalSummary = finalSummary || {
-          totalReceitas: 0,
-          totalDespesas: 0,
-          saldoAtual: 0,
-          saldoInicial: 0,
-        };
+        // Fallback: tentar sem o mês
+        allTransactions = await dashboardService.getRecentTransactions(1000);
+      } catch (fallbackErr) {
+        console.warn('Fallback também falhou:', fallbackErr);
       }
     }
-    
+
+    // 2. Separar receitas e despesas, calcular totais reais
+    let totalReceitas = 0;
+    let totalDespesas = 0;
+    let totalPendencias = 0;
+    let receitasRecebidas = 0;
+    let receitasPendentes = 0;
+    let receitasAtrasadas = 0;
+    let despesasPagas = 0;
+    let despesasPendentes = 0;
+    let despesasAtrasadas = 0;
+
+    allTransactions.forEach((item: any) => {
+      const valor = item.valor || 0;
+      const tipo = item.tipo_lancamento?.toLowerCase() || 'despesa';
+      const status = item.status_lancamento || 'PENDENTE';
+
+      if (tipo === 'receita') {
+        if (status === 'EFETIVADA') {
+          receitasRecebidas++;
+          totalReceitas += valor;
+        } else if (status === 'PENDENTE') {
+          receitasPendentes++;
+          // Adicionar ao total de pendências (independente se atrasada ou futura)
+          totalPendencias += valor;
+          // Nota: receitasAtrasadas seria determinado pelo backend com data_vencimento
+          // Por agora, deixamos todos como "pendentes" genéricos
+        }
+      } else {
+        if (status === 'EFETIVADA') {
+          despesasPagas++;
+          totalDespesas += valor;
+        } else if (status === 'PENDENTE') {
+          despesasPendentes++;
+          // Adicionar ao total de pendências (independente se atrasada ou futura)
+          totalPendencias += valor;
+          // Nota: despesasAtrasadas seria determinado pelo backend com data_vencimento
+          // Por agora, deixamos todos como "pendentes" genéricos
+        }
+      }
+    });
+
+    // 2.5. Armazenar transações para o dialog
+    pendenciasTransacoes.value = allTransactions;
+
+    // 3. Atualizar summary com dados reais
     summary.value = {
-      receitasMes: finalSummary?.totalReceitas || 0,
-      despesasMes: finalSummary?.totalDespesas || 0,
-      saldoAtual: finalSummary?.saldoAtual || 0,
-      saldoInicial: finalSummary?.saldoInicial || 0,
-      totalReceitas: finalSummary?.totalReceitas || 0,
-      totalDespesas: finalSummary?.totalDespesas || 0,
-      pendencias: 0,
-      receitasRecebidas: 0,
-      despesasPagas: 0,
-      totalPendencias: 0,
+      receitasMes: totalReceitas,
+      despesasMes: totalDespesas,
+      saldoAtual: totalReceitas - totalDespesas,
+      saldoInicial: 0,
+      totalReceitas: totalReceitas,
+      totalDespesas: totalDespesas,
+      pendencias: totalPendencias,
+      receitasRecebidas: receitasRecebidas,
+      despesasPagas: despesasPagas,
+      totalPendencias: totalPendencias,
     };
 
-    // 3. Carregar contadores de transações com fallback
-    let transactionCounters = {
-      receitasRecebidas: 0,
-      receitasPendentes: 0,
-      receitasAtrasadas: 0,
-      despesasPagas: 0,
-      despesasPendentes: 0,
-      despesasAtrasadas: 0,
+    // 4. Atualizar contadores
+    counters.value = {
+      receitasRecebidas,
+      receitasPendentes,
+      receitasAtrasadas,
+      despesasPagas,
+      despesasPendentes,
+      despesasAtrasadas,
     };
-    
-    try {
-      transactionCounters = await dashboardService.getTransactionCounters();
-    } catch (err) {
-      console.warn('Erro ao carregar contadores de transações:', err);
-    }
-    
-    counters.value = transactionCounters;
-    
-    // 4. Atualizar contadores no summary
-    summary.value.receitasRecebidas = transactionCounters.receitasRecebidas;
-    summary.value.despesasPagas = transactionCounters.despesasPagas;
-    summary.value.totalPendencias = transactionCounters.receitasPendentes + transactionCounters.despesasPendentes;
 
     // 5. Configurar chart de barras
-    const currentMonth = new Date().toLocaleString("pt-BR", { month: "short" });
-    const months = [currentMonth];
+    const monthLabel = new Date().toLocaleString("pt-BR", { month: "short" });
+    const months = [monthLabel];
     
     chartOptions.value.bar = {
       chart: {
@@ -563,22 +739,43 @@ const loadDashboardData = async () => {
     chartSeries.value.bar = [
       {
         name: "Receitas",
-        data: [finalSummary?.totalReceitas || 0],
+        data: [summary.value.totalReceitas || 0],
       },
       {
         name: "Despesas",
-        data: [finalSummary?.totalDespesas || 0],
+        data: [summary.value.totalDespesas || 0],
       },
     ];
 
-    // 6. Carregar distribuição de categorias com fallback
+    // 6. Calcular distribuição de categorias a partir dos dados reais
     try {
-      const expensesByCategory = await dashboardService.getExpensesByCategory();
+      // Agrupar despesas por categoria
+      const categoriaMap = new Map<string, number>();
+      
+      allTransactions.forEach((item: any) => {
+        const tipo = item.tipo_lancamento?.toLowerCase() || 'despesa';
+        const status = item.status_lancamento || 'PENDENTE';
+        
+        // Somar apenas despesas EFETIVADAS
+        if (tipo === 'despesa' && status === 'EFETIVADA') {
+          const categoria = item.categoria || 'Outros';
+          const valor = item.valor || 0;
+          categoriaMap.set(categoria, (categoriaMap.get(categoria) || 0) + valor);
+        }
+      });
+
+      // Preparar dados para o gráfico
+      const labels = Array.from(categoriaMap.keys());
+      const values = Array.from(categoriaMap.values());
+      
+      // Calcular percentuais
+      const totalDespesas = values.reduce((a, b) => a + b, 0);
+      const percentuais = values.map(v => (totalDespesas > 0 ? (v / totalDespesas) * 100 : 0));
       
       chartOptions.value.pie = {
         chart: { type: "donut", height: 350 },
-        labels: expensesByCategory.labels,
-        colors: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"],
+        labels: labels.length > 0 ? labels : ['Sem dados'],
+        colors: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF", "#C9CBCF", "#4BC0C0"],
         legend: { position: "bottom" },
         dataLabels: {
           enabled: true,
@@ -595,9 +792,9 @@ const loadDashboardData = async () => {
         },
       };
 
-      chartSeries.value.pie = expensesByCategory.values;
+      chartSeries.value.pie = percentuais.length > 0 ? percentuais : [100];
     } catch (err) {
-      console.warn('Erro ao carregar categorias:', err);
+      console.warn('Erro ao calcular distribuição de categorias:', err);
       // Usar valores padrão
       chartOptions.value.pie = {
         chart: { type: "donut", height: 350 },
@@ -622,7 +819,7 @@ const loadDashboardData = async () => {
     }
 
     // 8. Gerar alertas dinâmicos baseado nos dados
-    alerts.value = generateAlerts(transactionCounters);
+    alerts.value = generateAlerts(counters.value);
 
     loading.value = false;
   } catch (error) {
@@ -683,14 +880,18 @@ const generateAlerts = (counters: any): any[] => {
   return alerts;
 };
 
-// Watch for month changes - automatically reload dashboard
-watch(() => userStore.mesAno, () => {
+// Watch for local month changes - reload dashboard data
+// Watch for local month changes - reload dashboard data
+onMounted(() => {
+  // Reset to current month on mount to ensure fresh data
+  currentMonth.value = new Date().toISOString().slice(0, 7);
+  // Load data after resetting the month
   loadDashboardData();
 });
 
-onMounted(() => {
+watch(() => currentMonth.value, () => {
   loadDashboardData();
-});
+}, { immediate: false }); // Set to false to avoid double load on mount
 </script>
 
 <style scoped lang="scss">

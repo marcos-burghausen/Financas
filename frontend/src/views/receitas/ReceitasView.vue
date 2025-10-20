@@ -39,9 +39,9 @@
           <div class="text-center" style="min-width: 250px">
             <v-btn
               variant="text"
-              :text="getMonthName(userStore.mesAno).toUpperCase()"
+              :text="getMonthName(currentMonth).toUpperCase()"
               @click="goToCurrentMonth"
-              :class="{ 'text-primary font-weight-bold': userStore.mesAno === new Date().toISOString().slice(0, 7) }"
+              :class="{ 'text-primary font-weight-bold': currentMonth === new Date().toISOString().slice(0, 7) }"
               title="Ir para o mês atual"
             />
           </div>
@@ -535,7 +535,12 @@
                     <span>Data de Vencimento *</span>
                   </div>
                   <v-spacer class="m-0 p-0" />
-                  <span class="font-weight-medium">{{ displayDataVencimento }}</span>
+                  <span class="font-weight-medium">
+                    {{ displayDataVencimento }}
+                    <v-chip v-if="dataVencimentoRelativa" size="x-small" class="ms-2" color="success" variant="outlined">
+                      {{ dataVencimentoRelativa }}
+                    </v-chip>
+                  </span>
                 </div>
               </template>
 
@@ -843,6 +848,33 @@ const displayDataEfetivacao = computed(() => {
   return formatDateForDisplay(formData.value.data_efetivacao);
 });
 
+// 📅 Calcular data relativa (Ontem, Hoje, Amanhã)
+const dataVencimentoRelativa = computed(() => {
+  if (!formData.value.data_vencimento) return '';
+  
+  try {
+    const dataVencimento = new Date(formData.value.data_vencimento);
+    const hoje = new Date();
+    
+    // Normalizar para comparação apenas de datas (sem horas)
+    dataVencimento.setHours(0, 0, 0, 0);
+    hoje.setHours(0, 0, 0, 0);
+    
+    const diffTime = dataVencimento.getTime() - hoje.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Hoje';
+    if (diffDays === -1) return 'Ontem';
+    if (diffDays === 1) return 'Amanhã';
+    if (diffDays < 0) return `${Math.abs(diffDays)} dias atrás`;
+    if (diffDays > 1) return `Em ${diffDays} dias`;
+    
+    return '';
+  } catch (error) {
+    return '';
+  }
+});
+
 // Summary computed
 const summary = computed(() => ({
   totalMes: receitas.value.reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, '').replace(',', '.')), 0),
@@ -971,29 +1003,27 @@ const getMonthName = (mesAnoString: string): string => {
   return format(date, 'MMMM yyyy', { locale: ptBR });
 };
 
+// LOCAL month state - independent per page
+const currentMonth = ref<string>(new Date().toISOString().slice(0, 7)); // YYYY-MM
+
 const goToPreviousMonth = () => {
-  const mesAno = userStore.getMesAno();
-  const [ano, mes] = mesAno.split('-');
+  const [ano, mes] = currentMonth.value.split('-');
   const date = new Date(parseInt(ano), parseInt(mes) - 1, 1);
   date.setMonth(date.getMonth() - 1);
-  const newMonth = date.toISOString().slice(0, 7);
-  userStore.setMesAno(newMonth);
+  currentMonth.value = date.toISOString().slice(0, 7);
   loadReceitas();
 };
 
 const goToNextMonth = () => {
-  const mesAno = userStore.getMesAno();
-  const [ano, mes] = mesAno.split('-');
+  const [ano, mes] = currentMonth.value.split('-');
   const date = new Date(parseInt(ano), parseInt(mes) - 1, 1);
   date.setMonth(date.getMonth() + 1);
-  const newMonth = date.toISOString().slice(0, 7);
-  userStore.setMesAno(newMonth);
+  currentMonth.value = date.toISOString().slice(0, 7);
   loadReceitas();
 };
 
 const goToCurrentMonth = () => {
-  const currentMonth = new Date().toISOString().slice(0, 7);
-  userStore.setMesAno(currentMonth);
+  currentMonth.value = new Date().toISOString().slice(0, 7);
   loadReceitas();
 };
 
@@ -1267,7 +1297,7 @@ const resetFilters = () => {
 const loadReceitas = async () => {
   try {
     loading.value = true;
-    const mesAno = userStore.getMesAno?.();
+    const mesAno = currentMonth.value; // Use local currentMonth instead of userStore
     const data = await receitasService.list(mesAno);
     
     if (data && data.length > 0) {
@@ -1318,9 +1348,17 @@ watch(() => formData.value.data_efetivacao, (newVal) => {
   }
 });
 
+// Watch for local month changes
 onMounted(() => {
+  // Reset to current month on mount to ensure fresh data
+  currentMonth.value = new Date().toISOString().slice(0, 7);
+  // Load data after resetting the month
   loadReceitas();
 });
+
+watch(() => currentMonth.value, () => {
+  loadReceitas();
+}, { immediate: false }); // Set to false to avoid double load on mount
 </script>
 
 <style scoped lang="scss">

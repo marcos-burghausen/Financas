@@ -39,9 +39,9 @@
           <div class="text-center" style="min-width: 250px">
             <v-btn
               variant="text"
-              :text="getMonthName(userStore.mesAno).toUpperCase()"
+              :text="getMonthName(currentMonth).toUpperCase()"
               @click="goToCurrentMonth"
-              :class="{ 'text-primary font-weight-bold': userStore.mesAno === new Date().toISOString().slice(0, 7) }"
+              :class="{ 'text-primary font-weight-bold': currentMonth === new Date().toISOString().slice(0, 7) }"
               title="Ir para o mês atual"
             />
           </div>
@@ -163,7 +163,7 @@
             <v-select
               v-model="selectedStatus"
               label="Status"
-              :items="statusOptions"
+              :items="['paga', 'pendente', 'atrasada', 'cancelada']"
               variant="outlined"
               density="compact"
               clearable
@@ -173,7 +173,7 @@
             <v-select
               v-model="selectedCategoria"
               label="Categoria"
-              :items="categorias"
+              :items="categoriasNames"
               variant="outlined"
               density="compact"
               clearable
@@ -276,108 +276,372 @@
     </v-card>
 
     <!-- Add/Edit Dialog -->
-    <v-dialog v-model="dialog" max-width="600">
+    <v-dialog v-model="dialog" max-width="700px">
       <v-card>
-        <!-- Dialog Header -->
-        <div class="dialog-header bg-error">
-          <div class="d-flex justify-space-between align-center">
-            <h2 class="text-h6 text-white font-weight-bold">
-              {{ editingId ? 'Editar Despesa' : 'Nova Despesa' }}
-            </h2>
-            <v-btn
-              icon="mdi-close"
-              variant="text"
-              @click="dialog = false"
-            />
-          </div>
-        </div>
+        <v-card-title class="d-flex align-center gap-2 pa-6 pb-3">
+          <v-icon :icon="editingId ? 'mdi-pencil' : 'mdi-plus'" color="error" />
+          {{ editingId ? 'Editar Despesa' : 'Nova Despesa' }}
+        </v-card-title>
 
         <!-- Dialog Content -->
         <v-card-text class="pa-6">
-          <v-form @submit.prevent="saveDespesa">
-            <v-row>
-              <v-col cols="12">
-                <v-text-field
-                  v-model="formData.descricao"
-                  label="Descrição *"
-                  prepend-inner-icon="mdi-text"
-                  variant="outlined"
-                  :rules="[rules.required]"
-                />
-              </v-col>
+          <v-form ref="formRef" @submit.prevent="saveDespesa">
+            <!-- Row 1: Descrição -->
+            <v-text-field
+              v-model="formData.descricao"
+              label="Descrição *"
+              prepend-inner-icon="mdi-text-long"
+              variant="underlined"
+              hide-details="auto"
+              required
+              class="mb-4"
+              :rules="[rules.required, rules.minLength3]"
+            />
 
+            <!-- Row 2: Valor -->
+            <v-text-field
+              v-model="formData.valor"
+              label="Valor *"
+              prepend-inner-icon="mdi-currency-brl"
+              variant="underlined"
+              hide-details="auto"
+              type="tel"
+              class="mb-4"
+              :rules="[rules.required, rules.valorPositivo]"
+              @input="formatValueDisplay"
+            />
+
+            <!-- Row 3: Categoria e Subcategoria -->
+            <v-row>
               <v-col cols="12" md="6">
-                <v-select
+                <v-autocomplete
                   v-model="formData.categoria"
+                  :items="categoriasNames"
                   label="Categoria *"
                   prepend-inner-icon="mdi-tag"
-                  variant="outlined"
-                  :items="categorias"
+                  variant="underlined"
+                  hide-details="auto"
+                  class="mb-4"
                   :rules="[rules.required]"
                 />
               </v-col>
-
               <v-col cols="12" md="6">
-                <v-select
-                  v-model="formData.conta"
-                  label="Conta *"
-                  prepend-inner-icon="mdi-bank"
-                  variant="outlined"
-                  :items="contas"
-                  :rules="[rules.required]"
-                />
-              </v-col>
-
-              <v-col cols="12" md="6">
-                <v-text-field
-                  v-model.number="formData.valor"
-                  label="Valor *"
-                  prepend-inner-icon="mdi-currency-brl"
-                  variant="outlined"
-                  type="number"
-                  step="0.01"
-                  :rules="[rules.required]"
-                />
-              </v-col>
-
-              <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="formData.data_vencimento"
-                  label="Data de Vencimento *"
-                  prepend-inner-icon="mdi-calendar"
-                  variant="outlined"
-                  type="date"
-                  :rules="[rules.required]"
-                />
-              </v-col>
-
-              <v-col cols="12">
-                <v-select
-                  v-model="formData.status"
-                  label="Status *"
-                  prepend-inner-icon="mdi-checkbox-marked-circle"
-                  variant="outlined"
-                  :items="statusOptions"
-                  :rules="[rules.required]"
-                />
-              </v-col>
-
-              <v-col cols="12">
-                <v-textarea
-                  v-model="formData.observacao"
-                  label="Observação"
-                  prepend-inner-icon="mdi-note"
-                  variant="outlined"
-                  rows="3"
+                <v-autocomplete
+                  v-model="formData.subcategoria"
+                  :items="subcategoriasDaCategoriaSelecionada"
+                  label="Subcategoria"
+                  prepend-inner-icon="mdi-folder-tag"
+                  variant="underlined"
+                  hide-details="auto"
+                  class="mb-4"
                 />
               </v-col>
             </v-row>
 
+            <!-- Row 4: Conta e Status -->
+            <v-row>
+              <v-col cols="12" md="6">
+                <v-select
+                  v-model="formData.conta_id"
+                  label="Conta *"
+                  prepend-inner-icon="mdi-bank"
+                  variant="underlined"
+                  hide-details="auto"
+                  :items="contas"
+                  item-title="name"
+                  item-value="id"
+                  class="mb-4"
+                  :rules="[rules.required]"
+                />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field
+                  :model-value="formData.status_lancamento"
+                  label="Status"
+                  variant="underlined"
+                  hide-details="auto"
+                  type="text"
+                  readonly
+                  class="mb-4"
+                  :prepend-inner-icon="
+                    formData.status_lancamento === 'EFETIVADA'
+                      ? 'mdi-check-circle-outline'
+                      : 'mdi-clock-time-three-outline'
+                  "
+                  @click="toggleStatus"
+                >
+                  <template #append-inner>
+                    <div :class="formData.status_lancamento === 'EFETIVADA' ? 'switch__check__efetivada' : 'switch__check'">
+                      <div :class="formData.status_lancamento === 'EFETIVADA' ? 'switch__check__efetivada--inner' : 'switch__check--inner'" />
+                    </div>
+                  </template>
+                </v-text-field>
+              </v-col>
+            </v-row>
+
+            <!-- Row 4.5: Recorrência (Modal Style like ReceitasView) -->
+            <div class="custom__input__container mb-4">
+              <div
+                class="custom__input__content"
+                @click="openRecorrenciaModal = true"
+              >
+                <v-icon icon="mdi-refresh" class="me-2" />
+                <div class="d-flex flex-column">
+                  <span>{{ formData.recorrencia }}</span>
+                  <span v-if="detalheRecorrencia" class="detalhe__parcela__interno">
+                    {{ detalheRecorrencia }}
+                  </span>
+                </div>
+                <v-spacer />
+                <v-icon
+                  v-if="formData.recorrencia === 'Parcelado'"
+                  icon="mdi-pencil"
+                  size="x-small"
+                  class="edit__icon"
+                  @click.stop="openParcelas = true"
+                />
+              </div>
+
+              <v-btn-toggle
+                v-if="formData.recorrencia === 'Parcelado'"
+                v-model="tipoCalculoParcela"
+                mandatory
+                class="parcela__toggle mt-4"
+                variant="flat"
+              >
+                <v-btn class="toggle__btn" value="total" rounded="lg">
+                  Valor total
+                </v-btn>
+                <v-btn class="toggle__btn" value="parcela" rounded="lg">
+                  Valor parcela
+                </v-btn>
+              </v-btn-toggle>
+
+              <div class="custom__underline" />
+            </div>
+
+            <!-- Modal Recorrência -->
+            <v-menu v-model="openRecorrenciaModal" :close-on-content-click="false">
+              <v-card width="300" class="mx-auto">
+                <v-card-text class="pa-4">
+                  <div class="d-flex flex-column gap-2">
+                    <v-btn
+                      v-for="item in tiposRecorrencia"
+                      :key="item"
+                      :class="formData.recorrencia === item ? 'error' : ''"
+                      variant="text"
+                      block
+                      :prepend-icon="
+                        formData.recorrencia === item
+                          ? 'mdi-radiobox-marked'
+                          : 'mdi-checkbox-blank-circle-outline'
+                      "
+                      @click="selecionarRecorrencia(item)"
+                    >
+                      {{ item }}
+                    </v-btn>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-menu>
+
+            <!-- Dialog Parcelação -->
+            <v-dialog v-model="openParcelas" max-width="400">
+              <v-card>
+                <v-card-title class="pa-4">Configurar Parcelas</v-card-title>
+                <v-card-text class="pa-6">
+                  <div class="d-flex align-center justify-space-between mb-4">
+                    <span>Parcela Inicial:</span>
+                    <div class="d-flex align-center gap-2">
+                      <v-btn
+                        icon="mdi-minus"
+                        size="x-small"
+                        :disabled="tempParcelaInicial <= 1"
+                        @click="tempParcelaInicial--"
+                      />
+                      <v-text-field
+                        v-model.number="tempParcelaInicial"
+                        type="number"
+                        density="compact"
+                        style="width: 60px"
+                        min="1"
+                        :max="tempNumParcelas"
+                      />
+                      <v-btn
+                        icon="mdi-plus"
+                        size="x-small"
+                        :disabled="tempParcelaInicial >= tempNumParcelas"
+                        @click="tempParcelaInicial++"
+                      />
+                    </div>
+                  </div>
+
+                  <v-divider class="my-4" />
+
+                  <div class="d-flex align-center justify-space-between mb-4">
+                    <span>Quantidade:</span>
+                    <div class="d-flex align-center gap-2">
+                      <v-btn
+                        icon="mdi-minus"
+                        size="x-small"
+                        :disabled="tempNumParcelas <= 2"
+                        @click="tempNumParcelas--"
+                      />
+                      <v-text-field
+                        v-model.number="tempNumParcelas"
+                        type="number"
+                        density="compact"
+                        style="width: 60px"
+                        min="2"
+                      />
+                      <v-btn
+                        icon="mdi-plus"
+                        size="x-small"
+                        @click="tempNumParcelas++"
+                      />
+                    </div>
+                  </div>
+
+                  <v-divider class="my-4" />
+
+                  <v-select
+                    v-model="tempPeriodicidade"
+                    label="Periodicidade"
+                    :items="['Mensal', 'Semanal', 'Quinzenal', 'Bimestral']"
+                    variant="outlined"
+                    density="compact"
+                  />
+                </v-card-text>
+                <v-card-actions class="pa-4">
+                  <v-spacer />
+                  <v-btn variant="text" @click="openParcelas = false">
+                    Cancelar
+                  </v-btn>
+                  <v-btn color="error" @click="concluirParcelas">
+                    Concluído
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+
+            <!-- Row 5: Data de Vencimento -->
+            <v-menu v-model="menuDataVencimento" :close-on-content-click="false" transition="scale-transition">
+              <template #activator="{ props }">
+                <div class="custom__display__input" v-bind="props">
+                  <div class="d-flex align-center text-grey">
+                    <v-icon icon="mdi-calendar" class="me-3" />
+                    <span>Data de Vencimento *</span>
+                  </div>
+                  <v-spacer class="m-0 p-0" />
+                  <span class="font-weight-medium">
+                    {{ displayDataVencimento }}
+                    <v-chip v-if="dataVencimentoRelativa" size="x-small" class="ms-2" color="error" variant="outlined">
+                      {{ dataVencimentoRelativa }}
+                    </v-chip>
+                  </span>
+                </div>
+              </template>
+
+              <v-date-picker
+                v-model="formData.data_vencimento"
+                color="error"
+                hide-header
+                show-adjacent-months
+              />
+            </v-menu>
+
+            <!-- Row 6: Mais Informações Toggle -->
+            <v-btn
+              :append-icon="informacoes ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+              variant="plain"
+              size="x-small"
+              style="color: rgb(var(--v-theme-error))"
+              block
+              class="my-4"
+              @click="informacoes = !informacoes"
+            >
+              Mais informações
+            </v-btn>
+
+            <!-- Row 7: Data de Lançamento (Advanced) -->
+            <v-menu
+              v-if="informacoes"
+              v-model="menuDataLancamento"
+              :close-on-content-click="false"
+              transition="scale-transition"
+            >
+              <template #activator="{ props }">
+                <div class="custom__display__input" v-bind="props">
+                  <div class="d-flex align-center text-grey">
+                    <v-icon icon="mdi-calendar" class="me-3" />
+                    <span>Data de Lançamento</span>
+                  </div>
+                  <v-spacer />
+                  <span class="font-weight-medium">{{ displayDataLancamento }}</span>
+                </div>
+              </template>
+
+              <v-date-picker
+                v-model="formData.data_lancamento"
+                color="error"
+                hide-header
+                show-adjacent-months
+              />
+            </v-menu>
+
+            <!-- Row 8: Data de Efetivação (Advanced) -->
+            <v-menu
+              v-if="informacoes"
+              v-model="menuDataEfetivacao"
+              :close-on-content-click="false"
+              transition="scale-transition"
+              class="mt-4"
+            >
+              <template #activator="{ props }">
+                <div class="custom__display__input" v-bind="props">
+                  <div class="d-flex align-center text-grey">
+                    <v-icon icon="mdi-calendar" class="me-3" />
+                    <span>Data de Efetivação</span>
+                  </div>
+                  <v-spacer />
+                  <span class="font-weight-medium">{{ displayDataEfetivacao }}</span>
+                </div>
+              </template>
+
+              <v-date-picker
+                v-model="formData.data_efetivacao"
+                color="error"
+                hide-header
+                show-adjacent-months
+              />
+            </v-menu>
+
+            <!-- Row 9: Observações -->
+            <v-textarea
+              v-if="informacoes"
+              v-model="formData.observacoes"
+              label="Observações (opcional)"
+              placeholder="Adicione notas ou detalhes sobre este lançamento..."
+              prepend-inner-icon="mdi-note-text-outline"
+              variant="underlined"
+              rows="3"
+              auto-grow
+              counter
+              maxlength="1000"
+              class="mt-4"
+            />
+
+            <!-- Buttons -->
             <div class="d-flex gap-2 justify-end mt-6">
               <v-btn variant="outlined" @click="dialog = false">
                 Cancelar
               </v-btn>
-              <v-btn color="error" type="submit">
+              <v-btn
+                color="error"
+                type="submit"
+                :loading="loading"
+                :disabled="loading"
+              >
                 {{ editingId ? 'Atualizar' : 'Adicionar' }}
               </v-btn>
             </div>
@@ -412,17 +676,45 @@ const itemsPerPage = ref(10);
 const menuDataVencimento = ref(false);
 const menuDataLancamento = ref(false);
 const menuDataEfetivacao = ref(false);
+const informacoes = ref(false);
+const formRef = ref<any>(null);
+
+// Recurrence State (igual a ReceitasView)
+const openRecorrenciaModal = ref(false);
+const openParcelas = ref(false);
+const tiposRecorrencia = ref(['Não recorrente', 'Fixa', 'Parcelado']);
+const tipoCalculoParcela = ref('total');
+const tempParcelaInicial = ref(1);
+const tempNumParcelas = ref(2);
+const tempPeriodicidade = ref('Mensal');
+
+// Categories and subcategories mapping
+const categoriaSubcategorias = {
+  'Moradia': ['Aluguel', 'Condomínio', 'IPTU', 'Manutenção', 'Serviços'],
+  'Alimentação': ['Supermercado', 'Restaurante', 'Delivery', 'Café', 'Padaria'],
+  'Transporte': ['Combustível', 'Táxi/Uber', 'Ônibus', 'Estacionamento', 'Manutenção'],
+  'Utilidades': ['Água', 'Luz', 'Internet', 'Telefone', 'Gás'],
+  'Saúde': ['Médico', 'Farmácia', 'Dentista', 'Academia', 'Terapia'],
+  'Educação': ['Escola', 'Curso', 'Material', 'Livros', 'Treinamento'],
+  'Lazer': ['Cinema', 'Viagem', 'Entretenimento', 'Jogo', 'Hobby'],
+  'Outros': ['Diversos', 'Compras', 'Presentes', 'Doações'],
+};
 
 // Mock data
 const despesas = ref([
-  { id: 1, descricao: 'Aluguel', valor: 1500, categoria: 'Moradia', conta: 'Conta Principal', data_vencimento: '2025-10-01', status: 'paga', observacao: 'Aluguel mensal' },
-  { id: 2, descricao: 'Supermercado', valor: 450, categoria: 'Alimentação', conta: 'Conta Principal', data_vencimento: '2025-10-05', status: 'paga', observacao: 'Compras semanais' },
-  { id: 3, descricao: 'Internet', valor: 120, categoria: 'Utilidades', conta: 'Conta Principal', data_vencimento: '2025-10-10', status: 'pendente', observacao: 'Internet banda larga' },
-  { id: 4, descricao: 'Uber', valor: 85, categoria: 'Transporte', conta: 'Conta Principal', data_vencimento: '2025-10-15', status: 'pendente', observacao: 'Deslocamento' },
+  { id: 1, descricao: 'Aluguel', valor: 150000, categoria: 'Moradia', conta_id: 1, data_vencimento: '2025-10-01', status_lancamento: 'EFETIVADA', observacoes: 'Aluguel mensal' },
+  { id: 2, descricao: 'Supermercado', valor: 45000, categoria: 'Alimentação', conta_id: 1, data_vencimento: '2025-10-05', status_lancamento: 'EFETIVADA', observacoes: 'Compras semanais' },
+  { id: 3, descricao: 'Internet', valor: 12000, categoria: 'Utilidades', conta_id: 1, data_vencimento: '2025-10-10', status_lancamento: 'PENDENTE', observacoes: 'Internet banda larga' },
+  { id: 4, descricao: 'Uber', valor: 8500, categoria: 'Transporte', conta_id: 1, data_vencimento: '2025-10-15', status_lancamento: 'PENDENTE', observacoes: 'Deslocamento' },
 ]);
 
-const categorias = ref(['Moradia', 'Alimentação', 'Transporte', 'Utilidades', 'Saúde', 'Educação', 'Lazer', 'Outros']);
-const contas = ref(['Conta Principal', 'Conta Investimento', 'Poupança']);
+const categoriasNames = Object.keys(categoriaSubcategorias);
+
+const contas = ref([
+  { id: 1, name: 'Conta Principal' },
+  { id: 2, name: 'Conta Investimento' },
+  { id: 3, name: 'Poupança' },
+]);
 const statusOptions = ref([
   { title: 'Paga', value: 'paga' },
   { title: 'Pendente', value: 'pendente' },
@@ -433,26 +725,121 @@ const statusOptions = ref([
 const formData = ref({
   descricao: '',
   categoria: '',
-  conta: '',
-  valor: 0,
+  subcategoria: '',
+  conta_id: undefined,
+  valor: '',
   data_vencimento: '',
-  status: 'pendente',
-  observacao: '',
+  data_lancamento: '',
+  data_efetivacao: '',
+  status_lancamento: 'PENDENTE',
+  recorrencia: 'Não recorrente',
+  observacoes: '',
 });
 
 // Validation rules
 const rules = {
   required: (v: any) => !!v || 'Campo obrigatório',
+  minLength3: (v: string) => (v && v.length >= 3) || 'Mínimo 3 caracteres',
+  valorPositivo: (v: string) => {
+    if (!v) return 'Valor obrigatório';
+    const numValue = parseFloat(v.replace(/\./g, '').replace(',', '.'));
+    return numValue > 0 || 'Valor deve ser maior que zero';
+  },
 };
+
+// Subcategorias dinâmicas baseado na categoria selecionada
+const subcategoriasDaCategoriaSelecionada = computed(() => {
+  const categoria = formData.value.categoria;
+  return categoria && categoriaSubcategorias[categoria as keyof typeof categoriaSubcategorias]
+    ? categoriaSubcategorias[categoria as keyof typeof categoriaSubcategorias]
+    : [];
+});
+
+// Display formatted dates
+const formatDateForDisplay = (dateValue: string | Date | undefined | null): string => {
+  if (!dateValue) return '--';
+  try {
+    let date: Date;
+    if (typeof dateValue === 'string') {
+      date = new Date(dateValue);
+    } else {
+      date = dateValue;
+    }
+    return date.toLocaleDateString('pt-BR');
+  } catch (error) {
+    return '--';
+  }
+};
+
+const displayDataVencimento = computed(() => {
+  return formatDateForDisplay(formData.value.data_vencimento);
+});
+
+const displayDataLancamento = computed(() => {
+  return formatDateForDisplay(formData.value.data_lancamento);
+});
+
+const displayDataEfetivacao = computed(() => {
+  return formatDateForDisplay(formData.value.data_efetivacao);
+});
+
+// 📋 Detalhe da Recorrência (como em ReceitasView)
+const detalheRecorrencia = computed(() => {
+  if (formData.value.recorrencia === 'Parcelado' && formData.value.valor && tempNumParcelas.value > 0) {
+    const valorInput = parseFloat(formData.value.valor.replace(/\./g, '').replace(',', '.'));
+    if (!isNaN(valorInput) && valorInput > 0) {
+      let valorParcela: number;
+      
+      // Se toggle está em 'total', divide o valor pelo número de parcelas
+      // Se toggle está em 'parcela', o valor já é o valor de uma parcela
+      if (tipoCalculoParcela.value === 'total') {
+        valorParcela = valorInput / tempNumParcelas.value;
+      } else {
+        valorParcela = valorInput;
+      }
+      
+      const valorFormatado = valorParcela.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return `Em ${tempNumParcelas.value}x de R$ ${valorFormatado}`;
+    }
+  }
+  return '';
+});
+
+// 📅 Calcular data relativa (Ontem, Hoje, Amanhã)
+const dataVencimentoRelativa = computed(() => {
+  if (!formData.value.data_vencimento) return '';
+  
+  try {
+    const dataVencimento = new Date(formData.value.data_vencimento);
+    const hoje = new Date();
+    
+    // Normalizar para comparação apenas de datas (sem horas)
+    dataVencimento.setHours(0, 0, 0, 0);
+    hoje.setHours(0, 0, 0, 0);
+    
+    const diffTime = dataVencimento.getTime() - hoje.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Hoje';
+    if (diffDays === -1) return 'Ontem';
+    if (diffDays === 1) return 'Amanhã';
+    if (diffDays < 0) return `${Math.abs(diffDays)} dias atrás`;
+    if (diffDays > 1) return `Em ${diffDays} dias`;
+    
+    return '';
+  } catch (error) {
+    return '';
+  }
+});
 
 // Headers da tabela
 const headers = [
-  { title: 'Descrição', align: 'start', key: 'descricao', width: '35%' },
-  { title: 'Categoria', align: 'start', key: 'categoria', width: '15%' },
-  { title: 'Valor', align: 'end', key: 'valor', width: '15%' },
-  { title: 'Status', align: 'center', key: 'status', width: '15%' },
-  { title: 'Ações', align: 'end', key: 'acoes', width: '10%', sortable: false },
-];
+  { title: 'Descrição', align: 'start' as const, key: 'descricao' as const, width: '35%' },
+  { title: 'Categoria', align: 'start' as const, key: 'categoria' as const, width: '15%' },
+  { title: 'Valor', align: 'end' as const, key: 'valor' as const, width: '15%' },
+  { title: 'Status', align: 'center' as const, key: 'status' as const, width: '15%' },
+  { title: 'Ações', align: 'end' as const, key: 'acoes' as const, width: '10%', sortable: false as const },
+] as const;
 
 // Summary computed
 const summary = computed(() => ({
@@ -502,29 +889,27 @@ const getMonthName = (mesAnoString: string): string => {
   return format(date, 'MMMM yyyy', { locale: ptBR });
 };
 
+// LOCAL month state - independent per page
+const currentMonth = ref<string>(new Date().toISOString().slice(0, 7)); // YYYY-MM
+
 const goToPreviousMonth = () => {
-  const mesAno = userStore.getMesAno();
-  const [ano, mes] = mesAno.split('-');
+  const [ano, mes] = currentMonth.value.split('-');
   const date = new Date(parseInt(ano), parseInt(mes) - 1, 1);
   date.setMonth(date.getMonth() - 1);
-  const newMonth = date.toISOString().slice(0, 7);
-  userStore.setMesAno(newMonth);
+  currentMonth.value = date.toISOString().slice(0, 7);
   loadDespesas();
 };
 
 const goToNextMonth = () => {
-  const mesAno = userStore.getMesAno();
-  const [ano, mes] = mesAno.split('-');
+  const [ano, mes] = currentMonth.value.split('-');
   const date = new Date(parseInt(ano), parseInt(mes) - 1, 1);
   date.setMonth(date.getMonth() + 1);
-  const newMonth = date.toISOString().slice(0, 7);
-  userStore.setMesAno(newMonth);
+  currentMonth.value = date.toISOString().slice(0, 7);
   loadDespesas();
 };
 
 const goToCurrentMonth = () => {
-  const currentMonth = new Date().toISOString().slice(0, 7);
-  userStore.setMesAno(currentMonth);
+  currentMonth.value = new Date().toISOString().slice(0, 7);
   loadDespesas();
 };
 
@@ -579,17 +964,76 @@ const getStatusLabel = (status: string) => {
   return labels[status] || status;
 };
 
+// Toggle status between PENDENTE and EFETIVADA
+const toggleStatus = () => {
+  if (formData.value.status_lancamento === 'EFETIVADA') {
+    formData.value.status_lancamento = 'PENDENTE';
+  } else {
+    formData.value.status_lancamento = 'EFETIVADA';
+  }
+};
+
+// Format value display (accepts "10,50" or "10.50" or "1050")
+const formatValueDisplay = () => {
+  let value = formData.value.valor as any;
+  if (!value) return;
+  
+  // Convert to string if number
+  if (typeof value === 'number') {
+    value = value.toString();
+  }
+  
+  // Remove any existing formatting
+  let cleanValue = value.toString().replace(/\D/g, '');
+  
+  // If length > 2, add decimal point before last 2 digits
+  if (cleanValue.length > 2) {
+    cleanValue = cleanValue.slice(0, -2) + ',' + cleanValue.slice(-2);
+  } else if (cleanValue.length === 2) {
+    cleanValue = '0,' + cleanValue;
+  } else if (cleanValue.length === 1) {
+    cleanValue = '0,0' + cleanValue;
+  }
+  
+  formData.value.valor = cleanValue;
+};
+
+// 🔄 Selecionar recorrência (abre diálogo de parcelação se selecionado 'Parcelado')
+const selecionarRecorrencia = (item: string) => {
+  formData.value.recorrencia = item;
+  openRecorrenciaModal.value = false;
+
+  if (item === 'Parcelado') {
+    openParcelas.value = true;
+  }
+};
+
+// ✅ Finalizar configuração de parcelas
+const concluirParcelas = () => {
+  openParcelas.value = false;
+};
+
 const openAddDialog = () => {
   editingId.value = null;
+  informacoes.value = false;
   formData.value = {
     descricao: '',
     categoria: '',
-    conta: '',
-    valor: 0,
+    subcategoria: '',
+    conta_id: undefined,
+    valor: '',
     data_vencimento: '',
-    status: 'pendente',
-    observacao: '',
+    data_lancamento: new Date().toISOString().split('T')[0],
+    data_efetivacao: '',
+    status_lancamento: 'PENDENTE',
+    recorrencia: 'Não recorrente',
+    observacoes: '',
   };
+  // Reset parcelação
+  tempNumParcelas.value = 2;
+  tempParcelaInicial.value = 1;
+  tempPeriodicidade.value = 'Mensal';
+  tipoCalculoParcela.value = 'total';
   dialog.value = true;
 };
 
@@ -602,8 +1046,19 @@ const editDespesa = (despesa: any) => {
   
   formData.value = { 
     ...despesa,
-    valor: valorFormatado // ✅ Exibir valor formatado no formulário
+    valor: valorFormatado, // ✅ Exibir valor formatado no formulário
+    recorrencia: despesa.recorrencia || 'Não recorrente', // Manter recorrência
   };
+  // Recuperar valores de parcelação se existirem
+  if (despesa.qtd_parcelas) {
+    tempNumParcelas.value = despesa.qtd_parcelas;
+  }
+  if (despesa.num_parcela) {
+    tempParcelaInicial.value = despesa.num_parcela;
+  }
+  if (despesa.periodicidade) {
+    tempPeriodicidade.value = despesa.periodicidade;
+  }
   dialog.value = true;
 };
 
@@ -666,72 +1121,51 @@ const saveDespesa = async () => {
       throw new Error('Preencha todos os campos obrigatórios');
     }
 
-    // Mapear recorrência para formato da API (MAIÚSCULAS)
-    const recorrenciaMap: { [key: string]: string } = {
-      'Não recorrente': 'NAO_RECORRENTE',
-      'Fixa': 'FIXA',
-      'Parcelado': 'PARCELADO',
-    };
-
-    // Obter mesAno no formato YYYY-MM
-    const mesAno = userStore.getMesAno?.() || new Date().toISOString().slice(0, 7);
-
     // ✅ Construir payload com TODOS os campos esperados pelo backend
     const payload: any = {
       // Campos obrigatórios
       descricao: formData.value.descricao,
       valor: formData.value.valor,  // STRING formatada "10,00", backend faz conversão
       tipo_lancamento: 'Despesa',   // ✅ "Despesa" (backend transforma para DESPESA)
-      recorrencia: recorrenciaMap[formData.value.recorrencia] || 'NAO_RECORRENTE',
+      recorrencia: formData.value.recorrencia === 'Não recorrente' ? 'NAO_RECORRENTE' 
+                  : formData.value.recorrencia === 'Fixa' ? 'FIXA'
+                  : 'PARCELADA', // ✅ Usar recorrência do formulário
       status_lancamento: formData.value.status_lancamento || 'PENDENTE',
       categoria: formData.value.categoria,
-      subcategoria: formData.value.subcategoria,
+      subcategoria: formData.value.subcategoria || null,
       conta_id: formData.value.conta_id,
-      data_vencimento: formatDateForBackend(formData.value.data_vencimento),  // ✅ Formatar para YYYY-MM-DD
-      data_lancamento: formatDateForBackend(formData.value.data_lancamento),  // ✅ Formatar para YYYY-MM-DD
-      mesAno: mesAno,
+      data_vencimento: formatDateForBackend(formData.value.data_vencimento),
+      data_lancamento: formatDateForBackend(formData.value.data_lancamento),
+      mesAno: currentMonth.value,
       
-      // Campos da interface Lancamento (preenchidos com valores padrão)
-      id: editingId.value && formData.value.recorrencia === 'Não recorrente' ? editingId.value : null,
+      // Campos de parcelação (se aplicável)
+      qtd_parcelas: formData.value.recorrencia === 'Parcelado' ? tempNumParcelas.value : null,
+      num_parcela: formData.value.recorrencia === 'Parcelado' ? tempParcelaInicial.value : null,
+      tipo_parcela: formData.value.recorrencia === 'Parcelado' ? tipoCalculoParcela.value : null,
+      periodicidade: formData.value.recorrencia === 'Parcelado' ? tempPeriodicidade.value : null,
+      
+      // Campos da interface Lancamento
+      id: editingId.value || null,
       invoice_id: null,
       is_estorno: false,
       original_lancamento_id: null,
-      data_efetivacao: formatDateForBackend(formData.value.data_efetivacao),  // ✅ Formatar se existir
+      data_efetivacao: formatDateForBackend(formData.value.data_efetivacao),
       observacoes: formData.value.observacoes || null,
       fatura: null,
       cartao_id: null,
       user_id: null,
     };
 
-    // Se for parcelado, adicionar dados de parcelas (MAIÚSCULAS)
-    if (formData.value.recorrencia === 'Parcelado') {
-      payload.qtd_parcelas = tempNumParcelas.value;
-      payload.num_parcela = tempParcelaInicial.value;
-      payload.tipo_parcela = tipoCalculoParcela.value?.toLowerCase() || 'total'; // total ou parcela
-      payload.periodicidade = tempPeriodicidade.value?.toUpperCase() || 'MENSAL';
-    } else {
-      payload.qtd_parcelas = null;
-      payload.num_parcela = null;
-      payload.tipo_parcela = null;
-      payload.periodicidade = null;
-    }
-
     console.log('Payload enviado:', payload);
 
-    if (editingId.value && formData.value.recorrencia === 'Não recorrente') {
-      // ATUALIZAR apenas se for Não recorrente
+    if (editingId.value) {
+      // ATUALIZAR
       await despesasService.update(editingId.value, payload);
       toastStore.success('Despesa atualizada com sucesso!');
     } else {
       // CRIAR novo lançamento
       await despesasService.create(payload);
-      if (editingId.value) {
-        // Se estava editando FIXA ou PARCELADO, apagar o antigo
-        await despesasService.delete(editingId.value);
-        toastStore.success('Despesa atualizada com sucesso!');
-      } else {
-        toastStore.success('Despesa criada com sucesso!');
-      }
+      toastStore.success('Despesa criada com sucesso!');
     }
 
     // Fechar modal e recarregar dados
@@ -755,7 +1189,7 @@ const resetFilters = () => {
 const loadDespesas = async () => {
   try {
     loading.value = true;
-    const mesAno = userStore.getMesAno?.();
+    const mesAno = currentMonth.value; // Use local currentMonth instead of userStore
     const data = await despesasService.list(mesAno);
     if (data && data.length > 0) {
       despesas.value = data.map((d: any) => ({
@@ -835,9 +1269,17 @@ watch(() => formData.value.data_efetivacao, (newVal) => {
   }
 });
 
+// Watch for local month changes
 onMounted(() => {
+  // Reset to current month on mount to ensure fresh data
+  currentMonth.value = new Date().toISOString().slice(0, 7);
+  // Load data after resetting the month
   loadDespesas();
 });
+
+watch(() => currentMonth.value, () => {
+  loadDespesas();
+}, { immediate: false }); // Set to false to avoid double load on mount
 </script>
 
 <style scoped lang="scss">

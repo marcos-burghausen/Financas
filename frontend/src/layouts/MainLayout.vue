@@ -158,44 +158,6 @@
           </v-menu>
         </div>
       </div>
-
-      <!-- Month/Year Selector -->
-      <div class="month-selector-bar">
-        <div class="month-selector">
-          <v-btn
-            icon
-            variant="text"
-            size="small"
-            @click="previousMonth"
-          >
-            <v-icon icon="mdi-chevron-left" />
-          </v-btn>
-
-          <div class="month-display">
-            <span class="month-text">{{ monthDisplay }}</span>
-          </div>
-
-          <v-btn
-            icon
-            variant="text"
-            size="small"
-            @click="nextMonth"
-          >
-            <v-icon icon="mdi-chevron-right" />
-          </v-btn>
-
-          <!-- Go to today button -->
-          <v-btn
-            variant="text"
-            size="x-small"
-            class="ml-2"
-            @click="goToToday"
-            v-show="!isCurrentMonth"
-          >
-            Hoje
-          </v-btn>
-        </div>
-      </div>
     </header>
 
     <!-- LAYOUT COM MENU LATERAL E CONTEÚDO -->
