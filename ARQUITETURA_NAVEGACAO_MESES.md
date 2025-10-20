@@ -167,7 +167,7 @@ DashboardView.vue
 LocalStorage
     ↓
     └─ mesAno: "2024-09"
-    
+
 Pinia UserStore (user.ts)
     ├─ mesAno: Ref<string> = "2024-09"
     ├─ setMesAno(value)
@@ -290,7 +290,7 @@ Step 7: Vue re-renders with current month data
 ```
 DashboardView             ReceitasView
 ─────────────             ────────────
-mesAno: "2024-09"        
+mesAno: "2024-09"
                           watch(userStore.mesAno)
                           Detects change
                           loadReceitasData()
@@ -380,7 +380,7 @@ Dashboard also shows September (synced!)
            │
            └─ userStore.loadFromSession()
               (On app initialization)
-           
+
            ┌─ userStore.setMesAno()
               (On navigation)
            │
