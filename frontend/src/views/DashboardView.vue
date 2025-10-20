@@ -1,17 +1,32 @@
 <template>
   <div class="dashboard-view">
     <!-- LOADING STATE -->
-    <v-row v-if="loading" class="py-12">
-      <v-col cols="12" class="text-center">
-        <v-progress-circular indeterminate color="primary" size="64" />
-        <p class="text-grey mt-4">Carregando dados...</p>
+    <v-row
+      v-if="loading"
+      class="py-12"
+    >
+      <v-col
+        cols="12"
+        class="text-center"
+      >
+        <v-progress-circular
+          indeterminate
+          color="primary"
+          size="64"
+        />
+        <p class="text-grey mt-4">
+          Carregando dados...
+        </p>
       </v-col>
     </v-row>
 
     <!-- MAIN CONTENT -->
     <div v-else>
       <!-- MONTH NAVIGATION BAR -->
-      <v-card class="mb-6" elevation="1">
+      <v-card
+        class="mb-6"
+        elevation="1"
+      >
         <v-card-text class="pa-4">
           <div class="d-flex align-center justify-center gap-4">
             <v-btn
@@ -19,16 +34,19 @@
               color="primary"
               variant="outlined"
               size="small"
-              @click="navigationMonth('prev')"
               title="Mês anterior"
+              @click="navigationMonth('prev')"
             />
-            <div class="text-center" style="min-width: 250px">
+            <div
+              class="text-center"
+              style="min-width: 250px"
+            >
               <v-btn
                 variant="text"
                 :text="monthDisplayFormatted.toUpperCase()"
-                @click="navigationMonth('today')"
                 :class="{ 'text-primary font-weight-bold': isCurrentMonth }"
                 title="Ir para o mês atual"
+                @click="navigationMonth('today')"
               />
             </div>
             <v-btn
@@ -36,8 +54,8 @@
               color="primary"
               variant="outlined"
               size="small"
-              @click="navigationMonth('next')"
               title="Próximo mês"
+              @click="navigationMonth('next')"
             />
           </div>
         </v-card-text>
@@ -46,8 +64,16 @@
       <!-- KPI CARDS SECTION -->
       <v-row class="mb-6">
         <!-- Card: Receitas -->
-        <v-col cols="12" sm="6" lg="3" class="mb-4">
-          <v-card elevation="1" class="kpi-card kpi-success h-100">
+        <v-col
+          cols="12"
+          sm="6"
+          lg="3"
+          class="mb-4"
+        >
+          <v-card
+            elevation="1"
+            class="kpi-card kpi-success h-100"
+          >
             <v-card-item class="pb-0">
               <div class="d-flex justify-space-between align-start mb-4">
                 <div class="flex-grow-1">
@@ -58,23 +84,34 @@
                     {{ formatCurrency(summary.receitasMes) }}
                   </h2>
                   <div class="d-flex align-center gap-1">
-                    <v-icon icon="mdi-trending-up" size="16" color="success" />
+                    <v-icon
+                      icon="mdi-trending-up"
+                      size="16"
+                      color="success"
+                    />
                     <p class="text-caption text-success mb-0">
                       +{{ receitasVariacao.toFixed(1) }}% vs mês anterior
                     </p>
                   </div>
                 </div>
-                <v-avatar size="56" color="success" variant="tonal">
-                  <v-icon icon="mdi-cash-plus" size="32" />
+                <v-avatar
+                  size="56"
+                  color="success"
+                  variant="tonal"
+                >
+                  <v-icon
+                    icon="mdi-cash-plus"
+                    size="32"
+                  />
                 </v-avatar>
               </div>
               <!-- Progress bar -->
               <div class="progress-section">
                 <p class="text-caption mb-2">
-                  {{ summary.receitasRecebidas }} de {{ summary.receitasRecebidas + 2 }} recebidas
+                  {{ summary.receitasRecebidas }} de {{ summary.receitasRecebidas }} recebidas
                 </p>
                 <v-progress-linear
-                  :value="(summary.receitasRecebidas / (summary.receitasRecebidas + 2)) * 100"
+                  :model-value="(summary.receitasRecebidas / (summary.receitasRecebidas + 2)) * 100"
                   color="success"
                   height="6"
                   rounded
@@ -85,8 +122,16 @@
         </v-col>
 
         <!-- Card: Despesas -->
-        <v-col cols="12" sm="6" lg="3" class="mb-4">
-          <v-card elevation="1" class="kpi-card kpi-error h-100">
+        <v-col
+          cols="12"
+          sm="6"
+          lg="3"
+          class="mb-4"
+        >
+          <v-card
+            elevation="1"
+            class="kpi-card kpi-error h-100"
+          >
             <v-card-item class="pb-0">
               <div class="d-flex justify-space-between align-start mb-4">
                 <div class="flex-grow-1">
@@ -97,14 +142,25 @@
                     {{ formatCurrency(summary.despesasMes) }}
                   </h2>
                   <div class="d-flex align-center gap-1">
-                    <v-icon icon="mdi-trending-down" size="16" color="error" />
+                    <v-icon
+                      icon="mdi-trending-down"
+                      size="16"
+                      color="error"
+                    />
                     <p class="text-caption text-error mb-0">
                       -{{ despesasVariacao.toFixed(1) }}% vs mês anterior
                     </p>
                   </div>
                 </div>
-                <v-avatar size="56" color="error" variant="tonal">
-                  <v-icon icon="mdi-cash-remove" size="32" />
+                <v-avatar
+                  size="56"
+                  color="error"
+                  variant="tonal"
+                >
+                  <v-icon
+                    icon="mdi-cash-remove"
+                    size="32"
+                  />
                 </v-avatar>
               </div>
               <div class="progress-section">
@@ -123,8 +179,16 @@
         </v-col>
 
         <!-- Card: Saldo -->
-        <v-col cols="12" sm="6" lg="3" class="mb-4">
-          <v-card elevation="1" class="kpi-card kpi-primary h-100">
+        <v-col
+          cols="12"
+          sm="6"
+          lg="3"
+          class="mb-4"
+        >
+          <v-card
+            elevation="1"
+            class="kpi-card kpi-primary h-100"
+          >
             <v-card-item class="pb-0">
               <div class="d-flex justify-space-between align-start mb-4">
                 <div class="flex-grow-1">
@@ -138,8 +202,15 @@
                     3 contas ativas
                   </p>
                 </div>
-                <v-avatar size="56" color="primary" variant="tonal">
-                  <v-icon icon="mdi-wallet" size="32" />
+                <v-avatar
+                  size="56"
+                  color="primary"
+                  variant="tonal"
+                >
+                  <v-icon
+                    icon="mdi-wallet"
+                    size="32"
+                  />
                 </v-avatar>
               </div>
               <div class="progress-section">
@@ -158,8 +229,16 @@
         </v-col>
 
         <!-- Card: Pendências -->
-        <v-col cols="12" sm="6" lg="3" class="mb-4">
-          <v-card elevation="1" class="kpi-card kpi-warning h-100">
+        <v-col
+          cols="12"
+          sm="6"
+          lg="3"
+          class="mb-4"
+        >
+          <v-card
+            elevation="1"
+            class="kpi-card kpi-warning h-100"
+          >
             <v-card-item class="pb-0">
               <div class="d-flex justify-space-between align-start mb-4">
                 <div class="flex-grow-1">
@@ -173,8 +252,15 @@
                     {{ counters.receitasPendentes + counters.despesasPendentes }} transações
                   </p>
                 </div>
-                <v-avatar size="56" color="warning" variant="tonal">
-                  <v-icon icon="mdi-clock-outline" size="32" />
+                <v-avatar
+                  size="56"
+                  color="warning"
+                  variant="tonal"
+                >
+                  <v-icon
+                    icon="mdi-clock-outline"
+                    size="32"
+                  />
                 </v-avatar>
               </div>
               <div class="progress-section">
@@ -196,17 +282,27 @@
       <!-- CHARTS AND DATA SECTION -->
       <v-row class="mb-6">
         <!-- Chart: Receitas vs Despesas -->
-        <v-col cols="12" lg="8" class="mb-4">
+        <v-col
+          cols="12"
+          lg="8"
+          class="mb-4"
+        >
           <v-card elevation="1">
             <v-card-item>
               <v-card-title class="text-h6 mb-4">
-                <v-icon icon="mdi-chart-bar" class="mr-2" />
+                <v-icon
+                  icon="mdi-chart-bar"
+                  class="mr-2"
+                />
                 Receitas vs Despesas
               </v-card-title>
             </v-card-item>
             <v-divider />
             <v-card-item>
-              <div v-if="chartSeries.bar.length" class="chart-container">
+              <div
+                v-if="chartSeries.bar.length"
+                class="chart-container"
+              >
                 <apexchart
                   type="bar"
                   :options="chartOptions.bar"
@@ -214,25 +310,40 @@
                   height="350"
                 />
               </div>
-              <div v-else class="text-center py-8">
-                <p class="text-grey">Gráfico não disponível</p>
+              <div
+                v-else
+                class="text-center py-8"
+              >
+                <p class="text-grey">
+                  Gráfico não disponível
+                </p>
               </div>
             </v-card-item>
           </v-card>
         </v-col>
 
         <!-- Chart: Distribuição de Despesas -->
-        <v-col cols="12" lg="4" class="mb-4">
+        <v-col
+          cols="12"
+          lg="4"
+          class="mb-4"
+        >
           <v-card elevation="1">
             <v-card-item>
               <v-card-title class="text-h6 mb-4">
-                <v-icon icon="mdi-chart-pie" class="mr-2" />
+                <v-icon
+                  icon="mdi-chart-pie"
+                  class="mr-2"
+                />
                 Distribuição
               </v-card-title>
             </v-card-item>
             <v-divider />
             <v-card-item>
-              <div v-if="chartSeries.pie.length" class="chart-container">
+              <div
+                v-if="chartSeries.pie.length"
+                class="chart-container"
+              >
                 <apexchart
                   type="donut"
                   :options="chartOptions.pie"
@@ -240,8 +351,13 @@
                   height="350"
                 />
               </div>
-              <div v-else class="text-center py-8">
-                <p class="text-grey">Gráfico não disponível</p>
+              <div
+                v-else
+                class="text-center py-8"
+              >
+                <p class="text-grey">
+                  Gráfico não disponível
+                </p>
               </div>
             </v-card-item>
           </v-card>
@@ -251,17 +367,27 @@
       <!-- RECENT TRANSACTIONS AND ALERTS -->
       <v-row>
         <!-- Recent Transactions -->
-        <v-col cols="12" lg="8" class="mb-4">
+        <v-col
+          cols="12"
+          lg="8"
+          class="mb-4"
+        >
           <v-card elevation="1">
             <v-card-item>
               <v-card-title class="text-h6 mb-4">
-                <v-icon icon="mdi-history" class="mr-2" />
+                <v-icon
+                  icon="mdi-history"
+                  class="mr-2"
+                />
                 Transações Recentes
               </v-card-title>
             </v-card-item>
             <v-divider />
             <v-card-item>
-              <div v-if="recentTransactions.length" class="transactions-list">
+              <div
+                v-if="recentTransactions.length"
+                class="transactions-list"
+              >
                 <div
                   v-for="(transaction, idx) in recentTransactions.slice(0, 5)"
                   :key="idx"
@@ -269,7 +395,11 @@
                 >
                   <div class="d-flex align-center justify-space-between">
                     <div class="d-flex align-center gap-3 flex-grow-1 min-width-0">
-                      <v-avatar size="40" :color="transaction.tipo === 'receita' ? 'success' : 'error'" variant="tonal">
+                      <v-avatar
+                        size="40"
+                        :color="transaction.tipo === 'receita' ? 'success' : 'error'"
+                        variant="tonal"
+                      >
                         <v-icon :icon="transaction.tipo === 'receita' ? 'mdi-cash-plus' : 'mdi-cash-remove'" />
                       </v-avatar>
                       <div class="min-width-0">
@@ -290,12 +420,21 @@
                   </div>
                 </div>
               </div>
-              <div v-else class="text-center py-8">
-                <p class="text-grey">Nenhuma transação recente</p>
+              <div
+                v-else
+                class="text-center py-8"
+              >
+                <p class="text-grey">
+                  Nenhuma transação recente
+                </p>
               </div>
             </v-card-item>
             <v-card-actions v-if="recentTransactions.length">
-              <v-btn color="primary" variant="text" block>
+              <v-btn
+                color="primary"
+                variant="text"
+                block
+              >
                 Ver todas as transações
               </v-btn>
             </v-card-actions>
@@ -303,17 +442,29 @@
         </v-col>
 
         <!-- Alerts & Quick Actions -->
-        <v-col cols="12" lg="4">
-          <v-card elevation="1" class="mb-4">
+        <v-col
+          cols="12"
+          lg="4"
+        >
+          <v-card
+            elevation="1"
+            class="mb-4"
+          >
             <v-card-item>
               <v-card-title class="text-h6 mb-4">
-                <v-icon icon="mdi-alert-circle" class="mr-2" />
+                <v-icon
+                  icon="mdi-alert-circle"
+                  class="mr-2"
+                />
                 Alertas
               </v-card-title>
             </v-card-item>
             <v-divider />
             <v-card-item>
-              <div v-if="alerts.length" class="alerts-list">
+              <div
+                v-if="alerts.length"
+                class="alerts-list"
+              >
                 <div
                   v-for="(alert, idx) in alerts.slice(0, 3)"
                   :key="idx"
@@ -321,7 +472,10 @@
                   :class="`alert-${alert.type}`"
                 >
                   <div class="d-flex gap-2">
-                    <v-icon :icon="alert.icon" size="20" />
+                    <v-icon
+                      :icon="alert.icon"
+                      size="20"
+                    />
                     <div>
                       <p class="text-caption font-weight-bold mb-1">
                         {{ alert.titulo }}
@@ -333,8 +487,16 @@
                   </div>
                 </div>
               </div>
-              <div v-else class="text-center py-4">
-                <v-icon icon="mdi-check-circle" size="48" color="success" class="mb-2" />
+              <div
+                v-else
+                class="text-center py-4"
+              >
+                <v-icon
+                  icon="mdi-check-circle"
+                  size="48"
+                  color="success"
+                  class="mb-2"
+                />
                 <p class="text-caption text-grey mb-0">
                   Tudo certo!
                 </p>
@@ -346,7 +508,10 @@
           <v-card elevation="1">
             <v-card-item>
               <v-card-title class="text-h6 mb-4">
-                <v-icon icon="mdi-lightning-bolt" class="mr-2" />
+                <v-icon
+                  icon="mdi-lightning-bolt"
+                  class="mr-2"
+                />
                 Ações Rápidas
               </v-card-title>
             </v-card-item>
@@ -387,15 +552,24 @@
     </div>
 
     <!-- DIALOG: PENDÊNCIAS -->
-    <v-dialog v-model="showPendenciasDialog" max-width="800">
+    <v-dialog
+      v-model="showPendenciasDialog"
+      max-width="800"
+    >
       <v-card>
         <v-card-title class="d-flex align-center gap-2">
-          <v-icon icon="mdi-clock-alert" color="warning" />
+          <v-icon
+            icon="mdi-clock-alert"
+            color="warning"
+          />
           Transações Pendentes
         </v-card-title>
         <v-divider />
         <v-card-text class="py-4">
-          <div v-if="pendenciasTransacoes.length" class="pendencias-list">
+          <div
+            v-if="pendenciasTransacoes.length"
+            class="pendencias-list"
+          >
             <div
               v-for="(transaction, idx) in pendenciasTransacoes.filter(t => t.status_lancamento === 'PENDENTE')"
               :key="idx"
@@ -445,15 +619,29 @@
               </div>
             </div>
           </div>
-          <div v-else class="text-center py-8">
-            <v-icon icon="mdi-check-circle" size="64" color="success" class="mb-4" />
-            <p class="text-grey">Nenhuma transação pendente para este período</p>
+          <div
+            v-else
+            class="text-center py-8"
+          >
+            <v-icon
+              icon="mdi-check-circle"
+              size="64"
+              color="success"
+              class="mb-4"
+            />
+            <p class="text-grey">
+              Nenhuma transação pendente para este período
+            </p>
           </div>
         </v-card-text>
         <v-divider />
         <v-card-actions>
           <v-spacer />
-          <v-btn color="primary" variant="text" @click="showPendenciasDialog = false">
+          <v-btn
+            color="primary"
+            variant="text"
+            @click="showPendenciasDialog = false"
+          >
             Fechar
           </v-btn>
         </v-card-actions>
@@ -523,7 +711,7 @@ const currentMonth = ref<string>(new Date().toISOString().slice(0, 7)); // YYYY-
 
 // Month/Year label
 const monthDisplay = computed(() => {
-  const [year, month] = currentMonth.value.split('-');
+  const [year, month] = currentMonth.value.split("-");
   const date = new Date(`${year}-${month}-01`);
   return date.toLocaleString("pt-BR", { month: "long", year: "numeric" });
 });
@@ -543,18 +731,18 @@ const isCurrentMonth = computed(() => {
 });
 
 // Month navigation methods
-const navigationMonth = (action: 'prev' | 'next' | 'today') => {
-  if (action === 'prev') {
-    const [year, month] = currentMonth.value.split('-');
+const navigationMonth = (action: "prev" | "next" | "today") => {
+  if (action === "prev") {
+    const [year, month] = currentMonth.value.split("-");
     const date = new Date(`${year}-${month}-01`);
     date.setMonth(date.getMonth() - 1);
     currentMonth.value = date.toISOString().slice(0, 7);
-  } else if (action === 'next') {
-    const [year, month] = currentMonth.value.split('-');
+  } else if (action === "next") {
+    const [year, month] = currentMonth.value.split("-");
     const date = new Date(`${year}-${month}-01`);
     date.setMonth(date.getMonth() + 1);
     currentMonth.value = date.toISOString().slice(0, 7);
-  } else if (action === 'today') {
+  } else if (action === "today") {
     currentMonth.value = new Date().toISOString().slice(0, 7);
   }
   // Watch com immediate: true cuidará de carregar os dados
@@ -594,7 +782,7 @@ const saldoVariacao = computed(() => {
 // Abrir dialog de pendências
 const openPendenciasDialog = (transactions: any[]) => {
   // Filtrar apenas transações pendentes
-  pendenciasTransacoes.value = transactions.filter(t => t.status_lancamento === 'PENDENTE');
+  pendenciasTransacoes.value = transactions.filter(t => t.status_lancamento === "PENDENTE");
   showPendenciasDialog.value = true;
 };
 
@@ -607,7 +795,7 @@ const loadDashboardData = async () => {
     let allTransactions: any[] = [];
     try {
       // Usar http.get com o mês correto
-      const response = await http.get('/lancamentos', {
+      const response = await http.get("/lancamentos", {
         params: {
           mesAno: currentMonth.value, // YYYY-MM format
           limit: 1000
@@ -617,12 +805,12 @@ const loadDashboardData = async () => {
       const data = response.data || response;
       allTransactions = data.data || data.lancamentos || [];
     } catch (err) {
-      console.warn('Erro ao carregar transações:', err);
+      console.warn("Erro ao carregar transações:", err);
       try {
         // Fallback: tentar sem o mês
         allTransactions = await dashboardService.getRecentTransactions(1000);
       } catch (fallbackErr) {
-        console.warn('Fallback também falhou:', fallbackErr);
+        console.warn("Fallback também falhou:", fallbackErr);
       }
     }
 
@@ -639,14 +827,14 @@ const loadDashboardData = async () => {
 
     allTransactions.forEach((item: any) => {
       const valor = item.valor || 0;
-      const tipo = item.tipo_lancamento?.toLowerCase() || 'despesa';
-      const status = item.status_lancamento || 'PENDENTE';
+      const tipo = item.tipo_lancamento?.toLowerCase() || "despesa";
+      const status = item.status_lancamento || "PENDENTE";
 
-      if (tipo === 'receita') {
-        if (status === 'EFETIVADA') {
+      if (tipo === "receita") {
+        if (status === "EFETIVADA") {
           receitasRecebidas++;
           totalReceitas += valor;
-        } else if (status === 'PENDENTE') {
+        } else if (status === "PENDENTE") {
           receitasPendentes++;
           // Adicionar ao total de pendências (independente se atrasada ou futura)
           totalPendencias += valor;
@@ -654,10 +842,10 @@ const loadDashboardData = async () => {
           // Por agora, deixamos todos como "pendentes" genéricos
         }
       } else {
-        if (status === 'EFETIVADA') {
+        if (status === "EFETIVADA") {
           despesasPagas++;
           totalDespesas += valor;
-        } else if (status === 'PENDENTE') {
+        } else if (status === "PENDENTE") {
           despesasPendentes++;
           // Adicionar ao total de pendências (independente se atrasada ou futura)
           totalPendencias += valor;
@@ -753,12 +941,12 @@ const loadDashboardData = async () => {
       const categoriaMap = new Map<string, number>();
       
       allTransactions.forEach((item: any) => {
-        const tipo = item.tipo_lancamento?.toLowerCase() || 'despesa';
-        const status = item.status_lancamento || 'PENDENTE';
+        const tipo = item.tipo_lancamento?.toLowerCase() || "despesa";
+        const status = item.status_lancamento || "PENDENTE";
         
         // Somar apenas despesas EFETIVADAS
-        if (tipo === 'despesa' && status === 'EFETIVADA') {
-          const categoria = item.categoria || 'Outros';
+        if (tipo === "despesa" && status === "EFETIVADA") {
+          const categoria = item.categoria || "Outros";
           const valor = item.valor || 0;
           categoriaMap.set(categoria, (categoriaMap.get(categoria) || 0) + valor);
         }
@@ -774,7 +962,7 @@ const loadDashboardData = async () => {
       
       chartOptions.value.pie = {
         chart: { type: "donut", height: 350 },
-        labels: labels.length > 0 ? labels : ['Sem dados'],
+        labels: labels.length > 0 ? labels : ["Sem dados"],
         colors: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF", "#C9CBCF", "#4BC0C0"],
         legend: { position: "bottom" },
         dataLabels: {
@@ -794,11 +982,11 @@ const loadDashboardData = async () => {
 
       chartSeries.value.pie = percentuais.length > 0 ? percentuais : [100];
     } catch (err) {
-      console.warn('Erro ao calcular distribuição de categorias:', err);
+      console.warn("Erro ao calcular distribuição de categorias:", err);
       // Usar valores padrão
       chartOptions.value.pie = {
         chart: { type: "donut", height: 350 },
-        labels: ['Alimentação', 'Transporte', 'Moradia', 'Lazer', 'Outros'],
+        labels: ["Alimentação", "Transporte", "Moradia", "Lazer", "Outros"],
         colors: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"],
         legend: { position: "bottom" },
         dataLabels: {
@@ -814,7 +1002,7 @@ const loadDashboardData = async () => {
       const transactions = await dashboardService.getRecentTransactions(10);
       recentTransactions.value = transactions;
     } catch (err) {
-      console.warn('Erro ao carregar transações recentes:', err);
+      console.warn("Erro ao carregar transações recentes:", err);
       recentTransactions.value = [];
     }
 

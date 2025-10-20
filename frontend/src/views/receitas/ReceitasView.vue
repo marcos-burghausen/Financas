@@ -5,7 +5,11 @@
       <div class="d-flex align-center justify-space-between flex-wrap gap-3">
         <div>
           <h1 class="text-h4 font-weight-bold d-flex align-center gap-2 mb-2">
-            <v-icon icon="mdi-cash-plus" size="32" color="success" />
+            <v-icon
+              icon="mdi-cash-plus"
+              size="32"
+              color="success"
+            />
             Minhas Receitas
           </h1>
           <p class="text-subtitle-2 text-medium-emphasis mb-0">
@@ -16,8 +20,8 @@
           color="success"
           size="large"
           prepend-icon="mdi-plus"
-          @click="openAddDialog"
           class="flex-shrink-0"
+          @click="openAddDialog"
         >
           Nova Receita
         </v-btn>
@@ -25,7 +29,10 @@
     </div>
 
     <!-- 📅 Month Navigation -->
-    <v-card class="mb-6" elevation="1">
+    <v-card
+      class="mb-6"
+      elevation="1"
+    >
       <v-card-text class="pa-4">
         <div class="d-flex align-center justify-center gap-4">
           <v-btn
@@ -33,16 +40,19 @@
             color="primary"
             variant="outlined"
             size="small"
-            @click="goToPreviousMonth"
             title="Mês anterior"
+            @click="goToPreviousMonth"
           />
-          <div class="text-center" style="min-width: 250px">
+          <div
+            class="text-center"
+            style="min-width: 250px"
+          >
             <v-btn
               variant="text"
               :text="getMonthName(currentMonth).toUpperCase()"
-              @click="goToCurrentMonth"
               :class="{ 'text-primary font-weight-bold': currentMonth === new Date().toISOString().slice(0, 7) }"
               title="Ir para o mês atual"
+              @click="goToCurrentMonth"
             />
           </div>
           <v-btn
@@ -50,8 +60,8 @@
             color="primary"
             variant="outlined"
             size="small"
-            @click="goToNextMonth"
             title="Próximo mês"
+            @click="goToNextMonth"
           />
         </div>
       </v-card-text>
@@ -59,11 +69,21 @@
 
     <!-- Summary Cards -->
     <v-row class="mb-6">
-      <v-col cols="12" sm="6" md="3">
-        <v-card class="h-100 summary-card success-card" elevation="2">
+      <v-col
+        cols="12"
+        sm="6"
+        md="3"
+      >
+        <v-card
+          class="h-100 summary-card success-card"
+          elevation="2"
+        >
           <v-card-item>
             <template #prepend>
-              <v-avatar color="success" icon="mdi-cash-plus" />
+              <v-avatar
+                color="success"
+                icon="mdi-cash-plus"
+              />
             </template>
             <v-card-title class="text-caption text-medium-emphasis">
               Total do Mês
@@ -75,17 +95,31 @@
             </div>
             <p class="text-caption text-medium-emphasis mt-2 mb-0">
               {{ formatPercentage(summary.variacaoMes) }}
-              <v-icon :icon="summary.variacaoMes >= 0 ? 'mdi-trending-up' : 'mdi-trending-down'" :color="summary.variacaoMes >= 0 ? 'success' : 'error'" size="x-small" />
+              <v-icon
+                :icon="summary.variacaoMes >= 0 ? 'mdi-trending-up' : 'mdi-trending-down'"
+                :color="summary.variacaoMes >= 0 ? 'success' : 'error'"
+                size="x-small"
+              />
             </p>
           </v-card-text>
         </v-card>
       </v-col>
 
-      <v-col cols="12" sm="6" md="3">
-        <v-card class="h-100 summary-card info-card" elevation="2">
+      <v-col
+        cols="12"
+        sm="6"
+        md="3"
+      >
+        <v-card
+          class="h-100 summary-card info-card"
+          elevation="2"
+        >
           <v-card-item>
             <template #prepend>
-              <v-avatar color="info" icon="mdi-calendar-check" />
+              <v-avatar
+                color="info"
+                icon="mdi-calendar-check"
+              />
             </template>
             <v-card-title class="text-caption text-medium-emphasis">
               Recebidas
@@ -102,11 +136,21 @@
         </v-card>
       </v-col>
 
-      <v-col cols="12" sm="6" md="3">
-        <v-card class="h-100 summary-card warning-card" elevation="2">
+      <v-col
+        cols="12"
+        sm="6"
+        md="3"
+      >
+        <v-card
+          class="h-100 summary-card warning-card"
+          elevation="2"
+        >
           <v-card-item>
             <template #prepend>
-              <v-avatar color="warning" icon="mdi-clock-outline" />
+              <v-avatar
+                color="warning"
+                icon="mdi-clock-outline"
+              />
             </template>
             <v-card-title class="text-caption text-medium-emphasis">
               Pendentes
@@ -123,11 +167,21 @@
         </v-card>
       </v-col>
 
-      <v-col cols="12" sm="6" md="3">
-        <v-card class="h-100 summary-card error-card" elevation="2">
+      <v-col
+        cols="12"
+        sm="6"
+        md="3"
+      >
+        <v-card
+          class="h-100 summary-card error-card"
+          elevation="2"
+        >
           <v-card-item>
             <template #prepend>
-              <v-avatar color="error" icon="mdi-calendar-remove" />
+              <v-avatar
+                color="error"
+                icon="mdi-calendar-remove"
+              />
             </template>
             <v-card-title class="text-caption text-medium-emphasis">
               Atrasadas
@@ -146,10 +200,20 @@
     </v-row>
 
     <!-- Filters and Controls -->
-    <v-card class="mb-6" elevation="1">
+    <v-card
+      class="mb-6"
+      elevation="1"
+    >
       <v-card-text class="pa-4">
-        <v-row class="align-center" dense>
-          <v-col cols="12" sm="6" md="3">
+        <v-row
+          class="align-center"
+          dense
+        >
+          <v-col
+            cols="12"
+            sm="6"
+            md="3"
+          >
             <v-text-field
               v-model="searchText"
               label="Buscar"
@@ -159,7 +223,11 @@
               clearable
             />
           </v-col>
-          <v-col cols="12" sm="6" md="3">
+          <v-col
+            cols="12"
+            sm="6"
+            md="3"
+          >
             <v-select
               v-model="selectedStatus"
               label="Status"
@@ -169,7 +237,11 @@
               clearable
             />
           </v-col>
-          <v-col cols="12" sm="6" md="3">
+          <v-col
+            cols="12"
+            sm="6"
+            md="3"
+          >
             <v-select
               v-model="selectedCategoria"
               label="Categoria"
@@ -179,7 +251,11 @@
               clearable
             />
           </v-col>
-          <v-col cols="12" sm="6" md="3">
+          <v-col
+            cols="12"
+            sm="6"
+            md="3"
+          >
             <v-btn
               color="primary"
               variant="outlined"
@@ -205,9 +281,16 @@
         <!-- Data columns -->
         <template #item.descricao="{ item }">
           <div class="d-flex align-center gap-2">
-            <v-avatar size="32" color="success" variant="tonal" icon="mdi-receipt" />
+            <v-avatar
+              size="32"
+              color="success"
+              variant="tonal"
+              icon="mdi-receipt"
+            />
             <div>
-              <div class="font-weight-500">{{ item.descricao }}</div>
+              <div class="font-weight-500">
+                {{ item.descricao }}
+              </div>
               <div class="text-caption text-medium-emphasis">
                 {{ formatDate(item.data_vencimento) }}
               </div>
@@ -222,7 +305,10 @@
         </template>
 
         <template #item.categoria="{ item }">
-          <v-chip size="small" variant="outlined">
+          <v-chip
+            size="small"
+            variant="outlined"
+          >
             {{ item.categoria }}
           </v-chip>
         </template>
@@ -246,8 +332,8 @@
               size="x-small"
               variant="text"
               color="success"
-              @click="efetivarReceita(item)"
               title="Marcar como recebida"
+              @click="efetivarReceita(item)"
             />
             <v-btn
               icon="mdi-pencil"
@@ -268,26 +354,41 @@
 
         <template #no-data>
           <div class="text-center py-6">
-            <v-icon size="48" color="medium-emphasis" class="mb-2">
+            <v-icon
+              size="48"
+              color="medium-emphasis"
+              class="mb-2"
+            >
               mdi-folder-open-outline
             </v-icon>
-            <p class="text-medium-emphasis">Nenhuma receita encontrada</p>
+            <p class="text-medium-emphasis">
+              Nenhuma receita encontrada
+            </p>
           </div>
         </template>
       </v-data-table>
     </v-card>
 
     <!-- Dialog Add/Edit -->
-    <v-dialog v-model="dialog" max-width="700px">
+    <v-dialog
+      v-model="dialog"
+      max-width="700px"
+    >
       <v-card>
         <v-card-title class="d-flex align-center gap-2 pa-6 pb-3">
-          <v-icon :icon="editingId ? 'mdi-pencil' : 'mdi-plus'" color="success" />
+          <v-icon
+            :icon="editingId ? 'mdi-pencil' : 'mdi-plus'"
+            color="success"
+          />
           {{ editingId ? 'Editar Receita' : 'Nova Receita' }}
         </v-card-title>
 
         <!-- Dialog Content -->
         <v-card-text class="pa-6">
-          <v-form ref="formRef" @submit.prevent="saveReceita">
+          <v-form
+            ref="formRef"
+            @submit.prevent="saveReceita"
+          >
             <!-- Row 1: Descrição -->
             <v-text-field
               v-model="formData.descricao"
@@ -319,10 +420,16 @@
                 class="custom__input__content"
                 @click="openRecorrenciaModal = true"
               >
-                <v-icon icon="mdi-refresh" class="me-2" />
+                <v-icon
+                  icon="mdi-refresh"
+                  class="me-2"
+                />
                 <div class="d-flex flex-column">
                   <span>{{ formData.recorrencia }}</span>
-                  <span v-if="detalheRecorrencia" class="detalhe__parcela__interno">
+                  <span
+                    v-if="detalheRecorrencia"
+                    class="detalhe__parcela__interno"
+                  >
                     {{ detalheRecorrencia }}
                   </span>
                 </div>
@@ -343,10 +450,18 @@
                 class="parcela__toggle mt-4"
                 variant="flat"
               >
-                <v-btn class="toggle__btn" value="total" rounded="lg">
+                <v-btn
+                  class="toggle__btn"
+                  value="total"
+                  rounded="lg"
+                >
                   Valor total
                 </v-btn>
-                <v-btn class="toggle__btn" value="parcela" rounded="lg">
+                <v-btn
+                  class="toggle__btn"
+                  value="parcela"
+                  rounded="lg"
+                >
                   Valor parcela
                 </v-btn>
               </v-btn-toggle>
@@ -355,8 +470,14 @@
             </div>
 
             <!-- Modal Recorrência -->
-            <v-menu v-model="openRecorrenciaModal" :close-on-content-click="false">
-              <v-card width="300" class="mx-auto">
+            <v-menu
+              v-model="openRecorrenciaModal"
+              :close-on-content-click="false"
+            >
+              <v-card
+                width="300"
+                class="mx-auto"
+              >
                 <v-card-text class="pa-4">
                   <div class="d-flex flex-column gap-2">
                     <v-btn
@@ -380,9 +501,14 @@
             </v-menu>
 
             <!-- Modal Parcelas -->
-            <v-dialog v-model="openParcelas" max-width="400">
+            <v-dialog
+              v-model="openParcelas"
+              max-width="400"
+            >
               <v-card>
-                <v-card-title class="pa-4">Configurar Parcelas</v-card-title>
+                <v-card-title class="pa-4">
+                  Configurar Parcelas
+                </v-card-title>
                 <v-card-text class="pa-6">
                   <div class="d-flex align-center justify-space-between mb-4">
                     <span>Parcela Inicial:</span>
@@ -448,10 +574,16 @@
                 </v-card-text>
                 <v-card-actions class="pa-4">
                   <v-spacer />
-                  <v-btn variant="text" @click="openParcelas = false">
+                  <v-btn
+                    variant="text"
+                    @click="openParcelas = false"
+                  >
                     Cancelar
                   </v-btn>
-                  <v-btn color="success" @click="concluirParcelas">
+                  <v-btn
+                    color="success"
+                    @click="concluirParcelas"
+                  >
                     Concluído
                   </v-btn>
                 </v-card-actions>
@@ -460,7 +592,10 @@
 
             <!-- Row 4: Categoria e Subcategoria -->
             <v-row>
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-autocomplete
                   v-model="formData.categoria"
                   :items="categoriasNames"
@@ -472,7 +607,10 @@
                   :rules="[rules.required]"
                 />
               </v-col>
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-autocomplete
                   v-model="formData.subcategoria"
                   :items="subcategoriasDaCategoriaSelecionada"
@@ -487,7 +625,10 @@
 
             <!-- Row 5: Conta e Status -->
             <v-row>
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-select
                   v-model="formData.conta_id"
                   label="Conta *"
@@ -501,7 +642,10 @@
                   :rules="[rules.required]"
                 />
               </v-col>
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   :model-value="formData.status_lancamento"
                   label="Status"
@@ -527,17 +671,33 @@
             </v-row>
 
             <!-- Row 6: Data de Vencimento -->
-            <v-menu v-model="menuDataVencimento" :close-on-content-click="false" transition="scale-transition">
+            <v-menu
+              v-model="menuDataVencimento"
+              :close-on-content-click="false"
+              transition="scale-transition"
+            >
               <template #activator="{ props }">
-                <div class="custom__display__input" v-bind="props">
+                <div
+                  class="custom__display__input"
+                  v-bind="props"
+                >
                   <div class="d-flex align-center text-grey">
-                    <v-icon icon="mdi-calendar" class="me-3" />
+                    <v-icon
+                      icon="mdi-calendar"
+                      class="me-3"
+                    />
                     <span>Data de Vencimento *</span>
                   </div>
                   <v-spacer class="m-0 p-0" />
                   <span class="font-weight-medium">
                     {{ displayDataVencimento }}
-                    <v-chip v-if="dataVencimentoRelativa" size="x-small" class="ms-2" color="success" variant="outlined">
+                    <v-chip
+                      v-if="dataVencimentoRelativa"
+                      size="x-small"
+                      class="ms-2"
+                      color="success"
+                      variant="outlined"
+                    >
                       {{ dataVencimentoRelativa }}
                     </v-chip>
                   </span>
@@ -573,9 +733,15 @@
               transition="scale-transition"
             >
               <template #activator="{ props }">
-                <div class="custom__display__input" v-bind="props">
+                <div
+                  class="custom__display__input"
+                  v-bind="props"
+                >
                   <div class="d-flex align-center text-grey">
-                    <v-icon icon="mdi-calendar" class="me-3" />
+                    <v-icon
+                      icon="mdi-calendar"
+                      class="me-3"
+                    />
                     <span>Data de Lançamento</span>
                   </div>
                   <v-spacer />
@@ -600,9 +766,15 @@
               class="mt-4"
             >
               <template #activator="{ props }">
-                <div class="custom__display__input" v-bind="props">
+                <div
+                  class="custom__display__input"
+                  v-bind="props"
+                >
                   <div class="d-flex align-center text-grey">
-                    <v-icon icon="mdi-calendar" class="me-3" />
+                    <v-icon
+                      icon="mdi-calendar"
+                      class="me-3"
+                    />
                     <span>Data de Efetivação</span>
                   </div>
                   <v-spacer />
@@ -635,7 +807,10 @@
 
             <!-- Buttons -->
             <div class="d-flex gap-2 justify-end mt-6">
-              <v-btn variant="outlined" @click="dialog = false">
+              <v-btn
+                variant="outlined"
+                @click="dialog = false"
+              >
                 Cancelar
               </v-btn>
               <v-btn
@@ -655,15 +830,15 @@
 </template>
 
 <script setup lang="ts">
-import { useLancamentos } from '@/composables/useLancamentos';
-import receitasService from '@/services/receitas.service';
-import { useRevenuesStore } from '@/store/revenues';
-import { useToastStore } from '@/store/toast';
-import { useUserStore } from '@/store/user';
-import { useWalletsStore } from '@/store/wallets';
-import { format, isToday, isTomorrow, isValid, isYesterday, parseISO } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { computed, onMounted, ref, watch } from 'vue';
+import { useLancamentos } from "@/composables/useLancamentos";
+import receitasService from "@/services/receitas.service";
+import { useRevenuesStore } from "@/store/revenues";
+import { useToastStore } from "@/store/toast";
+import { useUserStore } from "@/store/user";
+import { useWalletsStore } from "@/store/wallets";
+import { format, isToday, isTomorrow, isValid, isYesterday, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { computed, onMounted, ref, watch } from "vue";
 
 const toastStore = useToastStore();
 const userStore = useUserStore();
@@ -674,9 +849,9 @@ const walletsStore = useWalletsStore();
 const dialog = ref(false);
 const formRef = ref();
 const loading = ref(false);
-const searchText = ref('');
-const selectedStatus = ref('');
-const selectedCategoria = ref('');
+const searchText = ref("");
+const selectedStatus = ref("");
+const selectedCategoria = ref("");
 const editingId = ref<number | null>(null);
 const itemsPerPage = ref(10);
 
@@ -689,81 +864,29 @@ const menuDataEfetivacao = ref(false);
 const openRecorrenciaModal = ref(false);
 const openParcelas = ref(false);
 const informacoes = ref(false);
-const tiposRecorrencia = ref(['Não recorrente', 'Fixa', 'Parcelado']);
-const tipoCalculoParcela = ref('total');
+const tiposRecorrencia = ref(["Não recorrente", "Fixa", "Parcelado"]);
+const tipoCalculoParcela = ref("total");
 const tempParcelaInicial = ref(1);
 const tempNumParcelas = ref(2);
-const tempPeriodicidade = ref('Mensal');
+const tempPeriodicidade = ref("Mensal");
 
 // Mock data
-const receitas = ref([
-  {
-    id: 1,
-    descricao: 'Salário',
-    valor: 5000,
-    categoria: 'Salário',
-    conta: 'Conta Principal',
-    data_vencimento: '2025-10-01',
-    status: 'recebida',
-    observacao: 'Salário mensal',
-    recorrencia: 'Fixa',
-    status_lancamento: 'EFETIVADA',
-    subcategoria: 'Salário',
-    conta_id: 1,
-    data_lancamento: '2025-10-01',
-    data_efetivacao: '2025-10-01',
-    observacoes: 'Salário mensal',
-  },
-  {
-    id: 2,
-    descricao: 'Freelancer',
-    valor: 1200,
-    categoria: 'Freelancer',
-    conta: 'Conta Principal',
-    data_vencimento: '2025-10-05',
-    status: 'recebida',
-    observacao: 'Projeto web',
-    recorrencia: 'Não recorrente',
-    status_lancamento: 'EFETIVADA',
-    subcategoria: 'Projeto',
-    conta_id: 1,
-    data_lancamento: '2025-10-05',
-    data_efetivacao: '2025-10-05',
-    observacoes: 'Projeto web',
-  },
-  {
-    id: 3,
-    descricao: 'Bonus',
-    valor: 800,
-    categoria: 'Bonus',
-    conta: 'Conta Principal',
-    data_vencimento: '2025-10-20',
-    status: 'pendente',
-    observacao: 'Bonus do mês',
-    recorrencia: 'Não recorrente',
-    status_lancamento: 'PENDENTE',
-    subcategoria: 'Bônus mensal',
-    conta_id: 1,
-    data_lancamento: '2025-10-20',
-    data_efetivacao: null,
-    observacoes: 'Bonus do mês',
-  },
-]);
+const receitas = ref([]);
 
-const categorias = ref(['Salário', 'Freelancer', 'Bonus', 'Investimento', 'Outros']);
+const categorias = ref(["Salário", "Freelancer", "Bonus", "Investimento", "Outros"]);
 const categoriasNames = computed(() => {
   // Usa dados do store se disponível, senão usa hardcoded como fallback
   if (revenuesStore.revenuesData?.categories && revenuesStore.revenuesData.categories.length > 0) {
     return revenuesStore.revenuesData.categories.map((cat: any) => cat.name);
   }
-  return ['Salário', 'Freelancer', 'Bonus', 'Investimento', 'Outros'];
+  return ["Salário", "Freelancer", "Bonus", "Investimento", "Outros"];
 });
 const subcategorias = ref({
-  'Salário': ['Salário', 'Décimo terceiro'],
-  'Freelancer': ['Projeto', 'Consultoria'],
-  'Bonus': ['Bônus mensal', 'Bônus anual'],
-  'Investimento': ['Ações', 'Renda fixa'],
-  'Outros': ['Outros'],
+  "Salário": ["Salário", "Décimo terceiro"],
+  "Freelancer": ["Projeto", "Consultoria"],
+  "Bonus": ["Bônus mensal", "Bônus anual"],
+  "Investimento": ["Ações", "Renda fixa"],
+  "Outros": ["Outros"],
 });
 
 const contas = computed(() => {
@@ -772,34 +895,34 @@ const contas = computed(() => {
     return walletsStore.walletsData.contas;
   }
   return [
-    { id: 1, name: 'Conta Principal' },
-    { id: 2, name: 'Conta Investimento' },
-    { id: 3, name: 'Poupança' },
+    { id: 1, name: "Conta Principal" },
+    { id: 2, name: "Conta Investimento" },
+    { id: 3, name: "Poupança" },
   ];
 });
 
 const statusOptions = ref([
-  'recebida',
-  'pendente',
-  'cancelada',
+  "recebida",
+  "pendente",
+  "cancelada",
 ]);
 
 // Form data
 const formData = ref({
-  descricao: '',
-  categoria: '',
-  conta: '',
-  valor: '0,00',
-  data_vencimento: new Date().toISOString().split('T')[0],
-  status: 'pendente',
-  observacao: '',
-  recorrencia: 'Não recorrente',
-  status_lancamento: 'PENDENTE',
-  subcategoria: '',
+  descricao: "",
+  categoria: "",
+  conta: "",
+  valor: "0,00",
+  data_vencimento: new Date().toISOString().split("T")[0],
+  status: "pendente",
+  observacao: "",
+  recorrencia: "Não recorrente",
+  status_lancamento: "PENDENTE",
+  subcategoria: "",
   conta_id: null,
-  data_lancamento: new Date().toISOString().split('T')[0],
+  data_lancamento: new Date().toISOString().split("T")[0],
   data_efetivacao: null,
-  observacoes: '',
+  observacoes: "",
 });
 
 // Computed properties
@@ -816,24 +939,24 @@ const subcategoriasDaCategoriaSelecionada = computed(() => {
 });
 
 const detalheRecorrencia = computed(() => {
-  if (formData.value.recorrencia === 'Parcelado' && formData.value.valor && tempNumParcelas.value > 0) {
-    const valorInput = parseFloat(formData.value.valor.replace(/\./g, '').replace(',', '.'));
+  if (formData.value.recorrencia === "Parcelado" && formData.value.valor && tempNumParcelas.value > 0) {
+    const valorInput = parseFloat(formData.value.valor.replace(/\./g, "").replace(",", "."));
     if (!isNaN(valorInput) && valorInput > 0) {
       let valorParcela: number;
       
       // Se toggle está em 'total', divide o valor pelo número de parcelas
       // Se toggle está em 'parcela', o valor já é o valor de uma parcela
-      if (tipoCalculoParcela.value === 'total') {
+      if (tipoCalculoParcela.value === "total") {
         valorParcela = valorInput / tempNumParcelas.value;
       } else {
         valorParcela = valorInput;
       }
       
-      const valorFormatado = valorParcela.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const valorFormatado = valorParcela.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       return `Em ${tempNumParcelas.value}x de R$ ${valorFormatado}`;
     }
   }
-  return '';
+  return "";
 });
 
 const displayDataVencimento = computed(() => {
@@ -850,7 +973,7 @@ const displayDataEfetivacao = computed(() => {
 
 // 📅 Calcular data relativa (Ontem, Hoje, Amanhã)
 const dataVencimentoRelativa = computed(() => {
-  if (!formData.value.data_vencimento) return '';
+  if (!formData.value.data_vencimento) return "";
   
   try {
     const dataVencimento = new Date(formData.value.data_vencimento);
@@ -863,33 +986,33 @@ const dataVencimentoRelativa = computed(() => {
     const diffTime = dataVencimento.getTime() - hoje.getTime();
     const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays === 0) return 'Hoje';
-    if (diffDays === -1) return 'Ontem';
-    if (diffDays === 1) return 'Amanhã';
+    if (diffDays === 0) return "Hoje";
+    if (diffDays === -1) return "Ontem";
+    if (diffDays === 1) return "Amanhã";
     if (diffDays < 0) return `${Math.abs(diffDays)} dias atrás`;
     if (diffDays > 1) return `Em ${diffDays} dias`;
     
-    return '';
+    return "";
   } catch (error) {
-    return '';
+    return "";
   }
 });
 
 // Summary computed
 const summary = computed(() => ({
-  totalMes: receitas.value.reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, '').replace(',', '.')), 0),
+  totalMes: receitas.value.reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, "").replace(",", ".")), 0),
   variacaoMes: 5.2,
 }));
 
 // ✅ Usar getStatusReal para calcular o status baseado em datas
-const receitasRecebidas = computed(() => receitas.value.filter(r => getStatusReal(r) === 'recebida').length);
-const somaRecebidas = computed(() => receitas.value.filter(r => getStatusReal(r) === 'recebida').reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, '').replace(',', '.')), 0));
+const receitasRecebidas = computed(() => receitas.value.filter(r => getStatusReal(r) === "recebida").length);
+const somaRecebidas = computed(() => receitas.value.filter(r => getStatusReal(r) === "recebida").reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, "").replace(",", ".")), 0));
 
-const receitasPendentes = computed(() => receitas.value.filter(r => getStatusReal(r) === 'pendente').length);
-const somaPendentes = computed(() => receitas.value.filter(r => getStatusReal(r) === 'pendente').reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, '').replace(',', '.')), 0));
+const receitasPendentes = computed(() => receitas.value.filter(r => getStatusReal(r) === "pendente").length);
+const somaPendentes = computed(() => receitas.value.filter(r => getStatusReal(r) === "pendente").reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, "").replace(",", ".")), 0));
 
-const receitasAtrasadas = computed(() => receitas.value.filter(r => getStatusReal(r) === 'atrasada').length);
-const somaAtrasadas = computed(() => receitas.value.filter(r => getStatusReal(r) === 'atrasada').reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, '').replace(',', '.')), 0));
+const receitasAtrasadas = computed(() => receitas.value.filter(r => getStatusReal(r) === "atrasada").length);
+const somaAtrasadas = computed(() => receitas.value.filter(r => getStatusReal(r) === "atrasada").reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, "").replace(",", ".")), 0));
 
 // Filtered receitas
 const filteredReceitas = computed(() => {
@@ -903,111 +1026,111 @@ const filteredReceitas = computed(() => {
 
 // Validation rules
 const rules = {
-  required: (v: any) => !!v || 'Campo obrigatório',
-  minLength3: (v: string) => (v && v.length >= 3) || 'Mínimo 3 caracteres',
+  required: (v: any) => !!v || "Campo obrigatório",
+  minLength3: (v: string) => (v && v.length >= 3) || "Mínimo 3 caracteres",
   valorPositivo: (v: string) => {
-    if (!v) return 'Valor obrigatório';
-    const numValue = parseFloat(v.replace(/\./g, '').replace(',', '.'));
-    return numValue > 0 || 'Valor deve ser maior que zero';
+    if (!v) return "Valor obrigatório";
+    const numValue = parseFloat(v.replace(/\./g, "").replace(",", "."));
+    return numValue > 0 || "Valor deve ser maior que zero";
   },
 };
 
 // Headers
 const headers = [
-  { title: 'Descrição', align: 'start', key: 'descricao', width: '35%' },
-  { title: 'Categoria', align: 'start', key: 'categoria', width: '15%' },
-  { title: 'Valor', align: 'end', key: 'valor', width: '15%' },
-  { title: 'Status', align: 'center', key: 'status', width: '15%' },
-  { title: 'Ações', align: 'end', key: 'acoes', width: '10%', sortable: false },
+  { title: "Descrição", align: "start", key: "descricao", width: "35%" },
+  { title: "Categoria", align: "start", key: "categoria", width: "15%" },
+  { title: "Valor", align: "end", key: "valor", width: "15%" },
+  { title: "Status", align: "center", key: "status", width: "15%" },
+  { title: "Ações", align: "end", key: "acoes", width: "10%", sortable: false },
 ];
 
 // Methods
 const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
   }).format(value / 100);
 };
 
 const formatPercentage = (value: number) => {
-  return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
+  return `${value >= 0 ? "+" : ""}${value.toFixed(1)}%`;
 };
 
 const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString('pt-BR');
+  return new Date(date).toLocaleDateString("pt-BR");
 };
 
 const formatValueDisplay = () => {
-  let digits = (formData.value.valor || '').replace(/\D/g, '');
-  digits = digits.replace(/^0+/, '') || '0';
-  while (digits.length < 3) digits = '0' + digits;
+  let digits = (formData.value.valor || "").replace(/\D/g, "");
+  digits = digits.replace(/^0+/, "") || "0";
+  while (digits.length < 3) digits = "0" + digits;
 
   const integerPart = digits.slice(0, -2);
   const decimalPart = digits.slice(-2);
-  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
   formData.value.valor = `${formattedIntegerPart},${decimalPart}`;
 };
 
 const formatDateForDisplay = (dateValue: string | Date | undefined | null): string => {
-  if (!dateValue) return 'Selecione...';
+  if (!dateValue) return "Selecione...";
 
-  const data = typeof dateValue === 'string' ? parseISO(dateValue) : dateValue;
-  if (!isValid(data)) return 'Data inválida';
+  const data = typeof dateValue === "string" ? parseISO(dateValue) : dateValue;
+  if (!isValid(data)) return "Data inválida";
 
-  if (isToday(data)) return 'Hoje';
-  if (isYesterday(data)) return 'Ontem';
-  if (isTomorrow(data)) return 'Amanhã';
+  if (isToday(data)) return "Hoje";
+  if (isYesterday(data)) return "Ontem";
+  if (isTomorrow(data)) return "Amanhã";
 
-  const nomeDiaCompleto = format(data, 'EEEE', { locale: ptBR });
+  const nomeDiaCompleto = format(data, "EEEE", { locale: ptBR });
   const diaAbreviadoCapitalizado = nomeDiaCompleto.charAt(0).toUpperCase() + nomeDiaCompleto.slice(1, 3);
-  const dataFormatada = format(data, 'dd/MM/yyyy');
+  const dataFormatada = format(data, "dd/MM/yyyy");
 
   return `${diaAbreviadoCapitalizado}., ${dataFormatada}`;
 };
 
 // ✅ Formatar data para enviar ao backend (YYYY-MM-DD)
 const formatDateForBackend = (dateValue: string | Date | undefined | null): string => {
-  if (!dateValue) return '';
+  if (!dateValue) return "";
   
   try {
     // Se for string ISO com timezone, extrair apenas a data
-    if (typeof dateValue === 'string' && dateValue.includes('T')) {
-      return dateValue.split('T')[0]; // "2025-10-09T03:00:00.000Z" → "2025-10-09"
+    if (typeof dateValue === "string" && dateValue.includes("T")) {
+      return dateValue.split("T")[0]; // "2025-10-09T03:00:00.000Z" → "2025-10-09"
     }
     
     // Se for string em formato YYYY-MM-DD, retornar como está
-    if (typeof dateValue === 'string' && dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    if (typeof dateValue === "string" && dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
       return dateValue;
     }
     
     // Se for Date object, formatar
     if (dateValue instanceof Date) {
       const year = dateValue.getFullYear();
-      const month = String(dateValue.getMonth() + 1).padStart(2, '0');
-      const day = String(dateValue.getDate()).padStart(2, '0');
+      const month = String(dateValue.getMonth() + 1).padStart(2, "0");
+      const day = String(dateValue.getDate()).padStart(2, "0");
       return `${year}-${month}-${day}`;
     }
     
-    return '';
+    return "";
   } catch (error) {
-    console.error('Erro ao formatar data:', dateValue, error);
-    return '';
+    console.error("Erro ao formatar data:", dateValue, error);
+    return "";
   }
 };
 
 // 📅 Month Navigation Functions
 const getMonthName = (mesAnoString: string): string => {
-  const [ano, mes] = mesAnoString.split('-');
+  const [ano, mes] = mesAnoString.split("-");
   const date = new Date(parseInt(ano), parseInt(mes) - 1, 1);
-  return format(date, 'MMMM yyyy', { locale: ptBR });
+  return format(date, "MMMM yyyy", { locale: ptBR });
 };
 
 // LOCAL month state - independent per page
 const currentMonth = ref<string>(new Date().toISOString().slice(0, 7)); // YYYY-MM
 
 const goToPreviousMonth = () => {
-  const [ano, mes] = currentMonth.value.split('-');
+  const [ano, mes] = currentMonth.value.split("-");
   const date = new Date(parseInt(ano), parseInt(mes) - 1, 1);
   date.setMonth(date.getMonth() - 1);
   currentMonth.value = date.toISOString().slice(0, 7);
@@ -1015,7 +1138,7 @@ const goToPreviousMonth = () => {
 };
 
 const goToNextMonth = () => {
-  const [ano, mes] = currentMonth.value.split('-');
+  const [ano, mes] = currentMonth.value.split("-");
   const date = new Date(parseInt(ano), parseInt(mes) - 1, 1);
   date.setMonth(date.getMonth() + 1);
   currentMonth.value = date.toISOString().slice(0, 7);
@@ -1030,12 +1153,12 @@ const goToCurrentMonth = () => {
 // ✅ Função para calcular o status real baseado na data de vencimento
 const getStatusReal = (receita: any): string => {
   // Se status for EFETIVADA (recebida), retorna recebida
-  if (receita.status_lancamento === 'EFETIVADA') {
-    return 'recebida';
+  if (receita.status_lancamento === "EFETIVADA") {
+    return "recebida";
   }
   
   // Se status for PENDENTE, verifica se está atrasada
-  if (receita.status_lancamento === 'PENDENTE') {
+  if (receita.status_lancamento === "PENDENTE") {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
     
@@ -1044,42 +1167,42 @@ const getStatusReal = (receita: any): string => {
     
     // Se a data de vencimento é anterior a hoje, está atrasada
     if (dataVencimento < hoje) {
-      return 'atrasada';
+      return "atrasada";
     }
     
-    return 'pendente';
+    return "pendente";
   }
   
   // Fallback
-  return receita.status || 'pendente';
+  return receita.status || "pendente";
 };
 
 const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
-    recebida: 'success',
-    pendente: 'warning',
-    atrasada: 'error',
-    cancelada: 'error',
+    recebida: "success",
+    pendente: "warning",
+    atrasada: "error",
+    cancelada: "error",
   };
-  return colors[status] || 'default';
+  return colors[status] || "default";
 };
 
 const getStatusTextColor = (status: string) => {
-  return 'white';
+  return "white";
 };
 
 const getStatusLabel = (status: string) => {
   const labels: Record<string, string> = {
-    recebida: 'Recebida',
-    pendente: 'Pendente',
-    atrasada: 'Atrasada',
-    cancelada: 'Cancelada',
+    recebida: "Recebida",
+    pendente: "Pendente",
+    atrasada: "Atrasada",
+    cancelada: "Cancelada",
   };
   return labels[status] || status;
 };
 
 const toggleStatus = () => {
-  formData.value.status_lancamento = formData.value.status_lancamento === 'EFETIVADA' ? 'PENDENTE' : 'EFETIVADA';
+  formData.value.status_lancamento = formData.value.status_lancamento === "EFETIVADA" ? "PENDENTE" : "EFETIVADA";
 };
 
 // Carrega dados do formulário da API
@@ -1087,7 +1210,7 @@ const loadFormData = async () => {
   try {
     // Load revenues categories if needed
     if (!revenuesStore.revenuesData?.categories || revenuesStore.revenuesData.categories.length === 0) {
-      const { updateData: updateRevenuesData } = useLancamentos('receita');
+      const { updateData: updateRevenuesData } = useLancamentos("receita");
       await updateRevenuesData();
     }
     // Load wallets if needed
@@ -1095,7 +1218,7 @@ const loadFormData = async () => {
       walletsStore.loadFromSession();
     }
   } catch (error) {
-    console.error('Erro ao carregar dados do formulário:', error);
+    console.error("Erro ao carregar dados do formulário:", error);
   }
 };
 
@@ -1103,7 +1226,7 @@ const selecionarRecorrencia = (item: string) => {
   formData.value.recorrencia = item;
   openRecorrenciaModal.value = false;
 
-  if (item === 'Parcelado') {
+  if (item === "Parcelado") {
     openParcelas.value = true;
   }
 };
@@ -1117,20 +1240,20 @@ const openAddDialog = async () => {
   // Carrega dados dos stores se ainda não estiverem carregados
   await loadFormData();
   formData.value = {
-    descricao: '',
-    categoria: '',
-    conta: '',
-    valor: '0,00',
-    data_vencimento: new Date().toISOString().split('T')[0],
-    status: 'pendente',
-    observacao: '',
-    recorrencia: 'Não recorrente',
-    status_lancamento: 'PENDENTE',
-    subcategoria: '',
+    descricao: "",
+    categoria: "",
+    conta: "",
+    valor: "0,00",
+    data_vencimento: new Date().toISOString().split("T")[0],
+    status: "pendente",
+    observacao: "",
+    recorrencia: "Não recorrente",
+    status_lancamento: "PENDENTE",
+    subcategoria: "",
     conta_id: contas.value[0]?.id || 1,
-    data_lancamento: new Date().toISOString().split('T')[0],
+    data_lancamento: new Date().toISOString().split("T")[0],
     data_efetivacao: null,
-    observacoes: '',
+    observacoes: "",
   };
   dialog.value = true;
 };
@@ -1138,8 +1261,8 @@ const openAddDialog = async () => {
 const editReceita = (receita: any) => {
   editingId.value = receita.id;
   // ✅ Converter valor de centavos para string formatada "10,00"
-  const valorFormatado = typeof receita.valor === 'number' 
-    ? (receita.valor / 100).toFixed(2).replace('.', ',')
+  const valorFormatado = typeof receita.valor === "number" 
+    ? (receita.valor / 100).toFixed(2).replace(".", ",")
     : receita.valor;
   
   formData.value = { 
@@ -1150,15 +1273,15 @@ const editReceita = (receita: any) => {
 };
 
 const deleteReceita = async (id: number) => {
-  if (confirm('Tem certeza que deseja deletar esta receita?')) {
+  if (confirm("Tem certeza que deseja deletar esta receita?")) {
     try {
       loading.value = true;
       await receitasService.delete(id);
-      toastStore.success('Receita deletada com sucesso!');
+      toastStore.success("Receita deletada com sucesso!");
       await loadReceitas();
     } catch (error: any) {
-      console.error('Erro ao deletar receita:', error);
-      toastStore.error(error.message || 'Erro ao deletar receita');
+      console.error("Erro ao deletar receita:", error);
+      toastStore.error(error.message || "Erro ao deletar receita");
     } finally {
       loading.value = false;
     }
@@ -1171,10 +1294,10 @@ const efetivarReceita = async (receita: any) => {
     // ✅ Converter valor para centavos (inteiro) para enviar ao backend
     let valorCentavos = receita.valor;
     
-    if (typeof receita.valor === 'string') {
+    if (typeof receita.valor === "string") {
       // Se for string "10,00", converte para 1000
-      valorCentavos = Math.round(parseFloat(receita.valor.replace(',', '.')) * 100);
-    } else if (typeof receita.valor === 'number') {
+      valorCentavos = Math.round(parseFloat(receita.valor.replace(",", ".")) * 100);
+    } else if (typeof receita.valor === "number") {
       // Se já for número, assume que é centavos, mantém como está
       valorCentavos = receita.valor;
     }
@@ -1182,19 +1305,19 @@ const efetivarReceita = async (receita: any) => {
     const payload = {
       ...receita,
       valor: valorCentavos, // ✅ Enviar valor em centavos (número inteiro)
-      status_lancamento: 'EFETIVADA',
+      status_lancamento: "EFETIVADA",
       data_vencimento: formatDateForBackend(receita.data_vencimento),
       data_lancamento: formatDateForBackend(receita.data_lancamento),
       data_efetivacao: formatDateForBackend(receita.data_efetivacao),
-      tipo_lancamento: 'Receita'
+      tipo_lancamento: "Receita"
     };
     
     await receitasService.update(receita.id, payload);
-    toastStore.success('Receita efetivada com sucesso!');
+    toastStore.success("Receita efetivada com sucesso!");
     await loadReceitas();
   } catch (error: any) {
-    console.error('Erro ao efetivar receita:', error);
-    toastStore.error(error.message || 'Erro ao efetivar receita');
+    console.error("Erro ao efetivar receita:", error);
+    toastStore.error(error.message || "Erro ao efetivar receita");
   } finally {
     loading.value = false;
   }
@@ -1205,14 +1328,14 @@ const saveReceita = async () => {
   try {
     // Validar formulário
     if (!formRef.value?.validate()) {
-      throw new Error('Preencha todos os campos obrigatórios');
+      throw new Error("Preencha todos os campos obrigatórios");
     }
 
     // Mapear recorrência para formato da API (MAIÚSCULAS)
     const recorrenciaMap: { [key: string]: string } = {
-      'Não recorrente': 'NAO_RECORRENTE',
-      'Fixa': 'FIXA',
-      'Parcelado': 'PARCELADO',
+      "Não recorrente": "NAO_RECORRENTE",
+      "Fixa": "FIXA",
+      "Parcelado": "PARCELADO",
     };
 
     // Obter mesAno no formato YYYY-MM
@@ -1223,9 +1346,9 @@ const saveReceita = async () => {
       // Campos obrigatórios
       descricao: formData.value.descricao,
       valor: formData.value.valor,  // STRING formatada "10,00", backend faz conversão
-      tipo_lancamento: 'Receita',   // ✅ "Receita" (backend transforma para RECEITA)
-      recorrencia: recorrenciaMap[formData.value.recorrencia] || 'NAO_RECORRENTE',
-      status_lancamento: formData.value.status_lancamento || 'PENDENTE',
+      tipo_lancamento: "Receita",   // ✅ "Receita" (backend transforma para RECEITA)
+      recorrencia: recorrenciaMap[formData.value.recorrencia] || "NAO_RECORRENTE",
+      status_lancamento: formData.value.status_lancamento || "PENDENTE",
       categoria: formData.value.categoria,
       subcategoria: formData.value.subcategoria,
       conta_id: formData.value.conta_id,
@@ -1234,7 +1357,7 @@ const saveReceita = async () => {
       mesAno: mesAno,
       
       // Campos da interface Lancamento (preenchidos com valores padrão)
-      id: editingId.value && formData.value.recorrencia === 'Não recorrente' ? editingId.value : null,
+      id: editingId.value && formData.value.recorrencia === "Não recorrente" ? editingId.value : null,
       invoice_id: null,
       is_estorno: false,
       original_lancamento_id: null,
@@ -1246,11 +1369,11 @@ const saveReceita = async () => {
     };
 
     // Se for parcelado, adicionar dados de parcelas (MAIÚSCULAS)
-    if (formData.value.recorrencia === 'Parcelado') {
+    if (formData.value.recorrencia === "Parcelado") {
       payload.qtd_parcelas = tempNumParcelas.value;
       payload.num_parcela = tempParcelaInicial.value;
-      payload.tipo_parcela = tipoCalculoParcela.value?.toLowerCase() || 'total'; // total ou parcela
-      payload.periodicidade = tempPeriodicidade.value?.toUpperCase() || 'MENSAL';
+      payload.tipo_parcela = tipoCalculoParcela.value?.toLowerCase() || "total"; // total ou parcela
+      payload.periodicidade = tempPeriodicidade.value?.toUpperCase() || "MENSAL";
     } else {
       payload.qtd_parcelas = null;
       payload.num_parcela = null;
@@ -1258,21 +1381,21 @@ const saveReceita = async () => {
       payload.periodicidade = null;
     }
 
-    console.log('Payload enviado:', payload);
+    console.log("Payload enviado:", payload);
 
-    if (editingId.value && formData.value.recorrencia === 'Não recorrente') {
+    if (editingId.value && formData.value.recorrencia === "Não recorrente") {
       // ATUALIZAR apenas se for Não recorrente
       await receitasService.update(editingId.value, payload);
-      toastStore.success('Receita atualizada com sucesso!');
+      toastStore.success("Receita atualizada com sucesso!");
     } else {
       // CRIAR novo lançamento
       await receitasService.create(payload);
       if (editingId.value) {
         // Se estava editando FIXA ou PARCELADO, apagar o antigo
         await receitasService.delete(editingId.value);
-        toastStore.success('Receita atualizada com sucesso!');
+        toastStore.success("Receita atualizada com sucesso!");
       } else {
-        toastStore.success('Receita criada com sucesso!');
+        toastStore.success("Receita criada com sucesso!");
       }
     }
 
@@ -1280,50 +1403,50 @@ const saveReceita = async () => {
     dialog.value = false;
     await loadReceitas();
   } catch (error: any) {
-    console.error('Erro ao salvar receita:', error);
-    toastStore.error(error.message || 'Erro ao salvar receita');
+    console.error("Erro ao salvar receita:", error);
+    toastStore.error(error.message || "Erro ao salvar receita");
   } finally {
     loading.value = false;
   }
 };
 
 const resetFilters = () => {
-  searchText.value = '';
-  selectedStatus.value = '';
-  selectedCategoria.value = '';
+  searchText.value = "";
+  selectedStatus.value = "";
+  selectedCategoria.value = "";
 };
 
 // Carregar receitas da API
 const loadReceitas = async () => {
   try {
     loading.value = true;
-    const mesAno = currentMonth.value; // Use local currentMonth instead of userStore
+    const mesAno = currentMonth.value;
     const data = await receitasService.list(mesAno);
     
     if (data && data.length > 0) {
       receitas.value = data.map((r: any) => ({
         id: r.id,
         descricao: r.descricao,
-        valor: r.valor || 0, // Valor em centavos da API
-        categoria: r.categoria,  // ✅ Sem fallback
-        subcategoria: r.subcategoria,  // ✅ Sem fallback
-        conta: r.conta?.name || 'Conta',
+        valor: r.valor || 0,
+        categoria: r.categoria,
+        subcategoria: r.subcategoria,
+        conta: r.conta?.name || "Conta",
         conta_id: r.conta_id,
         data_vencimento: r.data_vencimento,
-        status: r.status_lancamento === 'EFETIVADA' ? 'recebida' : 'pendente',
-        observacao: r.observacao || '',
-        recorrencia: r.recorrencia || 'Não recorrente',
-        status_lancamento: r.status_lancamento || 'PENDENTE',
+        status: r.status_lancamento === "EFETIVADA" ? "recebida" : "pendente",
+        observacao: r.observacao || "",
+        recorrencia: r.recorrencia || "Não recorrente",
+        status_lancamento: r.status_lancamento || "PENDENTE",
         data_lancamento: r.data_lancamento,
         data_efetivacao: r.data_efetivacao,
-        observacoes: r.observacoes || '',
+        observacoes: r.observacoes || "",
       }));
     } else {
       receitas.value = [];
     }
   } catch (error: any) {
-    console.warn('Erro ao carregar receitas:', error?.message);
-    toastStore.warning('Erro ao carregar receitas');
+    console.warn("Erro ao carregar receitas:", error?.message);
+    toastStore.warning("Erro ao carregar receitas");
   } finally {
     loading.value = false;
   }
@@ -1358,7 +1481,7 @@ onMounted(() => {
 
 watch(() => currentMonth.value, () => {
   loadReceitas();
-}, { immediate: false }); // Set to false to avoid double load on mount
+}, { immediate: false });
 </script>
 
 <style scoped lang="scss">

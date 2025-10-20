@@ -1,5 +1,5 @@
 // src/services/receitas.service.ts
-import http from './http'
+import http from "./http";
 
 export interface Receita {
   id?: number | null
@@ -13,12 +13,12 @@ export interface Receita {
   data_vencimento: string
   data_lancamento?: string | Date
   data_efetivacao?: string | Date | null
-  status?: 'pendente' | 'recebida' | 'cancelada'
-  status_lancamento?: 'EFETIVADA' | 'PENDENTE'
+  status?: "pendente" | "recebida" | "cancelada"
+  status_lancamento?: "EFETIVADA" | "PENDENTE"
   observacao?: string
   observacoes?: string | null
   recorrencia?: "Não recorrente" | "Fixa" | "Parcelado"
-  tipo?: 'receita' // Tipo de lancamento (frontend)
+  tipo?: "receita" // Tipo de lancamento (frontend)
   tipo_lancamento?: string // Tipo de lancamento (API - RECEITA, DESPESA, etc)
   mesAno?: string // Mês/ano no formato YYYY-MM
   qtd_parcelas?: number | null
@@ -38,15 +38,15 @@ class ReceitasService {
    */
   async list(mesAno?: string): Promise<Receita[]> {
     try {
-      const params = mesAno ? { mesAno, tipo: 'receita' } : { tipo: 'receita' }
-      const response = await http.get<any>('/lancamentos', { params })
+      const params = mesAno ? { mesAno, tipo: "receita" } : { tipo: "receita" };
+      const response = await http.get<any>("/lancamentos", { params });
       
       // Filtrar apenas receitas
-      const data = Array.isArray(response.data) ? response.data : response.data?.data || []
-      return data.filter((item: any) => item.tipo === 'receita' || item.tipo_lancamento === 'RECEITA')
+      const data = Array.isArray(response.data) ? response.data : response.data?.data || [];
+      return data.filter((item: any) => item.tipo === "receita" || item.tipo_lancamento === "RECEITA");
     } catch (error) {
-      console.error('Erro ao listar receitas:', error)
-      return []
+      console.error("Erro ao listar receitas:", error);
+      return [];
     }
   }
 
@@ -58,12 +58,12 @@ class ReceitasService {
       const payload = {
         ...data,
         // Garantir que tipo_lancamento seja 'RECEITA' (MAIÚSCULA)
-        tipo_lancamento: data.tipo_lancamento || 'RECEITA'
-      }
-      const response = await http.post<any>('/lancamentos', payload)
-      return response.data?.data || response.data
+        tipo_lancamento: data.tipo_lancamento || "RECEITA"
+      };
+      const response = await http.post<any>("/lancamentos", payload);
+      return response.data?.data || response.data;
     } catch (error) {
-      throw this.handleError(error)
+      throw this.handleError(error);
     }
   }
 
@@ -72,10 +72,10 @@ class ReceitasService {
    */
   async update(id: number, data: Receita): Promise<Receita> {
     try {
-      const response = await http.put<any>(`/lancamentos/${id}`, data)
-      return response.data?.data || response.data
+      const response = await http.put<any>(`/lancamentos/${id}`, data);
+      return response.data?.data || response.data;
     } catch (error) {
-      throw this.handleError(error)
+      throw this.handleError(error);
     }
   }
 
@@ -84,9 +84,9 @@ class ReceitasService {
    */
   async delete(id: number): Promise<void> {
     try {
-      await http.delete(`/lancamentos/${id}`)
+      await http.delete(`/lancamentos/${id}`);
     } catch (error) {
-      throw this.handleError(error)
+      throw this.handleError(error);
     }
   }
 
@@ -95,10 +95,10 @@ class ReceitasService {
    */
   async receive(id: number): Promise<Receita> {
     try {
-      const response = await http.patch<any>(`/lancamentos/${id}`, { status: 'recebida' })
-      return response.data?.data || response.data
+      const response = await http.patch<any>(`/lancamentos/${id}`, { status: "recebida" });
+      return response.data?.data || response.data;
     } catch (error) {
-      throw this.handleError(error)
+      throw this.handleError(error);
     }
   }
 
@@ -106,7 +106,7 @@ class ReceitasService {
    * Tratamento de erros padronizado
    */
   private handleError(error: any): Error {
-    console.error('ReceitasService Error:', error);
+    console.error("ReceitasService Error:", error);
     
     // Se temos resposta com erro
     if (error.response?.data) {
@@ -139,8 +139,8 @@ class ReceitasService {
     }
     
     // Erro genérico
-    return error || new Error('Erro desconhecido ao salvar receita');
+    return error || new Error("Erro desconhecido ao salvar receita");
   }
 }
 
-export default new ReceitasService()
+export default new ReceitasService();
