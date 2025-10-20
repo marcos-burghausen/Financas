@@ -160,7 +160,7 @@
       </div>
 
       <!-- Month/Year Selector -->
-      <!-- <div class="month-selector-bar">
+      <div class="month-selector-bar">
         <div class="month-selector">
           <v-btn
             icon
@@ -182,10 +182,10 @@
             @click="nextMonth"
           >
             <v-icon icon="mdi-chevron-right" />
-          </v-btn> -->
+          </v-btn>
 
           <!-- Go to today button -->
-          <!-- <v-btn
+          <v-btn
             variant="text"
             size="x-small"
             class="ml-2"
@@ -194,8 +194,8 @@
           >
             Hoje
           </v-btn>
-        </div> -->
-      <!-- </div> -->
+        </div>
+      </div>
     </header>
 
     <!-- LAYOUT COM MENU LATERAL E CONTEÚDO -->
@@ -313,7 +313,6 @@ const authStore = useAuthStore();
 const themeStore = useThemeStore();
 
 const drawer = ref(false);
-const currentDate = ref(new Date());
 const notificationCount = ref(3); // Dados fictícios
 const showNotificationMenu = ref(false);
 
@@ -350,43 +349,45 @@ const pageTitle = computed(() => {
 
 // Month/Year Display
 const monthDisplay = computed(() => {
-  const month = currentDate.value.toLocaleString("pt-BR", { month: "long" });
-  const year = currentDate.value.getFullYear();
+  const mesAno = userStore.getMesAno();
+  const [year, month] = mesAno.split('-');
+  const date = new Date(`${year}-${month}-01`);
+  const monthName = date.toLocaleString("pt-BR", { month: "long" });
   const currentYear = new Date().getFullYear();
 
-  if (year !== currentYear) {
-    return `${month.substring(0, 3).toUpperCase()}.${year}`;
+  if (parseInt(year) !== currentYear) {
+    return `${monthName.substring(0, 3).toUpperCase()}.${year}`;
   }
-  return month.charAt(0).toUpperCase() + month.slice(1);
+  return monthName.charAt(0).toUpperCase() + monthName.slice(1);
 });
 
 const isCurrentMonth = computed(() => {
+  const mesAno = userStore.getMesAno();
   const today = new Date();
-  return (
-    currentDate.value.getMonth() === today.getMonth() &&
-    currentDate.value.getFullYear() === today.getFullYear()
-  );
+  const todayMesAno = today.toISOString().slice(0, 7);
+  return mesAno === todayMesAno;
 });
 
 // Month Navigation
 const previousMonth = () => {
-  currentDate.value = new Date(
-    currentDate.value.getFullYear(),
-    currentDate.value.getMonth() - 1,
-    1
-  );
+  const mesAno = userStore.getMesAno();
+  const [year, month] = mesAno.split('-');
+  const current = new Date(`${year}-${month}-01`);
+  current.setMonth(current.getMonth() - 1);
+  userStore.setMesAno(current.toISOString().slice(0, 7));
 };
 
 const nextMonth = () => {
-  currentDate.value = new Date(
-    currentDate.value.getFullYear(),
-    currentDate.value.getMonth() + 1,
-    1
-  );
+  const mesAno = userStore.getMesAno();
+  const [year, month] = mesAno.split('-');
+  const current = new Date(`${year}-${month}-01`);
+  current.setMonth(current.getMonth() + 1);
+  userStore.setMesAno(current.toISOString().slice(0, 7));
 };
 
 const goToToday = () => {
-  currentDate.value = new Date();
+  const today = new Date();
+  userStore.setMesAno(today.toISOString().slice(0, 7));
 };
 
 // Utilities

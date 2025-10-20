@@ -10,42 +10,6 @@
 
     <!-- MAIN CONTENT -->
     <div v-else>
-      <!-- MONTH NAVIGATION -->
-      <v-row class="mb-6 align-center">
-        <v-col cols="12" class="d-flex align-center justify-space-between">
-          <div class="d-flex align-center gap-2">
-            <v-btn
-              icon="mdi-chevron-left"
-              size="small"
-              variant="text"
-              @click="navigationMonth('prev')"
-            />
-            <div class="text-center" style="min-width: 200px">
-              <p class="text-subtitle-1 font-weight-bold mb-0">
-                {{ currentMonthFormatted }}
-              </p>
-              <p class="text-caption text-grey mb-0">
-                {{ mesAnoFormatted }}
-              </p>
-            </div>
-            <v-btn
-              icon="mdi-chevron-right"
-              size="small"
-              variant="text"
-              @click="navigationMonth('next')"
-            />
-          </div>
-          <v-btn
-            variant="tonal"
-            size="small"
-            color="primary"
-            @click="navigationMonth('today')"
-          >
-            Mês Atual
-          </v-btn>
-        </v-col>
-      </v-row>
-
       <!-- KPI CARDS SECTION -->
       <v-row class="mb-6">
         <!-- Card: Receitas -->
@@ -448,42 +412,6 @@ const monthDisplay = computed(() => {
 const monthYearLabel = computed(() => {
   return `de ${monthDisplay.value}`;
 });
-
-// Month navigation helpers
-const currentMonthFormatted = computed(() => {
-  const mesAno = userStore.getMesAno();
-  const [year, month] = mesAno.split('-');
-  const date = new Date(`${year}-${month}-01`);
-  return date.toLocaleString("pt-BR", { month: "long", year: "numeric" });
-});
-
-const mesAnoFormatted = computed(() => {
-  const mesAno = userStore.getMesAno();
-  const [year, month] = mesAno.split('-');
-  const date = new Date(`${year}-${month}-01`);
-  return `${date.toLocaleString("pt-BR", { month: "short" })}/${year}`;
-});
-
-const navigationMonth = (direction: 'prev' | 'next' | 'today') => {
-  const mesAno = userStore.getMesAno();
-  const [year, month] = mesAno.split('-');
-  const current = new Date(`${year}-${month}-01`);
-  
-  if (direction === 'prev') {
-    current.setMonth(current.getMonth() - 1);
-  } else if (direction === 'next') {
-    current.setMonth(current.getMonth() + 1);
-  } else if (direction === 'today') {
-    const today = new Date();
-    userStore.setMesAno(today.toISOString().slice(0, 7));
-    loadDashboardData();
-    return;
-  }
-  
-  const newMesAno = current.toISOString().slice(0, 7);
-  userStore.setMesAno(newMesAno);
-  loadDashboardData();
-};
 
 // Format currency - valores vêm em centavos, dividir por 100
 const formatCurrency = (value: number): string => {

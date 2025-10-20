@@ -39,9 +39,9 @@
           <div class="text-center" style="min-width: 250px">
             <v-btn
               variant="text"
-              :text="getMonthName(selectedMonth).toUpperCase()"
+              :text="getMonthName(userStore.mesAno).toUpperCase()"
               @click="goToCurrentMonth"
-              :class="{ 'text-primary font-weight-bold': selectedMonth === new Date().toISOString().slice(0, 7) }"
+              :class="{ 'text-primary font-weight-bold': userStore.mesAno === new Date().toISOString().slice(0, 7) }"
               title="Ir para o mês atual"
             />
           </div>
@@ -690,9 +690,6 @@ const tempParcelaInicial = ref(1);
 const tempNumParcelas = ref(2);
 const tempPeriodicidade = ref('Mensal');
 
-// 📅 Month Navigation State
-const selectedMonth = ref<string>(new Date().toISOString().slice(0, 7)); // YYYY-MM format
-
 // Mock data
 const receitas = ref([
   {
@@ -975,28 +972,27 @@ const getMonthName = (mesAnoString: string): string => {
 };
 
 const goToPreviousMonth = () => {
-  const [ano, mes] = selectedMonth.value.split('-');
+  const mesAno = userStore.getMesAno();
+  const [ano, mes] = mesAno.split('-');
   const date = new Date(parseInt(ano), parseInt(mes) - 1, 1);
   date.setMonth(date.getMonth() - 1);
   const newMonth = date.toISOString().slice(0, 7);
-  selectedMonth.value = newMonth;
   userStore.setMesAno(newMonth);
   loadReceitas();
 };
 
 const goToNextMonth = () => {
-  const [ano, mes] = selectedMonth.value.split('-');
+  const mesAno = userStore.getMesAno();
+  const [ano, mes] = mesAno.split('-');
   const date = new Date(parseInt(ano), parseInt(mes) - 1, 1);
   date.setMonth(date.getMonth() + 1);
   const newMonth = date.toISOString().slice(0, 7);
-  selectedMonth.value = newMonth;
   userStore.setMesAno(newMonth);
   loadReceitas();
 };
 
 const goToCurrentMonth = () => {
   const currentMonth = new Date().toISOString().slice(0, 7);
-  selectedMonth.value = currentMonth;
   userStore.setMesAno(currentMonth);
   loadReceitas();
 };
