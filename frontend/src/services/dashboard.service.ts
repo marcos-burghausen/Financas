@@ -57,13 +57,33 @@ class DashboardService {
    */
   async getExpensesByCategory(): Promise<{ labels: string[]; values: number[] }> {
     try {
-      const response = await http.get<any>('/lancamentos/analise/categorias')
+      // Usar dados do lancamentos para calcular distribuição
+      const response = await http.get<any>('/lancamentos', {
+        params: {
+          limit: 1000,
+          select: 'categoria,valor,tipo_lancamento'
+        }
+      })
 
       const data = response.data || response
-      const categorias = data.data || data.categorias || {}
+      const lancamentos = data.data || data.lancamentos || []
 
-      const labels = Object.keys(categorias)
-      const values = Object.values(categorias) as number[]
+      // Filtrar apenas despesas
+      const despesas = lancamentos.filter((item: any) => {
+        const tipo = item.tipo_lancamento ? item.tipo_lancamento.toLowerCase() : 'despesa'
+        return tipo === 'despesa' || tipo === 'd'
+      })
+
+      // Agrupar por categoria
+      const categoriaMap = new Map<string, number>()
+      despesas.forEach((item: any) => {
+        const categoria = item.categoria || 'Outros'
+        const valor = item.valor || 0
+        categoriaMap.set(categoria, (categoriaMap.get(categoria) || 0) + valor)
+      })
+
+      const labels = Array.from(categoriaMap.keys())
+      const values = Array.from(categoriaMap.values())
 
       // Calcular percentuais
       const total = values.reduce((a, b) => a + b, 0)
@@ -88,17 +108,46 @@ class DashboardService {
    */
   async getTransactionCounters(): Promise<any> {
     try {
-      const response = await http.get<any>('/lancamentos/analise/contadores')
+      // Usar dados do lancamentos para calcular contadores
+      const response = await http.get<any>('/lancamentos', {
+        params: {
+          limit: 1000,
+          select: 'tipo_lancamento,status_lancamento'
+        }
+      })
 
       const data = response.data || response
+      const lancamentos = data.data || data.lancamentos || []
+
+      let receitasRecebidas = 0
+      let receitasPendentes = 0
+      let receitasAtrasadas = 0
+      let despesasPagas = 0
+      let despesasPendentes = 0
+      let despesasAtrasadas = 0
+
+      lancamentos.forEach((item: any) => {
+        const tipo = item.tipo_lancamento ? item.tipo_lancamento.toLowerCase() : 'despesa'
+        const status = (item.status_lancamento || '').toUpperCase()
+
+        if (tipo === 'receita' || tipo === 'r') {
+          if (status === 'EFETIVADA' || status === 'RECEBIDA') receitasRecebidas++
+          else if (status === 'ATRASADA') receitasAtrasadas++
+          else receitasPendentes++
+        } else {
+          if (status === 'EFETIVADA' || status === 'PAGA') despesasPagas++
+          else if (status === 'ATRASADA') despesasAtrasadas++
+          else despesasPendentes++
+        }
+      })
 
       return {
-        receitasRecebidas: data.receitasRecebidas || 0,
-        receitasPendentes: data.receitasPendentes || 0,
-        receitasAtrasadas: data.receitasAtrasadas || 0,
-        despesasPagas: data.despesasPagas || 0,
-        despesasPendentes: data.despesasPendentes || 0,
-        despesasAtrasadas: data.despesasAtrasadas || 0
+        receitasRecebidas,
+        receitasPendentes,
+        receitasAtrasadas,
+        despesasPagas,
+        despesasPendentes,
+        despesasAtrasadas
       }
     } catch (error) {
       console.error('Erro ao carregar contadores:', error)

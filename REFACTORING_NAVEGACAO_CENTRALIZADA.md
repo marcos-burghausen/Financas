@@ -3,12 +3,14 @@
 ## ✨ O Que Foi Mudado
 
 ### Problema Anterior
+
 - ❌ Navegação de meses duplicada em 3 places (MainLayout, Dashboard, Receitas, Despesas)
 - ❌ Cada view tinha sua própria lógica
 - ❌ Visual não estava agradando (cards com navegação internos)
 - ❌ Código repetido e difícil de manter
 
 ### Solução Implementada
+
 - ✅ Navegação **centralizada** no MainLayout (topo)
 - ✅ Todas as views sincronizam via `userStore.mesAno`
 - ✅ Visual limpo e consistente
@@ -20,6 +22,7 @@
 ## 📍 Mudanças Realizadas
 
 ### 1. **MainLayout.vue**
+
 ```vue
 <!-- Descomentado e ativado -->
 <div class="month-selector-bar">
@@ -33,14 +36,17 @@
 ```
 
 **Métodos Atualizados:**
+
 - `previousMonth()` → Usa `userStore.setMesAno()`
 - `nextMonth()` → Usa `userStore.setMesAno()`
 - `goToToday()` → Retorna ao mês atual
 
 **Removido:**
+
 - `currentDate` ref (não mais necessário)
 
 ### 2. **DashboardView.vue**
+
 ```vue
 <!-- Removido -->
 <!-- <v-row class="mb-6 align-center">
@@ -51,22 +57,26 @@
 ```
 
 **Removido:**
+
 - Navigation block interno
 - `currentMonthFormatted` computed
 - `mesAnoFormatted` computed
 - `navigationMonth()` método
 
 **Mantido:**
+
 - `monthDisplay` computed (ainda usado nos KPI cards)
 - `watch()` no `userStore.mesAno` para recarregar dados
 
 ### 3. **ReceitasView.vue**
+
 ```vue
 <!-- Antes tinha card próprio com navegação -->
 <!-- Agora usa apenas do MainLayout -->
 ```
 
 **Mudanças:**
+
 - Removido `selectedMonth` ref local
 - Atualizado `goToPreviousMonth()` → Usa `userStore.getMesAno()`
 - Atualizado `goToNextMonth()` → Usa `userStore.getMesAno()`
@@ -74,11 +84,13 @@
 - Atualizado template → `userStore.mesAno` ao invés de `selectedMonth`
 
 ### 4. **DespesasView.vue**
+
 ```vue
 <!-- Mesmas mudanças que ReceitasView -->
 ```
 
 **Mudanças:**
+
 - Removido `selectedMonth` ref local
 - Atualizado métodos de navegação
 - Sincronizado com `userStore.mesAno`
@@ -118,6 +130,7 @@
 ## 📊 Antes vs Depois
 
 ### Antes
+
 ```
 MainLayout
 ├─ Navigation (comentado)
@@ -135,6 +148,7 @@ Problema: 4 navigações diferentes, não sincronizadas
 ```
 
 ### Depois
+
 ```
 MainLayout
 ├─ Navigation (ativa) ✅
@@ -156,6 +170,7 @@ Solução: 1 navegação centralizada, tudo sincronizado
 ## 🎨 Visual
 
 ### MainLayout Month Bar
+
 ```
 ┌──────────────────────────────────────────────┐
 │  [<] outubro de 2024 [>]                     │
@@ -164,6 +179,7 @@ Solução: 1 navegação centralizada, tudo sincronizado
 ```
 
 **CSS:**
+
 - `.month-selector-bar` - Barra de navegação
 - `.month-selector` - Seletor com fundo translúcido
 - `.month-display` - Exibição do mês
@@ -188,22 +204,26 @@ Volta ao mês atual com mesAno = '2024-09'
 ## 🧪 Testes Realizados
 
 ✅ **MainLayout**
+
 - Descomentado e funcionando
 - Botões ← e → navegam corretamente
 - Botão "Hoje" volta ao mês atual
 - Display mostra mês formatado
 
 ✅ **ReceitasView**
+
 - Sincroniza com MainLayout
 - Dados recarregam ao mudar mês
 - selectedMonth removido e substituído
 
 ✅ **DespesasView**
+
 - Sincroniza com MainLayout
 - Dados recarregam ao mudar mês
 - selectedMonth removido e substituído
 
 ✅ **Dashboard**
+
 - Sem navegação duplicada
 - Usa MainLayout
 - Watch recarrega dados ao mudar mês
@@ -213,11 +233,12 @@ Volta ao mês atual com mesAno = '2024-09'
 ## 📝 Código Removido
 
 ### ReceitasView (Antes)
+
 ```typescript
 const selectedMonth = ref<string>(new Date().toISOString().slice(0, 7));
 
 const goToPreviousMonth = () => {
-  const [ano, mes] = selectedMonth.value.split('-');
+  const [ano, mes] = selectedMonth.value.split("-");
   // ... lógica ...
   selectedMonth.value = newMonth;
   userStore.setMesAno(newMonth);
@@ -225,12 +246,13 @@ const goToPreviousMonth = () => {
 ```
 
 ### ReceitasView (Depois)
+
 ```typescript
 // selectedMonth removido
 
 const goToPreviousMonth = () => {
   const mesAno = userStore.getMesAno();
-  const [ano, mes] = mesAno.split('-');
+  const [ano, mes] = mesAno.split("-");
   // ... lógica ...
   userStore.setMesAno(newMonth);
 };
@@ -243,21 +265,25 @@ const goToPreviousMonth = () => {
 ## 🚀 Benefícios
 
 ### 1. **Manutenibilidade**
+
 - 1 lugar para manter navegação
 - Menos bugs, menos duplicação
 - Fácil adicionar features
 
 ### 2. **Consistência**
+
 - Mesmo visual em todo app
 - Mesma lógica em todo app
 - Mesmo comportamento em todo app
 
 ### 3. **Performance**
+
 - Um watch em userStore ao invés de 3
 - Sem re-renders desnecessários
 - localStorage sincronizado
 
 ### 4. **User Experience**
+
 - Visual limpo (navegação no topo)
 - Sincronização invisível
 - Seleção persiste entre views
@@ -275,14 +301,17 @@ const goToPreviousMonth = () => {
 ## 🎯 Próximas Melhorias (Opcional)
 
 1. **Picker Visual de Mês**
+
    - Modal/popover com calendário
    - Seleção rápida de período
 
 2. **Indicador de Disponibilidade**
+
    - Desabilitar botões se não houver dados
    - Visual de períodos com dados
 
 3. **Animações**
+
    - Transições suaves
    - Loading durante mudança
 
