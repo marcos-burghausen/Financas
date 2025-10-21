@@ -90,7 +90,7 @@
                       color="success"
                     />
                     <p class="text-caption text-success mb-0">
-                      +{{ receitasVariacao.toFixed(1) }}% vs mês anterior
+                      +{{ (receitasVariacao || 0).toFixed(1) }}% vs mês anterior
                     </p>
                   </div>
                 </div>
@@ -148,7 +148,7 @@
                       color="error"
                     />
                     <p class="text-caption text-error mb-0">
-                      -{{ despesasVariacao.toFixed(1) }}% vs mês anterior
+                      -{{ (despesasVariacao || 0).toFixed(1) }}% vs mês anterior
                     </p>
                   </div>
                 </div>
@@ -165,10 +165,10 @@
               </div>
               <div class="progress-section">
                 <p class="text-caption mb-2">
-                  {{ summary.despesasPagas }} de {{ summary.despesasPagas + 3 }} pagas
+                  {{ summary.despesasPagas }} de {{ summary.despesasPagas }} pagas
                 </p>
                 <v-progress-linear
-                  :value="(summary.despesasPagas / (summary.despesasPagas + 3)) * 100"
+                  :model-value="(summary.despesasPagas / (summary.despesasPagas + 3)) * 100"
                   color="error"
                   height="6"
                   rounded
@@ -215,10 +215,10 @@
               </div>
               <div class="progress-section">
                 <p class="text-caption mb-2">
-                  Crescimento: +{{ saldoVariacao.toFixed(1) }}%
+                  Crescimento: +{{ (saldoVariacao || 0).toFixed(1) }}%
                 </p>
                 <v-progress-linear
-                  :value="Math.min(saldoVariacao, 100)"
+                  :value="Math.min(saldoVariacao || 0, 100)"
                   color="primary"
                   height="6"
                   rounded
@@ -683,6 +683,8 @@ const summary = ref({
   receitasRecebidas: 0,
   despesasPagas: 0,
   totalPendencias: 0,
+  receitasVariacao: 0,
+  despesasVariacao: 0,
 });
 
 // Chart data
@@ -758,15 +760,13 @@ const formatCurrency = (value: number): string => {
 
 // Calcular variações percentuais (recebidas de mês anterior)
 const receitasVariacao = computed(() => {
-  // Sem dados de mês anterior, retorna 0
-  // Em produção, isso viria do backend comparando meses
-  return 0;
+  // Retorna a variação do summary ou 0 se não definido
+  return summary.value.receitasVariacao || 0;
 });
 
 const despesasVariacao = computed(() => {
   // Sem dados de mês anterior, retorna 0
-  // Em produção, isso viria do backend comparando meses
-  return 0;
+  return summary.value.despesasVariacao || 0;
 });
 
 const saldoVariacao = computed(() => {
@@ -793,6 +793,8 @@ const loadDashboardData = async () => {
     
     // 1. Carregar todos os lançamentos do mês usando currentMonth
     let allTransactions: any[] = [];
+    let receitasVariacao = 0;
+    let despesasVariacao = 0;
     try {
       // Usar http.get com o mês correto
       const response = await http.get("/lancamentos", {
@@ -804,6 +806,8 @@ const loadDashboardData = async () => {
       
       const data = response.data || response;
       allTransactions = data.data || data.lancamentos || [];
+      receitasVariacao = data.variacaoReceitas || 0;
+      despesasVariacao = data.variacaoDespesas || 0;
     } catch (err) {
       console.warn("Erro ao carregar transações:", err);
       try {
@@ -827,10 +831,10 @@ const loadDashboardData = async () => {
 
     allTransactions.forEach((item: any) => {
       const valor = item.valor || 0;
-      const tipo = item.tipo_lancamento?.toLowerCase() || "despesa";
-      const status = item.status_lancamento || "PENDENTE";
+      const tipo = item.tipo_lancamento;
+      const status = item.status_lancamento;
 
-      if (tipo === "receita") {
+      if (tipo === "RECEITA") {
         if (status === "EFETIVADA") {
           receitasRecebidas++;
           totalReceitas += valor;
@@ -870,6 +874,8 @@ const loadDashboardData = async () => {
       receitasRecebidas: receitasRecebidas,
       despesasPagas: despesasPagas,
       totalPendencias: totalPendencias,
+      receitasVariacao: receitasVariacao,
+      despesasVariacao: despesasVariacao,
     };
 
     // 4. Atualizar contadores

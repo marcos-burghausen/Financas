@@ -45,53 +45,77 @@ class LancamentoController extends Controller
             $mesAno = $request->query('mesAno', date('Y-m'));
             $status = $request->query('status');
 
+            $ano = (int) substr($mesAno, 0, 4);
+            $mes = (int) substr($mesAno, 5, 2);
+
             // Query base
-            $queryBase = Lancamento::where('user_id', $user->id);
+            $queryBase = Lancamento::where('user_id', $user->id)
+                         ->whereYear('data_vencimento', $ano)
+                         ->whereMonth('data_vencimento', $mes);
 
             // Filtro por tipo
             // Filtro por tipo (se fornecido)
             if ($tipo) {
-                $queryBase->where('tipo_lancamento', strtoupper($tipo));
+                $queryBase->where('tipo_lancamento', '!=', 'CARTAO_CREDITO');
             }
 
             // ((Valor Final - Valor Inicial) / Valor Inicial) * 100.
 
-            $queryMesAtual = clone $queryBase;
+            // Receitas
+            $queryMesAtualReceitas = clone $queryBase;
+            $this->filtraPorMesAndType($queryMesAtualReceitas, $mesAno, "RECEITA");
+            $this->filtraPorStatus($queryMesAtualReceitas, $status);
+            $totalMesAtualReceitas = $queryMesAtualReceitas->sum('valor');
+            info('Total do mês atual (receitas): ' . $totalMesAtualReceitas);
 
-            $this->filtraPorMes($queryMesAtual, $mesAno);
-            $this->filtraPorStatus($queryMesAtual, $status);
+            $queryMesAnteriorReceitas = clone $queryBase;
+            $this->filtraPorMesAndType($queryMesAnteriorReceitas, $mesAno, "RECEITA", true);
+            $this->filtraPorStatus($queryMesAnteriorReceitas, $status);
+            $totalMesAnteriorReceitas = $queryMesAnteriorReceitas->sum('valor');
 
-            $totalMesAtual = $queryMesAtual->sum('valor');
-            info('Total do mês atual (para comparação): ' . $totalMesAtual);
+            $variacaoReceitas = 0;
+            if ($totalMesAnteriorReceitas > 0) {
+                $variacaoReceitas = (($totalMesAtualReceitas - $totalMesAnteriorReceitas) / $totalMesAnteriorReceitas) * 100;
+            } elseif ($totalMesAtualReceitas > 0) {
+                $variacaoReceitas = 100;
+            }
 
+            // Despesas
+            $queryMesAtualDespesas = clone $queryBase;
+            $this->filtraPorMesAndType($queryMesAtualDespesas, $mesAno, "DESPESA");
+            $this->filtraPorStatus($queryMesAtualDespesas, $status);
+            $totalMesAtualDespesas = $queryMesAtualDespesas->sum('valor');
+            info('Total do mês atual (despesas): ' . $totalMesAtualDespesas);
 
-            $queryMesAnterior = clone $queryBase;
+            $queryMesAnteriorDespesas = clone $queryBase;
+            $this->filtraPorMesAndType($queryMesAnteriorDespesas, $mesAno, "DESPESA", true);
+            $this->filtraPorStatus($queryMesAnteriorDespesas, $status);
+            $totalMesAnteriorDespesas = $queryMesAnteriorDespesas->sum('valor');
 
-            $this->filtraPorMes($queryMesAnterior, $mesAno, true); // O `true` indica mês anterior
-            $this->filtraPorStatus($queryMesAnterior, $status);
-
-            $totalMesAnterior = $queryMesAnterior->sum('valor');
-
-            // 📊 Calcular variação com proteção contra divisão por zero
-            $variacao = 0; // default
-            if ($totalMesAnterior > 0) {
-                $variacao = (($totalMesAtual - $totalMesAnterior) / $totalMesAnterior) * 100;
-            } elseif ($totalMesAtual > 0) {
-                $variacao = 100; // Se não tinha no mês anterior mas tem agora = 100% de aumento
+            $variacaoDespesas = 0;
+            if ($totalMesAnteriorDespesas > 0) {
+                $variacaoDespesas = (($totalMesAtualDespesas - $totalMesAnteriorDespesas) / $totalMesAnteriorDespesas) * 100;
+            } elseif ($totalMesAtualDespesas > 0) {
+                $variacaoDespesas = 100;
             }
 
             // 📋 Logs para debug
-            info('Total do mês anterior: ' . $totalMesAnterior);
-            info('Total do mês atual: ' . $totalMesAtual);
-            info('Variação calculada: ' . $variacao . '%');
+            info('Total do mês anterior: ' . $totalMesAnteriorReceitas);
+            info('Total do mês atual: ' . $totalMesAtualReceitas);
+            info('Variação calculada: ' . $variacaoReceitas . '%');
 
             // Ordenar por data de vencimento descendente
-            $lancamentos = $queryMesAtual->orderBy('data_vencimento', 'desc')->get();
+            $lancamentosReceitas = $queryMesAtualReceitas->orderBy('data_vencimento', 'desc')->get();
+            $lancamentosDespesas = $queryMesAtualDespesas->orderBy('data_vencimento', 'desc')->get();
 
             return response()->json([
                 'success' => true,
-                'variacao' => $variacao,
-                'data' => $lancamentos
+                'variacaoReceitas' => $variacaoReceitas,
+                'variacaoDespesas' => $variacaoDespesas,
+                'data' => [
+                    'lancamentosReceitas' => $lancamentosReceitas,
+                    'lancamentosDespesas' => $lancamentosDespesas,
+                ]
             ], 200);
         } catch (\Exception $e) {
             Log::error('Erro ao listar lançamentos: ' . $e->getMessage(), ['exception' => $e]);
@@ -99,7 +123,7 @@ class LancamentoController extends Controller
         }
     }
 
-    private function filtraPorMes($query, $mesAno,  $mesAnterior = null)
+    private function filtraPorMesAndType($query, $mesAno, $tipo, $mesAnterior = null)
     {
         $ano = (int) substr($mesAno, 0, 4);
         $mes = (int) substr($mesAno, 5, 2);
@@ -113,7 +137,8 @@ class LancamentoController extends Controller
         }
 
         return $query->whereYear('data_vencimento', $ano)
-            ->whereMonth('data_vencimento', $mes);
+            ->whereMonth('data_vencimento', $mes)
+            ->where('tipo_lancamento', $tipo);
     }
 
     private function filtraPorStatus($query, $status)
