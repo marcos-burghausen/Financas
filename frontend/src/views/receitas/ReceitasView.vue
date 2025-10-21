@@ -872,6 +872,7 @@ const tempPeriodicidade = ref("Mensal");
 
 // Mock data
 const receitas = ref([]);
+const variacao = ref(0);
 
 const categorias = ref(["Salário", "Freelancer", "Bonus", "Investimento", "Outros"]);
 const categoriasNames = computed(() => {
@@ -1001,7 +1002,7 @@ const dataVencimentoRelativa = computed(() => {
 // Summary computed
 const summary = computed(() => ({
   totalMes: receitas.value.reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, "").replace(",", ".")), 0),
-  variacaoMes: 5.2,
+  variacaoMes: variacao.value,
 }));
 
 // ✅ Usar getStatusReal para calcular o status baseado em datas
@@ -1052,7 +1053,8 @@ const formatCurrency = (value: number) => {
   }).format(value / 100);
 };
 
-const formatPercentage = (value: number) => {
+const formatPercentage = (value: number | undefined) => {
+  if (value === undefined || value === null) return "+0.0%";
   return `${value >= 0 ? "+" : ""}${value.toFixed(1)}%`;
 };
 
@@ -1422,6 +1424,7 @@ const loadReceitas = async () => {
     loading.value = true;
     const mesAno = currentMonth.value;
     const data = await receitasService.list(mesAno);
+    console.log(data);
     
     if (data && data.length > 0) {
       receitas.value = data.map((r: any) => ({
@@ -1441,6 +1444,7 @@ const loadReceitas = async () => {
         data_efetivacao: r.data_efetivacao,
         observacoes: r.observacoes || "",
       }));
+      variacao.value = data.variacao;
     } else {
       receitas.value = [];
     }

@@ -35,6 +35,7 @@ class LancamentoController extends Controller
      */
     public function getLancamento(Request $request): JsonResponse
     {
+        info('Listando lançamentos com filtros: ' . json_encode($request->all()));
         try {
             /** @var \App\Models\User $user */
             $user = auth()->user();
@@ -45,46 +46,82 @@ class LancamentoController extends Controller
             $status = $request->query('status');
 
             // Query base
-            $query = Lancamento::where('user_id', $user->id);
+            $queryBase = Lancamento::where('user_id', $user->id);
 
             // Filtro por tipo
+            // Filtro por tipo (se fornecido)
             if ($tipo) {
-                $tipoUpper = strtoupper($tipo);
-                if ($tipoUpper === 'RECEITA') {
-                    $query->where('tipo_lancamento', 'RECEITA');
-                } elseif ($tipoUpper === 'DESPESA') {
-                    $query->where('tipo_lancamento', 'DESPESA');
-                } elseif ($tipoUpper === 'CARTAO_CREDITO') {
-                    $query->where('tipo_lancamento', 'CARTAO_CREDITO');
-                }
+                $queryBase->where('tipo_lancamento', strtoupper($tipo));
             }
 
-            // Filtro por mês/ano
-            if ($mesAno) {
-                $query->whereYear('data_vencimento', substr($mesAno, 0, 4))
-                    ->whereMonth('data_vencimento', substr($mesAno, 5, 2));
+            // ((Valor Final - Valor Inicial) / Valor Inicial) * 100.
+
+            $queryMesAtual = clone $queryBase;
+
+            $this->filtraPorMes($queryMesAtual, $mesAno);
+            $this->filtraPorStatus($queryMesAtual, $status);
+
+            $totalMesAtual = $queryMesAtual->sum('valor');
+            info('Total do mês atual (para comparação): ' . $totalMesAtual);
+
+
+            $queryMesAnterior = clone $queryBase;
+
+            $this->filtraPorMes($queryMesAnterior, $mesAno, true); // O `true` indica mês anterior
+            $this->filtraPorStatus($queryMesAnterior, $status);
+
+            $totalMesAnterior = $queryMesAnterior->sum('valor');
+
+            // 📊 Calcular variação com proteção contra divisão por zero
+            $variacao = 0; // default
+            if ($totalMesAnterior > 0) {
+                $variacao = (($totalMesAtual - $totalMesAnterior) / $totalMesAnterior) * 100;
+            } elseif ($totalMesAtual > 0) {
+                $variacao = 100; // Se não tinha no mês anterior mas tem agora = 100% de aumento
             }
 
-            // Filtro por status
-            if ($status) {
-                if (strtolower($status) === 'pendente') {
-                    $query->where('status_lancamento', '!=', 'REALIZADO');
-                } elseif (strtolower($status) === 'realizado') {
-                    $query->where('status_lancamento', 'REALIZADO');
-                }
-            }
+            // 📋 Logs para debug
+            info('Total do mês anterior: ' . $totalMesAnterior);
+            info('Total do mês atual: ' . $totalMesAtual);
+            info('Variação calculada: ' . $variacao . '%');
 
             // Ordenar por data de vencimento descendente
-            $lancamentos = $query->orderBy('data_vencimento', 'desc')->get();
+            $lancamentos = $queryMesAtual->orderBy('data_vencimento', 'desc')->get();
 
             return response()->json([
                 'success' => true,
-                'count' => $lancamentos->count(),
+                'variacao' => $variacao,
                 'data' => $lancamentos
             ], 200);
         } catch (\Exception $e) {
             Log::error('Erro ao listar lançamentos: ' . $e->getMessage(), ['exception' => $e]);
             return response()->json(['error' => 'Ocorreu um erro ao listar lançamentos.'], 500);
+        }
+    }
+
+    private function filtraPorMes($query, $mesAno,  $mesAnterior = null)
+    {
+        $ano = (int) substr($mesAno, 0, 4);
+        $mes = (int) substr($mesAno, 5, 2);
+
+        if ($mesAnterior) {
+            $mes--;
+            if ($mes < 1) {
+                $mes = 12;
+                $ano--;
+            }
+        }
+
+        return $query->whereYear('data_vencimento', $ano)
+            ->whereMonth('data_vencimento', $mes);
+    }
+
+    private function filtraPorStatus($query, $status)
+    {
+        if (strtolower($status) === 'pendente') {
+            return $query->where('status_lancamento', '!=', 'EFETIVADA');
+        } elseif (strtolower($status) === 'realizado') {
+            return $query->where('status_lancamento', 'EFETIVADA');
         }
     }
 

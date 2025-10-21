@@ -37,14 +37,22 @@ class DespesasService {
   /**
    * Listar despesas (lancamentos do tipo despesa)
    */
-  async list(mesAno?: string): Promise<Despesa[]> {
+  async list(mesAno?: string): Promise<any> {
     try {
       const params = mesAno ? { mesAno, tipo: 'despesa' } : { tipo: 'despesa' }
       const response = await http.get<any>('/lancamentos', { params })
       
+      // Extrair dados e variação da resposta
+      const lancamentos = Array.isArray(response.data) ? response.data : response.data?.data || []
+      const variacao = response.data?.variacao !== undefined ? response.data.variacao : 0
+      
       // Filtrar apenas despesas
-      const data = Array.isArray(response.data) ? response.data : response.data?.data || []
-      return data.filter((item: any) => item.tipo === 'despesa' || item.tipo_lancamento === 'DESPESA')
+      const data = lancamentos.filter((item: any) => item.tipo === 'despesa' || item.tipo_lancamento === 'DESPESA')
+      
+      // Retornar array com propriedade variacao anexada
+      const result = data as any
+      result.variacao = variacao
+      return result
     } catch (error) {
       console.error('Erro ao listar despesas:', error)
       return []

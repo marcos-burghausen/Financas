@@ -835,7 +835,7 @@ import { useExpensesStore } from "@/store/expenses";
 import { useToastStore } from "@/store/toast";
 import { useUserStore } from "@/store/user";
 import { useWalletsStore } from "@/store/wallets";
-import { format } from "date-fns";
+import { format, isToday, isTomorrow, isValid, isYesterday, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { computed, onMounted, ref, watch } from "vue";
 
@@ -843,6 +843,10 @@ const toastStore = useToastStore();
 const userStore = useUserStore();
 const expensesStore = useExpensesStore();
 const walletsStore = useWalletsStore();
+
+// ✅ Data refs
+const despesas = ref<any[]>([]);
+const variacao = ref(0);
 
 // State
 const dialog = ref(false);
@@ -997,7 +1001,7 @@ const dataVencimentoRelativa = computed(() => {
 // Summary computed
 const summary = computed(() => ({
   totalMes: despesas.value.reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, "").replace(",", ".")), 0),
-  variacaoMes: 5.2,
+  variacaoMes: variacao.value,
 }));
 
 // ✅ Usar getStatusReal para calcular o status baseado em datas
@@ -1048,7 +1052,8 @@ const formatCurrency = (value: number) => {
   }).format(value / 100);
 };
 
-const formatPercentage = (value: number) => {
+const formatPercentage = (value: number | undefined) => {
+  if (value === undefined || value === null) return "+0.0%";
   return `${value >= 0 ? "+" : ""}${value.toFixed(1)}%`;
 };
 
@@ -1129,7 +1134,7 @@ const goToPreviousMonth = () => {
   const date = new Date(parseInt(ano), parseInt(mes) - 1, 1);
   date.setMonth(date.getMonth() - 1);
   currentMonth.value = date.toISOString().slice(0, 7);
-  loadReceitas();
+  loadDespesas();
 };
 
 const goToNextMonth = () => {
@@ -1137,7 +1142,7 @@ const goToNextMonth = () => {
   const date = new Date(parseInt(ano), parseInt(mes) - 1, 1);
   date.setMonth(date.getMonth() + 1);
   currentMonth.value = date.toISOString().slice(0, 7);
-  loadReceitas();
+  loadDespesas();
 };
 
 // ✅ Função para calcular o status real baseado na data de vencimento
@@ -1406,20 +1411,20 @@ const resetFilters = () => {
   selectedCategoria.value = "";
 };
 
-// Carregar receitas da API
-const loadReceitas = async () => {
+// Carregar despesas da API
+const loadDespesas = async () => {
   try {
     loading.value = true;
-    const mesAno = currentMonth.value; // Use local currentMonth instead of userStore
-    const data = await receitasService.list(mesAno);
+    const mesAno = currentMonth.value;
+    const data = await despesasService.list(mesAno);
     
     if (data && data.length > 0) {
-      receitas.value = data.map((r: any) => ({
+      despesas.value = data.map((r: any) => ({
         id: r.id,
         descricao: r.descricao,
-        valor: r.valor || 0, // Valor em centavos da API
-        categoria: r.categoria,  // ✅ Sem fallback
-        subcategoria: r.subcategoria,  // ✅ Sem fallback
+        valor: r.valor || 0,
+        categoria: r.categoria,
+        subcategoria: r.subcategoria,
         conta: r.conta?.name || "Conta",
         conta_id: r.conta_id,
         data_vencimento: r.data_vencimento,
@@ -1431,12 +1436,13 @@ const loadReceitas = async () => {
         data_efetivacao: r.data_efetivacao,
         observacoes: r.observacoes || "",
       }));
+      variacao.value = data.variacao;
     } else {
-      receitas.value = [];
+      despesas.value = [];
     }
   } catch (error: any) {
-    console.warn("Erro ao carregar receitas:", error?.message);
-    toastStore.warning("Erro ao carregar receitas");
+    console.warn("Erro ao carregar despesas:", error?.message);
+    toastStore.warning("Erro ao carregar despesas");
   } finally {
     loading.value = false;
   }
@@ -1466,11 +1472,11 @@ onMounted(() => {
   // Reset to current month on mount to ensure fresh data
   currentMonth.value = new Date().toISOString().slice(0, 7);
   // Load data after resetting the month
-  loadReceitas();
+  loadDespesas();
 });
 
 watch(() => currentMonth.value, () => {
-  loadReceitas();
+  loadDespesas();
 }, { immediate: false }); // Set to false to avoid double load on mount
 </script>
 

@@ -36,14 +36,22 @@ class ReceitasService {
   /**
    * Listar receitas (lancamentos do tipo receita)
    */
-  async list(mesAno?: string): Promise<Receita[]> {
+  async list(mesAno?: string): Promise<any> {
     try {
       const params = mesAno ? { mesAno, tipo: "receita" } : { tipo: "receita" };
       const response = await http.get<any>("/lancamentos", { params });
       
+      // Extrair dados e variação da resposta
+      const lancamentos = Array.isArray(response.data) ? response.data : response.data?.data || [];
+      const variacao = response.data?.variacao !== undefined ? response.data.variacao : 0;
+      
       // Filtrar apenas receitas
-      const data = Array.isArray(response.data) ? response.data : response.data?.data || [];
-      return data.filter((item: any) => item.tipo === "receita" || item.tipo_lancamento === "RECEITA");
+      const data = lancamentos.filter((item: any) => item.tipo === "receita" || item.tipo_lancamento === "RECEITA");
+      
+      // Retornar array com propriedade variacao anexada
+      const result = data as any;
+      result.variacao = variacao;
+      return result;
     } catch (error) {
       console.error("Erro ao listar receitas:", error);
       return [];

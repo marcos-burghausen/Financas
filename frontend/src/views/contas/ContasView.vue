@@ -2,12 +2,22 @@
   <div class="contas-view">
     <!-- Header Section -->
     <div class="view-header mb-6">
-      <div class="d-flex align-center gap-3 mb-2">
-        <v-icon icon="mdi-bank" size="36" color="primary" />
-        <div>
-          <h1 class="text-h5 font-weight-bold">Minhas Contas</h1>
-          <p class="text-caption text-medium-emphasis mb-0">Gerencie suas contas correntes, poupanças e investimentos</p>
+      <div class="d-flex align-center justify-space-between gap-3 mb-2">
+        <div class="d-flex align-center gap-3">
+          <v-icon icon="mdi-bank" size="36" color="primary" />
+          <div>
+            <h1 class="text-h5 font-weight-bold">Minhas Contas</h1>
+            <p class="text-caption text-medium-emphasis mb-0">Gerencie suas contas correntes, poupanças e investimentos</p>
+          </div>
         </div>
+        <v-btn
+          color="primary"
+          size="large"
+          prepend-icon="mdi-plus"
+          @click="openDialog"
+        >
+          Nova Conta
+        </v-btn>
       </div>
     </div>
 
@@ -104,6 +114,47 @@
       </div>
     </v-card>
 
+    <v-row class="mb-6">
+  <v-col
+    v-for="conta in filteredContas"
+    :key="conta.id"
+    cols="12"
+    sm="6"
+    lg="4"
+  >
+    <v-card
+      class="account-card"
+      :class="getBankClass(conta.bank)"
+      elevation="4"
+      dark
+    >
+      <v-card-text class="d-flex flex-column justify-space-between fill-height">
+        <div>
+          <div class="d-flex justify-space-between align-center mb-4">
+            <span class="text-body-1 font-weight-bold">{{ conta.bank }}</span>
+            <v-chip
+              label
+              small
+              dark
+              color="rgba(255, 255, 255, 0.2)"
+            >
+              {{ getTipoLabel(conta.type) }}
+            </v-chip>
+          </div>
+          <p class="text-caption text-white mb-1">{{ conta.name }}</p>
+        </div>
+
+        <div>
+          <p class="text-caption text-medium-emphasis mb-0">Saldo Atual</p>
+          <h2 class="text-h5 font-weight-bold">
+            {{ formatCurrency(conta.balance) }}
+          </h2>
+        </div>
+      </v-card-text>
+    </v-card>
+  </v-col>
+</v-row>
+
     <!-- Tabela de Contas -->
     <v-card class="mb-6" elevation="1">
       <v-data-table
@@ -113,31 +164,35 @@
         class="contas-table"
         density="comfortable"
       >
-        <template #item.nome="{ item }">
+        <template #item.name="{ item }">
           <div class="d-flex align-center gap-2">
-            <v-avatar size="32" color="primary" text-color="white">
-              {{ item.nome.charAt(0).toUpperCase() }}
+            <v-avatar 
+              size="32" 
+              :style="{ backgroundColor: item.color || '#163dc0' }" 
+              text-color="white"
+            >
+              {{ item.name.charAt(0).toUpperCase() }}
             </v-avatar>
             <div>
-              <div class="font-weight-bold">{{ item.nome }}</div>
-              <div class="text-caption text-medium-emphasis">{{ item.banco }}</div>
+              <div class="font-weight-bold">{{ item.name }}</div>
+              <div class="text-caption text-medium-emphasis">{{ item.bank }}</div>
             </div>
           </div>
         </template>
 
-        <template #item.tipo="{ item }">
+        <template #item.type="{ item }">
           <v-chip
-            :color="getTipoColor(item.tipo)"
+            :color="getTipoColor(item.type)"
             label
             size="small"
           >
-            {{ getTipoLabel(item.tipo) }}
+            {{ getTipoLabel(item.type) }}
           </v-chip>
         </template>
 
-        <template #item.saldo="{ item }">
-          <div class="text-right font-weight-bold" :class="item.saldo >= 0 ? 'text-success' : 'text-error'">
-            {{ formatCurrency(item.saldo) }}
+        <template #item.balance="{ item }">
+          <div class="text-right font-weight-bold" :class="item.balance >= 0 ? 'text-success' : 'text-error'">
+            {{ formatCurrency(item.balance) }}
           </div>
         </template>
 
@@ -171,200 +226,52 @@
       </v-data-table>
     </v-card>
 
-    <!-- Add/Edit Dialog -->
-    <v-dialog
+    <!-- Form Component -->
+    <FormConta
       v-model="dialogOpen"
-      max-width="600px"
-      persistent
-    >
-      <v-card>
-        <v-card-title class="pa-6 pb-4">
-          {{ editingId ? 'Editar Conta' : 'Nova Conta' }}
-        </v-card-title>
-
-        <v-card-text class="pa-6 pt-4">
-          <v-row>
-            <v-col cols="12">
-              <v-text-field
-                v-model="form.nome"
-                label="Nome da Conta"
-                hint="Ex: Minha Conta Corrente"
-                :rules="[v => !!v || 'Obrigatório']"
-              />
-            </v-col>
-
-            <v-col cols="12" sm="6">
-              <v-select
-                v-model="form.banco"
-                :items="bancosPossivel"
-                label="Banco"
-                :rules="[v => !!v || 'Obrigatório']"
-              />
-            </v-col>
-
-            <v-col cols="12" sm="6">
-              <v-select
-                v-model="form.tipo"
-                :items="tiposContaPossivel"
-                label="Tipo de Conta"
-                :rules="[v => !!v || 'Obrigatório']"
-              />
-            </v-col>
-
-            <v-col cols="12" sm="6">
-              <v-text-field
-                v-model.number="form.saldo"
-                label="Saldo Inicial"
-                type="number"
-                hint="Saldo atual"
-                :rules="[v => v !== null || 'Obrigatório']"
-              />
-            </v-col>
-
-            <v-col cols="12" sm="6">
-              <v-text-field
-                v-model="form.agencia"
-                label="Agência"
-                placeholder="Ex: 1234"
-              />
-            </v-col>
-
-            <v-col cols="12">
-              <v-text-field
-                v-model="form.numero"
-                label="Número da Conta"
-                placeholder="Ex: 123456-7"
-              />
-            </v-col>
-
-            <v-col cols="12">
-              <v-select
-                v-model="form.status"
-                :items="['ativa', 'inativa']"
-                label="Status"
-                :rules="[v => !!v || 'Obrigatório']"
-              />
-            </v-col>
-
-            <v-col cols="12">
-              <v-textarea
-                v-model="form.observacao"
-                label="Observações"
-                rows="2"
-              />
-            </v-col>
-          </v-row>
-        </v-card-text>
-
-        <v-card-actions class="pa-6 pt-0">
-          <v-spacer />
-          <v-btn
-            variant="outlined"
-            @click="closeDialog"
-          >
-            Cancelar
-          </v-btn>
-          <v-btn
-            color="primary"
-            @click="saveConta"
-            :loading="loading"
-          >
-            {{ editingId ? 'Atualizar' : 'Adicionar' }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+      :editing-data="editingData"
+      @saved="loadContas"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import FormConta from '@/components/FormConta.vue'
+import contasService from '@/services/contas.service'
+import { useToastStore } from '@/store/toast'
+import { computed, onMounted, ref } from 'vue'
+
+const toastStore = useToastStore()
 
 interface Conta {
   id: number
-  nome: string
-  banco: string
-  tipo: 'corrente' | 'poupanca' | 'investimento'
-  numero: string
-  agencia: string
-  saldo: number
+  name: string
+  bank: string
+  type: 'corrente' | 'poupanca' | 'investimento'
+  number: string
+  agency: string
+  balance: number
   status: 'ativa' | 'inativa'
-  observacao: string
-  limite?: number
-  dataAbertura?: string
+  description?: string
+  limit?: number
+  opening_date?: string
+  color?: string
 }
 
 // State
-const contas = ref<Conta[]>([
-  {
-    id: 1,
-    nome: 'Conta Corrente Principal',
-    banco: 'Banco do Brasil',
-    tipo: 'corrente',
-    numero: '123456-7',
-    agencia: '1234',
-    saldo: 5200.50,
-    status: 'ativa',
-    observacao: 'Conta de salário',
-    limite: 1000
-  },
-  {
-    id: 2,
-    nome: 'Poupança Emergência',
-    banco: 'Caixa Econômica',
-    tipo: 'poupanca',
-    numero: '654321-9',
-    agencia: '5678',
-    saldo: 15000,
-    status: 'ativa',
-    observacao: 'Fundo de emergência'
-  },
-  {
-    id: 3,
-    nome: 'Investimento Tesouro',
-    banco: 'Itaú',
-    tipo: 'investimento',
-    numero: '789456-3',
-    agencia: '9012',
-    saldo: 8500,
-    status: 'ativa',
-    observacao: 'Tesouro Direto'
-  },
-  {
-    id: 4,
-    nome: 'Conta Antiga',
-    banco: 'Banco Bradesco',
-    tipo: 'corrente',
-    numero: '321654-8',
-    agencia: '3456',
-    saldo: 100,
-    status: 'inativa',
-    observacao: 'Desativada'
-  }
-])
-
+const contas = ref<Conta[]>([])
 const search = ref('')
 const tipoFilter = ref('')
 const statusFilter = ref('')
 const dialogOpen = ref(false)
 const loading = ref(false)
 const editingId = ref<number | null>(null)
-
-const form = ref<Omit<Conta, 'id'>>({
-  nome: '',
-  banco: '',
-  tipo: 'corrente',
-  numero: '',
-  agencia: '',
-  saldo: 0,
-  status: 'ativa',
-  observacao: ''
-})
+const editingData = ref<Conta | null>(null)
 
 const headers = [
-  { title: 'Conta', key: 'nome', align: 'start' as const },
-  { title: 'Tipo', key: 'tipo', align: 'center' as const, width: '120px' },
-  { title: 'Saldo', key: 'saldo', align: 'end' as const, width: '150px' },
+  { title: 'Conta', key: 'name', align: 'start' as const },
+  { title: 'Tipo', key: 'type', align: 'center' as const, width: '120px' },
+  { title: 'Saldo', key: 'balance', align: 'end' as const, width: '150px' },
   { title: 'Status', key: 'status', align: 'center' as const, width: '100px' },
   { title: 'Ações', key: 'actions', sortable: false, align: 'center' as const, width: '100px' }
 ]
@@ -386,30 +293,46 @@ const bancosPossivel = [
 const contasAtivas = computed(() => contas.value.filter(c => c.status === 'ativa'))
 
 const summary = computed(() => ({
-  totalBalance: contas.value.reduce((sum, c) => sum + c.saldo, 0),
+  totalBalance: contas.value.reduce((sum, c) => sum + c.balance, 0),
   contasAtivas: contasAtivas.value.length,
-  limiteDisponivel: contas.value.reduce((sum, c) => sum + (c.limite || 0), 0)
+  limiteDisponivel: contas.value.reduce((sum, c) => sum + (c.limit || 0), 0)
 }))
 
 const filteredContas = computed(() => {
   return contas.value.filter(conta => {
-    const matchSearch = conta.nome.toLowerCase().includes(search.value.toLowerCase()) ||
-                       conta.banco.toLowerCase().includes(search.value.toLowerCase())
-    const matchTipo = !tipoFilter.value || conta.tipo === tipoFilter.value
+    const matchSearch = conta.name.toLowerCase().includes(search.value.toLowerCase()) ||
+                       conta.bank.toLowerCase().includes(search.value.toLowerCase())
+    const matchTipo = !tipoFilter.value || conta.type === tipoFilter.value
     const matchStatus = !statusFilter.value || conta.status === statusFilter.value
     return matchSearch && matchTipo && matchStatus
   })
 })
 
 // Methods
-function formatCurrency(value: number): string {
+const getBankClass = (bankName: string): string => {
+  const normalizedName = bankName.toLowerCase()
+  
+  if (normalizedName.includes('nubank')) return 'bg-nubank'
+  if (normalizedName.includes('inter')) return 'bg-inter'
+  if (normalizedName.includes('itaú')) return 'bg-itau'
+  if (normalizedName.includes('bradesco')) return 'bg-bradesco'
+  if (normalizedName.includes('brasil')) return 'bg-bb'
+  if (normalizedName.includes('caixa')) return 'bg-caixa'
+  
+  return 'bg-default-grad'
+}
+
+
+
+
+const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL'
-  }).format(value)
+  }).format(value / 100)
 }
 
-function getTipoColor(tipo: string): string {
+const getTipoColor = (tipo: string): string => {
   const colors: Record<string, string> = {
     'corrente': 'primary',
     'poupanca': 'success',
@@ -418,7 +341,7 @@ function getTipoColor(tipo: string): string {
   return colors[tipo] || 'secondary'
 }
 
-function getTipoLabel(tipo: string): string {
+const getTipoLabel = (tipo: string): string => {
   const labels: Record<string, string> = {
     'corrente': 'Corrente',
     'poupanca': 'Poupança',
@@ -427,62 +350,221 @@ function getTipoLabel(tipo: string): string {
   return labels[tipo] || tipo
 }
 
-function openAddDialog() {
-  editingId.value = null
-  form.value = {
-    nome: '',
-    banco: '',
-    tipo: 'corrente',
-    numero: '',
-    agencia: '',
-    saldo: 0,
-    status: 'ativa',
-    observacao: ''
-  }
-  dialogOpen.value = true
-}
-
-function closeDialog() {
-  dialogOpen.value = false
-}
-
-function editConta(conta: Conta) {
-  editingId.value = conta.id
-  form.value = { ...conta }
-  dialogOpen.value = true
-}
-
-function saveConta() {
-  loading.value = true
-  setTimeout(() => {
-    if (editingId.value) {
-      const index = contas.value.findIndex(c => c.id === editingId.value)
-      if (index !== -1) {
-        contas.value[index] = { ...form.value, id: editingId.value }
-      }
-    } else {
-      const newId = Math.max(...contas.value.map(c => c.id), 0) + 1
-      contas.value.push({ ...form.value, id: newId })
-    }
+const loadContas = async () => {
+  try {
+    loading.value = true
+    const data = await contasService.list()
+    contas.value = data
+  } catch (error: any) {
+    console.error('Erro ao carregar contas:', error)
+    toastStore.error('Erro ao carregar contas')
+  } finally {
     loading.value = false
-    closeDialog()
-  }, 500)
-}
-
-function deleteConta(id: number) {
-  if (confirm('Tem certeza que deseja deletar esta conta?')) {
-    contas.value = contas.value.filter(c => c.id !== id)
   }
 }
 
-function clearFilters() {
+const openDialog = () => {
+  editingId.value = null
+  editingData.value = null
+  dialogOpen.value = true
+}
+
+const editConta = (item: Conta) => {
+  editingId.value = item.id
+  editingData.value = { ...item }
+  dialogOpen.value = true
+}
+
+const deleteConta = async (id: number) => {
+  if (confirm('Tem certeza que deseja deletar esta conta?')) {
+    try {
+      loading.value = true
+      await contasService.delete(id)
+      toastStore.success('Conta deletada com sucesso!')
+      await loadContas()
+    } catch (error: any) {
+      console.error('Erro ao deletar conta:', error)
+      toastStore.error(error.message || 'Erro ao deletar conta')
+    } finally {
+      loading.value = false
+    }
+  }
+}
+
+const clearFilters = () => {
   search.value = ''
   tipoFilter.value = ''
   statusFilter.value = ''
 }
+
+// Lifecycle
+onMounted(() => {
+  // loadContas()
+  // --- Início dos Dados Fictícios ---
+  // (Adicione este bloco para carregar os dados fictícios)
+  loading.value = true
+  
+  const mockContas: Conta[] = [
+    {
+      id: 1,
+      name: 'Conta Principal',
+      bank: 'Nubank',
+      type: 'corrente',
+      number: '123456-7',
+      agency: '0001',
+      balance: 1530050, // R$ 15.300,50
+      status: 'ativa',
+      description: 'Conta do dia a dia'
+    },
+    {
+      id: 2,
+      name: 'Investimentos',
+      bank: 'Inter',
+      type: 'investimento',
+      number: '98765-4',
+      agency: '0001',
+      balance: 8500000, // R$ 85.000,00
+      status: 'ativa',
+      description: 'Carteira de Ações e Fundos'
+    },
+    {
+      id: 3,
+      name: 'Reserva de Emergência',
+      bank: 'Itaú',
+      type: 'poupanca',
+      number: '11223-3',
+      agency: '1234',
+      balance: 3200000, // R$ 32.000,00
+      status: 'ativa',
+      description: 'Fundo para imprevistos'
+    },
+    {
+      id: 4,
+      name: 'Conta Salário Antiga',
+      bank: 'Bradesco',
+      type: 'corrente',
+      number: '55667-7',
+      agency: '4321',
+      balance: -15000, // -R$ 150,00 (Exemplo negativo)
+      status: 'inativa',
+      description: 'Conta antiga, não movimentada'
+    },
+    {
+      id: 5,
+      name: 'Caixinha',
+      bank: 'Banco do Brasil',
+      type: 'poupanca',
+      number: '77889-9',
+      agency: '3322',
+      balance: 50000, // R$ 500,00
+      status: 'ativa',
+      description: 'Poupança para viagem'
+    }
+  ]
+  
+  contas.value = mockContas
+  loading.value = false
+  // --- Fim dos Dados Fictícios ---
+})
 </script>
 
+
+
 <style scoped lang="scss">
+.account-card {
+  border-radius: 12px;
+  min-height: 180px;
+  color: #FFFFFF; // Força o texto a ser branco
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  .v-card-text {
+    z-index: 2;
+  }
+
+  // Gradientes
+  &.bg-nubank {
+    background: linear-gradient(135deg, #612F74, #A13DA8);
+  }
+  &.bg-inter {
+    background: linear-gradient(135deg, #FF7A00, #F5841F);
+  }
+  &.bg-itau {
+    background: linear-gradient(135deg, #EC7000, #0056A3);
+  }
+  &.bg-bradesco {
+    background: linear-gradient(135deg, #D9232E, #B91C26);
+  }
+  &.bg-bb {
+    background: linear-gradient(135deg, #0033A0, #FFEE00);
+  }
+  &.bg-caixa {
+    background: linear-gradient(135deg, #0073B5, #004A7B);
+  }
+  &.bg-default-grad {
+    background: linear-gradient(135deg, #424242, #212121);
+  }
+}
+
+
+
+
+
+
+.contas-view {
+  padding: 24px;
+}
+
+.view-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  padding-bottom: 16px;
+}
+
+.kpi-card {
+  border-left: 4px solid rgb(var(--v-theme-primary));
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+  }
+
+  &.positive {
+    border-left-color: rgb(var(--v-theme-success));
+  }
+
+  &.negative {
+    border-left-color: rgb(var(--v-theme-error));
+  }
+}
+
+.filters-card {
+  background: rgba(var(--v-theme-primary), 0.05);
+}
+
+.contas-table {
+  :deep(.v-data-table) {
+    background: rgb(var(--v-theme-background));
+  }
+}
+
+@media (max-width: 600px) {
+  .contas-view {
+    padding: 16px;
+  }
+
+  .kpi-card {
+    margin-bottom: 8px;
+  }
+}
+
+
 .contas-view {
   padding: 24px;
 }
