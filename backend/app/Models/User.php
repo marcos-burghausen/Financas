@@ -52,9 +52,9 @@ class User extends Authenticatable
     /**
      * A relação principal e única para todos os lançamentos do usuário.
      */
-    public function lancamentos()
+    public function launches()
     {
-        return $this->hasMany(Lancamento::class);
+        return $this->hasMany(Launch::class);
     }
 
     /**
@@ -62,7 +62,7 @@ class User extends Authenticatable
      */
     public function revenues()
     {
-        return $this->hasMany(Lancamento::class)->where('tipo_lancamento', 'Receita');
+        return $this->hasMany(Launch::class)->where('launch_type', 'Receita');
     }
 
     /**
@@ -70,12 +70,12 @@ class User extends Authenticatable
      */
     public function expenses()
     {
-        return $this->hasMany(Lancamento::class)->where('tipo_lancamento', 'Despesa');
+        return $this->hasMany(Launch::class)->where('launch_type', 'Despesa');
     }
 
-    public function contas()
+    public function accounts()
     {
-        return $this->hasMany(Conta::class);
+        return $this->hasMany(Account::class);
     }
 
     public function categories()

@@ -36,6 +36,7 @@ export interface ErrorResponse {
   error: string
   message?: string
   validation_errors?: Record<string, string[]>
+  error_code?: string
 }
 
 class AuthService {
@@ -150,8 +151,9 @@ class AuthService {
       return {
         error: data.error || data.message || 'Erro na requisição',
         message: data.message,
-        validation_errors: data.validation_errors
-      }
+        validation_errors: data.validation_errors,
+        error_code: data.error_code // Incluir error_code se presente
+      } as any
     }
 
     return {

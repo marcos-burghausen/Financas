@@ -2,10 +2,7 @@
 
 namespace App\Http\Traits;
 
-use App\Models\Conta;
-use DateTime;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 
 trait ReleasesMonthTrait
 {
@@ -51,12 +48,12 @@ trait ReleasesMonthTrait
 
     public function valorPendenteMes(iterable $releasesMonth, $status): int
     {
-        return $releasesMonth->where('status_lancamento', $status)->sum('valor');
+        return $releasesMonth->where('launch_status', $status)->sum('value');
     }
 
     public function valorLancamentosMes(iterable $releasesMonth): int
     {
-        return $releasesMonth->sum('valor');
+        return $releasesMonth->sum('value');
     }
 
 
@@ -64,9 +61,9 @@ trait ReleasesMonthTrait
     {
         $totalExpensesDay = 0;
         foreach ($releasesMonth as $release) {
-            // Usa 'data_vencimento' que é comum a ambos os tipos de objeto.
-            if ($release->status_lancamento === 'EFETIVADA' && isset($release->data_vencimento) && Carbon::parse($release->data_vencimento)->isToday()) {
-                $totalExpensesDay += $release->valor;
+            // Usa 'due_date' que é comum a ambos os tipos de objeto.
+            if ($release->launch_status === 'EFETIVADA' && isset($release->due_date) && Carbon::parse($release->due_date)->isToday()) {
+                $totalExpensesDay += $release->value;
             }
         }
         return $totalExpensesDay;
@@ -76,10 +73,10 @@ trait ReleasesMonthTrait
     {
         $totalByCategory = [];
         foreach ($releasesMonth as $release) {
-            if (isset($totalByCategory[$release->categoria])) {
-                $totalByCategory[$release->categoria] += $release->valor;
+            if (isset($totalByCategory[$release->category])) {
+                $totalByCategory[$release->category] += $release->value;
             } else {
-                $totalByCategory[$release->categoria] = $release->valor;
+                $totalByCategory[$release->category] = $release->value;
             }
         }
         return $totalByCategory;
@@ -89,17 +86,17 @@ trait ReleasesMonthTrait
     {
         $dataLimite = Carbon::parse($mes)->startOfMonth();
 
-        $saldoInicialContas = $user->contas()
-            ->where('incluir_em_soma_inicial', true)
+        $saldoInicialContas = $user->accounts()
+            ->where('include_in_initial_sum', true)
             ->sum('saldo_inicial');
 
-        $lancamentosAnteriores = $user->lancamentos()
+        $lancamentosAnteriores = $user->launches()
             ->where('status_lancamento', 'EFETIVADA')
             ->where('data_efetivacao', '<', $dataLimite)
             ->get();
 
-        $totalReceitasAnteriores = $lancamentosAnteriores->where('tipo_lancamento', 'RECEITA')->sum('valor');
-        $totalDespesasAnteriores = $lancamentosAnteriores->where('tipo_lancamento', 'DESPESA')->sum('valor');
+        $totalReceitasAnteriores = $lancamentosAnteriores->where('tipo_lancamento', 'RECEITA')->sum('value');
+        $totalDespesasAnteriores = $lancamentosAnteriores->where('tipo_lancamento', 'DESPESA')->sum('value');
 
         return $saldoInicialContas + $totalReceitasAnteriores - $totalDespesasAnteriores;
     }
@@ -111,13 +108,13 @@ trait ReleasesMonthTrait
 
         $saldoDoInicioDoMes = $this->obterSaldoInicial($user, $mes);
 
-        $lancamentosDoMes = $user->lancamentos()
-            ->where('status_lancamento', 'EFETIVADA')
-            ->whereBetween('data_efetivacao', [$dataInicio, $dataFim])
+        $lancamentosDoMes = $user->launches()
+            ->where('launch_status', 'EFETIVADA')
+            ->whereBetween('effective_date', [$dataInicio, $dataFim])
             ->get();
 
-        $totalReceitasDoMes = $lancamentosDoMes->where('tipo_lancamento', 'RECEITA')->sum('valor');
-        $totalDespesasDoMes = $lancamentosDoMes->where('tipo_lancamento', 'DESPESA')->sum('valor');
+        $totalReceitasDoMes = $lancamentosDoMes->where('launch_type', 'RECEITA')->sum('value');
+        $totalDespesasDoMes = $lancamentosDoMes->where('launch_type', 'DESPESA')->sum('value');
 
         return $saldoDoInicioDoMes + $totalReceitasDoMes - $totalDespesasDoMes;
     }

@@ -106,9 +106,23 @@
             <v-divider />
             <v-card-text class="text-center text-caption text-medium-emphasis pa-4">
               Ao fazer login, você concorda com nossos
-              <v-btn variant="text" size="x-small" color="primary">Termos de Uso</v-btn>
+              <v-btn 
+                variant="text" 
+                size="x-small" 
+                color="primary"
+                @click="dialogTermos = true"
+              >
+                Termos de Uso
+              </v-btn>
               e
-              <v-btn variant="text" size="x-small" color="primary">Política de Privacidade</v-btn>
+              <v-btn 
+                variant="text" 
+                size="x-small" 
+                color="primary"
+                @click="dialogPrivacidade = true"
+              >
+                Política de Privacidade
+              </v-btn>
             </v-card-text>
           </v-card>
 
@@ -137,6 +151,331 @@
         </v-col>
       </v-row>
     </v-container>
+
+    <!-- Dialog Termos de Uso -->
+    <v-dialog v-model="dialogTermos" max-width="800" scrollable>
+      <v-card>
+        <v-card-title class="d-flex align-center pa-4 bg-primary">
+          <v-icon icon="mdi-file-document" class="me-2" />
+          <span class="text-h6">Termos de Uso</span>
+          <v-spacer />
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            size="small"
+            @click="dialogTermos = false"
+          />
+        </v-card-title>
+
+        <v-divider />
+
+        <v-card-text class="pa-6" style="max-height: 500px;">
+          <div class="terms-content">
+            <p class="text-caption text-medium-emphasis mb-4">
+              Última atualização: {{ new Date().toLocaleDateString('pt-BR') }}
+            </p>
+
+            <h3 class="text-h6 mb-3">1. Aceitação dos Termos</h3>
+            <p class="mb-4">
+              Ao acessar e usar o sistema Finanças, você concorda em cumprir e estar vinculado aos seguintes 
+              termos e condições de uso. Se você não concordar com qualquer parte destes termos, não deverá 
+              utilizar nosso sistema.
+            </p>
+
+            <h3 class="text-h6 mb-3">2. Descrição do Serviço</h3>
+            <p class="mb-4">
+              O sistema Finanças é uma plataforma de gerenciamento financeiro pessoal que permite aos usuários:
+            </p>
+            <ul class="mb-4">
+              <li>Registrar e acompanhar receitas e despesas</li>
+              <li>Gerenciar contas bancárias e cartões de crédito</li>
+              <li>Criar e monitorar lançamentos fixos e parcelados</li>
+              <li>Visualizar relatórios e análises financeiras</li>
+              <li>Navegar entre diferentes períodos (meses/anos)</li>
+            </ul>
+
+            <h3 class="text-h6 mb-3">3. Registro e Conta de Usuário</h3>
+            <p class="mb-4">
+              Para utilizar o sistema, você deve:
+            </p>
+            <ul class="mb-4">
+              <li>Fornecer informações precisas e atualizadas durante o registro</li>
+              <li>Manter a confidencialidade de sua senha</li>
+              <li>Notificar-nos imediatamente sobre qualquer uso não autorizado de sua conta</li>
+              <li>Ser responsável por todas as atividades realizadas em sua conta</li>
+            </ul>
+
+            <h3 class="text-h6 mb-3">4. Uso Aceitável</h3>
+            <p class="mb-4">
+              Você concorda em NÃO:
+            </p>
+            <ul class="mb-4">
+              <li>Usar o sistema para qualquer finalidade ilegal ou não autorizada</li>
+              <li>Tentar obter acesso não autorizado ao sistema ou contas de outros usuários</li>
+              <li>Interferir ou interromper o funcionamento do sistema</li>
+              <li>Copiar, modificar ou distribuir qualquer conteúdo do sistema sem autorização</li>
+              <li>Usar o sistema para transmitir vírus, malware ou código malicioso</li>
+            </ul>
+
+            <h3 class="text-h6 mb-3">5. Propriedade Intelectual</h3>
+            <p class="mb-4">
+              Todo o conteúdo, recursos e funcionalidades do sistema (incluindo, mas não limitado a texto, 
+              gráficos, logotipos, ícones e código) são propriedade exclusiva do sistema Finanças e estão 
+              protegidos por leis de direitos autorais.
+            </p>
+
+            <h3 class="text-h6 mb-3">6. Privacidade e Segurança de Dados</h3>
+            <p class="mb-4">
+              Levamos sua privacidade a sério. Todos os dados financeiros são:
+            </p>
+            <ul class="mb-4">
+              <li>Criptografados durante transmissão e armazenamento</li>
+              <li>Acessíveis apenas por você através de autenticação segura</li>
+              <li>Nunca compartilhados com terceiros sem seu consentimento</li>
+              <li>Utilizados apenas para fornecer e melhorar nossos serviços</li>
+            </ul>
+
+            <h3 class="text-h6 mb-3">7. Limitação de Responsabilidade</h3>
+            <p class="mb-4">
+              O sistema Finanças é fornecido "como está". Não garantimos que:
+            </p>
+            <ul class="mb-4">
+              <li>O serviço estará sempre disponível ou livre de erros</li>
+              <li>As informações fornecidas serão sempre precisas ou completas</li>
+              <li>O sistema atenderá a todas as suas necessidades específicas</li>
+            </ul>
+            <p class="mb-4">
+              Não nos responsabilizamos por quaisquer perdas ou danos decorrentes do uso do sistema.
+            </p>
+
+            <h3 class="text-h6 mb-3">8. Modificações dos Termos</h3>
+            <p class="mb-4">
+              Reservamos o direito de modificar estes termos a qualquer momento. Alterações significativas 
+              serão notificadas por e-mail ou através do sistema. O uso continuado após tais modificações 
+              constitui aceitação dos novos termos.
+            </p>
+
+            <h3 class="text-h6 mb-3">9. Rescisão</h3>
+            <p class="mb-4">
+              Podemos suspender ou encerrar sua conta e acesso ao sistema, a qualquer momento, sem aviso prévio, 
+              por violação destes termos ou por qualquer outro motivo que considerarmos apropriado.
+            </p>
+
+            <h3 class="text-h6 mb-3">10. Contato</h3>
+            <p class="mb-4">
+              Para questões sobre estes Termos de Uso, entre em contato através de:
+            </p>
+            <ul class="mb-4">
+              <li>Email: suporte@financas.com</li>
+              <li>Telefone: (00) 0000-0000</li>
+            </ul>
+          </div>
+        </v-card-text>
+
+        <v-divider />
+
+        <v-card-actions class="pa-4">
+          <v-spacer />
+          <v-btn
+            color="primary"
+            variant="flat"
+            @click="dialogTermos = false"
+          >
+            <v-icon icon="mdi-check" start />
+            Entendi
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Dialog Política de Privacidade -->
+    <v-dialog v-model="dialogPrivacidade" max-width="800" scrollable>
+      <v-card>
+        <v-card-title class="d-flex align-center pa-4 bg-primary">
+          <v-icon icon="mdi-shield-lock" class="me-2" />
+          <span class="text-h6">Política de Privacidade</span>
+          <v-spacer />
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            size="small"
+            @click="dialogPrivacidade = false"
+          />
+        </v-card-title>
+
+        <v-divider />
+
+        <v-card-text class="pa-6" style="max-height: 500px;">
+          <div class="terms-content">
+            <p class="text-caption text-medium-emphasis mb-4">
+              Última atualização: {{ new Date().toLocaleDateString('pt-BR') }}
+            </p>
+
+            <h3 class="text-h6 mb-3">1. Introdução</h3>
+            <p class="mb-4">
+              Esta Política de Privacidade descreve como o sistema Finanças coleta, usa, armazena e protege 
+              suas informações pessoais e financeiras. Ao usar nosso sistema, você concorda com as práticas 
+              descritas nesta política.
+            </p>
+
+            <h3 class="text-h6 mb-3">2. Informações que Coletamos</h3>
+            <p class="mb-4">
+              Coletamos as seguintes informações:
+            </p>
+            
+            <h4 class="text-subtitle-1 font-weight-bold mb-2">2.1 Informações de Registro</h4>
+            <ul class="mb-3">
+              <li>Nome completo</li>
+              <li>Endereço de e-mail</li>
+              <li>Senha (armazenada de forma criptografada)</li>
+              <li>Tipo de conta escolhida</li>
+            </ul>
+
+            <h4 class="text-subtitle-1 font-weight-bold mb-2">2.2 Dados Financeiros</h4>
+            <ul class="mb-3">
+              <li>Informações de contas bancárias (nome, tipo, saldo)</li>
+              <li>Detalhes de cartões de crédito (nome, bandeira, limite)</li>
+              <li>Registros de receitas e despesas</li>
+              <li>Lançamentos fixos e parcelados</li>
+              <li>Categorias e descrições de transações</li>
+            </ul>
+
+            <h4 class="text-subtitle-1 font-weight-bold mb-2">2.3 Dados de Uso</h4>
+            <ul class="mb-4">
+              <li>Endereço IP</li>
+              <li>Tipo de navegador e dispositivo</li>
+              <li>Páginas visitadas e ações realizadas</li>
+              <li>Data e hora de acesso</li>
+              <li>Preferências de navegação entre meses</li>
+            </ul>
+
+            <h3 class="text-h6 mb-3">3. Como Usamos Suas Informações</h3>
+            <p class="mb-4">
+              Utilizamos suas informações para:
+            </p>
+            <ul class="mb-4">
+              <li>Fornecer, operar e manter o sistema Finanças</li>
+              <li>Processar e gerenciar suas transações financeiras</li>
+              <li>Enviar notificações importantes sobre sua conta</li>
+              <li>Melhorar e personalizar sua experiência no sistema</li>
+              <li>Gerar relatórios e análises financeiras personalizadas</li>
+              <li>Detectar, prevenir e resolver problemas técnicos</li>
+              <li>Cumprir obrigações legais e regulatórias</li>
+            </ul>
+
+            <h3 class="text-h6 mb-3">4. Compartilhamento de Informações</h3>
+            <p class="mb-4">
+              Não vendemos, alugamos ou compartilhamos suas informações pessoais com terceiros, exceto:
+            </p>
+            <ul class="mb-4">
+              <li><strong>Com seu consentimento:</strong> Quando você autoriza explicitamente</li>
+              <li><strong>Prestadores de serviços:</strong> Empresas que nos ajudam a operar o sistema (hospedagem, análise)</li>
+              <li><strong>Exigências legais:</strong> Quando obrigados por lei, ordem judicial ou processo legal</li>
+              <li><strong>Proteção de direitos:</strong> Para proteger nossos direitos, privacidade, segurança ou propriedade</li>
+            </ul>
+
+            <h3 class="text-h6 mb-3">5. Segurança de Dados</h3>
+            <p class="mb-4">
+              Implementamos medidas rigorosas de segurança:
+            </p>
+            <ul class="mb-4">
+              <li><strong>Criptografia:</strong> SSL/TLS para transmissão de dados</li>
+              <li><strong>Senhas:</strong> Hash bcrypt com salt para armazenamento seguro</li>
+              <li><strong>Autenticação:</strong> Sistema de tokens seguros (Sanctum)</li>
+              <li><strong>Acesso restrito:</strong> Apenas pessoal autorizado tem acesso aos servidores</li>
+              <li><strong>Backups:</strong> Backups regulares e seguros dos dados</li>
+              <li><strong>Monitoramento:</strong> Detecção de atividades suspeitas 24/7</li>
+            </ul>
+
+            <h3 class="text-h6 mb-3">6. Seus Direitos</h3>
+            <p class="mb-4">
+              De acordo com a LGPD (Lei Geral de Proteção de Dados), você tem o direito de:
+            </p>
+            <ul class="mb-4">
+              <li><strong>Acesso:</strong> Solicitar cópias de seus dados pessoais</li>
+              <li><strong>Retificação:</strong> Corrigir informações imprecisas ou incompletas</li>
+              <li><strong>Exclusão:</strong> Solicitar a exclusão de seus dados</li>
+              <li><strong>Portabilidade:</strong> Receber seus dados em formato estruturado</li>
+              <li><strong>Revogação:</strong> Retirar consentimento a qualquer momento</li>
+              <li><strong>Oposição:</strong> Opor-se a determinado processamento de dados</li>
+            </ul>
+
+            <h3 class="text-h6 mb-3">7. Retenção de Dados</h3>
+            <p class="mb-4">
+              Mantemos suas informações pelo tempo necessário para:
+            </p>
+            <ul class="mb-4">
+              <li>Fornecer nossos serviços enquanto sua conta estiver ativa</li>
+              <li>Cumprir obrigações legais (ex: registros fiscais por 5 anos)</li>
+              <li>Resolver disputas e fazer cumprir nossos acordos</li>
+            </ul>
+            <p class="mb-4">
+              Após o encerramento da conta, os dados serão deletados ou anonimizados dentro de 90 dias, 
+              exceto quando a lei exigir retenção por período maior.
+            </p>
+
+            <h3 class="text-h6 mb-3">8. Cookies e Tecnologias Similares</h3>
+            <p class="mb-4">
+              Utilizamos cookies e tecnologias similares para:
+            </p>
+            <ul class="mb-4">
+              <li>Manter você conectado ao sistema</li>
+              <li>Lembrar suas preferências (ex: mês/ano selecionado)</li>
+              <li>Analisar como você usa o sistema</li>
+              <li>Melhorar o desempenho e a segurança</li>
+            </ul>
+            <p class="mb-4">
+              Você pode configurar seu navegador para recusar cookies, mas isso pode afetar a funcionalidade do sistema.
+            </p>
+
+            <h3 class="text-h6 mb-3">9. Links para Sites de Terceiros</h3>
+            <p class="mb-4">
+              Nosso sistema pode conter links para sites de terceiros. Não somos responsáveis pelas práticas 
+              de privacidade desses sites. Recomendamos que você leia as políticas de privacidade de cada site 
+              que visitar.
+            </p>
+
+            <h3 class="text-h6 mb-3">10. Alterações nesta Política</h3>
+            <p class="mb-4">
+              Podemos atualizar esta Política de Privacidade periodicamente. Notificaremos você sobre alterações 
+              significativas por e-mail ou através de um aviso destacado no sistema. A data de "Última atualização" 
+              no topo indica quando a política foi revisada pela última vez.
+            </p>
+
+            <h3 class="text-h6 mb-3">11. Contato</h3>
+            <p class="mb-4">
+              Para questões sobre esta Política de Privacidade ou para exercer seus direitos, entre em contato:
+            </p>
+            <ul class="mb-4">
+              <li><strong>Email:</strong> privacidade@financas.com</li>
+              <li><strong>Telefone:</strong> (00) 0000-0000</li>
+              <li><strong>Endereço:</strong> Rua Exemplo, 123 - Cidade/UF</li>
+              <li><strong>DPO (Encarregado de Dados):</strong> dpo@financas.com</li>
+            </ul>
+
+            <h3 class="text-h6 mb-3">12. Consentimento</h3>
+            <p class="mb-4">
+              Ao usar o sistema Finanças, você consente com a coleta e uso de informações de acordo com 
+              esta Política de Privacidade.
+            </p>
+          </div>
+        </v-card-text>
+
+        <v-divider />
+
+        <v-card-actions class="pa-4">
+          <v-spacer />
+          <v-btn
+            color="primary"
+            variant="flat"
+            @click="dialogPrivacidade = false"
+          >
+            <v-icon icon="mdi-check" start />
+            Entendi
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -145,7 +484,7 @@ import authService from '@/services/auth.service'
 import { useAuthStore } from '@/store/auth'
 import { useToastStore } from '@/store/toast'
 import { useUserStore } from '@/store/user'
-import { ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -162,6 +501,28 @@ const formData = ref({
 const showPassword = ref(false)
 const loading = ref(false)
 const form = ref()
+const dialogTermos = ref(false)
+const dialogPrivacidade = ref(false)
+
+// Carregar email salvo ao montar o componente
+onMounted(() => {
+  const rememberMe = localStorage.getItem('rememberMe')
+  const rememberedEmail = localStorage.getItem('rememberedEmail')
+  
+  if (rememberMe === 'true' && rememberedEmail) {
+    formData.value.email = rememberedEmail
+    formData.value.remember = true
+  }
+})
+
+// Observar mudanças no checkbox "lembrar-me"
+watch(() => formData.value.remember, (newValue) => {
+  // Se desmarcar, limpar dados salvos
+  if (!newValue) {
+    localStorage.removeItem('rememberMe')
+    localStorage.removeItem('rememberedEmail')
+  }
+})
 
 const errorTranslations: { [key: string]: string } = {
   'The provided credentials are incorrect': 'Email ou senha incorretos',
@@ -224,10 +585,15 @@ async function handleLogin() {
       userStore.setMesAno(response.mesAno)
     }
 
-    // Salvar preferência de "lembrar-me"
+    // Gerenciar preferência de "lembrar-me"
     if (formData.value.remember) {
+      // Salvar email para próximo login
       localStorage.setItem('rememberMe', 'true')
       localStorage.setItem('rememberedEmail', formData.value.email)
+    } else {
+      // Limpar dados salvos se não marcou lembrar-me
+      localStorage.removeItem('rememberMe')
+      localStorage.removeItem('rememberedEmail')
     }
 
     toastStore.addToast({
@@ -244,23 +610,34 @@ async function handleLogin() {
   } catch (error: any) {
     console.error('Erro no login:', error)
     
-    // Tentar extrair mensagem de erro
-    let errorMessage = 'Erro ao fazer login'
+    // Importar códigos de erro
+    const errorCodes = await import('@/assets/errorCodes.json')
     
-    if (error.response?.data?.message) {
-      errorMessage = error.response.data.message
-    } else if (error.response?.data?.error) {
-      errorMessage = error.response.data.error
-    } else if (error.message) {
-      errorMessage = error.message
+    // Extrair informações do erro
+    const errorData = error || {}
+    let errorMessage = 'Erro ao fazer login. Verifique suas credenciais e tente novamente.'
+    
+    // Prioridade 1: Verificar se há error_code e buscar mensagem amigável
+    if (errorData.error_code && errorCodes.default[errorData.error_code as keyof typeof errorCodes.default]) {
+      errorMessage = errorCodes.default[errorData.error_code as keyof typeof errorCodes.default]
+    }
+    // Prioridade 2: Usar response.data.message se disponível
+    else if (errorData.response?.data?.message) {
+      errorMessage = translateError(errorData.response.data.message)
+    }
+    // Prioridade 3: Usar response.data.error se disponível
+    else if (errorData.response?.data?.error) {
+      errorMessage = translateError(errorData.response.data.error)
+    }
+    // Prioridade 4: Usar message se disponível
+    else if (errorData.message) {
+      errorMessage = translateError(errorData.message)
     }
 
-    const translatedError = translateError(errorMessage)
-
     toastStore.addToast({
-      message: translatedError,
+      message: errorMessage,
       color: 'error',
-      timeout: 4000,
+      timeout: 5000,
       icon: 'mdi-alert-circle'
     })
   } finally {
@@ -294,5 +671,38 @@ async function handleLogin() {
 .logo-section {
   background: linear-gradient(135deg, rgb(var(--v-theme-primary)) 0%, rgba(var(--v-theme-primary), 0.8) 100%);
   border-radius: 8px 8px 0 0;
+}
+
+// Estilos para o conteúdo dos termos e políticas
+.terms-content {
+  line-height: 1.6;
+  
+  h3 {
+    margin-top: 1.5rem;
+    color: rgb(var(--v-theme-primary));
+  }
+
+  h4 {
+    margin-top: 1rem;
+  }
+
+  p {
+    text-align: justify;
+    margin-bottom: 1rem;
+  }
+
+  ul {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  strong {
+    color: rgb(var(--v-theme-primary));
+    font-weight: 600;
+  }
 }
 </style>

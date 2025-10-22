@@ -5,17 +5,15 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreLancamentoRequest;
 use App\Services\LancamentoService;
 use App\Http\Traits\UserDataTrait;
-use App\Http\Traits\ReleasesMonthTrait;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-use App\Models\Lancamento;
+use App\Models\Launch;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
-class LancamentoController extends Controller
+class LaunchController extends Controller
 {
     use UserDataTrait;
 
@@ -49,14 +47,14 @@ class LancamentoController extends Controller
             $mes = (int) substr($mesAno, 5, 2);
 
             // Query base
-            $queryBase = Lancamento::where('user_id', $user->id)
-                         ->whereYear('data_vencimento', $ano)
-                         ->whereMonth('data_vencimento', $mes);
+            $queryBase = Launch::where('user_id', $user->id)
+                ->whereYear('due_date', $ano)
+                ->whereMonth('due_date', $mes);
 
             // Filtro por tipo
             // Filtro por tipo (se fornecido)
             if ($tipo) {
-                $queryBase->where('tipo_lancamento', '!=', 'CARTAO_CREDITO');
+                $queryBase->where('launch_type', '!=', 'CARTAO_CREDITO');
             }
 
             // ((Valor Final - Valor Inicial) / Valor Inicial) * 100.
@@ -65,13 +63,13 @@ class LancamentoController extends Controller
             $queryMesAtualReceitas = clone $queryBase;
             $this->filtraPorMesAndType($queryMesAtualReceitas, $mesAno, "RECEITA");
             $this->filtraPorStatus($queryMesAtualReceitas, $status);
-            $totalMesAtualReceitas = $queryMesAtualReceitas->sum('valor');
+            $totalMesAtualReceitas = $queryMesAtualReceitas->sum('value');
             info('Total do mês atual (receitas): ' . $totalMesAtualReceitas);
 
             $queryMesAnteriorReceitas = clone $queryBase;
             $this->filtraPorMesAndType($queryMesAnteriorReceitas, $mesAno, "RECEITA", true);
             $this->filtraPorStatus($queryMesAnteriorReceitas, $status);
-            $totalMesAnteriorReceitas = $queryMesAnteriorReceitas->sum('valor');
+            $totalMesAnteriorReceitas = $queryMesAnteriorReceitas->sum('value');
 
             $variacaoReceitas = 0;
             if ($totalMesAnteriorReceitas > 0) {
@@ -84,13 +82,13 @@ class LancamentoController extends Controller
             $queryMesAtualDespesas = clone $queryBase;
             $this->filtraPorMesAndType($queryMesAtualDespesas, $mesAno, "DESPESA");
             $this->filtraPorStatus($queryMesAtualDespesas, $status);
-            $totalMesAtualDespesas = $queryMesAtualDespesas->sum('valor');
+            $totalMesAtualDespesas = $queryMesAtualDespesas->sum('value');
             info('Total do mês atual (despesas): ' . $totalMesAtualDespesas);
 
             $queryMesAnteriorDespesas = clone $queryBase;
             $this->filtraPorMesAndType($queryMesAnteriorDespesas, $mesAno, "DESPESA", true);
             $this->filtraPorStatus($queryMesAnteriorDespesas, $status);
-            $totalMesAnteriorDespesas = $queryMesAnteriorDespesas->sum('valor');
+            $totalMesAnteriorDespesas = $queryMesAnteriorDespesas->sum('value');
 
             $variacaoDespesas = 0;
             if ($totalMesAnteriorDespesas > 0) {
@@ -105,8 +103,8 @@ class LancamentoController extends Controller
             info('Variação calculada: ' . $variacaoReceitas . '%');
 
             // Ordenar por data de vencimento descendente
-            $lancamentosReceitas = $queryMesAtualReceitas->orderBy('data_vencimento', 'desc')->get();
-            $lancamentosDespesas = $queryMesAtualDespesas->orderBy('data_vencimento', 'desc')->get();
+            $lancamentosReceitas = $queryMesAtualReceitas->orderBy('due_date', 'desc')->get();
+            $lancamentosDespesas = $queryMesAtualDespesas->orderBy('due_date', 'desc')->get();
 
             return response()->json([
                 'success' => true,
@@ -136,17 +134,17 @@ class LancamentoController extends Controller
             }
         }
 
-        return $query->whereYear('data_vencimento', $ano)
-            ->whereMonth('data_vencimento', $mes)
-            ->where('tipo_lancamento', $tipo);
+        return $query->whereYear('due_date', $ano)
+            ->whereMonth('due_date', $mes)
+            ->where('launch_type', $tipo);
     }
 
     private function filtraPorStatus($query, $status)
     {
         if (strtolower($status) === 'pendente') {
-            return $query->where('status_lancamento', '!=', 'EFETIVADA');
+            return $query->where('launch_status', '!=', 'EFETIVADA');
         } elseif (strtolower($status) === 'realizado') {
-            return $query->where('status_lancamento', 'EFETIVADA');
+            return $query->where('launch_status', 'EFETIVADA');
         }
     }
 
@@ -164,11 +162,11 @@ class LancamentoController extends Controller
 
             DB::commit();
 
-            $tipo = $validatedData['tipo_lancamento'];
+            $tipo = $validatedData['launch_type'];
             $dataToFetch = [($tipo === 'RECEITA') ? 'revenues' : 'expenses', 'wallets'];
 
             if ($tipo === 'CARTAO_CREDITO') {
-                $dataToFetch = ['expenses', 'wallets'];
+                $dataToFetch = ['expenses', 'accounts'];
             }
 
             $responseData = $this->getUserData($user, $request->input('mesAno'), $dataToFetch);
@@ -186,7 +184,7 @@ class LancamentoController extends Controller
         }
     }
 
-    public function efetivarLancamento(Request $request, Lancamento $lancamento): JsonResponse
+    public function efetivarLancamento(Request $request, Launch $lancamento): JsonResponse
     {
 
         // 1. Verificação de permissão: garante que o lançamento pertence ao usuário autenticado.
@@ -226,7 +224,7 @@ class LancamentoController extends Controller
     public function editLancamento(StoreLancamentoRequest $request, $id): JsonResponse
     {
         try {
-            $lancamento = Lancamento::find($id);
+            $lancamento = Launch::find($id);
 
             if (!$lancamento) {
                 return response()->json(['error' => 'Lançamento não encontrado.'], 404);
@@ -261,7 +259,7 @@ class LancamentoController extends Controller
     public function receivedLancamento(Request $request, $id): JsonResponse
     {
         try {
-            $lancamento = Lancamento::find($id);
+            $lancamento = Launch::find($id);
 
             if (!$lancamento) {
                 return response()->json(['error' => 'Lançamento não encontrado.'], 404);
@@ -298,7 +296,7 @@ class LancamentoController extends Controller
     public function deleteLancamento(Request $request, $id): JsonResponse
     {
         try {
-            $lancamento = Lancamento::find($id);
+            $lancamento = Launch::find($id);
 
             if (!$lancamento) {
                 return response()->json(['error' => 'Lançamento não encontrado.'], 404);
@@ -349,19 +347,19 @@ class LancamentoController extends Controller
             }
 
             for ($i = 0; $i < $data['qtd_parcelas']; $i++) {
-                $lancamento = new Lancamento($data);
+                $lancamento = new Launch($data);
                 $lancamento->num_parcela = $i + 1;
                 $lancamento->data_vencimento = date('Y-m-d', strtotime("+$i month", strtotime($data['data_vencimento'])));
                 $lancamento->save();
             }
         } else {
-            Lancamento::create($data);
+            Launch::create($data);
         }
     }
 
     private function updateLancamento($data, $invoiceId = null)
     {
-        $lancamento = Lancamento::find($data['id']);
+        $lancamento = Launch::find($data['id']);
         if ($lancamento) {
             $data['credit_card_invoice_id'] = $invoiceId;
             $lancamento->update($data);
@@ -371,7 +369,7 @@ class LancamentoController extends Controller
     public function receive(Request $request)
     {
         $data = $request->all();
-        $lancamento = Lancamento::find($data['id']);
+        $lancamento = Launch::find($data['id']);
         if ($lancamento) {
             $lancamento->pago = $data['pago'];
             $lancamento->save();
@@ -381,7 +379,7 @@ class LancamentoController extends Controller
     public function delete(Request $request)
     {
         $data = $request->all();
-        $lancamento = Lancamento::find($data['id']);
+        $lancamento = Launch::find($data['id']);
         if ($lancamento) {
             $lancamento->delete();
         }
@@ -390,7 +388,7 @@ class LancamentoController extends Controller
     public function createRefund(Request $request)
     {
         $data = $request->all();
-        $originalLancamento = Lancamento::find($data['id']);
+        $originalLancamento = Launch::find($data['id']);
 
         if ($originalLancamento) {
             $refundLancamento = $originalLancamento->replicate();

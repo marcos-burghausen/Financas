@@ -38,7 +38,7 @@ class ReceitasService {
    */
   async list(mesAno?: string): Promise<any> {
     try {
-      const params = mesAno ? { mesAno, tipo: "receita" } : { tipo: "receita" };
+      const params = mesAno ? { mesAno } : { tipo: "receita" };
       const response = await http.get<any>("/lancamentos", { params });
       
       // Extrair dados e variação da resposta

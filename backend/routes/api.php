@@ -5,7 +5,7 @@ use App\Http\Controllers\SanctumAuthController;
 use App\Http\Controllers\BuscaDadosMesCntroller;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\WalletsController;
-use App\Http\Controllers\LancamentoController;
+use App\Http\Controllers\LaunchController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\UserDataController;
 use App\Http\Controllers\UserController;
@@ -52,11 +52,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/sanctum/logout-all', [SanctumAuthController::class, 'logoutAll']);
 
     // Rotas protegidas
-    Route::post('/lancamentos', [LancamentoController::class, 'saveLancamento']);
-    Route::get('/lancamentos', [LancamentoController::class, 'getLancamento']);
-    Route::put('/lancamentos/{id}', [LancamentoController::class, 'editLancamento']);
-    Route::patch('/lancamentos/{id}', [LancamentoController::class, 'receivedLancamento']);
-    Route::delete('/lancamentos/{id}', [LancamentoController::class, 'deleteLancamento']);
+    Route::post('/lancamentos', [LaunchController::class, 'saveLancamento']);
+    Route::get('/lancamentos', [LaunchController::class, 'getLancamento']);
+    Route::put('/lancamentos/{id}', [LaunchController::class, 'editLancamento']);
+    Route::patch('/lancamentos/{id}', [LaunchController::class, 'receivedLancamento']);
+    Route::delete('/lancamentos/{id}', [LaunchController::class, 'deleteLancamento']);
 
     Route::post('/wallet', [WalletsController::class, 'saveWallet']);
     Route::get('/wallet', [WalletsController::class, 'getWallets']);

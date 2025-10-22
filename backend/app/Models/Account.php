@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Conta extends Model
+class Account extends Model
 {
     use HasFactory;
 
@@ -15,16 +15,15 @@ class Conta extends Model
         'name',
         'icon',
         'color',
-        'saldo',
-        'saldo_inicial',
-        'incluir_em_soma_inicial',
-        'descricao',
-        'tipo_conta',
-        'status_conta',
-        'limite',
-        'dia_fechamento',
-        'dia_vencimento',
-        'conta_pai_id',
+        'balance',
+        'include_in_initial_sum',
+        'description',
+        'account_type',
+        'account_status',
+        'limit',
+        'closing_day',
+        'due_day',
+        'parent_account_id',
     ];
 
     /**
@@ -41,7 +40,7 @@ class Conta extends Model
      */
     public function parentAccount()
     {
-        return $this->belongsTo(Conta::class, 'conta_pai_id');
+        return $this->belongsTo(Account::class, 'parent_account_id');
     }
 
     /**
@@ -50,6 +49,6 @@ class Conta extends Model
      */
     public function childAccounts()
     {
-        return $this->hasMany(Conta::class, 'conta_pai_id');
+        return $this->hasMany(Account::class, 'parent_account_id');
     }
 }

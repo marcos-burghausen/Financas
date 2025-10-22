@@ -33,31 +33,31 @@ trait UserDataTrait
         // --- Seção de Despesas (Expenses) ---
         if ($fetchAll || in_array('expenses', $sections)) {
             $standardExpenses = $user->expenses()
-                ->with('contaModel:id,name')
-                ->where('tipo_lancamento', '!=', 'CARTAO_CREDITO')
-                ->whereYear('data_vencimento', $year)
-                ->whereMonth('data_vencimento', $month)
+                ->with('accountModel:id,name')
+                ->where('launch_type', '!=', 'CARTAO_CREDITO')
+                ->whereYear('due_date', $year)
+                ->whereMonth('due_date', $month)
                 ->get();
 
-            $creditCardInvoices = CreditCardInvoice::whereHas('conta', function ($query) use ($user) {
+            $creditCardInvoices = CreditCardInvoice::whereHas('accountCreditCard', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })
-                ->with('conta:id,name,icon')
-                ->whereBetween('data_vencimento', [$startDate, $endDate])
+                ->with('accountCreditCard:id,name,icon')
+                ->whereBetween('due_date', [$startDate, $endDate])
                 ->get();
 
             $invoiceExpenses = $creditCardInvoices->map(function ($invoice) {
-                $statusLancamento = $invoice->status_fatura === 'PAGA' ? 'EFETIVADA' : 'PENDENTE';
+                $statusLancamento = $invoice->status_invoice === 'PAGA' ? 'EFETIVADA' : 'PENDENTE';
 
                 return (object) [
                     'id' => 'invoice_' . $invoice->id,
-                    'descricao' => 'Fatura ' . $invoice->conta->name,
-                    'valor' => $invoice->total_fatura,
-                    'status_lancamento' => $statusLancamento,
-                    'data_vencimento' => $invoice->data_vencimento->format('Y-m-d'),
-                    'tipo_lancamento' => 'FATURA_CARTAO',
-                    'categoria' => 'Fatura de Cartão',
-                    'contaModel' => $invoice->conta,
+                    'description' => 'Fatura ' . $invoice->accountCreditCard->name,
+                    'value' => $invoice->total_invoice,
+                    'launch_status' => $statusLancamento,
+                    'due_date' => $invoice->due_date->format('Y-m-d'),
+                    'launch_date' => 'FATURA_CARTAO',
+                    'category' => 'Fatura de Cartão',
+                    'accountModel' => $invoice->accountCreditCard,
                     'invoice' => $invoice,
                 ];
             });
@@ -87,8 +87,8 @@ trait UserDataTrait
         if ($fetchAll || in_array('revenues', $sections)) {
             $receitasDoMes = $user->revenues()
                 ->with('contaModel:id,name')
-                ->whereYear('data_vencimento', $year)
-                ->whereMonth('data_vencimento', $month)
+                ->whereYear('due_date', $year)
+                ->whereMonth('due_date', $month)
                 ->get();
 
             $categoriasReceitas = $user->categories()->whereIn('type', ['ambas', 'receita'])->get();
@@ -112,76 +112,72 @@ trait UserDataTrait
         // --- Seção de Resumo do Dashboard (Summary) ---
         if ($fetchAll || in_array('summary', $sections)) {
             $dataToReturn['summary'] = [
-                'saldoAtual' => DB::table('contas')
+                'saldoAtual' => DB::table('accounts')
                     ->where('user_id', $user->id)
-                    ->where('tipo_conta', '!=', 'Cartão de Crédito')
-                    ->sum('saldo'),
-                'saldoInicial' => DB::table('contas')
+                    ->where('account_type', '!=', 'Cartão de Crédito')
+                    ->sum('balance'),
+                'totalReceitas' => DB::table('launches')
                     ->where('user_id', $user->id)
-                    ->where('incluir_em_soma_inicial', true)
-                    ->sum('saldo_inicial'),
-                'totalReceitas' => DB::table('lancamentos')
+                    ->where('launch_type', 'RECEITA')
+                    ->whereYear('due_date', $year)
+                    ->whereMonth('due_date', $month)
+                    ->sum('value'),
+                'totalDespesas' => DB::table('launches')
                     ->where('user_id', $user->id)
-                    ->where('tipo_lancamento', 'RECEITA')
-                    ->whereYear('data_vencimento', $year)
-                    ->whereMonth('data_vencimento', $month)
-                    ->sum('valor'),
-                'totalDespesas' => DB::table('lancamentos')
-                    ->where('user_id', $user->id)
-                    ->where('tipo_lancamento', 'DESPESA')
-                    ->whereYear('data_vencimento', $year)
-                    ->whereMonth('data_vencimento', $month)
-                    ->sum('valor'),
+                    ->where('launch_type', 'DESPESA')
+                    ->whereYear('due_date', $year)
+                    ->whereMonth('due_date', $month)
+                    ->sum('value'),
             ];
         }
 
         // --- Seção de Carteiras (Wallets) ---
-        if ($fetchAll || in_array('wallets', $sections)) {
-            $dataToReturn['wallets'] = [
-                'contas' => $user->contas()
-                    ->where('tipo_conta', '!=', 'Cartão de Crédito')
+        if ($fetchAll || in_array('accounts', $sections)) {
+            $dataToReturn['accounts'] = [
+                'contas' => $user->account()
+                    ->where('account_type', '!=', 'Cartão de Crédito')
                     ->get()
                     ->map(function ($conta) use ($year, $month) {
-                        $totalReceitas = DB::table('lancamentos')
-                            ->where('conta_id', $conta->id)
-                            ->where('tipo_lancamento', 'RECEITA')
-                            ->whereYear('data_vencimento', $year)
-                            ->whereMonth('data_vencimento', $month)
-                            ->sum('valor');
+                        $totalReceitas = DB::table('launches')
+                            ->where('account_id', $conta->id)
+                            ->where('launch_type', 'RECEITA')
+                            ->whereYear('due_date', $year)
+                            ->whereMonth('due_date', $month)
+                            ->sum('value');
 
-                        $totalDespesas = DB::table('lancamentos')
+                        $totalDespesas = DB::table('launches')
                             ->where('conta_id', $conta->id)
-                            ->where('tipo_lancamento', 'DESPESA')
-                            ->whereYear('data_vencimento', $year)
-                            ->whereMonth('data_vencimento', $month)
-                            ->sum('valor');
+                            ->where('launch_type', 'DESPESA')
+                            ->whereYear('due_date', $year)
+                            ->whereMonth('due_date', $month)
+                            ->sum('value');
 
                         $conta->saldo_previsto = $conta->saldo_inicial + $totalReceitas - $totalDespesas;
 
                         return $conta;
                     }),
 
-                'cartoes' => $user->contas()
-                    ->where('tipo_conta', 'Cartão de Crédito')
+                'cartoes' => $user->account()
+                    ->where('account_type', 'Cartão de Crédito')
                     ->with('parentAccount')
-                    ->get(['id', 'name', 'icon', 'saldo', 'descricao', 'tipo_conta', 'incluir_em_soma_inicial', 'conta_pai_id', 'limite', 'color', 'dia_fechamento', 'dia_vencimento'])
+                    ->get(['id', 'name', 'icon', 'balance', 'description', 'account_type', 'include_in_initial_sum', 'parent_account_id', 'limit', 'color', 'closing_day', 'due_day'])
                     ->map(function ($cartao) {
                         $today = Carbon::today();
-                        if ($today->day > $cartao->dia_fechamento) {
+                        if ($today->day > $cartao->closing_day) {
                             $competenciaDate = (clone $today)->addMonth();
                         } else {
                             $competenciaDate = $today;
                         }
                         $competencia = $competenciaDate->format('Y-m');
 
-                        $faturaVigente = CreditCardInvoice::where('conta_id', $cartao->id)
-                            ->where('competencia', $competencia)
-                            ->with('lancamentos')
+                        $faturaVigente = CreditCardInvoice::where('account_id', $cartao->id)
+                            ->where('competence', $competencia)
+                            ->with('launches')
                             ->first();
 
-                        $valorEmAberto = CreditCardInvoice::where('conta_id', $cartao->id)
-                            ->where('status_fatura', '!=', 'PAGA')
-                            ->sum(DB::raw('total_fatura - valor_pago'));
+                        $valorEmAberto = CreditCardInvoice::where('account_id', $cartao->id)
+                            ->where('status_invoice', '!=', 'PAGA')
+                            ->sum(DB::raw('total_invoice - value_pay'));
 
                         $cartao->total_fatura_vigente = $faturaVigente ? $faturaVigente->total_fatura : 0;
                         $cartao->lancamentos_fatura_vigente = $faturaVigente ? $faturaVigente->lancamentos : [];
@@ -196,10 +192,9 @@ trait UserDataTrait
                         return $cartao;
                     }),
 
-                'contasNames' => $user->contas()->pluck("name"),
-                'saldoInicial' => $this->obterSaldoInicial($user, $mes),
+                'contasNames' => $user->account()->pluck("name"),
                 'saldoAtual' => $this->obterSaldoAtual($user, $mes),
-                "categories" => $user->categories()->where('type', 'contas')->get(),
+                "categories" => $user->categories()->where('type', 'account')->get(),
             ];
         }
 

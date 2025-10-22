@@ -12,11 +12,11 @@ export interface Lancamento {
   num_parcela: number | null;
   qtd_parcelas: number | null;
   data_vencimento?: string | Date;
-  status_lancamento: 'EFETIVADA' | 'PENDENTE'; 
+  status_lancamento: 'Efetivada' | 'Pendente';
   tipo_parcela: "total" | "parcela" | null;
   categoria?: string;
   subcategoria?: string;
-  observacoes?: string | null; // ← NOVO: Campo de observações (max 1000 chars)
+  observacoes?: string | null;
   data_lancamento: string | Date;
   data_efetivacao: string | Date | null;
   periodicidade: "Mensal" | "Diario" | "Semanal" | "Quinzenal" | "Bimestral" | "Trimenstral" | "Anual" | null;

@@ -6,6 +6,7 @@ use App\Enums\Actions;
 use App\Enums\CacheKeys;
 use App\Enums\CacheNaming;
 use App\Enums\Errors;
+use App\Http\Requests\AuthRequest;
 use App\Http\Traits\ReleasesMonthTrait;
 use App\Http\Traits\UserDataTrait;
 use App\Mail\NotificationMail;
@@ -22,29 +23,13 @@ class AuthController extends Controller
 {
     use ReleasesMonthTrait, UserDataTrait;
 
-    public function auth(Request $request)
+    public function auth(AuthRequest $request)
     {
-        $request->validate(
-            [
-                'email' => [
-                    'required',
-                    'email'
-                ],
-                'password' => [
-                    'required',
-                ],
-            ],
-            [
-                'required'      => 'O campo :attribute é obrigatório',
-                'email.email'         => 'O email precisa ter um formato de válido',
-            ],
-            [
-                'password' => 'senha'
-            ]
-        );
+        $data = $request->validated();
 
-        $credentials = $request->all(['email', 'password']);
+        $credentials = $data->only(['email', 'password']);
 
+        info($credentials);
         //autenticação (email e senha)
         $token = auth('api')->attempt($credentials);
         if (!$token) {
@@ -53,13 +38,13 @@ class AuthController extends Controller
         }
 
         //usuário autenticado com sucesso
-        FinancasCache::put(CacheKeys::FLOW_TITLE->append($request->email), [
-            CacheNaming::EMAIL->value => $request->email,
+        FinancasCache::put(CacheKeys::FLOW_TITLE->append($data->email), [
+            CacheNaming::EMAIL->value => $data->email,
         ], 30);
 
         $token = $this->respondWithToken($token);
         $user = auth()->user();
-        $mesAno = $request->query('mesAno', now()->format('Y-m'));
+        $mesAno = $data->query('mesAno', now()->format('Y-m'));
 
         // Cache por 10 minutos - Usando getUserData granular para buscar apenas o necessário
         $cacheKey = "login_data_user_{$user->id}_month_{$mesAno}";
@@ -80,7 +65,7 @@ class AuthController extends Controller
             ];
         });
 
-        LogController::addsLog($request->email, Actions::LOGIN);
+        LogController::addsLog($data->email, Actions::LOGIN);
         Mail::to('rafaelburghausen@gmail.com')->queue(new NotificationMail($user, 'Login', 'Login', $user->name));
 
         return response()->json($loginData);
