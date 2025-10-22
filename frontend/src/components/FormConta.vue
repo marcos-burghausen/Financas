@@ -25,82 +25,83 @@
                   <v-menu
                     v-model="menuColor"
                     :close-on-content-click="false"
-                    location="end"
+                    location="bottom"
                   >
                     <template #activator="{ props }">
                       <div
                         v-bind="props"
                         class="color-input-activator"
-                        :style="{ backgroundColor: form.color }"
-                      />
+                      >
+                        <img
+                          :src="getBankIconPath(form.icon || '')"
+                          :alt="form.icon || 'Bank icon'"
+                          class="bank-icon-lg"
+                        />
+                      </div>
                     </template>
 
-                    <v-card>
-                      <v-color-picker
-                        v-model="form.color"
-                        hide-details="auto"
-                        label="Selecione a cor"
-                        mode="hex"
-                        color-pip
-                      />
-                      <v-card-actions>
-                        <v-spacer />
-                        <v-btn
-                          color="primary"
-                          variant="text"
-                          @click="menuColor = false; form.color = '#163dc0'"
-                        >
-                          Cancelar
-                        </v-btn>
-                        <v-btn
-                          color="primary"
-                          variant="text"
-                          @click="menuColor = false"
-                        >
-                          OK
-                        </v-btn>
-                      </v-card-actions>
-                    </v-card>
+                    <div class="dropdown">
+                      <div
+                        v-for="icon in iconsBank"
+                        :key="icon.value"
+                        class="dropdown__item"
+                        :class="{ 'is__selected': icon.name === form.icon }"
+                        @click.stop="selectIcon(icon.name)"
+                      >
+                        <div class="dropdown__item__content">
+                          <img
+                            :src="getBankIconPath(icon.name)"
+                            :alt="icon.name"
+                            class="bank-icon-sm"
+                          />
+                          <span>{{ icon.name }}</span>
+                        </div>
+                      </div>
+                    </div>
+
                   </v-menu>
                 </template>
               </v-text-field>
             </v-col>
 
-            <v-col cols="12" sm="6">
-              <v-select
-                v-model="form.bank"
-                :items="bancosPossivel"
-                label="Banco"
+            <v-col cols="12">
+              <v-text-field
+                v-model="form.saldo_inicial"
+                label="Saldo"
+                type="tel"
                 variant="outlined"
-                :rules="[rules.required]"
-                prepend-inner-icon="mdi-bank"
+                :rules="[rules.requiredValor]"
+                prepend-inner-icon="mdi-currency-brl"
+                @update:model-value="form.saldo_inicial = formatCurrencyInput($event)"
               />
             </v-col>
 
-            <v-col cols="12" sm="6">
+            <v-col cols="12">
+              <v-text-field
+                v-model.number="form.limit"
+                label="Limite (Opcional)"
+                type="tel"
+                variant="outlined"
+                prepend-inner-icon="mdi-currency-brl"
+                @update:model-value="form.limit = formatCurrencyInput($event)"
+              />
+            </v-col>
+
+            <v-col cols="12">
               <v-select
-                v-model="form.type"
+                v-model="form.tipo_conta"
                 :items="tiposContaPossivel"
                 label="Tipo de Conta"
                 variant="outlined"
                 :rules="[rules.required]"
-                prepend-inner-icon="mdi-folder"
-              />
+              >
+                <template #prepend-inner>
+                  <v-icon :icon="form.tipo_conta === 'Carteira' ? 'mdi-wallet-outline' : form.tipo_conta === 'Conta Corrente' ? 'mdi-bank-outline' : form.tipo_conta === 'Poupança' ? 'mdi-piggy-bank' : form.tipo_conta === 'Investimento' ? 'mdi-chart-line' : 'mdi-currency-usd'" />
+                </template>
+              </v-select>
             </v-col>
 
-            <v-col cols="12" sm="6">
-              <v-text-field
-                v-model.number="form.balance"
-                label="Saldo Inicial"
-                type="number"
-                hint="Saldo atual"
-                variant="outlined"
-                :rules="[rules.requiredValor]"
-                prepend-inner-icon="mdi-currency-brl"
-              />
-            </v-col>
-
-            <v-col cols="12" sm="6">
+            <!-- <v-col cols="12" sm="6">
               <v-text-field
                 v-model="form.agency"
                 label="Agência"
@@ -118,28 +119,47 @@
                 variant="outlined"
                 prepend-inner-icon="mdi-hash"
               />
+            </v-col> -->
+
+            <v-col
+                cols="12"
+                md="6"
+              >
+                <v-text-field
+                  :model-value="form.status"
+                  label="Status"
+                  variant="outlined"
+                  hide-details="auto"
+                  type="text"
+                  readonly
+                  class="mb-4"
+                  :prepend-inner-icon="
+                    form.status === 'ATIVA'
+                      ? 'mdi-check-circle-outline'
+                      : 'mdi-clock-time-three-outline'
+                  "
+                  @click="toggleStatus"
+                >
+                  <template #append-inner>
+                    <div :class="form.status === 'ATIVA' ? 'switch__check__efetivada' : 'switch__check'">
+                      <div :class="form.status === 'ATIVA' ? 'switch__check__efetivada--inner' : 'switch__check--inner'" />
+                    </div>
+                  </template>
+                </v-text-field>
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span>Incluir na soma do total?</span>
+                  <v-switch
+                    v-model="form.incluir_em_soma_inicial"
+                    color="primary"
+                    hide-details
+                  />
+                </div>
             </v-col>
 
-            <v-col cols="12" sm="6">
-              <v-select
-                v-model="form.status"
-                :items="['ativa', 'inativa']"
-                label="Status"
-                variant="outlined"
-                :rules="[rules.required]"
-                prepend-inner-icon="mdi-check-circle"
-              />
-            </v-col>
-
-            <v-col cols="12" sm="6">
-              <v-text-field
-                v-model.number="form.limit"
-                label="Limite (Opcional)"
-                type="number"
-                variant="outlined"
-                prepend-inner-icon="mdi-credit-card"
-              />
-            </v-col>
+            
 
             <v-col cols="12">
               <v-textarea
@@ -177,22 +197,24 @@
 </template>
 
 <script setup lang="ts">
-import contasService from '@/services/contas.service'
-import { useToastStore } from '@/store/toast'
-import { ref } from 'vue'
+import contasService from '@/services/contas.service';
+import { useToastStore } from '@/store/toast';
+import { iconsBank } from "@/utils/iconMapper";
+import { ref } from 'vue';
 
 interface Conta {
   id?: number
   name: string
-  bank: string
-  type: 'corrente' | 'poupanca' | 'investimento'
-  number: string
-  agency: string
-  balance: number
-  status: 'ativa' | 'inativa'
-  description: string
-  limit?: number
-  color?: string
+  icon: string
+  saldo_inicial?: string
+  incluir_em_soma_inicial?: boolean
+  tipo_conta: string
+  limit?: string
+  conta_pai_id?: number | null
+  status: String
+  description: string | null
+  dia_fechamento: number | null
+  dia_vencimento?: number | null
 }
 
 const props = defineProps({
@@ -211,30 +233,23 @@ const loading = ref(false)
 const editingId = ref<number | null>(null)
 const menuColor = ref(false)
 
+
+
 const form = ref<Conta>({
   name: '',
-  bank: '',
-  type: 'corrente',
-  number: '',
-  agency: '',
-  balance: 0,
-  status: 'ativa',
+  icon: '',
+  saldo_inicial: "0,00",
+  incluir_em_soma_inicial: true,
+  tipo_conta: 'Carteira',
+  limit: "0,00",
+  status: 'ATIVA',
   description: '',
-  limit: undefined,
-  color: '#163dc0'
+  conta_pai_id: null,
+  dia_fechamento: null,
+  dia_vencimento: null,
 })
 
-const tiposContaPossivel = ['corrente', 'poupança', 'investimento']
-const bancosPossivel = [
-  'Banco do Brasil',
-  'Caixa Econômica',
-  'Itaú',
-  'Bradesco',
-  'Santander',
-  'Nubank',
-  'Inter',
-  'Outro'
-]
+const tiposContaPossivel = ['Carteira', 'Conta Corrente', 'Poupança', 'Investimento', 'Outro']
 
 const rules = {
   required: (v: any) => !!v || 'Campo obrigatório',
@@ -261,18 +276,50 @@ const resetForm = () => {
   editingId.value = null
   form.value = {
     name: '',
-    bank: '',
-    type: 'corrente',
-    number: '',
-    agency: '',
-    balance: 0,
-    status: 'ativa',
+    icon: '',
+    saldo_inicial: "0,00",
+    status: 'ATIVA',
     description: '',
-    limit: undefined,
-    color: '#163dc0'
+    limit: "0,00",
+    tipo_conta: 'Corrente',
+    incluir_em_soma_inicial: true
   }
   formRef.value?.resetValidation()
 }
+
+// --- MÉTODOS ---
+const formatCurrencyInput = (value: string): string => {
+  if (!value) return "0,00";
+  let digits = value.replace(/\D/g, "");
+  digits = digits.replace(/^0+/, "") || "0";
+  while (digits.length < 3) digits = "0" + digits;
+  const integerPart = digits.slice(0, -2);
+  const decimalPart = digits.slice(-2);
+  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return `${formattedIntegerPart},${decimalPart}`;
+};
+
+const selectIcon = (iconName: string) => {
+  form.value.icon = iconName;
+  menuColor.value = false;
+};
+
+const getBankIconPath = (bankName: string): string => {
+  const iconPath = `/src/assets/icons/`;
+  const iconMap: Record<string, string> = {
+    'Sicredi': `${iconPath}sicredi.svg`,
+    'Nubank': `${iconPath}nubank.svg`,
+    'Caixa Economica': `${iconPath}caixa.svg`,
+    'Banco do Brasil': `${iconPath}bb.svg`,
+    'MasterCard': `${iconPath}mastercard.svg`,
+    'Visa': `${iconPath}visa.svg`,
+  };
+  return iconMap[bankName] || `${iconPath}bb.svg`;
+};
+
+const toggleStatus = () => {
+  form.value.status = form.value.status === "ATIVA" ? "INATIVA" : "ATIVA";
+};
 
 const closeDialog = () => {
   emit('update:modelValue', false)
@@ -286,6 +333,7 @@ const submitForm = async () => {
 
   try {
     loading.value = true
+    console.log(form.value);
 
     if (editingId.value) {
       await contasService.update(editingId.value, form.value)
@@ -307,7 +355,7 @@ const submitForm = async () => {
 </script>
 
 <script lang="ts">
-import { computed, watch } from 'vue'
+import { computed, watch } from 'vue';
 export default {
   name: 'FormConta'
 }
@@ -315,16 +363,88 @@ export default {
 
 <style scoped>
 .color-input-activator {
-  width: 30px;
-  height: 30px;
-  border-radius: 4px;
-  border: 2px solid rgba(0, 0, 0, 0.2);
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  /* border: 2px solid rgba(0, 0, 0, 0.2); */
   cursor: pointer;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.color-input-activator img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  object-position: center;
 }
 
 .color-input-activator:hover {
   transform: scale(1.1);
   border-color: rgba(0, 0, 0, 0.4);
+}
+
+/* Tamanhos de ícone com img */
+.bank-icon-sm {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  object-position: center;
+}
+
+.bank-icon-md {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  object-position: center;
+}
+
+.bank-icon-lg {
+  width: 45px;
+  height: 45px;
+  object-fit: contain;
+  object-position: center;
+}
+
+.dropdown {
+  background-color: #2c2c2c;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 10;
+  width: 200px;
+  margin-left: calc(100% - 200px);
+}
+
+.dropdown__item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 10px 16px;
+  color: white;
+  font-size: 0.95rem;
+  transition: background-color 0.2s ease;
+  border-radius: 4px;
+  margin: 2px 4px;
+}
+
+.dropdown__item:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+  transform: scale(1.02);
+}
+
+.dropdown__item.is__selected {
+  background-color: #0c99ed;
+  font-weight: bold;
+}
+
+.dropdown__item__content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 </style>

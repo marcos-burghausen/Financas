@@ -94,7 +94,7 @@ class RegisterController extends Controller
                 'id' => $lastUser->id,
                 'name' => $lastUser->name,
                 'email' => $lastUser->email,
-                'type' => $lastUser->type ?? 'USER'
+                'type' => $lastUser->type_user ?? 'USER'
             ]
         ], 200);
     }

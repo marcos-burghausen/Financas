@@ -239,7 +239,7 @@
 import FormConta from '@/components/FormConta.vue'
 import contasService from '@/services/contas.service'
 import { useToastStore } from '@/store/toast'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 
 const toastStore = useToastStore()
 
@@ -277,20 +277,10 @@ const headers = [
 ]
 
 const tiposContaPossivel = ['corrente', 'poupança', 'investimento']
-const bancosPossivel = [
-  'Banco do Brasil',
-  'Caixa Econômica',
-  'Itaú',
-  'Bradesco',
-  'Santander',
-  'Nubank',
-  'Inter',
-  'Itaú',
-  'Outro'
-]
 
 // Computed
 const contasAtivas = computed(() => contas.value.filter(c => c.status === 'ativa'))
+const currentMonth = ref<string>(new Date().toISOString().slice(0, 7));
 
 const summary = computed(() => ({
   totalBalance: contas.value.reduce((sum, c) => sum + c.balance, 0),
@@ -353,8 +343,12 @@ const getTipoLabel = (tipo: string): string => {
 const loadContas = async () => {
   try {
     loading.value = true
-    const data = await contasService.list()
-    contas.value = data
+    const mesAno = currentMonth.value;
+    const data = await contasService.list(mesAno)
+
+    console.log(data);
+    contas.value = data;
+    console.log(contas.value);
   } catch (error: any) {
     console.error('Erro ao carregar contas:', error)
     toastStore.error('Erro ao carregar contas')
@@ -399,73 +393,74 @@ const clearFilters = () => {
 
 // Lifecycle
 onMounted(() => {
-  // loadContas()
-  // --- Início dos Dados Fictícios ---
-  // (Adicione este bloco para carregar os dados fictícios)
-  loading.value = true
+  currentMonth.value = new Date().toISOString().slice(0, 7);
+  loadContas()
   
-  const mockContas: Conta[] = [
-    {
-      id: 1,
-      name: 'Conta Principal',
-      bank: 'Nubank',
-      type: 'corrente',
-      number: '123456-7',
-      agency: '0001',
-      balance: 1530050, // R$ 15.300,50
-      status: 'ativa',
-      description: 'Conta do dia a dia'
-    },
-    {
-      id: 2,
-      name: 'Investimentos',
-      bank: 'Inter',
-      type: 'investimento',
-      number: '98765-4',
-      agency: '0001',
-      balance: 8500000, // R$ 85.000,00
-      status: 'ativa',
-      description: 'Carteira de Ações e Fundos'
-    },
-    {
-      id: 3,
-      name: 'Reserva de Emergência',
-      bank: 'Itaú',
-      type: 'poupanca',
-      number: '11223-3',
-      agency: '1234',
-      balance: 3200000, // R$ 32.000,00
-      status: 'ativa',
-      description: 'Fundo para imprevistos'
-    },
-    {
-      id: 4,
-      name: 'Conta Salário Antiga',
-      bank: 'Bradesco',
-      type: 'corrente',
-      number: '55667-7',
-      agency: '4321',
-      balance: -15000, // -R$ 150,00 (Exemplo negativo)
-      status: 'inativa',
-      description: 'Conta antiga, não movimentada'
-    },
-    {
-      id: 5,
-      name: 'Caixinha',
-      bank: 'Banco do Brasil',
-      type: 'poupanca',
-      number: '77889-9',
-      agency: '3322',
-      balance: 50000, // R$ 500,00
-      status: 'ativa',
-      description: 'Poupança para viagem'
-    }
-  ]
+  // const mockContas: Conta[] = [
+  //   {
+  //     id: 1,
+  //     name: 'Conta Principal',
+  //     bank: 'Nubank',
+  //     type: 'corrente',
+  //     number: '123456-7',
+  //     agency: '0001',
+  //     balance: 1530050, // R$ 15.300,50
+  //     status: 'ativa',
+  //     description: 'Conta do dia a dia'
+  //   },
+  //   {
+  //     id: 2,
+  //     name: 'Investimentos',
+  //     bank: 'Inter',
+  //     type: 'investimento',
+  //     number: '98765-4',
+  //     agency: '0001',
+  //     balance: 8500000, // R$ 85.000,00
+  //     status: 'ativa',
+  //     description: 'Carteira de Ações e Fundos'
+  //   },
+  //   {
+  //     id: 3,
+  //     name: 'Reserva de Emergência',
+  //     bank: 'Itaú',
+  //     type: 'poupanca',
+  //     number: '11223-3',
+  //     agency: '1234',
+  //     balance: 3200000, // R$ 32.000,00
+  //     status: 'ativa',
+  //     description: 'Fundo para imprevistos'
+  //   },
+  //   {
+  //     id: 4,
+  //     name: 'Conta Salário Antiga',
+  //     bank: 'Bradesco',
+  //     type: 'corrente',
+  //     number: '55667-7',
+  //     agency: '4321',
+  //     balance: -15000, // -R$ 150,00 (Exemplo negativo)
+  //     status: 'inativa',
+  //     description: 'Conta antiga, não movimentada'
+  //   },
+  //   {
+  //     id: 5,
+  //     name: 'Caixinha',
+  //     bank: 'Banco do Brasil',
+  //     type: 'poupanca',
+  //     number: '77889-9',
+  //     agency: '3322',
+  //     balance: 50000, // R$ 500,00
+  //     status: 'ativa',
+  //     description: 'Poupança para viagem'
+  //   }
+  // ]
   
-  contas.value = mockContas
+  // contas.value = mockContas
   loading.value = false
-  // --- Fim dos Dados Fictícios ---
 })
+
+watch(() => currentMonth.value, () => {
+  loadContas();
+}, { immediate: true });
 </script>
 
 

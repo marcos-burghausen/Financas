@@ -5,9 +5,13 @@ namespace App\Services;
 use App\Models\Conta;
 use App\Models\User;
 use Carbon\Carbon;
+use App\Http\Traits\UserDataTrait;
 
 class WalletService
 {
+
+    use UserDataTrait;
+
     protected $invoiceService;
 
     public function __construct(CreditCardInvoiceService $invoiceService)
@@ -47,5 +51,14 @@ class WalletService
         }
 
         return $conta;
+    }
+
+    public function getWallets(User $user, ?string $mesAno): array
+    {
+        $wallets = $this->getUserData($user, $mesAno, ['wallets']);
+
+
+
+        return $wallets;
     }
 }

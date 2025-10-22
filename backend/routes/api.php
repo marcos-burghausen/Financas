@@ -59,6 +59,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/lancamentos/{id}', [LancamentoController::class, 'deleteLancamento']);
 
     Route::post('/wallet', [WalletsController::class, 'saveWallet']);
+    Route::get('/wallet', [WalletsController::class, 'getWallets']);
     Route::post('/edit-wallets', [WalletsController::class, 'editWallets']);
     Route::post('/add-wallets', [WalletsController::class, 'addWallets']);
     Route::post('/delete-wallets', [WalletsController::class, 'deletWallets']);

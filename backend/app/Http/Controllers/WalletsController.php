@@ -30,6 +30,19 @@ class WalletsController extends Controller
     }
 
     /**
+     * Lista todas as contas do usuário.
+     */
+    public function getWallets(Request $request)
+    {
+        $user = auth()->user();
+        $mesAno = $request->query('mesAno');
+
+        $wallets = $this->walletService->getWallets($user, $mesAno);
+
+        return response()->json($wallets);
+    }
+
+    /**
      * Salva uma nova conta ou atualiza uma existente.
      */
     public function saveWallet(SaveWalletRequest $request)
@@ -286,12 +299,5 @@ class WalletsController extends Controller
             return response()->json('carteira excluida com sucesso');
         }
         return response()->json('Erro ao excluir carteira');
-    }
-
-    public function getWallets(Request $request)
-    {
-        $user = User::find($request->user_id);
-        $carteiras = $user->carteiras;
-        return response()->json($carteiras);
     }
 }

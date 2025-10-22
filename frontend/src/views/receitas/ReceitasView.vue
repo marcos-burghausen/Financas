@@ -1424,7 +1424,6 @@ const loadReceitas = async () => {
     loading.value = true;
     const mesAno = currentMonth.value;
     const data = await receitasService.list(mesAno);
-    console.log(data);
     
     if (data && data.length > 0) {
       receitas.value = data.map((r: any) => ({

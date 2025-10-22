@@ -2,28 +2,30 @@ import http from './http';
 
 interface Conta {
   id: number;
-  name: string;
-  number: string;
-  agency: string;
-  bank: string;
-  type: 'corrente' | 'poupanca' | 'investimento';
-  balance: number;
-  limit?: number;
-  status: 'ativa' | 'inativa';
-  description?: string;
-  opening_date?: string;
+  name: string
+  icon: string
+  saldo_inicial?: string
+  incluir_em_soma_inicial?: boolean
+  tipo_conta: string
+  limit?: string
+  conta_pai_id?: number | null
+  status: String
+  description: string | null
+  dia_fechamento: number | null
+  dia_vencimento?: number | null
 }
 
 class ContasService {
   /**
    * Listar todas as contas do usuário
    */
-  async list(): Promise<Conta[]> {
+  async list(mesAno?: string): Promise<Conta[]> {
     try {
-      const response = await http.get<any>('/user-data/wallets');
+      const response = await http.get<any>('/wallet', { params: { mesAno } });
+      console.log(response);
       
       // Extrair dados das contas
-      const contas = Array.isArray(response.data) ? response.data : response.data?.contas || [];
+      const contas = Array.isArray(response.data.wallets.contas) ? response.data.wallets.contas : response.data?.contas || [];
       
       return contas.map((c: any) => ({
         id: c.id,
@@ -51,13 +53,12 @@ class ContasService {
     try {
       const payload = {
         name: data.name,
-        number: data.number,
-        agency: data.agency,
-        bank: data.bank,
-        type: data.type?.toUpperCase(),
-        balance: data.balance,
+        icon: data.icon,
+        saldo_inicial: data.saldo_inicial,
+        incluir_em_soma_inicial: data.incluir_em_soma_inicial,
+        tipo_conta: data.tipo_conta,
         limit: data.limit,
-        status: data.status,
+        status_conta: data.status,
         description: data.description,
       };
       

@@ -294,7 +294,7 @@ const controlMenuItems = [
 
 const adminMenuItems = [
   { route: "perfil", label: "Perfil", icon: "mdi-account", requiresAuth: false },
-  { route: "admin", label: "Painel Admin", icon: "mdi-shield-admin", role: "admin", requiresAuth: true },
+  { route: "admin", label: "Painel Admin", icon: "mdi-shield-crown", role: "admin", requiresAuth: true },
   { route: "trader", label: "Painel Trader", icon: "mdi-chart-line", role: "trader", requiresAuth: true },
 ];
 

@@ -68,7 +68,7 @@ class SanctumAuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'type' => $user->user_type,
+                'type' => $user->type_user,
             ],
             'mesAno' => $mesAno,
             'summary' => $userData['summary'],

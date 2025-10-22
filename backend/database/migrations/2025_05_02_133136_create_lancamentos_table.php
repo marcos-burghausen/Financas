@@ -33,6 +33,7 @@ return new class extends Migration
             $table->enum('status_lancamento', ['EFETIVADA', 'PENDENTE'])->default('PENDENTE');
             $table->string('categoria', 30);
             $table->string('subcategoria', 30);
+            $table->text('observacoes')->nullable();
             $table->date('data_lancamento');
             $table->date('data_efetivacao')->nullable();
             $table->unsignedBigInteger('conta_id')->nullable();
