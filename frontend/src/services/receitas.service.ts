@@ -40,11 +40,10 @@ class ReceitasService {
     try {
       const params = mesAno ? { mesAno } : { tipo: "receita" };
       const response = await http.get<any>("/lancamentos", { params });
-      console.log(response);
       
       // Extrair dados e variação da resposta
-      const lancamentos = Array.isArray(response.data.data.lancamentosReceitas) ? response.data.data.lancamentosReceitas : response.data?.data || [];
-      const variacao = response.data?.variacaoReceitas !== undefined ? response.data.variacaoReceitas : 0;
+      const lancamentos = Array.isArray(response.data) ? response.data : response.data?.data || [];
+      const variacao = response.data?.variacao !== undefined ? response.data.variacao : 0;
       
       // Filtrar apenas receitas
       const data = lancamentos.filter((item: any) => item.tipo === "receita" || item.tipo_lancamento === "RECEITA");
