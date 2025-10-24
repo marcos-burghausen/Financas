@@ -10,42 +10,42 @@ class CreditCardInvoice extends Model
     use HasFactory;
 
     protected $fillable = [
-        'account_id',
-        'competence',
-        'closing_date',
-        'due_date',
-        'status_invoice',
-        'total_invoice',
-        'value_pay',
-        'charges',
-        'pay_in',
-        'launch_payment_id'
+        'conta_id',
+        'competencia',
+        'data_fechamento',
+        'data_vencimento',
+        'status_fatura',
+        'total_fatura',
+        'valor_pago',
+        'encargos',
+        'pago_em',
+        'lancamento_pagamento_id'
     ];
 
     /**
      * Adicionado o tipo de dados para os campos de data.
      */
     protected $casts = [
-        'closing_date' => 'date',
-        'due_date' => 'date',
+        'data_fechamento' => 'date',
+        'data_vencimento' => 'date',
     ];
 
 
     /**
      * Define o relacionamento com a Conta (o cartão de crédito).
      */
-    public function accountCreditCard()
+    public function conta()
     {
-        return $this->belongsTo(Account::class, 'account_id');
+        return $this->belongsTo(Conta::class, 'conta_id');
     }
 
     /**
      * CORRIGIDO: Adicionado o relacionamento com os lançamentos que compõem a fatura.
      * Uma fatura (Invoice) tem muitos lançamentos (Lancamentos).
      */
-    public function launches()
+    public function lancamentos()
     {
-        return $this->hasMany(Launch::class, 'invoice_id');
+        return $this->hasMany(Lancamento::class, 'invoice_id');
     }
 
     /**
@@ -55,11 +55,11 @@ class CreditCardInvoice extends Model
     public function recalculateTotals(): void
     {
         // Soma o valor de todos os lançamentos vinculados (compras - estornos)
-        $total = $this->launches()->where('is_refund', false)->sum('value');
-        $totalRefunds = $this->launches()->where('is_refund', true)->sum('value');
+        $total = $this->lancamentos()->where('is_estorno', false)->sum('valor');
+        $totalEstornos = $this->lancamentos()->where('is_estorno', true)->sum('valor');
 
         // Atualiza o campo total_fatura e salva no banco de dados
-        $this->total_invoice = $total - $totalRefunds;
+        $this->total_fatura = $total - $totalEstornos;
         $this->save();
     }
 }

@@ -1018,6 +1018,7 @@ const loadDashboardData = async () => {
     loading.value = false;
   } catch (error) {
     console.error("Erro ao carregar dados da dashboard:", error);
+    // Mesmo com erro, mostrar dados vazios ao invés de travar
     loading.value = false;
   }
 };

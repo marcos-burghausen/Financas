@@ -21,7 +21,7 @@ class DashboardService {
   /**
    * Obter transações recentes para a dashboard
    */
-  async getRecentTransactions(limit: number = 100): Promise<Transaction[]> {
+  async getRecentTransactions(limit: number = 10): Promise<Transaction[]> {
     try {
       const response = await http.get<any>('/lancamentos', {
         params: {

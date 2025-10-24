@@ -3,18 +3,55 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Errors;
-use App\Http\Requests\RegisterRequest;
-use App\Models\Account;
+use App\Models\Conta;
 use App\Models\User;
+use App\Models\Wallets;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use PhpParser\Node\Stmt\TryCatch;
+use Pioneira\Security\Laravel\Facades\SecurityValidation;
 
 class RegisterController extends Controller
 {
-    public function create(RegisterRequest $request)
+    public function create(Request $request)
     {
-        $data = $request->validated();
-        info($data);
+        $data = $request->validate(
+            [
+                'name' => [
+                    'required',
+                    'min:3',
+                    'regex:/^[a-zA-ZÀ-ÿ\s]+$/'
+                ],
+                'email' => [
+                    'required',
+                    'unique:users,email',
+                    'regex:/^(?!(?:(?:\x22?\x5C[\x00-\x7E]\x22?)|(?:\x22?[^\x5C\x22]\x22?)){255,})(?!(?:(?:\x22?\x5C[\x00-\x7E]\x22?)|(?:\x22?[^\x5C\x22]\x22?)){65,}@)(?:(?:[\x21\x23-\x27\x2A\x2B\x2D\x2F-\x39\x3D\x3F\x5E-\x7E]+)|(?:\x22(?:[\x01-\x08\x0B\x0C\x0E-\x1F\x21\x23-\x5B\x5D-\x7F]|(?:\x5C[\x00-\x7F]))*\x22))(?:\.(?:(?:[\x21\x23-\x27\x2A\x2B\x2D\x2F-\x39\x3D\x3F\x5E-\x7E]+)|(?:\x22(?:[\x01-\x08\x0B\x0C\x0E-\x1F\x21\x23-\x5B\x5D-\x7F]|(?:\x5C[\x00-\x7F]))*\x22)))*@(?:(?:(?!.*[^.]{64,})(?:(?:(?:xn--)?[a-z0-9]+(?:-[a-z0-9]+)*\.){1,126}){1,}(?:(?:[a-z][a-z0-9]*)|(?:(?:xn--)[a-z0-9]+))(?:-[a-z0-9]+)*)|(?:\[(?:(?:IPv6:(?:(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){7})|(?:(?!(?:.*[a-f0-9][:\]]){7,})(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){0,5})?::(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){0,5})?)))|(?:(?:IPv6:(?:(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){5}:)|(?:(?!(?:.*[a-f0-9]:){5,})(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){0,3})?::(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){0,3}:)?)))?(?:(?:25[0-5])|(?:2[0-4][0-9])|(?:1[0-9]{2})|(?:[1-9]?[0-9]))(?:\.(?:(?:25[0-5])|(?:2[0-4][0-9])|(?:1[0-9]{2})|(?:[1-9]?[0-9]))){3}))\]))$/iD',
+                ],
+                'password' => [
+                    'required',
+                    'min:8',
+                    'regex:/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\\¨~?´`!@#$%^&*()_+={}:;.<>,|\[\]\-\/])[0-9a-zA-Z\\¨~?´`!@#$%^&*()_+={}:;.<>,|\[\]\-\/]{8,}$/',
+                ],
+                'password_confirmation' => [
+                    'required',
+                    'same:password',
+                ]
+            ],
+            [
+                'required'             => 'O campo :attribute é obrigatório',
+                'min'                  => 'O campo :attribute deve ter pelo menos :min caracteres',
+                'name.regex'           => 'O campo nome deve conter apenas letras',
+                'email.unique'         => 'Já existe um usuário cadastrado com esse email ',
+                'email.regex'          => 'O campo email deve ter um formato válido',
+                'password.regex'       => 'A senha deve ter pelo menos 8 caracteres sendo uma letra maiúcula, uma minúscula, um número e um caracter especial exeto aspas simples e dupla',
+                'password_confirmation.same' => 'A confirmação de senha deve ser igual à senha',
+            ],
+            [
+                'password'        => 'senha',
+                'password_confirmation' => 'confirmar senha'
+            ]
+        );
 
         $email = User::where('email', $data['email'])->first();
         if ($email) {
@@ -32,13 +69,13 @@ class RegisterController extends Controller
 
             $lastUser = User::latest('id')->first();
 
-            $conta                          = new Account;
+            $conta                          = new Conta;
             $conta->user_id                 = $lastUser->id;
             $conta->name                    = "Carteira";
             $conta->icon                    = "mdi-cash";
-            $conta->include_in_initial_sum  = true;
-            $conta->description             = "Conta de uso pessoal";
-            $conta->account_type            = "Carteira";
+            $conta->incluir_em_soma_inicial = true;
+            $conta->descricao               = "Conta de uso pessoal";
+            $conta->tipo_conta              = "Carteira";
             $conta->save();
             DB::commit();
         } catch (\Throwable $e) {

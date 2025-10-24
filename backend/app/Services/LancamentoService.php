@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\Account;
-use App\Models\Launch;
+use App\Models\Conta;
+use App\Models\Lancamento;
 use App\Models\User;
 use App\Models\CreditCardInvoice;
 use Illuminate\Support\Str;
@@ -26,7 +26,7 @@ class LancamentoService
     {
         info($data);
 
-        if ($data['launch_type'] === 'CARTAO_CREDITO') {
+        if ($data['tipo_lancamento'] === 'CARTAO_CREDITO') {
             $this->createCreditCardLancamento($data, $user);
         } else {
             info('Criando lançamento padrão (Receita/Despesa)');
@@ -34,16 +34,16 @@ class LancamentoService
         }
     }
 
-    public function efetivarLancamento(Launch $lancamento): void
+    public function efetivarLancamento(Lancamento $lancamento): void
     {
         // Se o lançamento já estiver efetivado, não faz nada.
-        if ($lancamento->launch_status === 'EFETIVADA') {
+        if ($lancamento->status_lancamento === 'EFETIVADA') {
             return;
         }
 
         // 1. Atualiza o status e a data de efetivação.
-        $lancamento->launch_status = 'EFETIVADA';
-        $lancamento->effective_date = Carbon::now();
+        $lancamento->status_lancamento = 'EFETIVADA';
+        $lancamento->data_efetivacao = Carbon::now();
         $lancamento->save();
 
         // 2. Chama o método que já criamos para atualizar o saldo da conta.
@@ -56,7 +56,7 @@ class LancamentoService
      */
     private function createStandardLancamento(array $data, User $user): void
     {
-        switch ($data['recurrence']) {
+        switch ($data['recorrencia']) {
             case 'PARCELADO':
                 $this->createLancamentoParceladoStandard($data, $user);
                 break;
@@ -75,14 +75,14 @@ class LancamentoService
      */
     private function createCreditCardLancamento(array $data, User $user): void
     {
-        $conta = Account::findOrFail($data['account_id']);
+        $conta = Conta::findOrFail($data['conta_id']);
         $faturasAfetadas = [];
 
         // Se for parcelado, entra no loop
-        if ($data['recurrence'] === 'PARCELADO' && $data['qtd_installments'] > 1) {
-            $numParcelas = (int) $data['qtd_installments'];
-            $valorTotal = $data['value'];
-            $tipoParcela = $data['installment_type'] ?? 'TOTAL';
+        if ($data['recorrencia'] === 'PARCELADO' && $data['qtd_parcelas'] > 1) {
+            $numParcelas = (int) $data['qtd_parcelas'];
+            $valorTotal = $data['valor'];
+            $tipoParcela = $data['tipo_parcela'] ?? 'TOTAL';
 
             if ($tipoParcela === 'TOTAL') {
                 $valorBaseParcela = intdiv($valorTotal, $numParcelas);
@@ -93,7 +93,7 @@ class LancamentoService
             }
 
             $groupId = Str::uuid();
-            $dataLancamentoOriginal = Carbon::parse($data['due_date']);
+            $dataLancamentoOriginal = Carbon::parse($data['data_lancamento']);
 
 
             for ($i = 1; $i <= $numParcelas; $i++) {
@@ -109,15 +109,15 @@ class LancamentoService
 
                 $valorDaParcela = $valorBaseParcela + (($i === 1) ? $resto : 0);
 
-                Launch::create(array_merge($data, [
+                Lancamento::create(array_merge($data, [
                     'user_id' => $user->id,
                     'installment_group_id' => $groupId,
-                    'description' => $data['description'] . " ($i/$numParcelas)",
-                    'value' => $valorDaParcela,
-                    'qtd_installments' => $numParcelas,
-                    'num_installment' => $i,
+                    'descricao' => $data['descricao'] . " ($i/$numParcelas)",
+                    'valor' => $valorDaParcela,
+                    'qtd_parcelas' => $numParcelas,
+                    'num_parcela' => $i,
                     'invoice_id' => $invoiceId,
-                    'launch_status' => 'EFETIVADA',
+                    'status_lancamento' => 'EFETIVADA',
                 ]));
             }
         } else {
@@ -125,11 +125,11 @@ class LancamentoService
             $invoiceId = $this->invoiceService->getOrCreateInvoiceId($conta->id, $faturaDateObject, $user->id);
             $faturasAfetadas[$invoiceId] = CreditCardInvoice::find($invoiceId);
 
-            Launch::create(array_merge($data, [
+            Lancamento::create(array_merge($data, [
                 'user_id' => $user->id,
-                'recurrence' => 'NAO_RECORRENTE',
+                'recorrencia' => 'NAO_RECORRENTE',
                 'invoice_id' => $invoiceId,
-                'launch_status' => 'EFETIVADA',
+                'status_lancamento' => 'EFETIVADA',
             ]));
         }
 
@@ -146,7 +146,7 @@ class LancamentoService
      */
     private function createLancamentoUnico(array $data, User $user): void
     {
-        $lancamento = Launch::create(array_merge($data, ['user_id' => $user->id]));
+        $lancamento = Lancamento::create(array_merge($data, ['user_id' => $user->id]));
         $this->atualizarSaldos($lancamento);
     }
 
@@ -155,10 +155,10 @@ class LancamentoService
      */
     private function createLancamentoParceladoStandard(array $data, User $user): void
     {
-        $qtdParcelas = (int) $data['qtd_installments'];
-        $numParcela = (int) ($data['num_installment'] ?? 1);
-        $valorTotal = $data['value'];
-        $tipoParcela = $data['installment_type'] ?? 'TOTAL';
+        $qtdParcelas = (int) $data['qtd_parcelas'];
+        $numParcela = (int) ($data['num_parcela'] ?? 1);
+        $valorTotal = $data['valor'];
+        $tipoParcela = $data['tipo_parcela'] ?? 'TOTAL';
 
         if ($tipoParcela === 'TOTAL') {
             $valorBaseParcela = intdiv($valorTotal, $qtdParcelas);
@@ -169,10 +169,10 @@ class LancamentoService
         }
 
         $groupId = Str::uuid();
-        $dataVencimentoBase = new DateTime($data['due_date']);
+        $dataVencimentoBase = new DateTime($data['data_vencimento']);
         $diaOriginal = (int)$dataVencimentoBase->format('d');
-        $parcelaInicial = $data['num_installment'] ?? 1;
-        $statusInicial = $data['launch_status'];
+        $parcelaInicial = $data['num_parcela'] ?? 1;
+        $statusInicial = $data['status_lancamento'];
 
         // for ($i = 1; $i <= $qtdParcelas; $i++) {
         for ($i = $parcelaInicial; $i <= $qtdParcelas; $i++) {
@@ -186,22 +186,22 @@ class LancamentoService
 
             $statusDaParcelaFixa = ($statusInicial === 'EFETIVADA' && $i === $parcelaInicial) ? 'EFETIVADA' : 'PENDENTE';
 
-            $lancamento = Launch::create(array_merge($data, [
+            $lancamento = Lancamento::create(array_merge($data, [
                 'user_id'              => $user->id,
                 'installment_group_id' => $groupId,
-                'description'          => $data['description'] . " ($i/$qtdParcelas)",
-                'value'                => $valorDaParcela,
-                'installment_type'     => $data['installment_type'],
-                'recurrence'           => 'Parcelado',
-                'qtd_installments'     => $qtdParcelas,
-                'num_installment'      => $i,
-                'due_date'             => $dataVencimentoParcela,
-                'launch_status'        => $statusDaParcelaFixa,
-                'category'             => $data['category'],
-                'subcategory'          => $data['subcategory'],
-                'launch_date'          => $data['launch_date'],
-                'account_id'           => $data['account_id'],
-                'periodicity'          => $data['periodicity'] ?? null,
+                'descricao'            => $data['descricao'] . " ($i/$qtdParcelas)",
+                'valor'                => $valorDaParcela,
+                'tipo_parcela'         => $data['tipo_parcela'],
+                'recorrencia'          => 'Parcelado',
+                'qtd_parcelas'         => $qtdParcelas,
+                'num_parcela'         => $i,
+                'data_vencimento'      => $dataVencimentoParcela,
+                'status_lancamento'    => $statusDaParcelaFixa,
+                'categoria'            => $data['categoria'],
+                'subcategoria'         => $data['subcategoria'],
+                'data_lancamento'       => $data['data_lancamento'],
+                'conta_id'             => $data['conta_id'],
+                'periodicidade'        => $data['periodicidade'] ?? null,
             ]));
 
             if ($statusInicial === 'EFETIVADA') {
@@ -218,9 +218,9 @@ class LancamentoService
     {
         info('Criando lançamento fixo padrão', $data);
         $groupId = Str::uuid();
-        $dataVencimentoBase = new DateTime($data['due_date']);
+        $dataVencimentoBase = new DateTime($data['data_vencimento']);
         $diaOriginal = (int)$dataVencimentoBase->format('d');
-        $statusInicial = $data['launch_status'];
+        $statusInicial = $data['status_lancamento'];
 
         for ($i = 1; $i <= 12; $i++) {
             $offsetMeses = $i - 1;
@@ -231,23 +231,23 @@ class LancamentoService
 
             $statusDaParcelaFixa = ($statusInicial === 'EFETIVADA' && $i === 1) ? 'EFETIVADA' : 'PENDENTE';
 
-            $lancamento = Launch::create([
+            $lancamento = Lancamento::create([
                 'user_id'              => $user->id,
                 'installment_group_id' => $groupId,
-                'description'          => $data['description'],
-                'value'                => $data['value'],
-                'launch_type'          => $data['launch_type'],
-                'recurrence'           => 'Fixa',
-                'qtd_installments'     => $data['qtd_installments'],
-                'num_installment'      => $i,
-                'due_date'             => $dataVencimentoParcela,
-                'launch_status'        => $statusDaParcelaFixa,
-                'category'             => $data['category'],
-                'subcategory'          => $data['subcategory'],
-                'launch_date'          => $data['launch_date'],
-                'account_id'           => $data['account_id'] ?? null,
-                'installment_type'     => $data['installment_type'] ?? 'total',
-                'periodicity'          => $data['periodicity'] ?? null,
+                'descricao'            => $data['descricao'],
+                'valor'                => $data['valor'],
+                'tipo_lancamento'      => $data['tipo_lancamento'],
+                'recorrencia'          => 'Fixa',
+                'qtd_parcelas'         => $data['qtd_parcelas'],
+                'num_parcela'          => $i,
+                'data_vencimento'      => $dataVencimentoParcela,
+                'status_lancamento'    => $statusDaParcelaFixa,
+                'categoria'            => $data['categoria'],
+                'subcategoria'         => $data['subcategoria'],
+                'data_lancamento'      => $data['data_lancamento'],
+                'conta_id'             => $data['conta_id'] ?? null,
+                'tipo_parcela'         => $data['tipo_parcela'] ?? 'total',
+                'periodicidade'        => $data['periodicidade'] ?? null,
             ]);
             info('Lançamento fixo criado: numero -> ', $lancamento->toArray());
 
@@ -261,16 +261,16 @@ class LancamentoService
     /**
      * Roteador para a lógica de atualização de saldos de contas.
      */
-    private function atualizarSaldos(Launch $lancamento): void
+    private function atualizarSaldos(Lancamento $lancamento): void
     {
-        if (in_array($lancamento->launch_type, ['RECEITA', 'DESPESA'])) {
-            if ($lancamento->launch_status === 'EFETIVADA' && $lancamento->account_id) {
-                $conta = Account::find($lancamento->account_id);
+        if (in_array($lancamento->tipo_lancamento, ['RECEITA', 'DESPESA'])) {
+            if ($lancamento->status_lancamento === 'EFETIVADA' && $lancamento->conta_id) {
+                $conta = Conta::find($lancamento->conta_id);
                 if ($conta) {
-                    if ($lancamento->launch_type === 'RECEITA') {
-                        $conta->balance += $lancamento->value;
+                    if ($lancamento->tipo_lancamento === 'RECEITA') {
+                        $conta->saldo += $lancamento->valor;
                     } else { // DESPESA
-                        $conta->balance -= $lancamento->value;
+                        $conta->saldo -= $lancamento->valor;
                     }
                     $conta->save();
                 }
