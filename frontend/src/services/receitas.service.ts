@@ -43,7 +43,7 @@ class ReceitasService {
       console.log(response);
       
       // Extrair dados e variação da resposta
-      const lancamentos = Array.isArray(response.data.data.lancamentosReceitas) ? response.data.data.lancamentosReceitas : response.data?.data || [];
+      const lancamentos = Array.isArray(response.data.lancamentosReceitas) ? response.data.lancamentosReceitas : response.data?.data || [];
       const variacao = response.data?.variacaoReceitas !== undefined ? response.data.variacaoReceitas : 0;
       
       // Filtrar apenas receitas

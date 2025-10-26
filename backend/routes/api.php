@@ -12,6 +12,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotificationSettingsController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 // Route::options('{any?}', function () {
@@ -52,6 +53,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/sanctum/logout-all', [SanctumAuthController::class, 'logoutAll']);
 
     // Rotas protegidas
+    Route::get('/dashboard/summary', [DashboardController::class, 'summary']);
+
     Route::post('/lancamentos', [LancamentoController::class, 'saveLancamento']);
     Route::get('/lancamentos', [LancamentoController::class, 'getLancamento']);
     Route::put('/lancamentos/{id}', [LancamentoController::class, 'editLancamento']);

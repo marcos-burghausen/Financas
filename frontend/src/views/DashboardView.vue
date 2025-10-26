@@ -81,16 +81,19 @@
                     Receitas {{ monthYearLabel }}
                   </p>
                   <h2 class="kpi-value mb-3">
-                    {{ formatCurrency(summary.receitasMes) }}
+                    {{ formatCurrency(summary.valorTotalReceitasMes) }}
                   </h2>
                   <div class="d-flex align-center gap-1">
                     <v-icon
-                      icon="mdi-trending-up"
+                      :icon="(summary.receitasVariacao || 0) >= 0 ? 'mdi-trending-up' : 'mdi-trending-down'"
                       size="16"
-                      color="success"
+                      :color="(summary.receitasVariacao || 0) >= 0 ? 'success' : 'error'"
                     />
-                    <p class="text-caption text-success mb-0">
-                      +{{ (receitasVariacao || 0).toFixed(1) }}% vs mês anterior
+                    <p 
+                      class="text-caption mb-0"
+                      :class="(summary.receitasVariacao || 0) >= 0 ? 'text-success' : 'text-error'"
+                    >
+                      {{ (summary.receitasVariacao || 0) >= 0 ? '+' : '' }}{{ (summary.receitasVariacao || 0).toFixed(1) }}% vs mês anterior
                     </p>
                   </div>
                 </div>
@@ -108,10 +111,10 @@
               <!-- Progress bar -->
               <div class="progress-section">
                 <p class="text-caption mb-2">
-                  {{ summary.receitasRecebidas }} de {{ summary.receitasRecebidas }} recebidas
+                  {{ summary.qtdReceitasRecebidas }} de {{ summary.qtdReceitasTotal }} recebidas
                 </p>
                 <v-progress-linear
-                  :model-value="(summary.receitasRecebidas / (summary.receitasRecebidas + 2)) * 100"
+                  :model-value="(summary.qtdReceitasRecebidas / (summary.qtdReceitasTotal || 1)) * 100"
                   color="success"
                   height="6"
                   rounded
@@ -139,16 +142,19 @@
                     Despesas {{ monthYearLabel }}
                   </p>
                   <h2 class="kpi-value mb-3">
-                    {{ formatCurrency(summary.despesasMes) }}
+                    {{ formatCurrency(summary.valorTotalDespesasMes) }}
                   </h2>
                   <div class="d-flex align-center gap-1">
                     <v-icon
-                      icon="mdi-trending-down"
+                      :icon="(summary.despesasVariacao || 0) <= 0 ? 'mdi-trending-down' : 'mdi-trending-up'"
                       size="16"
-                      color="error"
+                      :color="(summary.despesasVariacao || 0) <= 0 ? 'success' : 'error'"
                     />
-                    <p class="text-caption text-error mb-0">
-                      -{{ (despesasVariacao || 0).toFixed(1) }}% vs mês anterior
+                    <p 
+                      class="text-caption mb-0"
+                      :class="(summary.despesasVariacao || 0) <= 0 ? 'text-success' : 'text-error'"
+                    >
+                      {{ (summary.despesasVariacao || 0) >= 0 ? '+' : '' }}{{ (summary.despesasVariacao || 0).toFixed(1) }}% vs mês anterior
                     </p>
                   </div>
                 </div>
@@ -165,10 +171,10 @@
               </div>
               <div class="progress-section">
                 <p class="text-caption mb-2">
-                  {{ summary.despesasPagas }} de {{ summary.despesasPagas }} pagas
+                  {{ summary.qtdDespesasPagas }} de {{ summary.qtdDespesasTotal }} pagas
                 </p>
                 <v-progress-linear
-                  :model-value="(summary.despesasPagas / (summary.despesasPagas + 3)) * 100"
+                  :model-value="(summary.qtdDespesasPagas / (summary.qtdDespesasTotal || 1)) * 100"
                   color="error"
                   height="6"
                   rounded
@@ -199,7 +205,7 @@
                     {{ formatCurrency(summary.saldoAtual) }}
                   </h2>
                   <p class="text-caption text-primary mb-0">
-                    3 contas ativas
+                    {{ summary.qtd_contasAtivas }} contas ativas
                   </p>
                 </div>
                 <v-avatar
@@ -246,10 +252,10 @@
                     Pendências
                   </p>
                   <h2 class="kpi-value mb-3">
-                    {{ formatCurrency(summary.totalPendencias) }}
+                    {{ formatCurrency(summary.valorTotalReceitasPendentes) }}
                   </h2>
                   <p class="text-caption text-warning mb-0">
-                    {{ counters.receitasPendentes + counters.despesasPendentes }} transações
+                    {{ summary.qtdReceitasPendentes + summary.qtdDespesasPendentes }} transações
                   </p>
                 </div>
                 <v-avatar
@@ -322,7 +328,7 @@
           </v-card>
         </v-col>
 
-        <!-- Chart: Distribuição de Despesas -->
+        <!-- Chart: Distribuição de Despesas e Receitas -->
         <v-col
           cols="12"
           lg="4"
@@ -330,7 +336,7 @@
         >
           <v-card elevation="1">
             <v-card-item>
-              <v-card-title class="text-h6 mb-4">
+              <v-card-title class="text-h6 mb-2">
                 <v-icon
                   icon="mdi-chart-pie"
                   class="mr-2"
@@ -339,25 +345,69 @@
               </v-card-title>
             </v-card-item>
             <v-divider />
+            
+            <!-- Tabs -->
+            <v-tabs
+              v-model="distribuicaoTab"
+              align-tabs="center"
+              class="px-4"
+            >
+              <v-tab value="despesas">
+                <v-icon icon="mdi-cash-remove" start size="18" />
+                Despesas
+              </v-tab>
+              <v-tab value="receitas">
+                <v-icon icon="mdi-cash-plus" start size="18" />
+                Receitas
+              </v-tab>
+            </v-tabs>
+            
+            <v-divider />
             <v-card-item>
-              <div
-                v-if="chartSeries.pie.length"
-                class="chart-container"
-              >
-                <apexchart
-                  type="donut"
-                  :options="chartOptions.pie"
-                  :series="chartSeries.pie"
-                  height="350"
-                />
+              <!-- Despesas Tab -->
+              <div v-if="distribuicaoTab === 'despesas'">
+                <div
+                  v-if="chartSeriesDespesas.length"
+                  class="chart-container"
+                >
+                  <apexchart
+                    type="donut"
+                    :options="chartOptionsDespesas"
+                    :series="chartSeriesDespesas"
+                    height="350"
+                  />
+                </div>
+                <div
+                  v-else
+                  class="text-center py-8"
+                >
+                  <p class="text-grey">
+                    Nenhuma despesa efetivada
+                  </p>
+                </div>
               </div>
-              <div
-                v-else
-                class="text-center py-8"
-              >
-                <p class="text-grey">
-                  Gráfico não disponível
-                </p>
+              
+              <!-- Receitas Tab -->
+              <div v-if="distribuicaoTab === 'receitas'">
+                <div
+                  v-if="chartSeriesReceitas.length"
+                  class="chart-container"
+                >
+                  <apexchart
+                    type="donut"
+                    :options="chartOptionsReceitas"
+                    :series="chartSeriesReceitas"
+                    height="350"
+                  />
+                </div>
+                <div
+                  v-else
+                  class="text-center py-8"
+                >
+                  <p class="text-grey">
+                    Nenhuma receita efetivada
+                  </p>
+                </div>
               </div>
             </v-card-item>
           </v-card>
@@ -397,17 +447,17 @@
                     <div class="d-flex align-center gap-3 flex-grow-1 min-width-0">
                       <v-avatar
                         size="40"
-                        :color="transaction.tipo === 'receita' ? 'success' : 'error'"
+                        :color="transaction.tipo_lancamento === 'RECEITA' ? 'success' : 'error'"
                         variant="tonal"
                       >
-                        <v-icon :icon="transaction.tipo === 'receita' ? 'mdi-cash-plus' : 'mdi-cash-remove'" />
+                        <v-icon :icon="transaction.tipo_lancamento === 'RECEITA' ? 'mdi-cash-plus' : 'mdi-cash-remove'" />
                       </v-avatar>
                       <div class="min-width-0">
                         <p class="text-subtitle-2 mb-0 text-truncate">
                           {{ transaction.descricao }}
                         </p>
                         <p class="text-caption text-grey mb-0">
-                          {{ transaction.data }}
+                          {{ transaction.data_vencimento }}
                         </p>
                       </div>
                     </div>
@@ -653,7 +703,6 @@
 ```
 
 <script setup lang="ts">
-import dashboardService from "@/services/dashboard.service";
 import http from "@/services/http";
 import { useToastStore } from "@/store/toast";
 import { useUserStore } from "@/store/user";
@@ -662,30 +711,33 @@ import { computed, onMounted, ref, watch } from "vue";
 const userStore = useUserStore();
 const toastStore = useToastStore();
 const loading = ref(true);
-const counters = ref({
-  receitasRecebidas: 0,
-  receitasPendentes: 0,
-  receitasAtrasadas: 0,
-  despesasPagas: 0,
-  despesasPendentes: 0,
-  despesasAtrasadas: 0,
-});
 
 // Summary data
 const summary = ref({
-  receitasMes: 0,
-  despesasMes: 0,
-  saldoAtual: 0,
-  saldoInicial: 0,
-  totalReceitas: 0,
-  totalDespesas: 0,
-  pendencias: 0,
-  receitasRecebidas: 0,
-  despesasPagas: 0,
-  totalPendencias: 0,
+  valorTotalReceitasMes: 0,
+  valorTotalReceitasPendentes: 0,
   receitasVariacao: 0,
+  qtdReceitasTotal: 0,
+  qtdReceitasRecebidas: 0,
+  qtdReceitasPendentes: 0,
+  totalReceitas: 0,
+  receitasRecebidas: 0,
+
+  valorTotalDespesasMes: 0,
   despesasVariacao: 0,
+  qtdDespesasTotal: 0,
+  qtdDespesasPagas: 0,
+  qtdDespesasPendentes: 0,
+  totalDespesas: 0,
+  despesasPagas: 0,
+
+  qtdPendencias: 0,
+  totalPendencias: 0,
+
+  saldoAtual: 0,
+  qtd_contasAtivas: 0,
 });
+
 
 // Chart data
 const chartOptions = ref<any>({
@@ -698,6 +750,15 @@ const chartSeries = ref<any>({
   pie: [],
 });
 
+// Tabs para distribuição (despesas e receitas)
+const distribuicaoTab = ref<'despesas' | 'receitas'>('despesas');
+
+// Chart series separadas para cada tipo
+const chartSeriesDespesas = ref<any>([]);
+const chartSeriesReceitas = ref<any>([]);
+const chartOptionsDespesas = ref<any>({});
+const chartOptionsReceitas = ref<any>({});
+
 // Recent transactions
 const recentTransactions = ref<any[]>([]);
 
@@ -709,12 +770,20 @@ const showPendenciasDialog = ref(false);
 const pendenciasTransacoes = ref<any[]>([]);
 
 // LOCAL month state - not synced with userStore
-const currentMonth = ref<string>(new Date().toISOString().slice(0, 7)); // YYYY-MM
+// Get current month in local timezone (not UTC)
+const getCurrentMonth = (): string => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+};
+
+const currentMonth = ref<string>(getCurrentMonth()); // YYYY-MM
 
 // Month/Year label
 const monthDisplay = computed(() => {
   const [year, month] = currentMonth.value.split("-");
-  const date = new Date(`${year}-${month}-01`);
+  const date = new Date(Number(year), Number(month) - 1, 1);
   return date.toLocaleString("pt-BR", { month: "long", year: "numeric" });
 });
 
@@ -728,26 +797,56 @@ const monthYearLabel = computed(() => {
 
 // Check if current month is today
 const isCurrentMonth = computed(() => {
-  const today = new Date().toISOString().slice(0, 7);
-  return currentMonth.value === today;
+  return currentMonth.value === getCurrentMonth();
 });
 
 // Month navigation methods
 const navigationMonth = (action: "prev" | "next" | "today") => {
   if (action === "prev") {
     const [year, month] = currentMonth.value.split("-");
-    const date = new Date(`${year}-${month}-01`);
-    date.setMonth(date.getMonth() - 1);
-    currentMonth.value = date.toISOString().slice(0, 7);
+    // Converter string em números inteiros
+    const yearNum = parseInt(year, 10);
+    const monthNum = parseInt(month, 10);
+    
+    // Calcular mês anterior
+    let newMonth = monthNum - 1;
+    let newYear = yearNum;
+    
+    if (newMonth < 1) {
+      newMonth = 12;
+      newYear = newYear - 1;
+    }
+    
+    currentMonth.value = `${newYear}-${String(newMonth).padStart(2, "0")}`;
   } else if (action === "next") {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonthNum = now.getMonth() + 1; // 1-12
+    
     const [year, month] = currentMonth.value.split("-");
-    const date = new Date(`${year}-${month}-01`);
-    date.setMonth(date.getMonth() + 1);
-    currentMonth.value = date.toISOString().slice(0, 7);
+    const yearNum = parseInt(year, 10);
+    const monthNum = parseInt(month, 10);
+    
+    // Calcular próximo mês
+    let nextMonth = monthNum + 1;
+    let nextYear = yearNum;
+    
+    if (nextMonth > 12) {
+      nextMonth = 1;
+      nextYear = nextYear + 1;
+    }
+    
+    // Verificar se não ultrapassa o mês atual
+    if (nextYear < currentYear || (nextYear === currentYear && nextMonth <= currentMonthNum)) {
+      currentMonth.value = `${nextYear}-${String(nextMonth).padStart(2, "0")}`;
+    }
   } else if (action === "today") {
-    currentMonth.value = new Date().toISOString().slice(0, 7);
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    currentMonth.value = `${year}-${month}`;
   }
-  // Watch com immediate: true cuidará de carregar os dados
+  // Watch cuidará de carregar os dados
 };
 
 // Format currency - valores vêm em centavos, dividir por 100
@@ -759,15 +858,15 @@ const formatCurrency = (value: number): string => {
 };
 
 // Calcular variações percentuais (recebidas de mês anterior)
-const receitasVariacao = computed(() => {
-  // Retorna a variação do summary ou 0 se não definido
-  return summary.value.receitasVariacao || 0;
-});
+// const receitasVariacao = computed(() => {
+//   // Retorna a variação do summary ou 0 se não definido
+//   return summary.value.receitasVariacao || 0;
+// });
 
-const despesasVariacao = computed(() => {
-  // Sem dados de mês anterior, retorna 0
-  return summary.value.despesasVariacao || 0;
-});
+// const despesasVariacao = computed(() => {
+//   // Sem dados de mês anterior, retorna 0
+//   return summary.value.despesasVariacao || 0;
+// });
 
 const saldoVariacao = computed(() => {
   // Baseado na diferença entre receitas e despesas
@@ -782,7 +881,7 @@ const saldoVariacao = computed(() => {
 // Abrir dialog de pendências
 const openPendenciasDialog = (transactions: any[]) => {
   // Filtrar apenas transações pendentes
-  pendenciasTransacoes.value = transactions.filter(t => t.status_lancamento === "PENDENTE");
+  // pendenciasTransacoes.value = transactions.filter(t => t.status_lancamento === "PENDENTE");
   showPendenciasDialog.value = true;
 };
 
@@ -793,100 +892,101 @@ const loadDashboardData = async () => {
     
     // 1. Carregar todos os lançamentos do mês usando currentMonth
     let allTransactions: any[] = [];
-    let receitasVariacao = 0;
-    let despesasVariacao = 0;
+    let lancamentosReceitas: any[] = [];
+    let lancamentosDespesas: any[] = [];
     try {
       // Usar http.get com o mês correto
-      const response = await http.get("/lancamentos", {
+      const response = await http.get("/dashboard/summary", {
         params: {
           mesAno: currentMonth.value, // YYYY-MM format
           limit: 1000
         }
       });
-      
-      const data = response.data || response;
-      allTransactions = data.data || data.lancamentos || [];
-      receitasVariacao = data.variacaoReceitas || 0;
-      despesasVariacao = data.variacaoDespesas || 0;
+
+      summary.value.valorTotalReceitasMes = response.data.receitas.valor_total || 0;
+      summary.value.valorTotalReceitasPendentes = response.data.receitas.valor_pendente || 0;
+      summary.value.receitasVariacao = response.data.receitas.variacao || 0;
+      summary.value.qtdReceitasRecebidas = response.data.receitas.qtd_efetivada || 0;
+      summary.value.qtdReceitasTotal = response.data.receitas.qtd_total || 0;
+      summary.value.qtdReceitasPendentes = response.data.receitas.qtd_pendente || 0;
+      summary.value.totalReceitas = response.data.receitas.total || 0;
+
+      summary.value.valorTotalDespesasMes = response.data.despesas.valor_total || 0;
+      summary.value.despesasVariacao = response.data.despesas.variacao || 0;
+      summary.value.qtdDespesasPagas = response.data.despesas.qtd_efetivada || 0;
+      summary.value.qtdDespesasTotal = response.data.despesas.qtd_total || 0;
+      summary.value.qtdDespesasPendentes = response.data.despesas.qtd_pendente || 0;
+      summary.value.totalDespesas = response.data.despesas.total || 0;
+      lancamentosDespesas = response.data.lancamentos?.despesas || [];
+      lancamentosReceitas = response.data.lancamentos?.receitas || [];
+
+      summary.value.qtdPendencias = response.data.pendentes.qtd_pendentes || 0;
+      summary.value.totalPendencias = response.data.totalPendencias || 0;
+
+      summary.value.saldoAtual = response.data.saldos.atual || 0;
+      summary.value.qtd_contasAtivas = response.data.contas.qtd_contas_ativas || 0;
+      pendenciasTransacoes.value = response.data.pendentes.lancamentos || [];
+
+      // Mapeamento correto de transações recentes
+      recentTransactions.value = [
+        ...response.data.transacoes_recentes.receitas,
+        ...response.data.transacoes_recentes.despesas
+      ] || [];
+      console.log(recentTransactions.value);
+
+      allTransactions = [
+        ...response.data.lancamentos.receitas,
+        ...response.data.lancamentos.despesas
+      ] || [];
     } catch (err) {
       console.warn("Erro ao carregar transações:", err);
       try {
         // Fallback: tentar sem o mês
-        allTransactions = await dashboardService.getRecentTransactions(1000);
+        // allTransactions = await dashboardService.getRecentTransactions(1000);
       } catch (fallbackErr) {
         console.warn("Fallback também falhou:", fallbackErr);
       }
     }
 
-    // 2. Separar receitas e despesas, calcular totais reais
-    let totalReceitas = 0;
-    let totalDespesas = 0;
-    let totalPendencias = 0;
-    let receitasRecebidas = 0;
-    let receitasPendentes = 0;
-    let receitasAtrasadas = 0;
-    let despesasPagas = 0;
-    let despesasPendentes = 0;
-    let despesasAtrasadas = 0;
+    
+  const counters = ref({
+    receitasRecebidas: 0,
+    receitasPendentes: 0,
+    receitasAtrasadas: 0,
+    despesasPagas: 0,
+    despesasPendentes: 0,
+    despesasAtrasadas: 0,
+  });
+
 
     allTransactions.forEach((item: any) => {
-      const valor = item.valor || 0;
+      const data = item.data_vencimento;
       const tipo = item.tipo_lancamento;
       const status = item.status_lancamento;
 
       if (tipo === "RECEITA") {
         if (status === "EFETIVADA") {
-          receitasRecebidas++;
-          totalReceitas += valor;
+          counters.value.receitasRecebidas++;
+        } else if (status === "PENDENTE" && data < new Date()) {
+          counters.value.receitasAtrasadas++;
         } else if (status === "PENDENTE") {
-          receitasPendentes++;
-          // Adicionar ao total de pendências (independente se atrasada ou futura)
-          totalPendencias += valor;
-          // Nota: receitasAtrasadas seria determinado pelo backend com data_vencimento
-          // Por agora, deixamos todos como "pendentes" genéricos
+          counters.value.receitasPendentes++;
         }
-      } else {
+     } else {
         if (status === "EFETIVADA") {
-          despesasPagas++;
-          totalDespesas += valor;
+          counters.value.despesasPagas++;
+        } else if (status === "PENDENTE" && data < new Date()) {
+          counters.value.despesasAtrasadas++;
         } else if (status === "PENDENTE") {
-          despesasPendentes++;
-          // Adicionar ao total de pendências (independente se atrasada ou futura)
-          totalPendencias += valor;
-          // Nota: despesasAtrasadas seria determinado pelo backend com data_vencimento
-          // Por agora, deixamos todos como "pendentes" genéricos
+          counters.value.despesasPendentes++;
         }
       }
     });
 
     // 2.5. Armazenar transações para o dialog
-    pendenciasTransacoes.value = allTransactions;
+    // pendenciasTransacoes.value = allTransactions;
 
     // 3. Atualizar summary com dados reais
-    summary.value = {
-      receitasMes: totalReceitas,
-      despesasMes: totalDespesas,
-      saldoAtual: totalReceitas - totalDespesas,
-      saldoInicial: 0,
-      totalReceitas: totalReceitas,
-      totalDespesas: totalDespesas,
-      pendencias: totalPendencias,
-      receitasRecebidas: receitasRecebidas,
-      despesasPagas: despesasPagas,
-      totalPendencias: totalPendencias,
-      receitasVariacao: receitasVariacao,
-      despesasVariacao: despesasVariacao,
-    };
-
-    // 4. Atualizar contadores
-    counters.value = {
-      receitasRecebidas,
-      receitasPendentes,
-      receitasAtrasadas,
-      despesasPagas,
-      despesasPendentes,
-      despesasAtrasadas,
-    };
 
     // 5. Configurar chart de barras
     const monthLabel = new Date().toLocaleString("pt-BR", { month: "short" });
@@ -933,43 +1033,42 @@ const loadDashboardData = async () => {
     chartSeries.value.bar = [
       {
         name: "Receitas",
-        data: [summary.value.totalReceitas || 0],
+        data: [summary.value.valorTotalReceitasMes || 0],
       },
       {
         name: "Despesas",
-        data: [summary.value.totalDespesas || 0],
+        data: [summary.value.valorTotalDespesasMes || 0],
       },
     ];
 
-    // 6. Calcular distribuição de categorias a partir dos dados reais
+    // 6. Calcular distribuição de categorias DESPESAS
     try {
-      // Agrupar despesas por categoria
-      const categoriaMap = new Map<string, number>();
+      // Usar variável lancamentosDespesas que já foi populada acima
+      const categoriaDespesasMap = new Map<string, number>();
       
-      allTransactions.forEach((item: any) => {
-        const tipo = item.tipo_lancamento?.toLowerCase() || "despesa";
+      lancamentosDespesas.forEach((item: any) => {
         const status = item.status_lancamento || "PENDENTE";
         
         // Somar apenas despesas EFETIVADAS
-        if (tipo === "despesa" && status === "EFETIVADA") {
+        if (status === "EFETIVADA") {
           const categoria = item.categoria || "Outros";
           const valor = item.valor || 0;
-          categoriaMap.set(categoria, (categoriaMap.get(categoria) || 0) + valor);
+          categoriaDespesasMap.set(categoria, (categoriaDespesasMap.get(categoria) || 0) + valor);
         }
       });
 
-      // Preparar dados para o gráfico
-      const labels = Array.from(categoriaMap.keys());
-      const values = Array.from(categoriaMap.values());
+      // Preparar dados para o gráfico de DESPESAS
+      const labelsDespesas = Array.from(categoriaDespesasMap.keys());
+      const valuesDespesas = Array.from(categoriaDespesasMap.values());
       
       // Calcular percentuais
-      const totalDespesas = values.reduce((a, b) => a + b, 0);
-      const percentuais = values.map(v => (totalDespesas > 0 ? (v / totalDespesas) * 100 : 0));
+      const totalDespesasGraf = valuesDespesas.reduce((a, b) => a + b, 0);
+      const percentuaisDespesas = valuesDespesas.map(v => (totalDespesasGraf > 0 ? (v / totalDespesasGraf) * 100 : 0));
       
-      chartOptions.value.pie = {
+      chartOptionsDespesas.value = {
         chart: { type: "donut", height: 350 },
-        labels: labels.length > 0 ? labels : ["Sem dados"],
-        colors: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF", "#C9CBCF", "#4BC0C0"],
+        labels: labelsDespesas.length > 0 ? labelsDespesas : ["Sem despesas"],
+        colors: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF", "#C9CBCF", "#FF7043"],
         legend: { position: "bottom" },
         dataLabels: {
           enabled: true,
@@ -986,31 +1085,82 @@ const loadDashboardData = async () => {
         },
       };
 
-      chartSeries.value.pie = percentuais.length > 0 ? percentuais : [100];
+      chartSeriesDespesas.value = percentuaisDespesas.length > 0 ? percentuaisDespesas : [100];
     } catch (err) {
-      console.warn("Erro ao calcular distribuição de categorias:", err);
-      // Usar valores padrão
-      chartOptions.value.pie = {
+      console.warn("Erro ao calcular distribuição de despesas:", err);
+      chartOptionsDespesas.value = {
         chart: { type: "donut", height: 350 },
-        labels: ["Alimentação", "Transporte", "Moradia", "Lazer", "Outros"],
-        colors: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"],
+        labels: ["Sem dados"],
+        colors: ["#E0E0E0"],
+        legend: { position: "bottom" },
+      };
+      chartSeriesDespesas.value = [100];
+    }
+
+    // 6B. Calcular distribuição de categorias RECEITAS
+    try {
+      // Usar variável lancamentosReceitas que já foi populada acima
+      const categoriaReceitasMap = new Map<string, number>();
+      
+      lancamentosReceitas.forEach((item: any) => {
+        const status = item.status_lancamento || "PENDENTE";
+        
+        // Somar apenas receitas EFETIVADAS
+        if (status === "EFETIVADA") {
+          const categoria = item.categoria || "Outros";
+          const valor = item.valor || 0;
+          categoriaReceitasMap.set(categoria, (categoriaReceitasMap.get(categoria) || 0) + valor);
+        }
+      });
+
+      // Preparar dados para o gráfico de RECEITAS
+      const labelsReceitas = Array.from(categoriaReceitasMap.keys());
+      const valuesReceitas = Array.from(categoriaReceitasMap.values());
+      
+      // Calcular percentuais
+      const totalReceitasGraf = valuesReceitas.reduce((a, b) => a + b, 0);
+      const percentuaisReceitas = valuesReceitas.map(v => (totalReceitasGraf > 0 ? (v / totalReceitasGraf) * 100 : 0));
+      
+      chartOptionsReceitas.value = {
+        chart: { type: "donut", height: 350 },
+        labels: labelsReceitas.length > 0 ? labelsReceitas : ["Sem receitas"],
+        colors: ["#66BB6A", "#42A5F5", "#AB47BC", "#EC407A", "#29B6F6", "#78909C", "#FFCA28"],
         legend: { position: "bottom" },
         dataLabels: {
           enabled: true,
           formatter: (val: number) => `${val.toFixed(1)}%`,
         },
+        tooltip: {
+          y: {
+            formatter: (val: number) =>
+              new Intl.NumberFormat("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              }).format(val / 100),
+          },
+        },
       };
-      chartSeries.value.pie = [25.2, 18.5, 30.1, 15.3, 10.9];
+
+      chartSeriesReceitas.value = percentuaisReceitas.length > 0 ? percentuaisReceitas : [100];
+    } catch (err) {
+      console.warn("Erro ao calcular distribuição de receitas:", err);
+      chartOptionsReceitas.value = {
+        chart: { type: "donut", height: 350 },
+        labels: ["Sem dados"],
+        colors: ["#E0E0E0"],
+        legend: { position: "bottom" },
+      };
+      chartSeriesReceitas.value = [100];
     }
 
     // 7. Carregar transações recentes com fallback
-    try {
-      const transactions = await dashboardService.getRecentTransactions(10);
-      recentTransactions.value = transactions;
-    } catch (err) {
-      console.warn("Erro ao carregar transações recentes:", err);
-      recentTransactions.value = [];
-    }
+    // try {
+      // const transactions = await dashboardService.getRecentTransactions(10);
+    //   recentTransactions.value = [response.data.transacoes_recentes || []];
+    // } catch (err) {
+    //   console.warn("Erro ao carregar transações recentes:", err);
+    //   recentTransactions.value = [];
+    // }
 
     // 8. Gerar alertas dinâmicos baseado nos dados
     alerts.value = generateAlerts(counters.value);
@@ -1077,8 +1227,8 @@ const generateAlerts = (counters: any): any[] => {
 // Watch for local month changes - reload dashboard data
 // Watch for local month changes - reload dashboard data
 onMounted(() => {
-  // Reset to current month on mount to ensure fresh data
-  currentMonth.value = new Date().toISOString().slice(0, 7);
+  // Reset to current month on mount to ensure fresh data (using local timezone)
+  currentMonth.value = getCurrentMonth();
   // Load data after resetting the month
   loadDashboardData();
 });
