@@ -232,6 +232,30 @@
       :editing-data="editingData"
       @saved="loadContas"
     />
+
+    <!-- Loading Overlay - Carregamento Inicial -->
+    <v-overlay
+      v-model="loadingMonth"
+      class="align-center justify-center"
+      persistent
+      contained
+    >
+      <div class="text-center">
+        <v-progress-circular
+          indeterminate
+          size="64"
+          width="5"
+          color="primary"
+          class="mb-4"
+        />
+        <div class="text-subtitle-1 text-white mb-1">
+          Carregando contas...
+        </div>
+        <div class="text-caption text-white-50">
+          Preparando seus dados
+        </div>
+      </div>
+    </v-overlay>
   </div>
 </template>
 
@@ -265,6 +289,7 @@ const tipoFilter = ref('')
 const statusFilter = ref('')
 const dialogOpen = ref(false)
 const loading = ref(false)
+const loadingMonth = ref(false)
 const editingId = ref<number | null>(null)
 const editingData = ref<Conta | null>(null)
 
@@ -354,6 +379,7 @@ const loadContas = async () => {
     toastStore.error('Erro ao carregar contas')
   } finally {
     loading.value = false
+    loadingMonth.value = false
   }
 }
 
@@ -394,6 +420,7 @@ const clearFilters = () => {
 // Lifecycle
 onMounted(() => {
   currentMonth.value = new Date().toISOString().slice(0, 7);
+  loadingMonth.value = true;
   loadContas()
   
   // const mockContas: Conta[] = [

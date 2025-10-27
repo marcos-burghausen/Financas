@@ -1,4 +1,3 @@
-// src/services/receitas.service.ts
 import http from "./http";
 
 export interface Receita {
@@ -38,9 +37,9 @@ class ReceitasService {
    */
   async list(mesAno?: string): Promise<any> {
     try {
-      const params = mesAno ? { mesAno, tipo: "receita" } : { tipo: "receita" };
+      const params = mesAno ? { mesAno, tipo: "RECEITA" } : { tipo: "RECEITA" };
       const response = await http.get<any>("/lancamentos", { params });
-      console.log(response);
+      console.log(response.data);
       
       // Extrair dados e variação da resposta
       const lancamentos = Array.isArray(response.data.lancamentosReceitas) ? response.data.lancamentosReceitas : response.data?.data || [];

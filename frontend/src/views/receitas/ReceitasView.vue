@@ -826,6 +826,30 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+
+    <!-- Loading Overlay - Navegação de Meses -->
+    <v-overlay
+      v-model="loadingMonth"
+      class="align-center justify-center"
+      persistent
+      contained
+    >
+      <div class="text-center">
+        <v-progress-circular
+          indeterminate
+          size="64"
+          width="5"
+          color="success"
+          class="mb-4"
+        />
+        <div class="text-subtitle-1 text-white mb-1">
+          Carregando receitas...
+        </div>
+        <div class="text-caption text-white-50">
+          {{ getMonthName(currentMonth) }}
+        </div>
+      </div>
+    </v-overlay>
   </div>
 </template>
 
@@ -849,6 +873,7 @@ const walletsStore = useWalletsStore();
 const dialog = ref(false);
 const formRef = ref();
 const loading = ref(false);
+const loadingMonth = ref(false);
 const searchText = ref("");
 const selectedStatus = ref("");
 const selectedCategoria = ref("");
@@ -1136,6 +1161,7 @@ const goToPreviousMonth = () => {
   const date = new Date(parseInt(ano), parseInt(mes) - 1, 1);
   date.setMonth(date.getMonth() - 1);
   currentMonth.value = date.toISOString().slice(0, 7);
+  loadingMonth.value = true;
   loadReceitas();
 };
 
@@ -1144,11 +1170,13 @@ const goToNextMonth = () => {
   const date = new Date(parseInt(ano), parseInt(mes) - 1, 1);
   date.setMonth(date.getMonth() + 1);
   currentMonth.value = date.toISOString().slice(0, 7);
+  loadingMonth.value = true;
   loadReceitas();
 };
 
 const goToCurrentMonth = () => {
   currentMonth.value = new Date().toISOString().slice(0, 7);
+  loadingMonth.value = true;
   loadReceitas();
 };
 
@@ -1453,6 +1481,7 @@ const loadReceitas = async () => {
     toastStore.warning("Erro ao carregar receitas");
   } finally {
     loading.value = false;
+    loadingMonth.value = false;
   }
 };
 
@@ -1479,6 +1508,8 @@ watch(() => formData.value.data_efetivacao, (newVal) => {
 onMounted(() => {
   // Reset to current month on mount to ensure fresh data
   currentMonth.value = new Date().toISOString().slice(0, 7);
+  // Ativar loading ao carregar página
+  loadingMonth.value = true;
   // Load data after resetting the month
   loadReceitas();
 });

@@ -1,7 +1,7 @@
 <template>
   <div class="cadastro-wrapper">
     <v-container fluid class="cadastro-container">
-      <v-row class="fill-height align-center justify-center">
+      <v-row class="align-center justify-center">
         <v-col cols="12" sm="10" md="8" lg="6">
           <!-- Card Principal -->
           <v-card elevation="8" rounded="lg" class="cadastro-card">
@@ -623,6 +623,30 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Loading Overlay - Redirecionamento -->
+    <v-overlay
+      v-model="redirecting"
+      class="align-center justify-center"
+      persistent
+      contained
+    >
+      <div class="text-center">
+        <v-progress-circular
+          indeterminate
+          size="80"
+          width="6"
+          color="success"
+          class="mb-6"
+        />
+        <div class="text-h6 text-white mb-2">
+          Preparando seu painel...
+        </div>
+        <div class="text-caption text-white-50">
+          Você será redirecionado em instantes
+        </div>
+      </div>
+    </v-overlay>
   </div>
 </template>
 
@@ -650,6 +674,7 @@ const formData = ref({
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 const loading = ref(false)
+const redirecting = ref(false)
 const form = ref()
 const validationErrors = ref<Record<string, string[]>>({})
 const dialogTermos = ref(false)
@@ -799,10 +824,13 @@ async function handleCadastro() {
       icon: 'mdi-check-circle'
     })
 
+    // Ativar estado de redirecionamento
+    redirecting.value = true
+
     // Aguardar um pouco antes de redirecionar
     setTimeout(() => {
       router.push({ name: 'dashboard' })
-    }, 1000)
+    }, 1500)
   } catch (error: any) {
     console.error('Erro no cadastro:', error)
     
@@ -859,13 +887,16 @@ async function handleCadastro() {
 .cadastro-wrapper {
   min-height: 100vh;
   background: linear-gradient(135deg, rgb(var(--v-theme-success)) 0%, rgba(var(--v-theme-success), 0.7) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding: 2rem 0;
+  position: relative;
 }
 
 .cadastro-container {
   padding: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
 }
 
 .cadastro-card {

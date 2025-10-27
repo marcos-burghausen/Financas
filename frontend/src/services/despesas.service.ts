@@ -1,4 +1,3 @@
-// src/services/despesas.service.ts
 import http from './http'
 
 export interface Despesa {
@@ -39,12 +38,13 @@ class DespesasService {
    */
   async list(mesAno?: string): Promise<any> {
     try {
-      const params = mesAno ? { mesAno, tipo: 'despesa' } : { tipo: 'despesa' }
+      const params = mesAno ? { mesAno, tipo: 'DESPESA' } : { tipo: 'DESPESA' }
       const response = await http.get<any>('/lancamentos', { params })
+      console.log(response.data);
       
       // Extrair dados e variação da resposta
-      const lancamentos = Array.isArray(response.data) ? response.data : response.data?.data || []
-      const variacao = response.data?.variacao !== undefined ? response.data.variacao : 0
+      const lancamentos = Array.isArray(response.data.lancamentosDespesas) ? response.data.lancamentosDespesas : response.data?.data || []
+      const variacao = response.data?.variacaoDespesas !== undefined ? response.data.variacaoDespesas : 0
       
       // Filtrar apenas despesas
       const data = lancamentos.filter((item: any) => item.tipo === 'despesa' || item.tipo_lancamento === 'DESPESA')

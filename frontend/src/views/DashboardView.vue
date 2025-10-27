@@ -1,27 +1,7 @@
 <template>
   <div class="dashboard-view">
-    <!-- LOADING STATE -->
-    <v-row
-      v-if="loading"
-      class="py-12"
-    >
-      <v-col
-        cols="12"
-        class="text-center"
-      >
-        <v-progress-circular
-          indeterminate
-          color="primary"
-          size="64"
-        />
-        <p class="text-grey mt-4">
-          Carregando dados...
-        </p>
-      </v-col>
-    </v-row>
-
     <!-- MAIN CONTENT -->
-    <div v-else>
+    <div>
       <!-- MONTH NAVIGATION BAR -->
       <v-card
         class="mb-6"
@@ -697,6 +677,30 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Loading Overlay - Carregamento Inicial -->
+    <v-overlay
+      v-model="loading"
+      class="align-center justify-center"
+      persistent
+      contained
+    >
+      <div class="text-center">
+        <v-progress-circular
+          indeterminate
+          size="80"
+          width="6"
+          color="primary"
+          class="mb-6"
+        />
+        <div class="text-h6 text-white mb-2">
+          Carregando Dashboard...
+        </div>
+        <div class="text-caption text-white-50">
+          Preparando seus dados financeiros
+        </div>
+      </div>
+    </v-overlay>
   </div>
 </template>
 

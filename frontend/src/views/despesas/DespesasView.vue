@@ -827,10 +827,36 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+
+    <!-- Loading Overlay - Navegação de Meses -->
+    <v-overlay
+      v-model="loadingMonth"
+      class="align-center justify-center"
+      persistent
+      contained
+    >
+      <div class="text-center">
+        <v-progress-circular
+          indeterminate
+          size="64"
+          width="5"
+          color="error"
+          class="mb-4"
+        />
+        <div class="text-subtitle-1 text-white mb-1">
+          Carregando despesas...
+        </div>
+        <div class="text-caption text-white-50">
+          {{ getMonthName(currentMonth) }}
+        </div>
+      </div>
+    </v-overlay>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useLancamentos } from "@/composables/useLancamentos";
+import despesasService from "@/services/despesas.service";
 import { useExpensesStore } from "@/store/expenses";
 import { useToastStore } from "@/store/toast";
 import { useUserStore } from "@/store/user";
@@ -844,14 +870,11 @@ const userStore = useUserStore();
 const expensesStore = useExpensesStore();
 const walletsStore = useWalletsStore();
 
-// ✅ Data refs
-const despesas = ref<any[]>([]);
-const variacao = ref(0);
-
 // State
 const dialog = ref(false);
 const formRef = ref();
 const loading = ref(false);
+const loadingMonth = ref(false);
 const searchText = ref("");
 const selectedStatus = ref("");
 const selectedCategoria = ref("");
@@ -872,6 +895,10 @@ const tipoCalculoParcela = ref("total");
 const tempParcelaInicial = ref(1);
 const tempNumParcelas = ref(2);
 const tempPeriodicidade = ref("Mensal");
+
+// Mock data
+const despesas = ref([]);
+const variacao = ref(0);
 
 const categorias = ref(["Salário", "Freelancer", "Bonus", "Investimento", "Outros"]);
 const categoriasNames = computed(() => {
@@ -1005,7 +1032,7 @@ const summary = computed(() => ({
 }));
 
 // ✅ Usar getStatusReal para calcular o status baseado em datas
-const despesasRecebidas = computed(() => despesas.value.filter(r => getStatusReal(r) === "recebida").length);
+const despesasPagas = computed(() => despesas.value.filter(r => getStatusReal(r) === "recebida").length);
 const somaDespesas = computed(() => despesas.value.filter(r => getStatusReal(r) === "recebida").reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, "").replace(",", ".")), 0));
 
 const despesasPendentes = computed(() => despesas.value.filter(r => getStatusReal(r) === "pendente").length);
@@ -1134,6 +1161,7 @@ const goToPreviousMonth = () => {
   const date = new Date(parseInt(ano), parseInt(mes) - 1, 1);
   date.setMonth(date.getMonth() - 1);
   currentMonth.value = date.toISOString().slice(0, 7);
+  loadingMonth.value = true;
   loadDespesas();
 };
 
@@ -1142,6 +1170,7 @@ const goToNextMonth = () => {
   const date = new Date(parseInt(ano), parseInt(mes) - 1, 1);
   date.setMonth(date.getMonth() + 1);
   currentMonth.value = date.toISOString().slice(0, 7);
+  loadingMonth.value = true;
   loadDespesas();
 };
 
@@ -1203,10 +1232,10 @@ const toggleStatus = () => {
 // Carrega dados do formulário da API
 const loadFormData = async () => {
   try {
-    // Load revenues categories if needed
-    if (!revenuesStore.revenuesData?.categories || revenuesStore.revenuesData.categories.length === 0) {
-      const { updateData: updateRevenuesData } = useLancamentos("receita");
-      await updateRevenuesData();
+    // Load expenses categories if needed
+    if (!expensesStore.expensesData?.categories || expensesStore.expensesData.categories.length === 0) {
+      const { updateData: updateExpensesData } = useLancamentos("despesa");
+      await updateExpensesData();
     }
     // Load wallets if needed
     if (!walletsStore.walletsData?.contas || walletsStore.walletsData.contas.length === 0) {
@@ -1253,72 +1282,72 @@ const openAddDialog = async () => {
   dialog.value = true;
 };
 
-const editReceita = (receita: any) => {
-  editingId.value = receita.id;
+const editDespesa = (despesa: any) => {
+  editingId.value = despesa.id;
   // ✅ Converter valor de centavos para string formatada "10,00"
-  const valorFormatado = typeof receita.valor === "number" 
-    ? (receita.valor / 100).toFixed(2).replace(".", ",")
-    : receita.valor;
+  const valorFormatado = typeof despesa.valor === "number" 
+    ? (despesa.valor / 100).toFixed(2).replace(".", ",")
+    : despesa.valor;
   
   formData.value = { 
-    ...receita,
+    ...despesa,
     valor: valorFormatado // ✅ Exibir valor formatado no formulário
   };
   dialog.value = true;
 };
 
-const deleteReceita = async (id: number) => {
-  if (confirm("Tem certeza que deseja deletar esta receita?")) {
+const deleteDespesa = async (id: number) => {
+  if (confirm("Tem certeza que deseja deletar esta despesa?")) {
     try {
       loading.value = true;
-      await receitasService.delete(id);
-      toastStore.success("Receita deletada com sucesso!");
-      await loadReceitas();
+      await despesasService.delete(id);
+      toastStore.success("Despesa deletada com sucesso!");
+      await loadDespesas();
     } catch (error: any) {
-      console.error("Erro ao deletar receita:", error);
-      toastStore.error(error.message || "Erro ao deletar receita");
+      console.error("Erro ao deletar despesa:", error);
+      toastStore.error(error.message || "Erro ao deletar despesa");
     } finally {
       loading.value = false;
     }
   }
 };
 
-const efetivarReceita = async (receita: any) => {
+const efetivarDespesa = async (despesa: any) => {
   try {
     loading.value = true;
     // ✅ Converter valor para centavos (inteiro) para enviar ao backend
-    let valorCentavos = receita.valor;
-    
-    if (typeof receita.valor === "string") {
+    let valorCentavos = despesa.valor;
+
+    if (typeof despesa.valor === "string") {
       // Se for string "10,00", converte para 1000
-      valorCentavos = Math.round(parseFloat(receita.valor.replace(",", ".")) * 100);
-    } else if (typeof receita.valor === "number") {
+      valorCentavos = Math.round(parseFloat(despesa.valor.replace(",", ".")) * 100);
+    } else if (typeof despesa.valor === "number") {
       // Se já for número, assume que é centavos, mantém como está
-      valorCentavos = receita.valor;
+      valorCentavos = despesa.valor;
     }
     
     const payload = {
-      ...receita,
+      ...despesa,
       valor: valorCentavos, // ✅ Enviar valor em centavos (número inteiro)
       status_lancamento: "EFETIVADA",
-      data_vencimento: formatDateForBackend(receita.data_vencimento),
-      data_lancamento: formatDateForBackend(receita.data_lancamento),
-      data_efetivacao: formatDateForBackend(receita.data_efetivacao),
-      tipo_lancamento: "Receita"
+      data_vencimento: formatDateForBackend(despesa.data_vencimento),
+      data_lancamento: formatDateForBackend(despesa.data_lancamento),
+      data_efetivacao: formatDateForBackend(despesa.data_efetivacao),
+      tipo_lancamento: "Despesa"
     };
-    
-    await receitasService.update(receita.id, payload);
-    toastStore.success("Receita efetivada com sucesso!");
-    await loadReceitas();
+
+    await despesasService.update(despesa.id, payload);
+    toastStore.success("Despesa efetivada com sucesso!");
+    await loadDespesas();
   } catch (error: any) {
-    console.error("Erro ao efetivar receita:", error);
-    toastStore.error(error.message || "Erro ao efetivar receita");
+    console.error("Erro ao efetivar despesa:", error);
+    toastStore.error(error.message || "Erro ao efetivar despesa");
   } finally {
     loading.value = false;
   }
 };
 
-const saveReceita = async () => {
+const saveDespesa = async () => {
   loading.value = true;
   try {
     // Validar formulário
@@ -1341,7 +1370,7 @@ const saveReceita = async () => {
       // Campos obrigatórios
       descricao: formData.value.descricao,
       valor: formData.value.valor,  // STRING formatada "10,00", backend faz conversão
-      tipo_lancamento: "Receita",   // ✅ "Receita" (backend transforma para RECEITA)
+      tipo_lancamento: "Despesa",   // ✅ "Despesa" (backend transforma para DESPESA)
       recorrencia: recorrenciaMap[formData.value.recorrencia] || "NAO_RECORRENTE",
       status_lancamento: formData.value.status_lancamento || "PENDENTE",
       categoria: formData.value.categoria,
@@ -1380,14 +1409,14 @@ const saveReceita = async () => {
 
     if (editingId.value && formData.value.recorrencia === "Não recorrente") {
       // ATUALIZAR apenas se for Não recorrente
-      await receitasService.update(editingId.value, payload);
-      toastStore.success("Receita atualizada com sucesso!");
+      await despesasService.update(editingId.value, payload);
+      toastStore.success("Despesa atualizada com sucesso!");
     } else {
       // CRIAR novo lançamento
-      await receitasService.create(payload);
+      await despesasService.create(payload);
       if (editingId.value) {
         // Se estava editando FIXA ou PARCELADO, apagar o antigo
-        await receitasService.delete(editingId.value);
+        await despesasService.delete(editingId.value);
         toastStore.success("Receita atualizada com sucesso!");
       } else {
         toastStore.success("Receita criada com sucesso!");
@@ -1396,10 +1425,10 @@ const saveReceita = async () => {
 
     // Fechar modal e recarregar dados
     dialog.value = false;
-    await loadReceitas();
+    await loadDespesas();
   } catch (error: any) {
-    console.error("Erro ao salvar receita:", error);
-    toastStore.error(error.message || "Erro ao salvar receita");
+    console.error("Erro ao salvar despesa:", error);
+    toastStore.error(error.message || "Erro ao salvar despesa");
   } finally {
     loading.value = false;
   }
@@ -1417,6 +1446,7 @@ const loadDespesas = async () => {
     loading.value = true;
     const mesAno = currentMonth.value;
     const data = await despesasService.list(mesAno);
+    console.log(data);
     
     if (data && data.length > 0) {
       despesas.value = data.map((r: any) => ({
@@ -1445,6 +1475,7 @@ const loadDespesas = async () => {
     toastStore.warning("Erro ao carregar despesas");
   } finally {
     loading.value = false;
+    loadingMonth.value = false;
   }
 };
 
@@ -1471,6 +1502,8 @@ watch(() => formData.value.data_efetivacao, (newVal) => {
 onMounted(() => {
   // Reset to current month on mount to ensure fresh data
   currentMonth.value = new Date().toISOString().slice(0, 7);
+  // Ativar loading ao carregar página
+  loadingMonth.value = true;
   // Load data after resetting the month
   loadDespesas();
 });
