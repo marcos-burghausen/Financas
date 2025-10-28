@@ -641,7 +641,30 @@
                   item-value="id"
                   class="mb-4"
                   :rules="[rules.required]"
-                />
+                >
+                  <template #selection="{ item }">
+                    <div class="d-flex align-center gap-2">
+                      <v-icon
+                        :icon="getBankIcon(item.raw.icon || '')"
+                        size="small"
+                      />
+                      <span>{{ item.raw.name }}</span>
+                    </div>
+                  </template>
+                  <template #item="{ item, props }">
+                    <v-list-item
+                      v-bind="props"
+                      :title="item.raw.name"
+                    >
+                      <template #prepend>
+                        <v-icon
+                          :icon="getBankIcon(item.raw.icon || '')"
+                          class="me-2"
+                        />
+                      </template>
+                    </v-list-item>
+                  </template>
+                </v-select>
               </v-col>
               <v-col
                 cols="12"
@@ -851,6 +874,30 @@
         </div>
       </div>
     </v-overlay>
+
+    <!-- Loading Overlay - Carregamento do Formulário -->
+    <v-overlay
+      v-model="loadingForm"
+      class="align-center justify-center"
+      persistent
+      :z-index="9999"
+    >
+      <div class="text-center">
+        <v-progress-circular
+          indeterminate
+          size="64"
+          width="5"
+          color="error"
+          class="mb-4"
+        />
+        <div class="text-subtitle-1 text-white mb-1">
+          Carregando formulário...
+        </div>
+        <div class="text-caption text-white-50">
+          Preparando dados
+        </div>
+      </div>
+    </v-overlay>
   </div>
 </template>
 
@@ -861,6 +908,7 @@ import { useExpensesStore } from "@/store/expenses";
 import { useToastStore } from "@/store/toast";
 import { useUserStore } from "@/store/user";
 import { useWalletsStore } from "@/store/wallets";
+import { getBankIcon } from "@/utils/iconMapper";
 import { format, isToday, isTomorrow, isValid, isYesterday, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { computed, onMounted, ref, watch } from "vue";
@@ -875,6 +923,7 @@ const dialog = ref(false);
 const formRef = ref();
 const loading = ref(false);
 const loadingMonth = ref(false);
+const loadingForm = ref(false);
 const searchText = ref("");
 const selectedStatus = ref("");
 const selectedCategoria = ref("");
@@ -916,17 +965,7 @@ const subcategorias = ref({
   "Outros": ["Outros"],
 });
 
-const contas = computed(() => {
-  // Usa dados do store se disponível, senão usa hardcoded como fallback
-  if (walletsStore.walletsData?.contas && walletsStore.walletsData.contas.length > 0) {
-    return walletsStore.walletsData.contas;
-  }
-  return [
-    { id: 1, name: "Conta Principal" },
-    { id: 2, name: "Conta Investimento" },
-    { id: 3, name: "Poupança" },
-  ];
-});
+const contas = ref([]);
 
 const statusOptions = ref([
   "recebida",
@@ -1230,17 +1269,15 @@ const toggleStatus = () => {
 };
 
 // Carrega dados do formulário da API
+// Carrega dados do formulário da API
 const loadFormData = async () => {
   try {
-    // Load expenses categories if needed
-    if (!expensesStore.expensesData?.categories || expensesStore.expensesData.categories.length === 0) {
-      const { updateData: updateExpensesData } = useLancamentos("despesa");
-      await updateExpensesData();
-    }
-    // Load wallets if needed
-    if (!walletsStore.walletsData?.contas || walletsStore.walletsData.contas.length === 0) {
-      walletsStore.loadFromSession();
-    }
+    // Load expenses categories and wallets data
+    const { updateData: updateExpensesData } = useLancamentos("despesa");
+    await updateExpensesData();
+    
+    // O useLancamentos já atualiza o walletsStore com os dados mais recentes da API
+    // Não precisa fazer walletsStore.loadFromSession() pois os dados já foram atualizados
   } catch (error) {
     console.error("Erro ao carregar dados do formulário:", error);
   }
@@ -1260,26 +1297,34 @@ const concluirParcelas = () => {
 };
 
 const openAddDialog = async () => {
-  editingId.value = null;
-  // Carrega dados dos stores se ainda não estiverem carregados
-  await loadFormData();
-  formData.value = {
-    descricao: "",
-    categoria: "Outros",
-    conta: "",
-    valor: "0,00",
-    data_vencimento: new Date().toISOString().split("T")[0],
-    status: "pendente",
-    observacao: "",
-    recorrencia: "Não recorrente",
-    status_lancamento: "PENDENTE",
-    subcategoria: "Outros",
-    conta_id: contas.value[0]?.id || 1,
-    data_lancamento: new Date().toISOString().split("T")[0],
-    data_efetivacao: null,
-    observacoes: "",
-  };
-  dialog.value = true;
+  try {
+    loadingForm.value = true;
+    editingId.value = null;
+    // Carrega dados dos stores se ainda não estiverem carregados
+    await loadFormData();
+    formData.value = {
+      descricao: "",
+      categoria: "Outros",
+      conta: "",
+      valor: "0,00",
+      data_vencimento: new Date().toISOString().split("T")[0],
+      status: "pendente",
+      observacao: "",
+      recorrencia: "Não recorrente",
+      status_lancamento: "PENDENTE",
+      subcategoria: "Outros",
+      conta_id: contas.value[0]?.id || 1,
+      data_lancamento: new Date().toISOString().split("T")[0],
+      data_efetivacao: null,
+      observacoes: "",
+    };
+    dialog.value = true;
+  } catch (error) {
+    console.error("Erro ao abrir formulário:", error);
+    toastStore.error("Erro ao carregar dados do formulário");
+  } finally {
+    loadingForm.value = false;
+  }
 };
 
 const editDespesa = (despesa: any) => {

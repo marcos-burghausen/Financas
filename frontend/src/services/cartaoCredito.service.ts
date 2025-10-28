@@ -6,15 +6,15 @@ interface CartaoCredito {
   icon?: string;
   color?: string;
   tipo_conta: string;
-  limite?: number;
-  saldo?: number;
+  limite?: string;
+  saldo?: string;
   descricao?: string;
   dia_fechamento?: number;
   dia_vencimento?: number;
   conta_pai_id?: number | null;
   conta_pai_name?: string | null;
-  total_fatura_vigente?: number;
-  valor_em_aberto?: number;
+  total_fatura_vigente?: string;
+  valor_em_aberto?: string;
   data_fechamento?: string;
   data_vencimento?: string;
   status_fatura?: string;
@@ -78,6 +78,8 @@ class CartaoCreditoService {
         dia_fechamento: data.dia_fechamento,
         dia_vencimento: data.dia_vencimento,
         color: data.color,
+        conta_pai_id: data.conta_pai_id,
+        saldo_inicial: data.saldo_inicial ? data.saldo_inicial : 0
       };
       
       const response = await http.post<any>('/wallet', payload);
@@ -102,6 +104,7 @@ class CartaoCreditoService {
         dia_fechamento: data.dia_fechamento,
         dia_vencimento: data.dia_vencimento,
         color: data.color,
+        conta_pai_id: data.conta_pai_id,
       };
       
       const response = await http.post<any>('/wallet', payload);

@@ -300,6 +300,30 @@
         </div>
       </div>
     </v-overlay>
+
+    <!-- Loading Overlay - Carregamento do Formulário -->
+    <v-overlay
+      v-model="loadingForm"
+      class="align-center justify-center"
+      persistent
+      :z-index="9999"
+    >
+      <div class="text-center">
+        <v-progress-circular
+          indeterminate
+          size="64"
+          width="5"
+          color="primary"
+          class="mb-4"
+        />
+        <div class="text-subtitle-1 text-white mb-1">
+          Carregando formulário...
+        </div>
+        <div class="text-caption text-white-50">
+          Preparando dados
+        </div>
+      </div>
+    </v-overlay>
   </div>
 </template>
 
@@ -334,6 +358,7 @@ const statusFilter = ref('')
 const dialogOpen = ref(false)
 const loading = ref(false)
 const loadingMonth = ref(false)
+const loadingForm = ref(false)
 const editingId = ref<number | null>(null)
 const editingData = ref<Conta | null>(null)
 
@@ -436,9 +461,13 @@ const loadContas = async () => {
 }
 
 const openDialog = () => {
+  loadingForm.value = true
   editingId.value = null
   editingData.value = null
-  dialogOpen.value = true
+  setTimeout(() => {
+    dialogOpen.value = true
+    loadingForm.value = false
+  }, 300)
 }
 
 const editConta = (item: Conta) => {

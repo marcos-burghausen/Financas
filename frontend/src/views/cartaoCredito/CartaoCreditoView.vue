@@ -1,93 +1,96 @@
 <template>
   <div class="cartao-credito-view">
     <!-- Header Section -->
-    <div class="view-header mb-6">
-      <div class="d-flex align-center justify-space-between gap-3 mb-2">
-        <div class="d-flex align-center gap-3">
-          <v-icon icon="mdi-credit-card" size="36" color="error" />
+    <div class="view-header mb-4 mb-md-6">
+      <div class="d-flex align-center justify-space-between flex-wrap gap-3 mb-2">
+        <div class="d-flex align-center gap-2 gap-md-3 flex-grow-1">
+          <v-icon icon="mdi-credit-card" :size="$vuetify.display.xs ? 28 : 36" color="error" />
           <div>
-            <h1 class="text-h5 font-weight-bold">Meus Cartões de Crédito</h1>
-            <p class="text-caption text-medium-emphasis mb-0">Gerencie seus cartões, limites e faturas</p>
+            <h1 :class="$vuetify.display.xs ? 'text-h6' : 'text-h5'" class="font-weight-bold">Meus Cartões de Crédito</h1>
+            <p class="text-caption text-medium-emphasis mb-0 d-none d-sm-block">Gerencie seus cartões, limites e faturas</p>
           </div>
         </div>
         <v-btn
           color="error"
-          size="large"
-          prepend-icon="mdi-plus"
+          :size="$vuetify.display.xs ? 'default' : 'large'"
+          :prepend-icon="$vuetify.display.xs ? undefined : 'mdi-plus'"
+          :icon="$vuetify.display.xs ? 'mdi-plus' : undefined"
           @click="openAddDialog"
+          class="flex-shrink-0"
         >
-          Novo Cartão
+          <span class="d-none d-sm-inline">Novo Cartão</span>
         </v-btn>
       </div>
     </div>
 
     <!-- KPI Cards -->
-    <v-row class="mb-6">
+    <v-row class="mb-4 mb-md-6 kpi-row">
       <!-- Card: Total de Cartões -->
-      <v-col cols="12" sm="6" lg="3">
-        <v-card class="kpi-card pa-4" elevation="1">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <p class="text-caption text-medium-emphasis mb-2">Total de Cartões</p>
-              <h3 class="text-h6 font-weight-bold">{{ cartoes.length }}</h3>
+      <v-col cols="6" sm="6" lg="3">
+        <v-card class="kpi-card pa-3 pa-md-4" elevation="1">
+          <div class="d-flex align-center justify-space-between gap-1 gap-md-2">
+            <div class="flex-grow-1 min-width-0 overflow-hidden">
+              <p class="text-caption text-medium-emphasis mb-1 mb-md-2 text-no-wrap">Total de Cartões</p>
+              <h3 :class="$vuetify.display.xs ? 'text-body-1' : 'text-h6'" class="font-weight-bold">{{ cartoes.length }}</h3>
             </div>
-            <v-icon icon="mdi-cards-outline" size="40" color="info" />
+            <v-icon icon="mdi-cards-outline" :size="$vuetify.display.xs ? 24 : 40" color="info" class="flex-shrink-0 ml-1" />
           </div>
         </v-card>
       </v-col>
 
       <!-- Card: Limite Total -->
-      <v-col cols="12" sm="6" lg="3">
-        <v-card class="kpi-card pa-4" elevation="1">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <p class="text-caption text-medium-emphasis mb-2">Limite Total</p>
-              <h3 class="text-h6 font-weight-bold">{{ formatCurrency(summary.limiteTotal) }}</h3>
+      <v-col cols="6" sm="6" lg="3">
+        <v-card class="kpi-card pa-3 pa-md-4" elevation="1">
+          <div class="d-flex align-center justify-space-between gap-1 gap-md-2">
+            <div class="flex-grow-1 min-width-0 overflow-hidden">
+              <p class="text-caption text-medium-emphasis mb-1 mb-md-2 text-no-wrap">Limite Total</p>
+              <h3 :class="$vuetify.display.xs ? 'text-body-1' : 'text-h6'" class="font-weight-bold text-truncate">{{ formatCurrency(summary.limiteTotal) }}</h3>
             </div>
-            <v-icon icon="mdi-cash-multiple" size="40" color="primary" />
+            <v-icon icon="mdi-cash-multiple" :size="$vuetify.display.xs ? 24 : 40" color="primary" class="flex-shrink-0 ml-1" />
           </div>
         </v-card>
       </v-col>
 
       <!-- Card: Utilizado -->
-      <v-col cols="12" sm="6" lg="3">
-        <v-card class="kpi-card pa-4" elevation="1">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <p class="text-caption text-medium-emphasis mb-2">Utilizado</p>
-              <h3 class="text-h6 font-weight-bold">{{ formatCurrency(summary.utilizado) }}</h3>
+      <v-col cols="6" sm="6" lg="3">
+        <v-card class="kpi-card pa-3 pa-md-4" elevation="1">
+          <div class="d-flex align-center justify-space-between gap-1 gap-md-2">
+            <div class="flex-grow-1 min-width-0 overflow-hidden">
+              <p class="text-caption text-medium-emphasis mb-1 mb-md-2 text-no-wrap">Utilizado</p>
+              <h3 :class="$vuetify.display.xs ? 'text-body-1' : 'text-h6'" class="font-weight-bold text-truncate">{{ formatCurrency(summary.utilizado) }}</h3>
               <p class="text-caption text-medium-emphasis mb-0">{{ formatPercentage(summary.percentualUtilizado) }}</p>
             </div>
-            <v-icon icon="mdi-percent" size="40" color="warning" />
+            <v-icon icon="mdi-percent" :size="$vuetify.display.xs ? 24 : 40" color="warning" class="flex-shrink-0 ml-1" />
           </div>
         </v-card>
       </v-col>
 
       <!-- Card: Disponível -->
-      <v-col cols="12" sm="6" lg="3">
-        <v-card class="kpi-card pa-4" elevation="1" :class="{ 'positive': summary.disponivel >= 0, 'negative': summary.disponivel < 0 }">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <p class="text-caption text-medium-emphasis mb-2">Disponível</p>
-              <h3 class="text-h6 font-weight-bold">{{ formatCurrency(summary.disponivel) }}</h3>
+      <v-col cols="6" sm="6" lg="3">
+        <v-card class="kpi-card pa-3 pa-md-4" elevation="1" :class="{ 'positive': summary.disponivel >= 0, 'negative': summary.disponivel < 0 }">
+          <div class="d-flex align-center justify-space-between gap-1 gap-md-2">
+            <div class="flex-grow-1 min-width-0 overflow-hidden">
+              <p class="text-caption text-medium-emphasis mb-1 mb-md-2 text-no-wrap">Disponível</p>
+              <h3 :class="$vuetify.display.xs ? 'text-body-1' : 'text-h6'" class="font-weight-bold text-truncate">{{ formatCurrency(summary.disponivel) }}</h3>
             </div>
-            <v-icon icon="mdi-check-circle-outline" :size="40" :color="summary.disponivel >= 0 ? 'success' : 'error'" />
+            <v-icon icon="mdi-check-circle-outline" :size="$vuetify.display.xs ? 24 : 40" :color="summary.disponivel >= 0 ? 'success' : 'error'" class="flex-shrink-0 ml-1" />
           </div>
         </v-card>
       </v-col>
     </v-row>
 
     <!-- Filtros -->
-    <v-card class="filters-card mb-6 pa-4" elevation="0" variant="outlined">
-      <div class="d-flex flex-wrap gap-2 align-center">
+    <v-card class="filters-card mb-4 mb-md-6 pa-3 pa-md-4" elevation="0" variant="outlined">
+      <div class="d-flex flex-column flex-sm-row flex-wrap gap-2 align-stretch align-sm-center">
         <v-text-field
           v-model="search"
           label="Buscar cartões..."
           prepend-inner-icon="mdi-magnify"
           clearable
           density="compact"
-          class="flex-grow-1"
-          style="min-width: 200px"
+          class="flex-grow-1 flex-shrink-1"
+          style="min-width: 0"
+          hide-details
         />
         <v-select
           v-model="bandueiraFilter"
@@ -95,7 +98,8 @@
           label="Bandeira"
           clearable
           density="compact"
-          style="min-width: 150px"
+          class="filter-select"
+          hide-details
         />
         <v-select
           v-model="statusFilter"
@@ -103,33 +107,39 @@
           label="Status"
           clearable
           density="compact"
-          style="min-width: 150px"
+          class="filter-select"
+          hide-details
         />
         <v-btn
           variant="outlined"
           @click="clearFilters"
-          prepend-icon="mdi-close-circle-outline"
+          :prepend-icon="$vuetify.display.xs ? undefined : 'mdi-close-circle-outline'"
+          :icon="$vuetify.display.xs ? 'mdi-close-circle-outline' : undefined"
+          :size="$vuetify.display.xs ? 'small' : 'default'"
+          class="flex-shrink-0"
         >
-          Limpar
+          <span class="d-none d-sm-inline">Limpar</span>
         </v-btn>
       </div>
     </v-card>
 
     <!-- Tabela de Cartões -->
-    <v-card class="mb-6" elevation="1">
-      <v-data-table
-        :items="filteredCartoes"
-        :headers="headers"
-        :loading="loading"
-        class="cartoes-table"
-        density="comfortable"
-      >
+    <v-card class="mb-4 mb-md-6 table-container" elevation="1">
+      <div class="table-wrapper">
+        <v-data-table
+          :items="filteredCartoes"
+          :headers="headers"
+          :loading="loading"
+          class="cartoes-table"
+          density="comfortable"
+          :mobile-breakpoint="$vuetify.display.xs ? 9999 : 0"
+        >
         <template #item.name="{ item }">
           <div class="d-flex align-center gap-2">
-            <v-icon icon="mdi-credit-card" color="error" size="32" />
-            <div>
-              <div class="font-weight-bold">{{ item.name }}</div>
-              <div class="text-caption text-medium-emphasis">{{ item.descricao || 'Cartão de Crédito' }}</div>
+            <v-icon icon="mdi-credit-card" color="error" :size="$vuetify.display.xs ? 24 : 32" />
+            <div class="min-width-0">
+              <div class="font-weight-bold text-truncate">{{ item.name }}</div>
+              <div class="text-caption text-medium-emphasis text-truncate d-none d-sm-block">{{ item.descricao || 'Cartão de Crédito' }}</div>
             </div>
           </div>
         </template>
@@ -146,27 +156,27 @@
 
         <template #item.valor_em_aberto="{ item }">
           <div class="d-flex flex-column align-center">
-            <span class="font-weight-bold">{{ formatCurrency(item.valor_em_aberto || 0) }}</span>
+            <span :class="$vuetify.display.xs ? 'text-caption' : 'text-body-2'" class="font-weight-bold">{{ formatCurrency(item.valor_em_aberto || 0) }}</span>
             <v-progress-linear
               :value="((item.valor_em_aberto || 0) / (item.limite || 1)) * 100"
               :color="getUtilizacaoColor(item.valor_em_aberto || 0, item.limite || 1)"
               class="mt-1"
               height="6"
-              style="width: 100px"
+              :style="`width: ${$vuetify.display.xs ? '80px' : '100px'}`"
             />
           </div>
         </template>
 
         <template #item.limite="{ item }">
-          <div class="text-right font-weight-bold">
+          <div class="text-right font-weight-bold" :class="$vuetify.display.xs ? 'text-caption' : 'text-body-2'">
             {{ formatCurrency(item.limite || 0) }}
           </div>
         </template>
 
         <template #item.data_vencimento="{ item }">
           <div class="text-center">
-            <div class="font-weight-bold">{{ formatDate(item.data_vencimento || '') }}</div>
-            <div class="text-caption text-medium-emphasis">
+            <div class="font-weight-bold" :class="$vuetify.display.xs ? 'text-caption' : 'text-body-2'">{{ formatDate(item.data_vencimento || '') }}</div>
+            <div class="text-caption text-medium-emphasis d-none d-sm-block">
               {{ getDiasRestantes(item.data_vencimento || '') }}
             </div>
           </div>
@@ -183,29 +193,33 @@
         </template>
 
         <template #item.disponivel="{ item }">
-          <div class="text-right font-weight-bold" :class="item.disponivel >= 0 ? 'text-success' : 'text-error'">
+          <div class="text-right font-weight-bold" :class="[
+            $vuetify.display.xs ? 'text-caption' : 'text-body-2',
+            item.disponivel >= 0 ? 'text-success' : 'text-error'
+          ]">
             {{ formatCurrency(item.disponivel || 0) }}
           </div>
         </template>
 
         <template #item.actions="{ item }">
-          <div class="d-flex gap-1">
+          <div class="d-flex gap-1 justify-center">
             <v-btn
               icon="mdi-pencil"
               variant="text"
-              size="small"
+              :size="$vuetify.display.xs ? 'x-small' : 'small'"
               @click="editCartao(item)"
             />
             <v-btn
               icon="mdi-delete"
               variant="text"
-              size="small"
+              :size="$vuetify.display.xs ? 'x-small' : 'small'"
               color="error"
               @click="deleteCartao(item.id)"
             />
           </div>
         </template>
       </v-data-table>
+      </div>
     </v-card>
 
     <!-- Form Cartão Component -->
@@ -213,16 +227,23 @@
     <!-- Form Cartão Dialog -->
     <v-dialog
       v-model="dialogOpen"
-      max-width="600px"
+      :max-width="$vuetify.display.xs ? '95vw' : '600px'"
       persistent
-      width="600px"
+      :fullscreen="$vuetify.display.xs"
     >
       <v-card class="dialog-card">
-        <v-card-title class="pa-6 pb-4">
-          {{ editingId ? 'Editar Cartão' : 'Novo Cartão' }}
+        <v-card-title class="pa-4 pa-md-6 pb-3 pb-md-4 d-flex align-center justify-space-between">
+          <span :class="$vuetify.display.xs ? 'text-h6' : 'text-h5'">{{ editingId ? 'Editar Cartão' : 'Novo Cartão' }}</span>
+          <v-btn
+            v-if="$vuetify.display.xs"
+            icon="mdi-close"
+            variant="text"
+            size="small"
+            @click="closeDialog"
+          />
         </v-card-title>
 
-        <v-card-text class="pa-6 pt-4 card-text-container">
+        <v-card-text class="pa-4 pa-md-6 pt-3 pt-md-4 card-text-container">
           <v-form
             ref="formRef"
             @submit.prevent="saveCartao"
@@ -309,93 +330,94 @@
             />
 
             <!-- Dia Fechamento -->
-            <v-text-field
-              v-model="editingData.dia_fechamento"
-              label="Dia do Fechamento"
-              variant="outlined"
-              readonly
-              :rules="[rules.required]"
-              @click="menuFechamento = true"
-              prepend-inner-icon="mdi-calendar-remove-outline"
-            />
+            <v-menu
+              v-model="menuFechamento"
+              :close-on-content-click="false"
+              location="center"
+              offset="10"
+            >
+              <template #activator="{ props }">
+                <v-text-field
+                  v-model="editingData.dia_fechamento"
+                  label="Dia do Fechamento"
+                  variant="outlined"
+                  readonly
+                  :rules="[rules.required]"
+                  prepend-inner-icon="mdi-calendar-remove-outline"
+                  v-bind="props"
+                />
+              </template>
+              <v-card class="date-picker-card elevation-8">
+                <v-card-title class="p-1 text-center bg-primary text-white" style="font-size:12px">
+                  Dia do Fechamento
+                </v-card-title>
+                <v-card-text class="pa-1">
+                  <div class="date-grid">
+                    <v-btn
+                      v-for="dia in diasDoMes"
+                      :key="dia"
+                      :active="editingData.dia_fechamento === dia"
+                      :variant="editingData.dia_fechamento === dia ? 'flat' : 'outlined'"
+                      :color="editingData.dia_fechamento === dia ? 'error' : 'default'"
+                      class="date-btn"
+                      @click="editingData.dia_fechamento = dia; menuFechamento = false"
+                    >
+                      {{ String(dia).padStart(2, '0') }}
+                    </v-btn>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-menu>
 
             <!-- Dia Vencimento -->
-            <v-text-field
-              v-model="editingData.dia_vencimento"
-              label="Dia do Vencimento"
-              variant="outlined"
-              readonly
-              :rules="[rules.required]"
-              @click="menuVencimento = true"
-              prepend-inner-icon="mdi-calendar-today-outline"
-            />
-          
-
-          <!-- Menu Dia Fechamento (fora do form para não afetar tamanho) -->
-          <v-menu
-            v-model="menuFechamento"
-            :close-on-content-click="false"
-            location="bottom"
-            class="date-picker-menu"
-          >
-            <v-card class="date-picker-card">
-              <v-card-title class="pa-4 text-center bg-primary text-white">
-                Selecione o Dia do Fechamento
-              </v-card-title>
-              <v-card-text class="pa-6">
-                <div class="date-grid">
-                  <v-btn
-                    v-for="dia in diasDoMes"
-                    :key="dia"
-                    :active="editingData.dia_fechamento === dia"
-                    :variant="editingData.dia_fechamento === dia ? 'flat' : 'outlined'"
-                    :color="editingData.dia_fechamento === dia ? 'error' : 'default'"
-                    class="date-btn"
-                    @click="editingData.dia_fechamento = dia; menuFechamento = false"
-                  >
-                    {{ String(dia).padStart(2, '0') }}
-                  </v-btn>
-                </div>
-              </v-card-text>
-            </v-card>
-          </v-menu>
-
-          <!-- Menu Dia Vencimento (fora do form para não afetar tamanho) -->
-          <v-menu
-            v-model="menuVencimento"
-            :close-on-content-click="false"
-            location="bottom"
-            class="date-picker-menu"
-          >
-            <v-card class="date-picker-card">
-              <v-card-title class="pa-4 text-center bg-primary text-white">
-                Selecione o Dia do Vencimento
-              </v-card-title>
-              <v-card-text class="pa-6">
-                <div class="date-grid">
-                  <v-btn
-                    v-for="dia in diasDoMes"
-                    :key="dia"
-                    :active="editingData.dia_vencimento === dia"
-                    :variant="editingData.dia_vencimento === dia ? 'flat' : 'outlined'"
-                    :color="editingData.dia_vencimento === dia ? 'error' : 'default'"
-                    class="date-btn"
-                    @click="editingData.dia_vencimento = dia; menuVencimento = false"
-                  >
-                    {{ String(dia).padStart(2, '0') }}
-                  </v-btn>
-                </div>
-              </v-card-text>
-            </v-card>
-          </v-menu>
+            <v-menu
+              v-model="menuVencimento"
+              :close-on-content-click="false"
+              location="center"
+              offset="10"
+            >
+              <template #activator="{ props }">
+                <v-text-field
+                  v-model="editingData.dia_vencimento"
+                  label="Dia do Vencimento"
+                  variant="outlined"
+                  readonly
+                  :rules="[rules.required]"
+                  prepend-inner-icon="mdi-calendar-today-outline"
+                  v-bind="props"
+                />
+              </template>
+              <v-card class="date-picker-card elevation-8">
+                <v-card-title class="pa-1 text-center bg-primary text-white" style="font-size:12px">
+                  Dia do Vencimento
+                </v-card-title>
+                <v-card-text class="pa-1">
+                  <div class="date-grid">
+                    <v-btn
+                      v-for="dia in diasDoMes"
+                      :key="dia"
+                      :active="editingData.dia_vencimento === dia"
+                      :variant="editingData.dia_vencimento === dia ? 'flat' : 'outlined'"
+                      :color="editingData.dia_vencimento === dia ? 'error' : 'default'"
+                      class="date-btn"
+                      @click="editingData.dia_vencimento = dia; menuVencimento = false"
+                    >
+                      {{ String(dia).padStart(2, '0') }}
+                    </v-btn>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-menu>
           </v-form>
         </v-card-text>
 
-        <v-card-actions class="pa-6">
+        <v-card-actions class="pa-4 pa-md-6 pt-0">
           <v-spacer />
           <v-btn
             variant="outlined"
             @click="closeDialog"
+            :size="$vuetify.display.xs ? 'default' : 'large'"
+            class="flex-grow-1 flex-sm-grow-0"
           >
             Cancelar
           </v-btn>
@@ -404,12 +426,62 @@
             :disabled="!editingData.name || !editingData.conta_pai_id || loading"
             :loading="loading"
             @click="saveCartao"
+            :size="$vuetify.display.xs ? 'default' : 'large'"
+            class="flex-grow-1 flex-sm-grow-0"
           >
             Salvar
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Loading Overlay - Carregamento Inicial -->
+    <v-overlay
+      v-model="loadingMonth"
+      class="align-center justify-center"
+      persistent
+      contained
+    >
+      <div class="text-center">
+        <v-progress-circular
+          indeterminate
+          size="64"
+          width="5"
+          color="primary"
+          class="mb-4"
+        />
+        <div class="text-subtitle-1 text-white mb-1">
+          Carregando cartões...
+        </div>
+        <div class="text-caption text-white-50">
+          Preparando seus dados
+        </div>
+      </div>
+    </v-overlay>
+
+    <!-- Loading Overlay - Carregamento do Formulário -->
+    <v-overlay
+      v-model="loadingForm"
+      class="align-center justify-center"
+      persistent
+      :z-index="9999"
+    >
+      <div class="text-center">
+        <v-progress-circular
+          indeterminate
+          size="64"
+          width="5"
+          color="primary"
+          class="mb-4"
+        />
+        <div class="text-subtitle-1 text-white mb-1">
+          Carregando formulário...
+        </div>
+        <div class="text-caption text-white-50">
+          Preparando dados
+        </div>
+      </div>
+    </v-overlay>
   </div>
 </template>
 
@@ -460,6 +532,7 @@ const statusFilter = ref('')
 const dialogOpen = ref(false)
 const loading = ref(false)
 const loadingMonth = ref(false)
+const loadingForm = ref(false)
 const editingId = ref<number | null>(null)
 const editingData = ref<Partial<Cartao>>({
   name: '',
@@ -649,9 +722,6 @@ const loadContas = async () => {
     const mesAno = currentMonth.value;
     const data = await contasService.list(mesAno)
     
-    console.log('=== DEBUG loadContas ===');
-    console.log('Todas as contas recebidas:', data);
-    console.log('Contagem de contas:', data.length);
     
     // Filtrar apenas contas (corrente, poupança, investimento), não cartões de crédito
     const contasFiltradas = data.filter(c => {
@@ -671,6 +741,7 @@ const loadContas = async () => {
 }
 
 function openAddDialog() {
+  loadingForm.value = true
   editingId.value = null
   editingData.value = {
     name: '',
@@ -683,11 +754,15 @@ function openAddDialog() {
     color: '#e53935',
     conta_pai_id: null,
   }
-  dialogOpen.value = true
+  setTimeout(() => {
+    dialogOpen.value = true
+    loadingForm.value = false
+  }, 300)
 }
 
 function closeDialog() {
-  dialogOpen.value = false
+  dialogOpen.value = false;
+  editingId.value = null;
   editingData.value = {
     name: '',
     tipo_conta: 'Cartão de Crédito',
@@ -698,51 +773,100 @@ function closeDialog() {
     descricao: '',
     color: '#e53935',
     conta_pai_id: null,
-  }
+  };
 }
 
 function editCartao(cartao: Cartao) {
-  editingId.value = cartao.id
-  editingData.value = { ...cartao }
-  dialogOpen.value = true
+  editingId.value = cartao.id;
+  
+  // Converter limite de centavos para string formatada
+  const limiteFormatado = typeof cartao.limite === 'number'
+    ? (cartao.limite / 100).toFixed(2).replace('.', ',')
+    : cartao.limite;
+  
+  editingData.value = {
+    ...cartao,
+    limite: limiteFormatado
+  };
+  
+  dialogOpen.value = true;
 }
 
-function saveCartao() {
-  if (!editingData.value.name) {
-    toastStore.error('Nome do cartão é obrigatório');
-    return;
-  }
-
-  if (!editingData.value.conta_pai_id) {
-    toastStore.error('Selecione uma conta vinculada');
-    return;
-  }
-
-  // Usar a cor da conta pai se não houver cor definida
-  const cartaoData = {
-    ...editingData.value,
-    color: corContaPai.value,
-    conta_pai_name: contaPaiSelecionada.value?.name
-  }
-
-  if (editingId.value) {
-    const index = cartoes.value.findIndex(c => c.id === editingId.value)
-    if (index !== -1) {
-      cartoes.value[index] = { ...cartaoData, id: editingId.value } as Cartao
-      toastStore.success('Cartão atualizado com sucesso!')
+async function saveCartao() {
+  try {
+    // Validar formulário
+    if (!formRef.value?.validate || !(await formRef.value.validate()).valid) {
+      toastStore.error('Preencha todos os campos obrigatórios');
+      return;
     }
-  } else {
-    const newId = Math.max(...cartoes.value.map(c => c.id), 0) + 1
-    cartoes.value.push({ ...cartaoData, id: newId } as Cartao)
-    toastStore.success('Cartão criado com sucesso!')
+
+    if (!editingData.value.name) {
+      toastStore.error('Nome do cartão é obrigatório');
+      return;
+    }
+
+    if (!editingData.value.conta_pai_id) {
+      toastStore.error('Selecione uma conta vinculada');
+      return;
+    }
+
+    loading.value = true;
+
+    // O backend espera receber o limite como string formatada (ex: "9.000,00")
+    // porque ele tem um transformMonetaryValue que converte para centavos
+    // Então enviamos o valor já formatado do input
+    const limiteString = editingData.value.limite?.toString() || "0,00";
+    console.log('🔍 DEBUG - Limite String para enviar:', limiteString);
+
+    // Preparar payload
+    const payload = {
+      name: editingData.value.name,
+      icon: editingData.value.icon || 'Visa',
+      tipo_conta: 'Cartão de Crédito',
+      limite: limiteString, // Envia como string formatada
+      descricao: editingData.value.descricao || '',
+      dia_fechamento: editingData.value.dia_fechamento || 1,
+      dia_vencimento: editingData.value.dia_vencimento || 10,
+      color: corContaPai.value || '#e53935',
+      conta_pai_id: editingData.value.conta_pai_id,
+    };
+
+    console.log('📤 Payload enviado ao backend:', payload);
+
+    if (editingId.value) {
+      // Atualizar cartão existente
+      await cartaoCreditoService.update(editingId.value, payload);
+      toastStore.success('Cartão atualizado com sucesso!');
+    } else {
+      // Criar novo cartão
+      await cartaoCreditoService.create(payload);
+      toastStore.success('Cartão criado com sucesso!');
+    }
+
+    // Recarregar lista de cartões
+    await loadCartoes();
+    closeDialog();
+  } catch (error: any) {
+    console.error('Erro ao salvar cartão:', error);
+    toastStore.error(error.message || 'Erro ao salvar cartão');
+  } finally {
+    loading.value = false;
   }
-  closeDialog()
 }
 
-function deleteCartao(id: number) {
+async function deleteCartao(id: number) {
   if (confirm('Tem certeza que deseja deletar este cartão?')) {
-    cartoes.value = cartoes.value.filter(c => c.id !== id)
-    toastStore.success('Cartão deletado com sucesso!')
+    try {
+      loading.value = true;
+      await cartaoCreditoService.delete(id);
+      toastStore.success('Cartão deletado com sucesso!');
+      await loadCartoes();
+    } catch (error: any) {
+      console.error('Erro ao deletar cartão:', error);
+      toastStore.error(error.message || 'Erro ao deletar cartão');
+    } finally {
+      loading.value = false;
+    }
   }
 }
 
@@ -767,18 +891,91 @@ watch(() => currentMonth.value, () => {
 </script>
 
 <style scoped lang="scss">
+// Prevenir overflow horizontal global
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
 .cartao-credito-view {
-  padding: 24px;
+  padding: 16px;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
+
+  @media (min-width: 600px) {
+    padding: 20px;
+  }
+
+  @media (min-width: 960px) {
+    padding: 24px;
+  }
+
+  // Garantir que todos os elementos filhos respeitem a largura
+  * {
+    box-sizing: border-box;
+  }
+
+  // Prevenir overflow em v-row
+  :deep(.v-row) {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    max-width: 100%;
+  }
+
+  // Prevenir overflow em v-col
+  :deep(.v-col) {
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+
+    @media (min-width: 600px) {
+      padding-left: 12px !important;
+      padding-right: 12px !important;
+    }
+  }
+
+  // Garantir que cards dentro das colunas não ultrapassem
+  :deep(.v-card) {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  // Prevenir gap excessivo em telas pequenas
+  .kpi-row {
+    @media (max-width: 599px) {
+      margin-left: -6px !important;
+      margin-right: -6px !important;
+    }
+  }
 }
 
 .view-header {
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-  padding-bottom: 16px;
+  padding-bottom: 12px;
+  width: 100%;
+  overflow: hidden;
+
+  @media (min-width: 600px) {
+    padding-bottom: 16px;
+  }
+
+  h1 {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
 }
 
 .kpi-card {
   border-left: 4px solid rgb(var(--v-theme-error));
   transition: all 0.3s ease;
+  min-height: 80px;
+  width: 100%;
+  overflow: hidden;
+
+  @media (min-width: 600px) {
+    min-height: 100px;
+  }
 
   &:hover {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
@@ -792,15 +989,99 @@ watch(() => currentMonth.value, () => {
   &.negative {
     border-left-color: rgb(var(--v-theme-error));
   }
+
+  .min-width-0 {
+    min-width: 0;
+  }
+
+  .overflow-hidden {
+    overflow: hidden;
+  }
+
+  .flex-shrink-0 {
+    flex-shrink: 0;
+  }
+
+  .text-no-wrap {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 .filters-card {
   background: rgba(var(--v-theme-error), 0.05);
+  width: 100%;
+  overflow: hidden;
+
+  .d-flex {
+    width: 100%;
+  }
+
+  .filter-select {
+    min-width: 0;
+    flex: 1 1 auto;
+
+    @media (min-width: 600px) {
+      flex: 0 0 auto;
+      min-width: 150px;
+      max-width: 200px;
+    }
+  }
+
+  @media (max-width: 599px) {
+    .v-text-field,
+    .v-select {
+      width: 100%;
+      min-width: 100% !important;
+    }
+  }
 }
 
 .cartoes-table {
+  width: 100%;
+  
   :deep(.v-data-table) {
     background: rgb(var(--v-theme-background));
+    width: 100%;
+  }
+
+  :deep(.v-data-table__td) {
+    padding: 8px 4px !important;
+    word-break: break-word;
+
+    @media (min-width: 600px) {
+      padding: 12px 8px !important;
+    }
+  }
+
+  :deep(.v-data-table__th) {
+    padding: 8px 4px !important;
+    font-size: 0.75rem !important;
+
+    @media (min-width: 600px) {
+      padding: 12px 8px !important;
+      font-size: 0.875rem !important;
+    }
+  }
+
+  .min-width-0 {
+    min-width: 0;
+  }
+}
+
+.table-container {
+  width: 100%;
+  overflow: hidden;
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  @media (max-width: 959px) {
+    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -849,14 +1130,43 @@ watch(() => currentMonth.value, () => {
 
 /* Card do dialog - tamanho fixo */
 .dialog-card {
-  width: 600px !important;
-  max-width: 600px !important;
-  min-width: 600px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+
+  @media (min-width: 600px) {
+    width: 600px !important;
+    max-width: 600px !important;
+    min-width: 600px !important;
+  }
+
+  // Prevenir overflow nos campos do formulário
+  :deep(.v-input) {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  :deep(.v-field) {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  :deep(.v-text-field),
+  :deep(.v-select) {
+    width: 100%;
+    max-width: 100%;
+  }
 }
 
 /* Container do card-text para contexto de posicionamento */
 .card-text-container {
   position: relative !important;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+
+  @media (min-width: 600px) {
+    max-height: none;
+    overflow-y: visible;
+  }
 }
 
 /* Estilos para Date Picker */
@@ -866,31 +1176,12 @@ watch(() => currentMonth.value, () => {
   width: 160px !important;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
   border-radius: 12px;
-  position: relative !important;
-}
 
-/* Centralizar o menu dentro do formulário */
-:deep(.v-menu__content) {
-  position: fixed !important;
-  left: 50% !important;
-  top: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  min-width: 160px !important;
-  max-width: 160px !important;
-  width: 160px !important;
-}
-
-:deep(.v-overlay__content) {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: auto !important;
-}
-
-:deep(.v-card.date-picker-card) {
-  width: 160px !important;
-  min-width: 160px !important;
-  max-width: 160px !important;
+  @media (max-width: 599px) {
+    min-width: 280px !important;
+    max-width: 280px !important;
+    width: 280px !important;
+  }
 }
 
 .date-grid {
@@ -898,6 +1189,11 @@ watch(() => currentMonth.value, () => {
   grid-template-columns: repeat(5, 1fr);
   gap: 3px;
   padding: 0;
+
+  @media (max-width: 599px) {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+  }
 }
 
 .date-btn {
@@ -910,6 +1206,13 @@ watch(() => currentMonth.value, () => {
   padding: 0 !important;
   min-width: 20px !important;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  @media (max-width: 599px) {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+    min-width: 36px !important;
+  }
   
   &:hover {
     transform: scale(1.05);
@@ -919,33 +1222,6 @@ watch(() => currentMonth.value, () => {
   &.v-btn--active {
     box-shadow: 0 4px 16px rgba(229, 57, 53, 0.3);
     transform: scale(1.08);
-  }
-}
-
-@media (max-width: 600px) {
-  .date-grid {
-    grid-template-columns: repeat(5, 1fr);
-    gap: 4px;
-  }
-
-  .date-btn {
-    width: 24px;
-    height: 24px;
-    font-size: 11px;
-  }
-
-  .date-picker-card {
-    min-width: 100px;
-  }
-}
-
-@media (max-width: 600px) {
-  .cartao-credito-view {
-    padding: 16px;
-  }
-
-  .kpi-card {
-    margin-bottom: 8px;
   }
 }
 </style>
