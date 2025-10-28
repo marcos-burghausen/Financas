@@ -114,51 +114,95 @@
       </div>
     </v-card>
 
-    <v-row class="mb-6">
-  <v-col
-    v-for="conta in filteredContas"
-    :key="conta.id"
-    cols="12"
-    sm="6"
-    lg="4"
-  >
-    <v-card
-      class="account-card"
-      :class="getBankClass(conta.bank)"
-      elevation="4"
-      dark
-    >
-      <v-card-text class="d-flex flex-column justify-space-between fill-height">
-        <div>
-          <div class="d-flex justify-space-between align-center mb-4">
-            <span class="text-body-1 font-weight-bold">{{ conta.bank }}</span>
-            <v-chip
-              label
-              small
-              dark
-              color="rgba(255, 255, 255, 0.2)"
-            >
-              {{ getTipoLabel(conta.type) }}
-            </v-chip>
-          </div>
-          <p class="text-caption text-white mb-1">{{ conta.name }}</p>
-        </div>
+    <!-- <v-row class="mb-6">
+      <v-col
+        v-for="conta in filteredContas"
+        :key="conta.id"
+        cols="12"
+        sm="6"
+        lg="4"
+      >
+        <v-card
+          class="account-card"
+          :class="getBankClass(conta.bank)"
+          elevation="4"
+          dark
+        >
+          <div class="card-pattern"></div>
 
-        <div>
-          <p class="text-caption text-medium-emphasis mb-0">Saldo Atual</p>
-          <h2 class="text-h5 font-weight-bold">
-            {{ formatCurrency(conta.balance) }}
-          </h2>
-        </div>
-      </v-card-text>
-    </v-card>
-  </v-col>
-</v-row>
+          <v-card-text class="d-flex flex-column justify-space-between fill-height card-content">
+            
+            <div class="d-flex justify-space-between align-center">
+              <span class="text-body-1 font-weight-bold">{{ conta.bank }}</span>
+              
+              <div class="card-network-logo">
+                <div class="circle red"></div>
+                <div class="circle yellow"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="card-chip"></div>
+              
+              <p class="text-caption text-white mt-3 mb-1">{{ conta.name }}</p>
+            </div>
+
+            <div>
+              <p class="text-caption text-medium-emphasis mb-0">Saldo Atual</p>
+              <h2 class="text-h5 font-weight-bold">
+                {{ formatCurrency(conta.balance) }}
+              </h2>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <v-row class="mb-6">
+      <v-col
+        v-for="conta in contas"
+        :key="conta.id"
+        cols="12"
+        sm="6"
+        lg="4"
+      >
+        <v-card
+          class="account-card"
+          :class="getBankClass(conta.bank)"
+          elevation="4"
+          dark
+        >
+          <v-card-text class="d-flex flex-column justify-space-between fill-height">
+            <div>
+              <div class="d-flex justify-space-between align-center mb-4">
+                <span class="text-body-1 font-weight-bold">{{ conta.bank }}</span>
+                <v-chip
+                  label
+                  small
+                  dark
+                  color="rgba(255, 255, 255, 0.2)"
+                >
+                  {{ getTipoLabel(conta.type) }}
+                </v-chip>
+              </div>
+              <p class="text-caption text-white mb-1">{{ conta.name }}</p>
+            </div>
+
+            <div>
+              <p class="text-caption text-medium-emphasis mb-0">Saldo Atual</p>
+              <h2 class="text-h5 font-weight-bold">
+                {{ formatCurrency(conta.balance) }}
+              </h2>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row> -->
 
     <!-- Tabela de Contas -->
     <v-card class="mb-6" elevation="1">
       <v-data-table
-        :items="filteredContas"
+        :items="contas"
         :headers="headers"
         :loading="loading"
         class="contas-table"
@@ -283,7 +327,7 @@ interface Conta {
 }
 
 // State
-const contas = ref<Conta[]>([])
+const contas = ref([])
 const search = ref('')
 const tipoFilter = ref('')
 const statusFilter = ref('')
@@ -305,7 +349,15 @@ const tiposContaPossivel = ['corrente', 'poupança', 'investimento']
 
 // Computed
 const contasAtivas = computed(() => contas.value.filter(c => c.status === 'ativa'))
-const currentMonth = ref<string>(new Date().toISOString().slice(0, 7));
+
+const getCurrentMonth = (): string => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+};
+
+const currentMonth = ref<string>(getCurrentMonth());
 
 const summary = computed(() => ({
   totalBalance: contas.value.reduce((sum, c) => sum + c.balance, 0),
@@ -313,15 +365,15 @@ const summary = computed(() => ({
   limiteDisponivel: contas.value.reduce((sum, c) => sum + (c.limit || 0), 0)
 }))
 
-const filteredContas = computed(() => {
-  return contas.value.filter(conta => {
-    const matchSearch = conta.name.toLowerCase().includes(search.value.toLowerCase()) ||
-                       conta.bank.toLowerCase().includes(search.value.toLowerCase())
-    const matchTipo = !tipoFilter.value || conta.type === tipoFilter.value
-    const matchStatus = !statusFilter.value || conta.status === statusFilter.value
-    return matchSearch && matchTipo && matchStatus
-  })
-})
+// const filteredContas = computed(() => {
+//   return contas.value.filter(conta => {
+//     const matchSearch = conta.name.toLowerCase().includes(search.value.toLowerCase()) ||
+//                        conta.bank.toLowerCase().includes(search.value.toLowerCase())
+//     const matchTipo = !tipoFilter.value || conta.type === tipoFilter.value
+//     const matchStatus = !statusFilter.value || conta.status === statusFilter.value
+//     return matchSearch && matchTipo && matchStatus
+//   })
+// })
 
 // Methods
 const getBankClass = (bankName: string): string => {
@@ -419,7 +471,7 @@ const clearFilters = () => {
 
 // Lifecycle
 onMounted(() => {
-  currentMonth.value = new Date().toISOString().slice(0, 7);
+  currentMonth.value = getCurrentMonth();
   loadingMonth.value = true;
   loadContas()
   
@@ -494,23 +546,73 @@ watch(() => currentMonth.value, () => {
 
 <style scoped lang="scss">
 .account-card {
-  border-radius: 12px;
-  min-height: 180px;
-  color: #FFFFFF; // Força o texto a ser branco
+  border-radius: 16px; // Mais arredondado, como na imagem
+  min-height: 210px; // Um pouco mais alto para comportar os elementos
+  color: #FFFFFF;
   transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
+  position: relative; // Essencial para o posicionamento dos elementos internos
+  overflow: hidden; // Esconde o que vazar do padrão de onda
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25) !important;
   }
 
-  .v-card-text {
+  // Conteúdo do card (para ficar acima do padrão)
+  .card-content {
+    position: relative;
     z-index: 2;
   }
 
-  // Gradientes
+  // Padrão de onda no fundo
+  .card-pattern {
+    position: absolute;
+    bottom: -60px; // Posiciona no fundo, parcialmente visível
+    left: -50px;
+    right: -50px;
+    height: 200px;
+    z-index: 1;
+    opacity: 0.1; // Muito sutil
+    // Este é um SVG de onda embutido
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="white" d="M0,160L48,181.3C96,203,192,245,288,261.3C384,277,480,267,576,234.7C672,203,768,149,864,138.7C960,128,1056,160,1152,170.7C1248,181,1344,171,1392,165.3L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+    background-size: cover;
+    background-repeat: no-repeat;
+  }
+
+  // Chip do cartão (quadrado prateado)
+  .card-chip {
+    width: 48px;
+    height: 38px;
+    background: linear-gradient(135deg, #cfcfcf, #ebebeb);
+    border-radius: 6px;
+    border: 1px solid rgba(0,0,0,0.1);
+  }
+
+  // Logo da "Bandeira" (simulando Mastercard)
+  .card-network-logo {
+    position: relative;
+    width: 40px;
+    height: 25px;
+    
+    .circle {
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      position: absolute;
+      
+      &.red {
+        background-color: #EB001B;
+        left: 0;
+      }
+      &.yellow {
+        background-color: #F79E1B;
+        right: 0;
+        opacity: 0.85; // Efeito de sobreposição
+      }
+    }
+  }
+
+  /* --- Classes de Gradiente (Manter as mesmas) --- */
   &.bg-nubank {
     background: linear-gradient(135deg, #612F74, #A13DA8);
   }
@@ -518,19 +620,24 @@ watch(() => currentMonth.value, () => {
     background: linear-gradient(135deg, #FF7A00, #F5841F);
   }
   &.bg-itau {
+    // Gradiente da imagem de inspiração (Laranja e Azul)
     background: linear-gradient(135deg, #EC7000, #0056A3);
   }
   &.bg-bradesco {
+    // Vermelho do Bradesco
     background: linear-gradient(135deg, #D9232E, #B91C26);
   }
   &.bg-bb {
-    background: linear-gradient(135deg, #0033A0, #FFEE00);
+    // Azul e Amarelo do BB
+    background: linear-gradient(135deg, #0033A0, #FADC01);
   }
   &.bg-caixa {
+    // Azul da Caixa
     background: linear-gradient(135deg, #0073B5, #004A7B);
   }
   &.bg-default-grad {
-    background: linear-gradient(135deg, #424242, #212121);
+    // Verde da imagem de inspiração (Banco Original?)
+    background: linear-gradient(135deg, #16A085, #1E8449);
   }
 }
 

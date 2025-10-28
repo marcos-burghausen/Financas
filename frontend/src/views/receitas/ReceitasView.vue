@@ -1271,7 +1271,7 @@ const openAddDialog = async () => {
   await loadFormData();
   formData.value = {
     descricao: "",
-    categoria: "",
+    categoria: "Outros",
     conta: "",
     valor: "0,00",
     data_vencimento: new Date().toISOString().split("T")[0],
@@ -1279,7 +1279,7 @@ const openAddDialog = async () => {
     observacao: "",
     recorrencia: "Não recorrente",
     status_lancamento: "PENDENTE",
-    subcategoria: "",
+    subcategoria: "Outros",
     conta_id: contas.value[0]?.id || 1,
     data_lancamento: new Date().toISOString().split("T")[0],
     data_efetivacao: null,

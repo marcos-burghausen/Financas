@@ -903,8 +903,8 @@ const variacao = ref(0);
 const categorias = ref(["Salário", "Freelancer", "Bonus", "Investimento", "Outros"]);
 const categoriasNames = computed(() => {
   // Usa dados do store se disponível, senão usa hardcoded como fallback
-  if (expensesStore.revenuesData?.categories && expensesStore.revenuesData.categories.length > 0) {
-    return expensesStore.revenuesData.categories.map((cat: any) => cat.name);
+  if (expensesStore.expensesData?.categories && expensesStore.expensesData.categories.length > 0) {
+    return expensesStore.expensesData.categories.map((cat: any) => cat.name);
   }
   return ["Salário", "Freelancer", "Bonus", "Investimento", "Outros"];
 });
@@ -1033,7 +1033,7 @@ const summary = computed(() => ({
 
 // ✅ Usar getStatusReal para calcular o status baseado em datas
 const despesasPagas = computed(() => despesas.value.filter(r => getStatusReal(r) === "recebida").length);
-const somaDespesas = computed(() => despesas.value.filter(r => getStatusReal(r) === "recebida").reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, "").replace(",", ".")), 0));
+const somaPagas = computed(() => despesas.value.filter(r => getStatusReal(r) === "recebida").reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, "").replace(",", ".")), 0));
 
 const despesasPendentes = computed(() => despesas.value.filter(r => getStatusReal(r) === "pendente").length);
 const somaPendentes = computed(() => despesas.value.filter(r => getStatusReal(r) === "pendente").reduce((sum, r) => sum + parseFloat((r.valor || 0).toString().replace(/\./g, "").replace(",", ".")), 0));
@@ -1217,7 +1217,7 @@ const getStatusTextColor = (status: string) => {
 
 const getStatusLabel = (status: string) => {
   const labels: Record<string, string> = {
-    recebida: "Recebida",
+    recebida: "Paga",
     pendente: "Pendente",
     atrasada: "Atrasada",
     cancelada: "Cancelada",
@@ -1265,7 +1265,7 @@ const openAddDialog = async () => {
   await loadFormData();
   formData.value = {
     descricao: "",
-    categoria: "",
+    categoria: "Outros",
     conta: "",
     valor: "0,00",
     data_vencimento: new Date().toISOString().split("T")[0],
@@ -1273,7 +1273,7 @@ const openAddDialog = async () => {
     observacao: "",
     recorrencia: "Não recorrente",
     status_lancamento: "PENDENTE",
-    subcategoria: "",
+    subcategoria: "Outros",
     conta_id: contas.value[0]?.id || 1,
     data_lancamento: new Date().toISOString().split("T")[0],
     data_efetivacao: null,
@@ -1417,9 +1417,9 @@ const saveDespesa = async () => {
       if (editingId.value) {
         // Se estava editando FIXA ou PARCELADO, apagar o antigo
         await despesasService.delete(editingId.value);
-        toastStore.success("Receita atualizada com sucesso!");
+        toastStore.success("Despesa atualizada com sucesso!");
       } else {
-        toastStore.success("Receita criada com sucesso!");
+        toastStore.success("Despesa criada com sucesso!");
       }
     }
 

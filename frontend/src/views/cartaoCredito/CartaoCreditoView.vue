@@ -124,32 +124,32 @@
         class="cartoes-table"
         density="comfortable"
       >
-        <template #item.nome="{ item }">
+        <template #item.name="{ item }">
           <div class="d-flex align-center gap-2">
             <v-icon icon="mdi-credit-card" color="error" size="32" />
             <div>
-              <div class="font-weight-bold">{{ item.nome }}</div>
-              <div class="text-caption text-medium-emphasis">{{ item.numero }}</div>
+              <div class="font-weight-bold">{{ item.name }}</div>
+              <div class="text-caption text-medium-emphasis">{{ item.descricao || 'Cartão de Crédito' }}</div>
             </div>
           </div>
         </template>
 
-        <template #item.bandeiraira="{ item }">
+        <template #item.tipo_conta="{ item }">
           <v-chip
-            :color="getBandeiraColor(item.bandeiraira)"
+            :color="getBandeiraColor(item.tipo_conta)"
             label
             size="small"
           >
-            {{ item.bandeiraira }}
+            {{ item.tipo_conta }}
           </v-chip>
         </template>
 
-        <template #item.utilizado="{ item }">
+        <template #item.valor_em_aberto="{ item }">
           <div class="d-flex flex-column align-center">
-            <span class="font-weight-bold">{{ formatCurrency(item.utilizado) }}</span>
+            <span class="font-weight-bold">{{ formatCurrency(item.valor_em_aberto || 0) }}</span>
             <v-progress-linear
-              :value="(item.utilizado / item.limite) * 100"
-              :color="getUtilizacaoColor(item.utilizado, item.limite)"
+              :value="((item.valor_em_aberto || 0) / (item.limite || 1)) * 100"
+              :color="getUtilizacaoColor(item.valor_em_aberto || 0, item.limite || 1)"
               class="mt-1"
               height="6"
               style="width: 100px"
@@ -159,27 +159,33 @@
 
         <template #item.limite="{ item }">
           <div class="text-right font-weight-bold">
-            {{ formatCurrency(item.limite) }}
+            {{ formatCurrency(item.limite || 0) }}
           </div>
         </template>
 
-        <template #item.vencimentoFatura="{ item }">
+        <template #item.data_vencimento="{ item }">
           <div class="text-center">
-            <div class="font-weight-bold">{{ formatDate(item.vencimentoFatura) }}</div>
+            <div class="font-weight-bold">{{ formatDate(item.data_vencimento || '') }}</div>
             <div class="text-caption text-medium-emphasis">
-              {{ getDiasRestantes(item.vencimentoFatura) }}
+              {{ getDiasRestantes(item.data_vencimento || '') }}
             </div>
           </div>
         </template>
 
-        <template #item.status="{ item }">
+        <template #item.status_fatura="{ item }">
           <v-chip
-            :color="getStatusColor(item.status)"
+            :color="getStatusColor(item.status_fatura || 'INEXISTENTE')"
             label
             size="small"
           >
-            {{ getStatusLabel(item.status) }}
+            {{ getStatusLabel(item.status_fatura || 'INEXISTENTE') }}
           </v-chip>
+        </template>
+
+        <template #item.disponivel="{ item }">
+          <div class="text-right font-weight-bold" :class="item.disponivel >= 0 ? 'text-success' : 'text-error'">
+            {{ formatCurrency(item.disponivel || 0) }}
+          </div>
         </template>
 
         <template #item.actions="{ item }">
@@ -203,115 +209,322 @@
     </v-card>
 
     <!-- Form Cartão Component -->
-    <FormContaCartao
-      v-if="dialogOpen"
-      :wallet-type="'Cartão'"
-      :editing-data="editingData"
-      :wallets="cartoes"
-      @saved="handleFormSaved"
-      @close="closeDialog"
-    />
+    
+    <!-- Form Cartão Dialog -->
+    <v-dialog
+      v-model="dialogOpen"
+      max-width="600px"
+      persistent
+      width="600px"
+    >
+      <v-card class="dialog-card">
+        <v-card-title class="pa-6 pb-4">
+          {{ editingId ? 'Editar Cartão' : 'Novo Cartão' }}
+        </v-card-title>
+
+        <v-card-text class="pa-6 pt-4 card-text-container">
+          <v-form
+            ref="formRef"
+            @submit.prevent="saveCartao"
+          >
+            <!-- Nome do Cartão com ícone da conta -->
+            <v-text-field
+              v-model="editingData.name"
+              label="Apelido do Cartão"
+              variant="outlined"
+              :rules="[rules.required]"
+              prepend-inner-icon="mdi-text"
+            >
+              <template #append-inner>
+                <!-- Ícone da conta vinculada (apenas exibição) -->
+                <div v-if="contaPaiSelecionada" class="d-flex align-center">
+                  <v-icon :icon="getBankIcon(contaPaiSelecionada.icon || '')" size="24" />
+                </div>
+              </template>
+            </v-text-field>
+
+            <!-- Conta Vinculada -->
+            <v-select
+              v-model="editingData.conta_pai_id"
+              :items="contas"
+              item-title="name"
+              item-value="id"
+              label="Conta Vinculada"
+              variant="outlined"
+              :rules="[rules.required]"
+              prepend-inner-icon="mdi-bank"
+            >
+              <template #selection="{ item }">
+                <div class="d-flex align-center text-truncate gap-2">
+                  <v-icon
+                    v-if="item.raw.icon"
+                    :icon="getBankIcon(item.raw.icon)"
+                    size="20"
+                  />
+                  <span class="text-truncate">{{ item?.raw?.name ?? 'Nenhuma' }}</span>
+                </div>
+              </template>
+              <template #item="{ props: itemProps, item }">
+                <v-list-item
+                  v-bind="itemProps"
+                  :title="item.raw.name"
+                >
+                  <template #prepend>
+                    <v-icon
+                      v-if="item.raw.icon"
+                      :icon="getBankIcon(item.raw.icon)"
+                    />
+                  </template>
+                </v-list-item>
+              </template>
+            </v-select>
+
+            <!-- Limite -->
+            <v-text-field
+              v-model="editingData.limite"
+              label="Limite do Cartão"
+              variant="outlined"
+              type="tel"
+              :rules="[rules.required]"
+              prepend-inner-icon="mdi-currency-brl"
+              @update:model-value="editingData.limite = formatCurrencyInput($event)"
+            />
+
+            <!-- Bandeira -->
+            <v-select
+              v-model="editingData.icon"
+              :items="['Visa', 'Mastercard', 'ELO', 'American Express']"
+              label="Bandeira"
+              variant="outlined"
+              :rules="[rules.required]"
+              prepend-inner-icon="mdi-credit-card-outline"
+            />
+
+            <!-- Descrição -->
+            <v-text-field
+              v-model="editingData.descricao"
+              label="Descrição"
+              variant="outlined"
+              prepend-inner-icon="mdi-text-box-outline"
+            />
+
+            <!-- Dia Fechamento -->
+            <v-text-field
+              v-model="editingData.dia_fechamento"
+              label="Dia do Fechamento"
+              variant="outlined"
+              readonly
+              :rules="[rules.required]"
+              @click="menuFechamento = true"
+              prepend-inner-icon="mdi-calendar-remove-outline"
+            />
+
+            <!-- Dia Vencimento -->
+            <v-text-field
+              v-model="editingData.dia_vencimento"
+              label="Dia do Vencimento"
+              variant="outlined"
+              readonly
+              :rules="[rules.required]"
+              @click="menuVencimento = true"
+              prepend-inner-icon="mdi-calendar-today-outline"
+            />
+          
+
+          <!-- Menu Dia Fechamento (fora do form para não afetar tamanho) -->
+          <v-menu
+            v-model="menuFechamento"
+            :close-on-content-click="false"
+            location="bottom"
+            class="date-picker-menu"
+          >
+            <v-card class="date-picker-card">
+              <v-card-title class="pa-4 text-center bg-primary text-white">
+                Selecione o Dia do Fechamento
+              </v-card-title>
+              <v-card-text class="pa-6">
+                <div class="date-grid">
+                  <v-btn
+                    v-for="dia in diasDoMes"
+                    :key="dia"
+                    :active="editingData.dia_fechamento === dia"
+                    :variant="editingData.dia_fechamento === dia ? 'flat' : 'outlined'"
+                    :color="editingData.dia_fechamento === dia ? 'error' : 'default'"
+                    class="date-btn"
+                    @click="editingData.dia_fechamento = dia; menuFechamento = false"
+                  >
+                    {{ String(dia).padStart(2, '0') }}
+                  </v-btn>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-menu>
+
+          <!-- Menu Dia Vencimento (fora do form para não afetar tamanho) -->
+          <v-menu
+            v-model="menuVencimento"
+            :close-on-content-click="false"
+            location="bottom"
+            class="date-picker-menu"
+          >
+            <v-card class="date-picker-card">
+              <v-card-title class="pa-4 text-center bg-primary text-white">
+                Selecione o Dia do Vencimento
+              </v-card-title>
+              <v-card-text class="pa-6">
+                <div class="date-grid">
+                  <v-btn
+                    v-for="dia in diasDoMes"
+                    :key="dia"
+                    :active="editingData.dia_vencimento === dia"
+                    :variant="editingData.dia_vencimento === dia ? 'flat' : 'outlined'"
+                    :color="editingData.dia_vencimento === dia ? 'error' : 'default'"
+                    class="date-btn"
+                    @click="editingData.dia_vencimento = dia; menuVencimento = false"
+                  >
+                    {{ String(dia).padStart(2, '0') }}
+                  </v-btn>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-menu>
+          </v-form>
+        </v-card-text>
+
+        <v-card-actions class="pa-6">
+          <v-spacer />
+          <v-btn
+            variant="outlined"
+            @click="closeDialog"
+          >
+            Cancelar
+          </v-btn>
+          <v-btn
+            type="submit"
+            :disabled="!editingData.name || !editingData.conta_pai_id || loading"
+            :loading="loading"
+            @click="saveCartao"
+          >
+            Salvar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import FormContaCartao from '@/components/FormContaCartao.vue'
-import { computed, ref } from 'vue'
+import cartaoCreditoService from '@/services/cartaoCredito.service'
+import contasService from '@/services/contas.service'
+import { useToastStore } from '@/store/toast'
+import { getBankIcon } from '@/utils/iconMapper'
+import { computed, onMounted, ref, watch } from 'vue'
+
+const toastStore = useToastStore()
+
+interface Conta {
+  id: number
+  name: string
+  icon?: string
+  color?: string
+  tipo_conta?: string
+}
 
 interface Cartao {
   id: number
-  nome: string
-  bandeiraira: string
-  tipo: 'credito' | 'debito' | 'multiplo'
-  numero: string
-  limite: number
-  utilizado: number
-  vencimentoCartao: string
-  vencimentoFatura: string
-  status: 'ativo' | 'inativo' | 'bloqueado'
-  observacao: string
+  name: string
+  icon?: string
+  color?: string
+  tipo_conta: string
+  limite?: string
+  saldo?: string
+  descricao?: string
+  dia_fechamento?: number
+  dia_vencimento?: number
+  conta_pai_id?: number | null
+  conta_pai_name?: string | null
+  total_fatura_vigente?: number
+  valor_em_aberto?: number
+  data_fechamento?: string
+  data_vencimento?: string
+  status_fatura?: string
+  lancamentos_fatura_vigente?: any[]
 }
 
 // State
-const cartoes = ref<Cartao[]>([
-  {
-    id: 1,
-    nome: 'Meu Visa',
-    bandeiraira: 'Visa',
-    tipo: 'credito',
-    numero: '**** **** **** 1234',
-    limite: 5000,
-    utilizado: 2500,
-    vencimentoCartao: '2027-05',
-    vencimentoFatura: '2025-11-15',
-    status: 'ativo',
-    observacao: 'Principal'
-  },
-  {
-    id: 2,
-    nome: 'Mastercard',
-    bandeiraira: 'Mastercard',
-    tipo: 'credito',
-    numero: '**** **** **** 5678',
-    limite: 8000,
-    utilizado: 1800,
-    vencimentoCartao: '2026-08',
-    vencimentoFatura: '2025-11-20',
-    status: 'ativo',
-    observacao: 'Backup'
-  },
-  {
-    id: 3,
-    nome: 'ELO',
-    bandeiraira: 'ELO',
-    tipo: 'multiplo',
-    numero: '**** **** **** 9012',
-    limite: 3000,
-    utilizado: 0,
-    vencimentoCartao: '2026-02',
-    vencimentoFatura: '2025-11-10',
-    status: 'ativo',
-    observacao: 'Pouco utilizado'
-  },
-  {
-    id: 4,
-    nome: 'Cartão Antigo',
-    bandeiraira: 'Visa',
-    tipo: 'debito',
-    numero: '**** **** **** 3456',
-    limite: 1000,
-    utilizado: 0,
-    vencimentoCartao: '2024-12',
-    vencimentoFatura: '2025-12-01',
-    status: 'inativo',
-    observacao: 'Desativado'
-  }
-])
-
+const cartoes = ref<Cartao[]>([])
+const contas = ref<Conta[]>([])
 const search = ref('')
 const bandueiraFilter = ref('')
 const statusFilter = ref('')
 const dialogOpen = ref(false)
 const loading = ref(false)
+const loadingMonth = ref(false)
 const editingId = ref<number | null>(null)
-const editingData = ref<Partial<Cartao> | null>(null)
+const editingData = ref<Partial<Cartao>>({
+  name: '',
+  tipo_conta: 'Cartão de Crédito',
+  icon: 'Visa',
+  limite: '0,00',
+  dia_fechamento: 10,
+  dia_vencimento: 20,
+  descricao: '',
+  color: '#e53935',
+  conta_pai_id: null,
+})
 
 const headers = [
-  { title: 'Cartão', key: 'nome', align: 'start' as const },
-  { title: 'Bandeira', key: 'bandeiraira', align: 'center' as const, width: '120px' },
-  { title: 'Utilizado', key: 'utilizado', align: 'center' as const, width: '140px' },
+  { title: 'Cartão', key: 'name', align: 'start' as const },
   { title: 'Limite', key: 'limite', align: 'end' as const, width: '130px' },
-  { title: 'Vencimento', key: 'vencimentoFatura', align: 'center' as const, width: '140px' },
-  { title: 'Status', key: 'status', align: 'center' as const, width: '100px' },
+  { title: 'Utilizado', key: 'valor_em_aberto', align: 'center' as const, width: '140px' },
+  { title: 'Disponível', key: 'disponivel', align: 'end' as const, width: '130px' },
+  { title: 'Vencimento', key: 'data_vencimento', align: 'center' as const, width: '140px' },
+  { title: 'Status', key: 'status_fatura', align: 'center' as const, width: '100px' },
   { title: 'Ações', key: 'actions', sortable: false, align: 'center' as const, width: '100px' }
 ]
 
 const bandeirasPossivel = ['Visa', 'Mastercard', 'ELO', 'American Express', 'Hipercard', 'Diners']
 
+// Helpers para obter mês atual
+const getCurrentMonth = (): string => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+};
+
+const currentMonth = ref<string>(getCurrentMonth())
+
+// Refs para form
+const formRef = ref()
+const menuColor = ref(false)
+const menuFechamento = ref(false)
+const menuVencimento = ref(false)
+const menuContaPai = ref(false)
+
+// Dias do mês para selecionar
+const diasDoMes = computed(() => Array.from({ length: 30 }, (_, i) => i + 1))
+
+// Conta pai vinculada
+const contaPaiSelecionada = computed(() => {
+  if (!editingData.value.conta_pai_id) return null
+  return contas.value.find(c => c.id === editingData.value.conta_pai_id)
+})
+
+// Cor da conta pai (para usar como cor padrão do cartão)
+const corContaPai = computed(() => {
+  return contaPaiSelecionada.value?.color || '#e53935'
+})
+
+// Regras de validação
+const rules = {
+  required: (v: any) => !!v || 'Campo obrigatório',
+}
+
 // Computed
 const summary = computed(() => {
-  const limiteTotal = cartoes.value.reduce((sum, c) => sum + c.limite, 0)
-  const utilizado = cartoes.value.reduce((sum, c) => sum + c.utilizado, 0)
+  const limiteTotal = cartoes.value.reduce((sum, c) => sum + (c.limite || 0), 0)
+  const utilizado = cartoes.value.reduce((sum, c) => sum + (c.valor_em_aberto || 0), 0)
   const disponivel = limiteTotal - utilizado
   return {
     limiteTotal,
@@ -322,21 +535,35 @@ const summary = computed(() => {
 })
 
 const filteredCartoes = computed(() => {
-  return cartoes.value.filter(cartao => {
-    const matchSearch = cartao.nome.toLowerCase().includes(search.value.toLowerCase()) ||
-                       cartao.numero.toLowerCase().includes(search.value.toLowerCase())
-    const matchBandeiraira = !bandueiraFilter.value || cartao.bandeiraira === bandueiraFilter.value
-    const matchStatus = !statusFilter.value || cartao.status === statusFilter.value
+  return cartoes.value.map(cartao => ({
+    ...cartao,
+    disponivel: (cartao.limite || 0) - (cartao.valor_em_aberto || 0)
+  })).filter(cartao => {
+    const matchSearch = cartao.name.toLowerCase().includes(search.value.toLowerCase()) ||
+                       cartao.descricao?.toLowerCase().includes(search.value.toLowerCase())
+    const matchBandeiraira = !bandueiraFilter.value || cartao.tipo_conta === bandueiraFilter.value
+    const matchStatus = !statusFilter.value || cartao.status_fatura === statusFilter.value
     return matchSearch && matchBandeiraira && matchStatus
   })
 })
 
 // Methods
+const formatCurrencyInput = (value: string): string => {
+  if (!value) return "0,00";
+  let digits = value.replace(/\D/g, "");
+  digits = digits.replace(/^0+/, "") || "0";
+  while (digits.length < 3) digits = "0" + digits;
+  const integerPart = digits.slice(0, -2);
+  const decimalPart = digits.slice(-2);
+  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return `${formattedIntegerPart},${decimalPart}`;
+};
+
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL'
-  }).format(value)
+  }).format(value / 100)
 }
 
 function formatPercentage(value: number): string {
@@ -344,10 +571,12 @@ function formatPercentage(value: number): string {
 }
 
 function formatDate(date: string): string {
+  if (!date) return '-'
   return new Date(date).toLocaleDateString('pt-BR')
 }
 
 function getDiasRestantes(data: string): string {
+  if (!data) return '-'
   const vencimento = new Date(data)
   const hoje = new Date()
   const diff = vencimento.getTime() - hoje.getTime()
@@ -380,31 +609,96 @@ function getUtilizacaoColor(utilizado: number, limite: number): string {
 
 function getStatusColor(status: string): string {
   const colors: Record<string, string> = {
-    'ativo': 'success',
-    'inativo': 'secondary',
-    'bloqueado': 'error'
+    'PAGA': 'success',
+    'PENDENTE': 'warning',
+    'ATRASADA': 'error',
+    'INEXISTENTE': 'secondary'
   }
   return colors[status] || 'default'
 }
 
 function getStatusLabel(status: string): string {
   const labels: Record<string, string> = {
-    'ativo': 'Ativo',
-    'inativo': 'Inativo',
-    'bloqueado': 'Bloqueado'
+    'PAGA': 'Paga',
+    'PENDENTE': 'Pendente',
+    'ATRASADA': 'Atrasada',
+    'INEXISTENTE': 'Sem fatura'
   }
   return labels[status] || status
 }
 
+const loadCartoes = async () => {
+  try {
+    loading.value = true
+    const mesAno = currentMonth.value;
+    const data = await cartaoCreditoService.list(mesAno)
+
+    console.log('Cartões carregados:', data);
+    cartoes.value = data;
+  } catch (error: any) {
+    console.error('Erro ao carregar cartões:', error)
+    toastStore.error('Erro ao carregar cartões')
+  } finally {
+    loading.value = false
+    loadingMonth.value = false
+  }
+}
+
+const loadContas = async () => {
+  try {
+    const mesAno = currentMonth.value;
+    const data = await contasService.list(mesAno)
+    
+    console.log('=== DEBUG loadContas ===');
+    console.log('Todas as contas recebidas:', data);
+    console.log('Contagem de contas:', data.length);
+    
+    // Filtrar apenas contas (corrente, poupança, investimento), não cartões de crédito
+    const contasFiltradas = data.filter(c => {
+      const tipo = c.tipo_conta?.toLowerCase() || '';
+      const isNotCreditCard = !tipo.includes('crédito') && !tipo.includes('credit');
+      console.log(`Conta: ${c.name} | Tipo: "${c.tipo_conta}" | Include: ${isNotCreditCard}`);
+      return isNotCreditCard;
+    });
+    
+    contas.value = contasFiltradas;
+    console.log('Contas filtradas (final):', contas.value);
+    console.log('=== FIM DEBUG ===');
+  } catch (error: any) {
+    console.error('Erro ao carregar contas:', error)
+    toastStore.error('Erro ao carregar contas')
+  }
+}
+
 function openAddDialog() {
   editingId.value = null
-  editingData.value = null
+  editingData.value = {
+    name: '',
+    tipo_conta: 'Cartão de Crédito',
+    icon: 'Visa',
+    limite: "0,00",
+    dia_fechamento: 10,
+    dia_vencimento: 20,
+    descricao: '',
+    color: '#e53935',
+    conta_pai_id: null,
+  }
   dialogOpen.value = true
 }
 
 function closeDialog() {
   dialogOpen.value = false
-  editingData.value = null
+  editingData.value = {
+    name: '',
+    tipo_conta: 'Cartão de Crédito',
+    icon: 'Visa',
+    limite: "0,00",
+    dia_fechamento: 10,
+    dia_vencimento: 20,
+    descricao: '',
+    color: '#e53935',
+    conta_pai_id: null,
+  }
 }
 
 function editCartao(cartao: Cartao) {
@@ -413,15 +707,34 @@ function editCartao(cartao: Cartao) {
   dialogOpen.value = true
 }
 
-function handleFormSaved(data: any) {
+function saveCartao() {
+  if (!editingData.value.name) {
+    toastStore.error('Nome do cartão é obrigatório');
+    return;
+  }
+
+  if (!editingData.value.conta_pai_id) {
+    toastStore.error('Selecione uma conta vinculada');
+    return;
+  }
+
+  // Usar a cor da conta pai se não houver cor definida
+  const cartaoData = {
+    ...editingData.value,
+    color: corContaPai.value,
+    conta_pai_name: contaPaiSelecionada.value?.name
+  }
+
   if (editingId.value) {
     const index = cartoes.value.findIndex(c => c.id === editingId.value)
     if (index !== -1) {
-      cartoes.value[index] = { ...data, id: editingId.value }
+      cartoes.value[index] = { ...cartaoData, id: editingId.value } as Cartao
+      toastStore.success('Cartão atualizado com sucesso!')
     }
   } else {
     const newId = Math.max(...cartoes.value.map(c => c.id), 0) + 1
-    cartoes.value.push({ ...data, id: newId })
+    cartoes.value.push({ ...cartaoData, id: newId } as Cartao)
+    toastStore.success('Cartão criado com sucesso!')
   }
   closeDialog()
 }
@@ -429,6 +742,7 @@ function handleFormSaved(data: any) {
 function deleteCartao(id: number) {
   if (confirm('Tem certeza que deseja deletar este cartão?')) {
     cartoes.value = cartoes.value.filter(c => c.id !== id)
+    toastStore.success('Cartão deletado com sucesso!')
   }
 }
 
@@ -437,6 +751,19 @@ function clearFilters() {
   bandueiraFilter.value = ''
   statusFilter.value = ''
 }
+
+// Lifecycle
+onMounted(() => {
+  currentMonth.value = getCurrentMonth();
+  loadingMonth.value = true;
+  loadContas();
+  loadCartoes()
+})
+
+watch(() => currentMonth.value, () => {
+  loadContas();
+  loadCartoes();
+}, { immediate: true });
 </script>
 
 <style scoped lang="scss">
@@ -474,6 +801,141 @@ function clearFilters() {
 .cartoes-table {
   :deep(.v-data-table) {
     background: rgb(var(--v-theme-background));
+  }
+}
+
+.color-preview {
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.color-preview:hover {
+  transform: scale(1.1);
+  border-color: rgba(0, 0, 0, 0.4);
+}
+
+/* Estilos para form fields - removido classes de modal fullscreen */
+
+.color-input-activator {
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.color-input-activator:hover {
+  transform: scale(1.1);
+  border-color: rgba(0, 0, 0, 0.4);
+}
+
+/* Forçar tamanho do dialog */
+:deep(.v-dialog__content) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+:deep(.v-overlay) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Card do dialog - tamanho fixo */
+.dialog-card {
+  width: 600px !important;
+  max-width: 600px !important;
+  min-width: 600px !important;
+}
+
+/* Container do card-text para contexto de posicionamento */
+.card-text-container {
+  position: relative !important;
+}
+
+/* Estilos para Date Picker */
+.date-picker-card {
+  min-width: 160px !important;
+  max-width: 160px !important;
+  width: 160px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 12px;
+  position: relative !important;
+}
+
+/* Centralizar o menu dentro do formulário */
+:deep(.v-menu__content) {
+  position: fixed !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  min-width: 160px !important;
+  max-width: 160px !important;
+  width: 160px !important;
+}
+
+:deep(.v-overlay__content) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: auto !important;
+}
+
+:deep(.v-card.date-picker-card) {
+  width: 160px !important;
+  min-width: 160px !important;
+  max-width: 160px !important;
+}
+
+.date-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 3px;
+  padding: 0;
+}
+
+.date-btn {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.1px;
+  padding: 0 !important;
+  min-width: 20px !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  &.v-btn--active {
+    box-shadow: 0 4px 16px rgba(229, 57, 53, 0.3);
+    transform: scale(1.08);
+  }
+}
+
+@media (max-width: 600px) {
+  .date-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+  }
+
+  .date-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+
+  .date-picker-card {
+    min-width: 100px;
   }
 }
 

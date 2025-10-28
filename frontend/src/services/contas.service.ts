@@ -2,17 +2,24 @@ import http from './http';
 
 interface Conta {
   id: number;
-  name: string
-  icon: string
-  saldo_inicial?: string
-  incluir_em_soma_inicial?: boolean
-  tipo_conta: string
-  limit?: string
-  conta_pai_id?: number | null
-  status: String
-  description: string | null
-  dia_fechamento: number | null
-  dia_vencimento?: number | null
+  name: string;
+  icon?: string;
+  color?: string;
+  number?: string;
+  agency?: string;
+  bank?: string;
+  type?: 'corrente' | 'poupanca' | 'investimento';
+  balance?: number;
+  limit?: number;
+  status?: 'ativa' | 'inativa';
+  description?: string | null;
+  opening_date?: string;
+  saldo_inicial?: string;
+  incluir_em_soma_inicial?: boolean;
+  tipo_conta?: string;
+  conta_pai_id?: number | null;
+  dia_fechamento?: number | null;
+  dia_vencimento?: number | null;
 }
 
 class ContasService {
@@ -22,23 +29,33 @@ class ContasService {
   async list(mesAno?: string): Promise<Conta[]> {
     try {
       const response = await http.get<any>('/wallet', { params: { mesAno } });
-      console.log(response);
+      console.log('Resposta da API /wallet:', response);
       
-      // Extrair dados das contas
-      const contas = Array.isArray(response.data.wallets.contas) ? response.data.wallets.contas : response.data?.contas || [];
+      // Extrair dados das contas - a estrutura é response.data.wallets.contas
+      const contasData = response.data?.wallets?.contas || [];
       
-      return contas.map((c: any) => ({
+      if (!Array.isArray(contasData)) {
+        console.warn('Contas não é um array:', contasData);
+        return [];
+      }
+      
+      return contasData.map((c: any) => ({
         id: c.id,
+        color: c.color || '#163dc0',
         name: c.name,
-        number: c.number,
-        agency: c.agency,
-        bank: c.bank,
-        type: c.type?.toLowerCase() || 'corrente',
-        balance: c.balance || 0,
-        limit: c.limit,
-        status: c.status === 'ativa' ? 'ativa' : 'inativa',
-        description: c.description,
-        opening_date: c.opening_date,
+        number: c.number || '',
+        agency: c.agency || '',
+        bank: c.bank || 'Banco',
+        icon: c.icon || '',
+        tipo_conta: c.tipo_conta || '', // Incluindo tipo_conta para filtro
+        type: c.tipo_conta?.toLowerCase().includes('poupança') ? 'poupanca' 
+              : c.tipo_conta?.toLowerCase().includes('investimento') ? 'investimento'
+              : 'corrente',
+        balance: c.saldo || 0,
+        limit: c.limite || 0,
+        status: c.ativo === false || c.status === 'inativa' ? 'inativa' : 'ativa',
+        description: c.descricao || '',
+        opening_date: c.data_abertura || '',
       }));
     } catch (error) {
       console.error('Erro ao listar contas:', error);
@@ -77,17 +94,17 @@ class ContasService {
       const payload = {
         id,
         name: data.name,
-        number: data.number,
-        agency: data.agency,
-        bank: data.bank,
-        type: data.type?.toUpperCase(),
-        balance: data.balance,
+        icon: data.icon,
+        saldo_inicial: data.saldo_inicial,
+        incluir_em_soma_inicial: data.incluir_em_soma_inicial,
+        tipo_conta: data.tipo_conta,
         limit: data.limit,
-        status: data.status,
+        status_conta: data.status,
         description: data.description,
+        color: data.color,
       };
       
-      const response = await http.post<any>('/edit-wallets', payload);
+      const response = await http.post<any>('/wallet', payload);
       return response.data?.data || response.data;
     } catch (error) {
       throw this.handleError(error);
