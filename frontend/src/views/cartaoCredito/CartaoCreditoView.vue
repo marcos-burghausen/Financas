@@ -666,41 +666,42 @@
             <!-- Row 4: Cartão de Crédito -->
             <div class="custom__input__container mb-4">
               <div class="custom__input__content">
-                <v-icon :icon="getBankIcon(selectedCartao?.icon || '')" class="me-2" />
+                <v-icon 
+                  :icon="getBankIcon(contaCartaoVinculada?.icon || '')" 
+                  :color="contaCartaoVinculada?.color || '#e53935'"
+                  class="me-2" 
+                />
                 <div class="d-flex flex-column">
                   <span class="text-caption text-medium-emphasis">Cartão de Crédito</span>
                   <span class="font-weight-medium">{{ selectedCartao?.name }}</span>
                 </div>
                 <v-spacer />
-                <span class="text-caption font-weight-bold">{{ selectedCartao?.icon }}</span>
+                <v-icon :icon="getBankIcon(selectedCartao?.icon || '')" class="ms-2" />
               </div>
               <div class="custom__underline" />
             </div>
 
             <!-- Row 5: Fatura -->
-            <v-row>
-              <v-col cols="12" md="8">
-                <div class="custom__input__container mb-4">
-                  <div class="custom__input__content">
-                    <v-icon icon="mdi-calendar-range" class="me-2" />
-                    <div class="d-flex flex-column">
-                      <span class="text-caption text-medium-emphasis">Fatura</span>
-                    </div>
-                  </div>
-                  <div class="custom__underline" />
+            <div class="custom__input__container mb-4">
+              <div class="custom__input__content">
+                <v-icon icon="mdi-calendar-range" class="me-2" />
+                <div class="d-flex flex-column">
+                  <span class="text-caption text-medium-emphasis">Fatura</span>
+                  <span class="font-weight-medium">{{ faturaVigente }}</span>
                 </div>
-              </v-col>
-              <v-col cols="12" md="4">
+                <v-spacer />
                 <v-select
                   v-model="faturaVigente"
-                  label="Fatura"
                   :items="faturasMeses"
-                  variant="underlined"
+                  variant="plain"
                   hide-details="auto"
-                  class="text-right"
+                  class="fatura-select"
+                  style="width: auto; min-width: 100px"
+                  @click.stop
                 />
-              </v-col>
-            </v-row>
+              </div>
+              <div class="custom__underline" />
+            </div>
 
             <!-- Row 6: Categoria e Subcategoria -->
             <v-row>
@@ -913,7 +914,6 @@ const transactionData = ref({
   categoria: '',
   subcategoria: '',
   conta_id: null,
-  status_lancamento: 'PENDENTE',
   data_vencimento: new Date().toISOString().split('T')[0],
   data_lancamento: new Date().toISOString().split('T')[0],
   data_efetivacao: null,
@@ -1325,11 +1325,6 @@ function formatDataBr(data: string | null): string {
   return `${day}/${month}/${year}`
 }
 
-function toggleTransactionStatus() {
-  transactionData.value.status_lancamento = 
-    transactionData.value.status_lancamento === 'EFETIVADA' ? 'PENDENTE' : 'EFETIVADA'
-}
-
 function openAddTransactionDialog(cartao: Cartao) {
   selectedCartao.value = cartao
   const mesAtual = String(new Date().getMonth() + 1).padStart(2, '0')
@@ -1432,7 +1427,7 @@ async function saveTransaction() {
       data_efetivacao: transactionData.value.data_efetivacao,
       observacoes: transactionData.value.observacoes || null,
       tipo_lancamento: 'CARTAO_CREDITO',
-      status_lancamento: transactionData.value.status_lancamento,
+      // Status não é enviado para cartão de crédito - vinculado à fatura
     }
 
     // Se for parcelado, adicionar dados de parcelas
@@ -1893,6 +1888,34 @@ html, body {
       color: #fff !important;
       box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
     }
+  }
+}
+
+// ✅ Estilo para select de fatura dentro do custom input
+.fatura-select {
+  :deep(.v-field) {
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    min-height: auto !important;
+    height: auto !important;
+  }
+
+  :deep(.v-field__input) {
+    padding: 0 !important;
+    min-height: auto !important;
+    height: auto !important;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  :deep(.v-field__overlay) {
+    display: none !important;
+  }
+
+  :deep(.v-input__control) {
+    min-height: auto !important;
   }
 }
 
