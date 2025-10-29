@@ -16,7 +16,7 @@
 
             <!-- Formulário -->
             <v-card-text class="pa-8">
-              <h2 class="text-h5 font-weight-bold mb-2">Entrar na sua conta</h2>
+            <!--  <h2 class="text-h5 font-weight-bold mb-2">Entrar na sua conta</h2>  -->
               <p class="text-subtitle-2 text-medium-emphasis mb-6">
                 Bem-vindo de volta! Digite suas credenciais para continuar
               </p>
@@ -676,18 +676,19 @@ async function handleLogin() {
 
 <style scoped lang="scss">
 .login-wrapper {
-  min-height: 100vh;
+  min-height: 100%;
   background: linear-gradient(135deg, rgb(var(--v-theme-primary)) 0%, rgba(var(--v-theme-primary), 0.7) 100%);
-  padding: 2rem 0;
+  // padding: 2rem 0;
   position: relative;
 }
 
 .login-container {
-  padding: 2rem;
+  width: 1000px;
+  // padding: 2rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  min-height: 100%;
 }
 
 .login-card {

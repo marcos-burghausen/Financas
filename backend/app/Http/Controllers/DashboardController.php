@@ -148,6 +148,8 @@ class DashboardController extends Controller
             $todosReceitasLancamentos = DB::table('lancamentos')
                 ->where('user_id', $user->id)
                 ->where('tipo_lancamento', 'RECEITA')
+                ->whereYear('data_vencimento', $ano)
+                ->whereMonth('data_vencimento', $mes)
                 ->select('id', 'descricao', 'valor', 'data_vencimento', 'categoria', 'status_lancamento', 'tipo_lancamento')
                 ->orderBy('data_vencimento', 'desc')
                 ->get();
@@ -155,6 +157,8 @@ class DashboardController extends Controller
             $todosDespesasLancamentos = DB::table('lancamentos')
                 ->where('user_id', $user->id)
                 ->where('tipo_lancamento', 'DESPESA')
+                ->whereYear('data_vencimento', $ano)
+                ->whereMonth('data_vencimento', $mes)
                 ->select('id', 'descricao', 'valor', 'data_vencimento', 'categoria', 'status_lancamento', 'tipo_lancamento')
                 ->orderBy('data_vencimento', 'desc')
                 ->get();
@@ -190,8 +194,8 @@ class DashboardController extends Controller
                     'despesas' => $despesasRecentes,
                 ],
                 'lancamentos' => [
-                    'receitas' => $todosDespesasLancamentos,
-                    'despesas' => $todosReceitasLancamentos,
+                    'receitas' => $todosReceitasLancamentos,
+                    'despesas' => $todosDespesasLancamentos,
                 ],
                 'contas' => [
                     'lista' => $contas,

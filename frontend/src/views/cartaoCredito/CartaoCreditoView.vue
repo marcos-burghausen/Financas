@@ -204,6 +204,14 @@
         <template #item.actions="{ item }">
           <div class="d-flex gap-1 justify-center">
             <v-btn
+              icon="mdi-plus-circle-outline"
+              variant="text"
+              :size="$vuetify.display.xs ? 'x-small' : 'small'"
+              color="primary"
+              title="Adicionar lançamento"
+              @click="openAddTransactionDialog(item)"
+            />
+            <v-btn
               icon="mdi-pencil"
               variant="text"
               :size="$vuetify.display.xs ? 'x-small' : 'small'"
@@ -435,6 +443,329 @@
       </v-card>
     </v-dialog>
 
+    <!-- DIALOG: Adicionar Lançamento no Cartão -->
+    <v-dialog
+      v-model="transactionDialogOpen"
+      :max-width="$vuetify.display.xs ? '95vw' : '600px'"
+      persistent
+      :fullscreen="$vuetify.display.xs"
+    >
+      <v-card class="dialog-card">
+        <v-card-title class="pa-4 pa-md-6 pb-3 pb-md-4 d-flex align-center justify-space-between">
+          <span :class="$vuetify.display.xs ? 'text-h6' : 'text-h5'">
+            Adicionar Lançamento - {{ selectedCartao?.name }}
+          </span>
+          <v-btn
+            v-if="$vuetify.display.xs"
+            icon="mdi-close"
+            variant="text"
+            size="small"
+            @click="closeTransactionDialog"
+          />
+        </v-card-title>
+
+        <v-card-text class="pa-4 pa-md-6 pt-3 pt-md-4 card-text-container">
+          <v-form @submit.prevent="saveTransaction">
+            <!-- Row 1: Descrição -->
+            <v-text-field
+              v-model="transactionData.descricao"
+              label="Descrição *"
+              prepend-inner-icon="mdi-text-long"
+              variant="underlined"
+              hide-details="auto"
+              class="mb-4"
+              :rules="[v => !!v || 'Campo obrigatório']"
+            />
+
+            <!-- Row 2: Valor -->
+            <v-text-field
+              v-model="transactionData.valor"
+              label="Valor *"
+              prepend-inner-icon="mdi-currency-brl"
+              variant="underlined"
+              hide-details="auto"
+              type="tel"
+              class="mb-4"
+              :rules="[v => !!v || 'Campo obrigatório']"
+              @input="transactionData.valor = formatCurrencyInput(transactionData.valor)"
+            />
+
+            <!-- Row 3: Recorrência -->
+            <div class="custom__input__container mb-4">
+              <div
+                class="custom__input__content"
+                @click="openRecorrenciaModalTransaction = true"
+              >
+                <v-icon
+                  icon="mdi-refresh"
+                  class="me-2"
+                />
+                <div class="d-flex flex-column">
+                  <span>{{ transactionData.recorrencia }}</span>
+                  <span
+                    v-if="detalheRecorrenciaTransaction"
+                    class="detalhe__parcela__interno"
+                  >
+                    {{ detalheRecorrenciaTransaction }}
+                  </span>
+                </div>
+                <v-spacer />
+                <v-icon
+                  v-if="transactionData.recorrencia === 'Parcelado'"
+                  icon="mdi-pencil"
+                  size="x-small"
+                  class="edit__icon"
+                  @click.stop="openParcelasTransaction = true"
+                />
+              </div>
+
+              <v-btn-toggle
+                v-if="transactionData.recorrencia === 'Parcelado'"
+                v-model="tipoCalculoParcelaTransaction"
+                mandatory
+                class="parcela__toggle mt-4"
+                variant="flat"
+              >
+                <v-btn
+                  class="toggle__btn"
+                  value="total"
+                  rounded="lg"
+                >
+                  Valor total
+                </v-btn>
+                <v-btn
+                  class="toggle__btn"
+                  value="parcela"
+                  rounded="lg"
+                >
+                  Valor parcela
+                </v-btn>
+              </v-btn-toggle>
+
+              <div class="custom__underline" />
+            </div>
+
+            <!-- Modal Recorrência -->
+            <v-dialog
+              v-model="openRecorrenciaModalTransaction"
+              :close-on-content-click="false"
+            >
+              <v-card width="300" class="mx-auto">
+                <v-card-text class="pa-4">
+                  <div class="d-flex flex-column gap-2">
+                    <v-btn
+                      v-for="item in tiposRecorrencia"
+                      :key="item"
+                      :class="transactionData.recorrencia === item ? 'success' : ''"
+                      variant="text"
+                      block
+                      :prepend-icon="
+                        transactionData.recorrencia === item
+                          ? 'mdi-radiobox-marked'
+                          : 'mdi-checkbox-blank-circle-outline'
+                      "
+                      @click="selecionarRecorrenciaTransaction(item)"
+                    >
+                      {{ item }}
+                    </v-btn>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-dialog>
+
+            <!-- Modal Parcelas -->
+            <v-dialog
+              v-model="openParcelasTransaction"
+              max-width="400"
+            >
+              <v-card>
+                <v-card-title class="pa-4">
+                  Configurar Parcelas
+                </v-card-title>
+                <v-card-text class="pa-6">
+                  <div class="d-flex align-center justify-space-between mb-4">
+                    <span>Parcela Inicial:</span>
+                    <div class="d-flex align-center gap-2">
+                      <v-btn
+                        icon="mdi-minus"
+                        size="x-small"
+                        :disabled="tempParcelaInicialTransaction <= 1"
+                        @click="tempParcelaInicialTransaction--"
+                      />
+                      <v-text-field
+                        v-model.number="tempParcelaInicialTransaction"
+                        type="number"
+                        density="compact"
+                        style="width: 60px"
+                        min="1"
+                        :max="tempNumParcelasTransaction"
+                      />
+                      <v-btn
+                        icon="mdi-plus"
+                        size="x-small"
+                        :disabled="tempParcelaInicialTransaction >= tempNumParcelasTransaction"
+                        @click="tempParcelaInicialTransaction++"
+                      />
+                    </div>
+                  </div>
+
+                  <v-divider class="my-4" />
+
+                  <div class="d-flex align-center justify-space-between mb-4">
+                    <span>Quantidade:</span>
+                    <div class="d-flex align-center gap-2">
+                      <v-btn
+                        icon="mdi-minus"
+                        size="x-small"
+                        :disabled="tempNumParcelasTransaction <= 2"
+                        @click="tempNumParcelasTransaction--"
+                      />
+                      <v-text-field
+                        v-model.number="tempNumParcelasTransaction"
+                        type="number"
+                        density="compact"
+                        style="width: 60px"
+                        min="2"
+                      />
+                      <v-btn
+                        icon="mdi-plus"
+                        size="x-small"
+                        @click="tempNumParcelasTransaction++"
+                      />
+                    </div>
+                  </div>
+
+                  <v-divider class="my-4" />
+
+                  <v-select
+                    v-model="tempPeriodicidadeTransaction"
+                    label="Periodicidade"
+                    :items="['Mensal', 'Semanal', 'Quinzenal', 'Bimestral']"
+                    variant="outlined"
+                    density="compact"
+                  />
+                </v-card-text>
+                <v-card-actions class="pa-4">
+                  <v-spacer />
+                  <v-btn
+                    variant="text"
+                    @click="openParcelasTransaction = false"
+                  >
+                    Cancelar
+                  </v-btn>
+                  <v-btn
+                    color="success"
+                    @click="concluirParcelasTransaction"
+                  >
+                    Concluído
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+
+            <!-- Row 4: Cartão de Crédito -->
+            <div class="custom__input__container mb-4">
+              <div class="custom__input__content">
+                <v-icon :icon="getBankIcon(selectedCartao?.icon || '')" class="me-2" />
+                <div class="d-flex flex-column">
+                  <span class="text-caption text-medium-emphasis">Cartão de Crédito</span>
+                  <span class="font-weight-medium">{{ selectedCartao?.name }}</span>
+                </div>
+                <v-spacer />
+                <span class="text-caption font-weight-bold">{{ selectedCartao?.icon }}</span>
+              </div>
+              <div class="custom__underline" />
+            </div>
+
+            <!-- Row 5: Fatura -->
+            <v-row>
+              <v-col cols="12" md="8">
+                <div class="custom__input__container mb-4">
+                  <div class="custom__input__content">
+                    <v-icon icon="mdi-calendar-range" class="me-2" />
+                    <div class="d-flex flex-column">
+                      <span class="text-caption text-medium-emphasis">Fatura</span>
+                    </div>
+                  </div>
+                  <div class="custom__underline" />
+                </div>
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-select
+                  v-model="faturaVigente"
+                  label="Fatura"
+                  :items="faturasMeses"
+                  variant="underlined"
+                  hide-details="auto"
+                  class="text-right"
+                />
+              </v-col>
+            </v-row>
+
+            <!-- Row 6: Categoria e Subcategoria -->
+            <v-row>
+              <v-col cols="12" md="6">
+                <v-autocomplete
+                  v-model="transactionData.categoria"
+                  :items="categoriasNames"
+                  label="Categoria *"
+                  prepend-inner-icon="mdi-tag"
+                  variant="underlined"
+                  hide-details="auto"
+                  class="mb-4"
+                  :rules="[v => !!v || 'Campo obrigatório']"
+                />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-autocomplete
+                  v-model="transactionData.subcategoria"
+                  :items="subcategoriasDaCategoriaSelecionada"
+                  label="Subcategoria"
+                  prepend-inner-icon="mdi-folder-tag"
+                  variant="underlined"
+                  hide-details="auto"
+                  class="mb-4"
+                />
+              </v-col>
+            </v-row>
+
+            <!-- Row 7: Conta (vinculada ao cartão) -->
+            <div class="custom__input__container mb-4">
+              <div class="custom__input__content">
+                <v-icon :icon="getBankIcon(contaCartaoVinculada?.icon || '')" class="me-2" />
+                <div class="d-flex flex-column">
+                  <span class="text-caption text-medium-emphasis">Conta</span>
+                  <span class="font-weight-medium">{{ contaCartaoVinculada?.name }}</span>
+                </div>
+              </div>
+              <div class="custom__underline" />
+            </div>
+          </v-form>
+        </v-card-text>
+
+        <v-card-actions class="pa-4 pa-md-6 pt-0">
+          <v-spacer />
+          <v-btn
+            variant="outlined"
+            @click="closeTransactionDialog"
+            :size="$vuetify.display.xs ? 'default' : 'large'"
+            class="flex-grow-1 flex-sm-grow-0"
+          >
+            Cancelar
+          </v-btn>
+          <v-btn
+            :disabled="!transactionData.descricao || !transactionData.valor || loading"
+            :loading="loading"
+            @click="saveTransaction"
+            :size="$vuetify.display.xs ? 'default' : 'large'"
+            class="flex-grow-1 flex-sm-grow-0"
+          >
+            Adicionar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Loading Overlay - Carregamento Inicial -->
     <v-overlay
       v-model="loadingMonth"
@@ -488,6 +819,7 @@
 <script setup lang="ts">
 import cartaoCreditoService from '@/services/cartaoCredito.service'
 import contasService from '@/services/contas.service'
+import http from '@/services/http'
 import { useToastStore } from '@/store/toast'
 import { getBankIcon } from '@/utils/iconMapper'
 import { computed, onMounted, ref, watch } from 'vue'
@@ -570,10 +902,61 @@ const currentMonth = ref<string>(getCurrentMonth())
 
 // Refs para form
 const formRef = ref()
+
+// Refs para dialog de lançamentos
+const transactionDialogOpen = ref(false)
+const selectedCartao = ref<Cartao | null>(null)
+const transactionData = ref({
+  descricao: '',
+  valor: '0,00',
+  recorrencia: 'Não recorrente',
+  categoria: '',
+  subcategoria: '',
+  conta_id: null,
+  status_lancamento: 'PENDENTE',
+  data_vencimento: new Date().toISOString().split('T')[0],
+  data_lancamento: new Date().toISOString().split('T')[0],
+  data_efetivacao: null,
+  observacoes: '',
+})
+
+// Refs para date pickers do transaction dialog
+const menuDataVencimentoTransaction = ref(false)
+const menuDataLancamentoTransaction = ref(false)
+const menuDataEfetivacaoTransaction = ref(false)
+const openRecorrenciaModalTransaction = ref(false)
+const openParcelasTransaction = ref(false)
+const faturaVigente = ref('')
 const menuColor = ref(false)
 const menuFechamento = ref(false)
 const menuVencimento = ref(false)
 const menuContaPai = ref(false)
+
+// Recurrence State para transactions (igual a DespesasView)
+const tiposRecorrencia = ref(["Não recorrente", "Fixa", "Parcelado"])
+const tipoCalculoParcelaTransaction = ref("total")
+const tempParcelaInicialTransaction = ref(1)
+const tempNumParcelasTransaction = ref(2)
+const tempPeriodicidadeTransaction = ref("Mensal")
+
+// Categorias para lançamentos
+const categoriasNames = ref([
+  'Alimentação', 'Transporte', 'Saúde', 'Educação', 'Compras', 
+  'Assinaturas', 'Diversão', 'Casa', 'Trabalho', 'Outros'
+])
+
+const subcategorias = ref({
+  'Alimentação': ['Restaurante', 'Supermercado', 'Delivery', 'Café'],
+  'Transporte': ['Uber', 'Ônibus', 'Táxi', 'Combustível', 'Estacionamento'],
+  'Saúde': ['Farmácia', 'Médico', 'Dentista', 'Hospital'],
+  'Educação': ['Curso', 'Livros', 'Escola', 'Faculdade'],
+  'Compras': ['Roupas', 'Eletrônicos', 'Móveis', 'Outros'],
+  'Assinaturas': ['Streaming', 'Jornal', 'Software'],
+  'Diversão': ['Cinema', 'Shows', 'Games', 'Viagem'],
+  'Casa': ['Aluguel', 'Condomínio', 'Água', 'Luz', 'Internet'],
+  'Trabalho': ['Materiais', 'Equipamentos', 'Viagem'],
+  'Outros': ['Diversos'],
+})
 
 // Dias do mês para selecionar
 const diasDoMes = computed(() => Array.from({ length: 30 }, (_, i) => i + 1))
@@ -587,6 +970,65 @@ const contaPaiSelecionada = computed(() => {
 // Cor da conta pai (para usar como cor padrão do cartão)
 const corContaPai = computed(() => {
   return contaPaiSelecionada.value?.color || '#e53935'
+})
+
+// Subcategorias da categoria selecionada no formulário de lançamentos
+const subcategoriasDaCategoriaSelecionada = computed(() => {
+  return subcategorias.value[transactionData.value.categoria as keyof typeof subcategorias.value] || []
+})
+
+// Meses de fatura (1 ano para trás, atual e 1 ano para frente)
+const faturasMeses = computed(() => {
+  const meses = []
+  const hoje = new Date()
+  
+  // 1 ano para trás
+  for (let i = 11; i >= 1; i--) {
+    const data = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1)
+    const mes = String(data.getMonth() + 1).padStart(2, '0')
+    const ano = data.getFullYear()
+    meses.push(`${mes}/${ano}`)
+  }
+  
+  // Mês atual
+  const mesAtual = String(hoje.getMonth() + 1).padStart(2, '0')
+  const anoAtual = hoje.getFullYear()
+  meses.push(`${mesAtual}/${anoAtual}`)
+  
+  // 1 ano para frente
+  for (let i = 1; i <= 12; i++) {
+    const data = new Date(hoje.getFullYear(), hoje.getMonth() + i, 1)
+    const mes = String(data.getMonth() + 1).padStart(2, '0')
+    const ano = data.getFullYear()
+    meses.push(`${mes}/${ano}`)
+  }
+  
+  return meses
+})
+
+// Conta vinculada ao cartão selecionado
+const contaCartaoVinculada = computed(() => {
+  if (!selectedCartao.value) return null
+  return contas.value.find(c => c.id === selectedCartao.value?.conta_pai_id)
+})
+
+// Detalhe da recorrência para transactions (parcelado)
+const detalheRecorrenciaTransaction = computed(() => {
+  if (transactionData.value.recorrencia === "Parcelado" && transactionData.value.valor && tempNumParcelasTransaction.value > 0) {
+    const valorInput = parseFloat(transactionData.value.valor.replace(/\./g, "").replace(",", "."))
+    if (!isNaN(valorInput) && valorInput > 0) {
+      let valorParcela: number
+      
+      if (tipoCalculoParcelaTransaction.value === "total") {
+        valorParcela = valorInput / tempNumParcelasTransaction.value
+      } else {
+        valorParcela = valorInput
+      }
+      
+      return `${tempNumParcelasTransaction.value}x de R$ ${valorParcela.toFixed(2).replace(".", ",")}`
+    }
+  }
+  return null
 })
 
 // Regras de validação
@@ -874,6 +1316,152 @@ function clearFilters() {
   search.value = ''
   bandueiraFilter.value = ''
   statusFilter.value = ''
+}
+
+// Funções auxiliares para formulário de lançamento
+function formatDataBr(data: string | null): string {
+  if (!data) return 'Não definido'
+  const [year, month, day] = data.split('-')
+  return `${day}/${month}/${year}`
+}
+
+function toggleTransactionStatus() {
+  transactionData.value.status_lancamento = 
+    transactionData.value.status_lancamento === 'EFETIVADA' ? 'PENDENTE' : 'EFETIVADA'
+}
+
+function openAddTransactionDialog(cartao: Cartao) {
+  selectedCartao.value = cartao
+  const mesAtual = String(new Date().getMonth() + 1).padStart(2, '0')
+  const anoAtual = new Date().getFullYear()
+  faturaVigente.value = `${mesAtual}/${anoAtual}`
+  
+  transactionData.value = {
+    descricao: '',
+    valor: '0,00',
+    recorrencia: 'Não recorrente',
+    categoria: '',
+    subcategoria: '',
+    conta_id: cartao.conta_pai_id, // Pré-preencher com conta vinculada do cartão
+    status_lancamento: 'PENDENTE',
+    data_vencimento: new Date().toISOString().split('T')[0],
+    data_lancamento: new Date().toISOString().split('T')[0],
+    data_efetivacao: null,
+    observacoes: '',
+  }
+  transactionDialogOpen.value = true
+}
+
+function closeTransactionDialog() {
+  transactionDialogOpen.value = false
+  selectedCartao.value = null
+  // Reset recurrence state
+  tempParcelaInicialTransaction.value = 1
+  tempNumParcelasTransaction.value = 2
+  tempPeriodicidadeTransaction.value = "Mensal"
+  tipoCalculoParcelaTransaction.value = "total"
+}
+
+function selecionarRecorrenciaTransaction(item: string) {
+  transactionData.value.recorrencia = item
+  openRecorrenciaModalTransaction.value = false
+
+  if (item === "Parcelado") {
+    openParcelasTransaction.value = true
+  }
+}
+
+function concluirParcelasTransaction() {
+  openParcelasTransaction.value = false
+}
+
+async function saveTransaction() {
+  try {
+    if (!selectedCartao.value) {
+      toastStore.error('Selecione um cartão')
+      return
+    }
+
+    if (!transactionData.value.descricao) {
+      toastStore.error('Descrição é obrigatória')
+      return
+    }
+
+    if (!transactionData.value.valor || transactionData.value.valor === '0,00') {
+      toastStore.error('Valor deve ser maior que zero')
+      return
+    }
+
+    if (!transactionData.value.categoria) {
+      toastStore.error('Categoria é obrigatória')
+      return
+    }
+
+    if (!transactionData.value.conta_id) {
+      toastStore.error('Conta é obrigatória')
+      return
+    }
+
+    loading.value = true
+
+    // Converter valor formatado para centavos
+    const valorCentavos = parseInt(
+      transactionData.value.valor.replace(/\D/g, ''),
+      10
+    )
+
+    // Mapear recorrência para formato da API (MAIÚSCULAS)
+    const recorrenciaMap: { [key: string]: string } = {
+      "Não recorrente": "NAO_RECORRENTE",
+      "Fixa": "FIXA",
+      "Parcelado": "PARCELADO",
+    }
+
+    // Preparar payload completo (similar ao DespesasView)
+    const payload: any = {
+      cartao_credito_id: selectedCartao.value.id,
+      descricao: transactionData.value.descricao,
+      valor: transactionData.value.valor,  // STRING formatada "10,00"
+      categoria: transactionData.value.categoria,
+      subcategoria: transactionData.value.subcategoria || null,
+      conta_id: transactionData.value.conta_id,
+      recorrencia: recorrenciaMap[transactionData.value.recorrencia] || "NAO_RECORRENTE",
+      fatura_vigente: faturaVigente.value,
+      data_vencimento: transactionData.value.data_vencimento,
+      data_lancamento: transactionData.value.data_lancamento,
+      data_efetivacao: transactionData.value.data_efetivacao,
+      observacoes: transactionData.value.observacoes || null,
+      tipo_lancamento: 'CARTAO_CREDITO',
+      status_lancamento: transactionData.value.status_lancamento,
+    }
+
+    // Se for parcelado, adicionar dados de parcelas
+    if (transactionData.value.recorrencia === "Parcelado") {
+      payload.qtd_parcelas = tempNumParcelasTransaction.value
+      payload.num_parcela = tempParcelaInicialTransaction.value
+      payload.tipo_parcela = tipoCalculoParcelaTransaction.value?.toLowerCase() || "total"
+      payload.periodicidade = tempPeriodicidadeTransaction.value?.toUpperCase() || "MENSAL"
+    } else {
+      payload.qtd_parcelas = null
+      payload.num_parcela = null
+      payload.tipo_parcela = null
+      payload.periodicidade = null
+    }
+
+    console.log("Payload enviado:", payload)
+
+    // Enviar para API
+    await http.post('/lancamentos', payload)
+
+    toastStore.success('Lançamento adicionado com sucesso!')
+    closeTransactionDialog()
+    await loadCartoes()
+  } catch (error: any) {
+    console.error('Erro ao salvar lançamento:', error)
+    toastStore.error(error.message || 'Erro ao salvar lançamento')
+  } finally {
+    loading.value = false
+  }
 }
 
 // Lifecycle
@@ -1224,4 +1812,88 @@ html, body {
     transform: scale(1.08);
   }
 }
+
+// ✅ CSS para inputs customizados (recorrência, cartão, conta)
+.custom__input__container {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.custom__input__content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  .v-icon {
+    flex-shrink: 0;
+  }
+
+  span {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .edit__icon {
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: rgb(var(--v-theme-primary));
+      transform: scale(1.2);
+    }
+  }
+}
+
+.custom__underline {
+  height: 1px;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.12) 0%, rgba(0, 0, 0, 0.12) 100%);
+  margin-top: 0.5rem;
+  border-radius: 1px;
+}
+
+.detalhe__parcela__interno {
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.6);
+  font-weight: 500;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+// ✅ Estilo para toggle de parcelas
+:deep(.parcela__toggle) {
+  width: 100%;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.04);
+
+  .toggle__btn {
+    flex: 1;
+    border-radius: 6px;
+    text-transform: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+
+    &:not(.v-btn--active) {
+      background: rgba(0, 0, 0, 0.02);
+      color: rgba(0, 0, 0, 0.6);
+    }
+
+    &.v-btn--active {
+      background: rgb(var(--v-theme-success)) !important;
+      color: #fff !important;
+      box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+    }
+  }
+}
+
 </style>

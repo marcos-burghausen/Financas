@@ -443,9 +443,9 @@
                     </div>
                     <p
                       class="text-subtitle-2 font-weight-bold mb-0"
-                      :class="{ 'text-success': transaction.tipo === 'receita', 'text-error': transaction.tipo !== 'receita' }"
+                      :class="{ 'text-success': transaction.tipo_lancamento === 'RECEITA', 'text-error': transaction.tipo_lancamento !== 'RECEITA' }"
                     >
-                      {{ transaction.tipo === 'receita' ? '+' : '-' }}{{ formatCurrency(transaction.valor) }}
+                      {{ transaction.tipo_lancamento === 'RECEITA' ? '+' : '-' }}{{ formatCurrency(transaction.valor) }}
                     </p>
                   </div>
                 </div>
@@ -464,6 +464,7 @@
                 color="primary"
                 variant="text"
                 block
+                @click="openTodasTransacoesDialog"
               >
                 Ver todas as transações
               </v-btn>
@@ -678,6 +679,109 @@
       </v-card>
     </v-dialog>
 
+    <!-- DIALOG: TODAS AS TRANSAÇÕES -->
+    <v-dialog
+      v-model="showTodasTransacoesDialog"
+      max-width="900"
+    >
+      <v-card>
+        <v-card-title class="d-flex align-center gap-2">
+          <v-icon
+            icon="mdi-history"
+            color="primary"
+          />
+          Todas as Transações
+        </v-card-title>
+        <v-divider />
+        <v-card-text class="py-4">
+          <div
+            v-if="todasTransacoes.length"
+            class="todas-transacoes-list"
+          >
+            <div
+              v-for="(transaction, idx) in todasTransacoes"
+              :key="idx"
+              class="transacao-item mb-3 pa-3 rounded border"
+            >
+              <div class="d-flex justify-space-between align-center mb-2">
+                <div class="d-flex align-center gap-2">
+                  <v-avatar
+                    size="40"
+                    :color="transaction.tipo_lancamento === 'RECEITA' ? 'success' : 'error'"
+                    variant="tonal"
+                  >
+                    <v-icon
+                      :icon="transaction.tipo_lancamento === 'RECEITA' ? 'mdi-cash-plus' : 'mdi-cash-remove'"
+                    />
+                  </v-avatar>
+                  <div>
+                    <p class="text-subtitle-2 font-weight-bold mb-0">
+                      {{ transaction.descricao || 'Transação' }}
+                    </p>
+                    <p class="text-caption text-grey mb-0">
+                      {{ transaction.data_vencimento || transaction.data || 'Data não disponível' }}
+                    </p>
+                    <p 
+                      v-if="transaction.categoria"
+                      class="text-caption text-primary mb-0"
+                    >
+                      {{ transaction.categoria }}
+                    </p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <p
+                    class="text-subtitle-2 font-weight-bold mb-0"
+                    :class="{
+                      'text-success': transaction.tipo_lancamento === 'RECEITA',
+                      'text-error': transaction.tipo_lancamento !== 'RECEITA'
+                    }"
+                  >
+                    {{ transaction.tipo_lancamento === 'RECEITA' ? '+' : '-' }}{{
+                      formatCurrency(transaction.valor)
+                    }}
+                  </p>
+                  <v-chip
+                    size="small"
+                    variant="outlined"
+                    :color="transaction.status_lancamento === 'EFETIVADA' ? 'success' : transaction.status_lancamento === 'PENDENTE' ? 'warning' : 'info'"
+                    class="mt-1"
+                  >
+                    {{ transaction.status_lancamento }}
+                  </v-chip>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            v-else
+            class="text-center py-8"
+          >
+            <v-icon
+              icon="mdi-inbox-multiple"
+              size="64"
+              color="grey"
+              class="mb-4"
+            />
+            <p class="text-grey">
+              Nenhuma transação disponível
+            </p>
+          </div>
+        </v-card-text>
+        <v-divider />
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            color="primary"
+            variant="text"
+            @click="showTodasTransacoesDialog = false"
+          >
+            Fechar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Loading Overlay - Carregamento Inicial -->
     <v-overlay
       v-model="loading"
@@ -763,6 +867,10 @@ const chartSeriesReceitas = ref<any>([]);
 const chartOptionsDespesas = ref<any>({});
 const chartOptionsReceitas = ref<any>({});
 
+// Valores reais (em centavos) para tooltip dos gráficos de distribuição
+const valoresTotaisDespesas = ref<number[]>([]);
+const valoresTotaisReceitas = ref<number[]>([]);
+
 // Recent transactions
 const recentTransactions = ref<any[]>([]);
 
@@ -772,6 +880,10 @@ const alerts = ref<any[]>([]);
 // Dialog de Pendências
 const showPendenciasDialog = ref(false);
 const pendenciasTransacoes = ref<any[]>([]);
+
+// Dialog de Todas as Transações
+const showTodasTransacoesDialog = ref(false);
+const todasTransacoes = ref<any[]>([]);
 
 // LOCAL month state - not synced with userStore
 // Get current month in local timezone (not UTC)
@@ -887,6 +999,12 @@ const openPendenciasDialog = (transactions: any[]) => {
   // Filtrar apenas transações pendentes
   // pendenciasTransacoes.value = transactions.filter(t => t.status_lancamento === "PENDENTE");
   showPendenciasDialog.value = true;
+};
+
+// Abrir dialog com todas as transações
+const openTodasTransacoesDialog = () => {
+  todasTransacoes.value = recentTransactions.value;
+  showTodasTransacoesDialog.value = true;
 };
 
 // Load data
@@ -1015,9 +1133,18 @@ const loadDashboardData = async () => {
       stroke: { show: true, width: 2, colors: ["transparent"] },
       xaxis: { categories: months },
       yaxis: {
-        title: { text: "R$ (milhares)" },
+        title: { text: "R$" },
         labels: {
-          formatter: (value: number) => `R$ ${(value / 1000).toFixed(0)}k`,
+          formatter: (value: number) => {
+            // Converter centavos para reais (dividir por 100)
+            const reais = value / 100;
+            // Se valor >= 1000 reais, mostrar em milhares
+            if (reais >= 1000) {
+              return `R$ ${(reais / 1000).toFixed(1)}k`;
+            }
+            // Caso contrário, mostrar em reais com 2 casas decimais
+            return `R$ ${reais.toFixed(2)}`;
+          },
         },
       },
       fill: { opacity: 1 },
@@ -1065,6 +1192,9 @@ const loadDashboardData = async () => {
       const labelsDespesas = Array.from(categoriaDespesasMap.keys());
       const valuesDespesas = Array.from(categoriaDespesasMap.values());
       
+      // Guardar valores reais para usar no tooltip
+      valoresTotaisDespesas.value = valuesDespesas;
+      
       // Calcular percentuais
       const totalDespesasGraf = valuesDespesas.reduce((a, b) => a + b, 0);
       const percentuaisDespesas = valuesDespesas.map(v => (totalDespesasGraf > 0 ? (v / totalDespesasGraf) * 100 : 0));
@@ -1079,12 +1209,22 @@ const loadDashboardData = async () => {
           formatter: (val: number) => `${val.toFixed(1)}%`,
         },
         tooltip: {
-          y: {
-            formatter: (val: number) =>
-              new Intl.NumberFormat("pt-BR", {
-                style: "currency",
-                currency: "BRL",
-              }).format(val / 100),
+          custom: ({ series, seriesIndex, w }: any) => {
+            const valor = valoresTotaisDespesas.value[seriesIndex] || 0;
+            const percentual = series[seriesIndex] || 0;
+            const label = labelsDespesas[seriesIndex] || "Sem dados";
+            const valorFormatado = new Intl.NumberFormat("pt-BR", {
+              style: "currency",
+              currency: "BRL",
+            }).format(valor / 100);
+            // Pegar a cor da série
+            const cores = ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF", "#C9CBCF", "#FF7043"];
+            const cor = cores[seriesIndex] || "#666";
+            return `<div class="apexcharts-tooltip-custom" style="background-color: ${cor};">
+              <span><strong>${label}</strong></span><br/>
+              <span>${valorFormatado}</span><br/>
+              <span>${percentual.toFixed(1)}%</span>
+            </div>`;
           },
         },
       };
@@ -1121,6 +1261,9 @@ const loadDashboardData = async () => {
       const labelsReceitas = Array.from(categoriaReceitasMap.keys());
       const valuesReceitas = Array.from(categoriaReceitasMap.values());
       
+      // Guardar valores reais para usar no tooltip
+      valoresTotaisReceitas.value = valuesReceitas;
+      
       // Calcular percentuais
       const totalReceitasGraf = valuesReceitas.reduce((a, b) => a + b, 0);
       const percentuaisReceitas = valuesReceitas.map(v => (totalReceitasGraf > 0 ? (v / totalReceitasGraf) * 100 : 0));
@@ -1135,12 +1278,22 @@ const loadDashboardData = async () => {
           formatter: (val: number) => `${val.toFixed(1)}%`,
         },
         tooltip: {
-          y: {
-            formatter: (val: number) =>
-              new Intl.NumberFormat("pt-BR", {
-                style: "currency",
-                currency: "BRL",
-              }).format(val / 100),
+          custom: ({ series, seriesIndex, w }: any) => {
+            const valor = valoresTotaisReceitas.value[seriesIndex] || 0;
+            const percentual = series[seriesIndex] || 0;
+            const label = labelsReceitas[seriesIndex] || "Sem dados";
+            const valorFormatado = new Intl.NumberFormat("pt-BR", {
+              style: "currency",
+              currency: "BRL",
+            }).format(valor / 100);
+            // Pegar a cor da série
+            const cores = ["#66BB6A", "#42A5F5", "#AB47BC", "#EC407A", "#29B6F6", "#78909C", "#FFCA28"];
+            const cor = cores[seriesIndex] || "#666";
+            return `<div class="apexcharts-tooltip-custom" style="background-color: ${cor};">
+              <span><strong>${label}</strong></span><br/>
+              <span>${valorFormatado}</span><br/>
+              <span>${percentual.toFixed(1)}%</span>
+            </div>`;
           },
         },
       };
@@ -1373,5 +1526,31 @@ watch(() => currentMonth.value, () => {
 
 .gap-3 {
   gap: 1rem;
+}
+
+/* ApexCharts Custom Tooltip */
+:deep(.apexcharts-tooltip-custom) {
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #fff;
+  font-weight: 500;
+
+  span {
+    margin: 0;
+    padding: 0;
+    display: block;
+    line-height: 1.4;
+  }
+
+  strong {
+    font-weight: 600;
+    color: #fff;
+  }
 }
 </style>
