@@ -28,6 +28,8 @@ class StoreLancamentoRequest extends FormRequest
             // 'status_lancamento' => $this->transformStatus(),
             'tipo_parcela'      => $this->input('tipo_parcela') ? strtoupper($this->input('tipo_parcela')) : null,
             'periodicidade'     => $this->input('periodicidade') ? strtoupper($this->input('periodicidade')) : null,
+            // Renomear fatura para fatura_vigente se for cartão de crédito
+            'fatura_vigente'    => $this->input('fatura_vigente') ?? $this->input('fatura'),
         ]);
     }
 
@@ -53,15 +55,18 @@ class StoreLancamentoRequest extends FormRequest
             'data_lancamento'      => 'required | date',
             'data_efetivacao'      => 'nullable | date',
             'subcategoria'         => 'required | string | max:30',
-            'status_lancamento'    => 'required | in:EFETIVADA,PENDENTE',
+            // Status não é obrigatório para CARTAO_CREDITO (vinculado à fatura)
+            'status_lancamento'    => 'nullable | required_unless:tipo_lancamento,CARTAO_CREDITO | in:EFETIVADA,PENDENTE',
             'categoria'            => 'required | string|max:30',
             'subcategoria'         => 'required | string|max:30',
             'observacoes'          => 'nullable | string | max:1000',
             'conta_id'             => 'required | exists:contas,id',
-            'mesAno'               => 'required | string | regex:/^\d{4}-\d{2}$/',
+            // mesAno não é obrigatório para CARTAO_CREDITO (usa fatura_vigente)
+            'mesAno'               => 'nullable | required_unless:tipo_lancamento,CARTAO_CREDITO | string | regex:/^\d{4}-\d{2}$/',
             'invoice_id'           => 'nullable | required_if:tipo_lancamento,CARTAO_CREDITO | exists:credit_card_invoices,id',
             'editScope'            => 'nullable|string|in:apenas esta,esta e as próximas,todas,apenas este mês,mês atual e os próximos',
-            'fatura'               => 'nullable | required_if:tipo_lancamento,CARTAO_CREDITO | regex:/^[A-Z]{3}\/\d{4}$/',
+            'fatura_vigente'       => 'nullable | required_if:tipo_lancamento,CARTAO_CREDITO | regex:/^\d{2}\/\d{4}$/',
+            'cartao_credito_id'    => 'nullable | required_if:tipo_lancamento,CARTAO_CREDITO | exists:cartao_creditos,id',
         ];
     }
 
@@ -77,12 +82,20 @@ class StoreLancamentoRequest extends FormRequest
 
     private function transformTipoLancamento(): string
     {
+        $valor = $this->input('tipo_lancamento');
+        
+        // Se já estiver em formato MAIÚSCULO (CARTAO_CREDITO), retorna como está
+        if (in_array($valor, ['RECEITA', 'DESPESA', 'CARTAO_CREDITO'])) {
+            return $valor;
+        }
+        
+        // Senão, transforma do formato PT
         $map = [
             'Receita' => 'RECEITA',
             'Despesa' => 'DESPESA',
             'Cartão de Crédito' => 'CARTAO_CREDITO',
         ];
-        return $map[$this->input('tipo_lancamento')] ?? '';
+        return $map[$valor] ?? '';
     }
 
     private function transformRecorrencia(): string
