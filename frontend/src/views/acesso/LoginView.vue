@@ -106,7 +106,7 @@
           </v-card>
 
           <!-- Indicadores no Fundo -->
-          <div class="text-center mt-6">
+          <!-- <div class="text-center mt-6">
             <v-chip
               size="small"
               variant="flat"
@@ -126,7 +126,7 @@
               <v-icon icon="mdi-lock-outline" start size="16" />
               Conexão Segura
             </v-chip>
-          </div>
+          </div> -->
         </v-col>
       </v-row>
     </v-container>
@@ -158,8 +158,8 @@
 </template>
 
 <script setup lang="ts">
-import authService from '@/services/auth.service'
 import TermsFooter from '@/components/dialogs/TermsFooter.vue'
+import authService from '@/services/auth.service'
 import { useAuthStore } from '@/store/auth'
 import { useToastStore } from '@/store/toast'
 import { useUserStore } from '@/store/user'

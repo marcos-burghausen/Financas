@@ -131,7 +131,7 @@
               </div>
 
               <!-- Terms Footer -->
-              <TermsFooter />
+              <!-- <TermsFooter /> -->
             </v-form>
           </div>
         </div>
@@ -198,7 +198,6 @@
 <script setup lang="ts">
 import ErrorMessage from "@/components/ErrorMessage.vue";
 import ErrorsForm from "@/components/ModalErrorsForm.vue";
-import TermsFooter from "@/components/dialogs/TermsFooter.vue";
 import http from "@/services/http";
 import { useErrorStore } from "@/store/error";
 import type { FormCadastro } from "@/types";
