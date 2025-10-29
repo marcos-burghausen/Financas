@@ -83,12 +83,12 @@ class StoreLancamentoRequest extends FormRequest
     private function transformTipoLancamento(): string
     {
         $valor = $this->input('tipo_lancamento');
-        
+
         // Se já estiver em formato MAIÚSCULO (CARTAO_CREDITO), retorna como está
         if (in_array($valor, ['RECEITA', 'DESPESA', 'CARTAO_CREDITO'])) {
             return $valor;
         }
-        
+
         // Senão, transforma do formato PT
         $map = [
             'Receita' => 'RECEITA',

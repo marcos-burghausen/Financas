@@ -121,7 +121,7 @@ class LancamentoService
                 ]));
             }
         } else {
-            $faturaDateObject = Carbon::createFromLocaleFormat('!M/Y', 'pt_BR', $data['fatura']);
+            $faturaDateObject = Carbon::createFromLocaleFormat('!m/Y', 'pt_BR', $data['fatura_vigente'] ?? $data['fatura']);
             $invoiceId = $this->invoiceService->getOrCreateInvoiceId($conta->id, $faturaDateObject, $user->id);
             $faturasAfetadas[$invoiceId] = CreditCardInvoice::find($invoiceId);
 

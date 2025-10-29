@@ -682,8 +682,8 @@
             </div>
 
             <!-- Row 5: Fatura -->
-            <div class="custom__input__container mb-4">
-              <div class="custom__input__content">
+            <div class="custom__input__container mb-4" @click="openFaturaSelect">
+              <div class="custom__input__content" style="cursor: pointer;">
                 <v-icon icon="mdi-calendar-range" class="me-2" />
                 <div class="d-flex flex-column">
                   <span class="text-caption text-medium-emphasis">Fatura</span>
@@ -691,12 +691,13 @@
                 </div>
                 <v-spacer />
                 <v-select
+                  ref="selectFatura"
                   v-model="faturaVigente"
                   :items="faturasMeses"
                   variant="plain"
                   hide-details="auto"
                   class="fatura-select"
-                  style="width: auto; min-width: 100px"
+                  style="width: auto; min-width: 100px; pointer-events: none;"
                   @click.stop
                 />
               </div>
@@ -1368,6 +1369,16 @@ function selecionarRecorrenciaTransaction(item: string) {
 
 function concluirParcelasTransaction() {
   openParcelasTransaction.value = false
+}
+
+function openFaturaSelect() {
+  const selectFatura = document.querySelector('.fatura-select')
+  if (selectFatura) {
+    const input = selectFatura.querySelector('input')
+    if (input) {
+      input.click()
+    }
+  }
 }
 
 async function saveTransaction() {
