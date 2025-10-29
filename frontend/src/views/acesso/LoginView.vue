@@ -676,19 +676,17 @@ async function handleLogin() {
 
 <style scoped lang="scss">
 .login-wrapper {
-  min-height: 100%;
+  min-height: 100vh;
   background: linear-gradient(135deg, rgb(var(--v-theme-primary)) 0%, rgba(var(--v-theme-primary), 0.7) 100%);
-  // padding: 2rem 0;
+  padding: 2rem 0;
   position: relative;
 }
 
 .login-container {
-  width: 1000px;
-  // padding: 2rem;
+  padding: 2rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100%;
 }
 
 .login-card {
@@ -699,6 +697,37 @@ async function handleLogin() {
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2) !important;
   }
 }
+
+// Fazer scrollable el contenido del card
+// Removido para permitir scroll natural de página
+
+// Fazer scrollable el contenido del card
+:deep(.v-card__text) {
+  overflow-y: auto;
+  max-height: calc(100vh - 15rem);
+  -webkit-overflow-scrolling: touch;
+
+  @media (max-width: 600px) {
+    max-height: calc(100vh - 12rem);
+    padding: 1.5rem !important;
+  }
+}
+
+.indicators-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  padding: 0 1rem;
+  margin-top: 1.5rem;
+
+  @media (max-width: 600px) {
+    padding: 0;
+    margin-top: 1rem;
+  }
+}
+
+// Removido - não necessário para scroll natural
 
 .logo-section {
   background: linear-gradient(135deg, rgb(var(--v-theme-primary)) 0%, rgba(var(--v-theme-primary), 0.8) 100%);
