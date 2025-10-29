@@ -156,10 +156,10 @@
 
         <template #item.valor_em_aberto="{ item }">
           <div class="d-flex flex-column align-center">
-            <span :class="$vuetify.display.xs ? 'text-caption' : 'text-body-2'" class="font-weight-bold">{{ formatCurrency(item.valor_em_aberto || 0) }}</span>
+            <span :class="$vuetify.display.xs ? 'text-caption' : 'text-body-2'" class="font-weight-bold">{{ formatCurrency(Number(item.valor_em_aberto) || 0) }}</span>
             <v-progress-linear
-              :value="((item.valor_em_aberto || 0) / (item.limite || 1)) * 100"
-              :color="getUtilizacaoColor(item.valor_em_aberto || 0, item.limite || 1)"
+              :value="((Number(item.valor_em_aberto) || 0) / (Number(item.limite) || 1)) * 100"
+              :color="getUtilizacaoColor(Number(item.valor_em_aberto) || 0, Number(item.limite) || 1)"
               class="mt-1"
               height="6"
               :style="`width: ${$vuetify.display.xs ? '80px' : '100px'}`"
@@ -169,7 +169,7 @@
 
         <template #item.limite="{ item }">
           <div class="text-right font-weight-bold" :class="$vuetify.display.xs ? 'text-caption' : 'text-body-2'">
-            {{ formatCurrency(item.limite || 0) }}
+            {{ formatCurrency(Number(item.limite) || 0) }}
           </div>
         </template>
 
@@ -682,8 +682,8 @@
             </div>
 
             <!-- Row 5: Fatura -->
-            <div class="custom__input__container mb-4" @click="openFaturaSelect">
-              <div class="custom__input__content" style="cursor: pointer;">
+            <div class="custom__input__container mb-4">
+              <div class="custom__input__content">
                 <v-icon icon="mdi-calendar-range" class="me-2" />
                 <div class="d-flex flex-column">
                   <span class="text-caption text-medium-emphasis">Fatura</span>
@@ -691,14 +691,12 @@
                 </div>
                 <v-spacer />
                 <v-select
-                  ref="selectFatura"
                   v-model="faturaVigente"
                   :items="faturasMeses"
                   variant="plain"
                   hide-details="auto"
                   class="fatura-select"
-                  style="width: auto; min-width: 100px; pointer-events: none;"
-                  @click.stop
+                  style="width: auto; min-width: 100px"
                 />
               </div>
               <div class="custom__underline" />
@@ -914,7 +912,7 @@ const transactionData = ref({
   recorrencia: 'Não recorrente',
   categoria: '',
   subcategoria: '',
-  conta_id: null,
+  conta_id: null as number | null,
   data_vencimento: new Date().toISOString().split('T')[0],
   data_lancamento: new Date().toISOString().split('T')[0],
   data_efetivacao: null,
@@ -1039,8 +1037,8 @@ const rules = {
 
 // Computed
 const summary = computed(() => {
-  const limiteTotal = cartoes.value.reduce((sum, c) => sum + (c.limite || 0), 0)
-  const utilizado = cartoes.value.reduce((sum, c) => sum + (c.valor_em_aberto || 0), 0)
+  const limiteTotal = cartoes.value.reduce((sum, c) => sum + (Number(c.limite) || 0), 0)
+  const utilizado = cartoes.value.reduce((sum, c) => sum + (Number(c.valor_em_aberto) || 0), 0)
   const disponivel = limiteTotal - utilizado
   return {
     limiteTotal,
@@ -1053,7 +1051,7 @@ const summary = computed(() => {
 const filteredCartoes = computed(() => {
   return cartoes.value.map(cartao => ({
     ...cartao,
-    disponivel: (cartao.limite || 0) - (cartao.valor_em_aberto || 0)
+    disponivel: (Number(cartao.limite) || 0) - (Number(cartao.valor_em_aberto) || 0)
   })).filter(cartao => {
     const matchSearch = cartao.name.toLowerCase().includes(search.value.toLowerCase()) ||
                        cartao.descricao?.toLowerCase().includes(search.value.toLowerCase())
@@ -1150,7 +1148,7 @@ const loadCartoes = async () => {
     const data = await cartaoCreditoService.list(mesAno)
 
     console.log('Cartões carregados:', data);
-    cartoes.value = data;
+    cartoes.value = data as any;
   } catch (error: any) {
     console.error('Erro ao carregar cartões:', error)
     toastStore.error('Erro ao carregar cartões')
@@ -1338,8 +1336,7 @@ function openAddTransactionDialog(cartao: Cartao) {
     recorrencia: 'Não recorrente',
     categoria: '',
     subcategoria: '',
-    conta_id: cartao.conta_pai_id, // Pré-preencher com conta vinculada do cartão
-    status_lancamento: 'PENDENTE',
+    conta_id: (cartao.conta_pai_id as number | null) ?? null, // Pré-preencher com conta vinculada do cartão
     data_vencimento: new Date().toISOString().split('T')[0],
     data_lancamento: new Date().toISOString().split('T')[0],
     data_efetivacao: null,
@@ -1369,16 +1366,6 @@ function selecionarRecorrenciaTransaction(item: string) {
 
 function concluirParcelasTransaction() {
   openParcelasTransaction.value = false
-}
-
-function openFaturaSelect() {
-  const selectFatura = document.querySelector('.fatura-select')
-  if (selectFatura) {
-    const input = selectFatura.querySelector('input')
-    if (input) {
-      input.click()
-    }
-  }
 }
 
 async function saveTransaction() {
