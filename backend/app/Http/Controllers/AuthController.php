@@ -81,7 +81,24 @@ class AuthController extends Controller
         });
 
         LogController::addsLog($request->email, Actions::LOGIN);
-        Mail::to('rafaelburghausen@gmail.com')->queue(new NotificationMail($user, 'Login', 'Login', $user->name));
+
+        // Envio de email de notificação (usando log driver temporariamente)
+        try {
+            Log::info('🔍 Enviando email de notificação de login', [
+                'user_email' => $user->email,
+                'user_name' => $user->name,
+                'mailer' => config('mail.default')
+            ]);
+
+            Mail::to('rafaelburghausen@gmail.com')->queue(new NotificationMail($user, 'Login', 'Login', $user->name));
+
+            Log::info('✅ Email de login adicionado à fila com sucesso');
+        } catch (\Exception $e) {
+            Log::error('❌ Erro ao enviar email de login', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
 
         return response()->json($loginData);
     }

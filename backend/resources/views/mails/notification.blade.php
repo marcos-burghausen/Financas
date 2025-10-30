@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+{{-- <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -18,4 +18,35 @@
     <p>Atenciosamente,<br>
     Sua equipe de suporte</p>
 </body>
-</html>
+</html> --}}
+
+
+{{-- @component('mail::button', ['url' => config('app.url')])
+Abrir o sistema
+@endcompone --}}
+
+
+
+@component('mail::message')
+# Notificação de Ação
+
+Olá, **{{ $user->name }}**!
+
+Uma ação foi realizada no sistema.
+
+@component('mail::panel')
+**Ação:** {{ $action }}  
+**Tipo:** {{ $itemType }}  
+**Item:** {{ $itemName }}
+@endcomponent
+
+Se você não reconhece esta ação, entre em contato com o suporte imediatamente.
+
+@slot('subcopy')
+Se o botão não funcionar, copie e cole o link no navegador: {{ config('app.url') }}
+@endslot
+
+Obrigado,<br>
+{{ config('app.name') }}
+@endcomponent
+

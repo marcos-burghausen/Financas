@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+
+use Illuminate\Support\Facades\Mail;
+use App\Mail\NotificationMai;
+
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -21,6 +25,17 @@ Route::get('/', function () {
 Route::get('/test-env', function () {
     info(env('APP_URL'));
 });
+Route::get('/teste-email', function () {
+    Mail::to('rafaelburghausen@gmail.com')->send(new \App\Mail\NotificationMail(
+        (object)['name' => 'Marcos', 'email' => 'rafaelburghausen@gmail.com'],
+        'Atualização',
+        'Transação',
+        'Fatura #123'
+    ));
+
+    return 'OK - verifique a caixa de entrada e os Transactional Logs da Brevo';
+});
+
     
 
 // Route::get('/auth/redirect', [AuthController::class, 'redirect'])->name('auth.redirect');
