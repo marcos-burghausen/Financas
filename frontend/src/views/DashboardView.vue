@@ -934,10 +934,6 @@ const navigationMonth = (action: "prev" | "next" | "today") => {
     
     currentMonth.value = `${newYear}-${String(newMonth).padStart(2, "0")}`;
   } else if (action === "next") {
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonthNum = now.getMonth() + 1; // 1-12
-    
     const [year, month] = currentMonth.value.split("-");
     const yearNum = parseInt(year, 10);
     const monthNum = parseInt(month, 10);
@@ -951,10 +947,8 @@ const navigationMonth = (action: "prev" | "next" | "today") => {
       nextYear = nextYear + 1;
     }
     
-    // Verificar se não ultrapassa o mês atual
-    if (nextYear < currentYear || (nextYear === currentYear && nextMonth <= currentMonthNum)) {
-      currentMonth.value = `${nextYear}-${String(nextMonth).padStart(2, "0")}`;
-    }
+    // Atualizar sem restrição - usuário pode navegar livremente
+    currentMonth.value = `${nextYear}-${String(nextMonth).padStart(2, "0")}`;
   } else if (action === "today") {
     const now = new Date();
     const year = now.getFullYear();
