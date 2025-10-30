@@ -32,10 +32,9 @@
                         v-bind="props"
                         class="color-input-activator"
                       >
-                        <img
-                          :src="getBankIconPath(form.icon || '')"
-                          :alt="form.icon || 'Bank icon'"
-                          class="bank-icon-lg"
+                        <v-icon
+                          :icon="getBankIcon(form.icon || '')"
+                          size="32"
                         />
                       </div>
                     </template>
@@ -43,16 +42,16 @@
                     <div class="dropdown">
                       <div
                         v-for="icon in iconsBank"
-                        :key="icon.value"
+                        :key="icon.name"
                         class="dropdown__item"
                         :class="{ 'is__selected': icon.name === form.icon }"
                         @click.stop="selectIcon(icon.name)"
                       >
                         <div class="dropdown__item__content">
-                          <img
-                            :src="getBankIconPath(icon.name)"
-                            :alt="icon.name"
-                            class="bank-icon-sm"
+                          <v-icon
+                            :icon="getBankIcon(icon.name)"
+                            size="20"
+                            class="me-2"
                           />
                           <span>{{ icon.name }}</span>
                         </div>
@@ -199,16 +198,8 @@
 <script setup lang="ts">
 import contasService from '@/services/contas.service';
 import { useToastStore } from '@/store/toast';
-import { iconsBank } from "@/utils/iconMapper";
+import { getBankIcon, iconsBank } from "@/utils/iconMapper";
 import { ref } from 'vue';
-
-// Importar SVGs corretamente para produção
-import BBIcon from "@/assets/icons/bb.svg";
-import CaixaIcon from "@/assets/icons/caixa.svg";
-import MasterCardIcon from "@/assets/icons/mastercard.svg";
-import NubankIcon from "@/assets/icons/nubank.svg";
-import SicrediIcon from "@/assets/icons/sicredi.svg";
-import VisaIcon from "@/assets/icons/visa.svg";
 
 interface Conta {
   id?: number
@@ -312,18 +303,6 @@ const selectIcon = (iconName: string) => {
   menuColor.value = false;
 };
 
-const getBankIconPath = (bankName: string): string => {
-  const iconMap: Record<string, string> = {
-    'Sicredi': SicrediIcon,
-    'Nubank': NubankIcon,
-    'Caixa Economica': CaixaIcon,
-    'Banco do Brasil': BBIcon,
-    'MasterCard': MasterCardIcon,
-    'Visa': VisaIcon,
-  };
-  return iconMap[bankName] || BBIcon;
-};
-
 const toggleStatus = () => {
   form.value.status = form.value.status === "ATIVA" ? "INATIVA" : "ATIVA";
 };
@@ -382,38 +361,9 @@ export default {
   overflow: hidden;
 }
 
-.color-input-activator img {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-  object-position: center;
-}
-
 .color-input-activator:hover {
   transform: scale(1.1);
   border-color: rgba(0, 0, 0, 0.4);
-}
-
-/* Tamanhos de ícone com img */
-.bank-icon-sm {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-  object-position: center;
-}
-
-.bank-icon-md {
-  width: 50px;
-  height: 50px;
-  object-fit: contain;
-  object-position: center;
-}
-
-.bank-icon-lg {
-  width: 45px;
-  height: 45px;
-  object-fit: contain;
-  object-position: center;
 }
 
 .dropdown {
