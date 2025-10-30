@@ -203,11 +203,11 @@ import { iconsBank } from "@/utils/iconMapper";
 import { ref } from 'vue';
 
 // Importar SVGs corretamente para produção
-import SicrediIcon from "@/assets/icons/sicredi.svg";
-import NubankIcon from "@/assets/icons/nubank.svg";
-import CaixaIcon from "@/assets/icons/caixa.svg";
 import BBIcon from "@/assets/icons/bb.svg";
+import CaixaIcon from "@/assets/icons/caixa.svg";
 import MasterCardIcon from "@/assets/icons/mastercard.svg";
+import NubankIcon from "@/assets/icons/nubank.svg";
+import SicrediIcon from "@/assets/icons/sicredi.svg";
 import VisaIcon from "@/assets/icons/visa.svg";
 
 interface Conta {
