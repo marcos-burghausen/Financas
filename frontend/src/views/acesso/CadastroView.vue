@@ -256,7 +256,7 @@
 
               <!-- Botão Voltar -->
               <v-btn
-                to="/login"
+                to="/"
                 variant="outlined"
                 color="primary"
                 size="large"
