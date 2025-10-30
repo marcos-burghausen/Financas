@@ -202,6 +202,14 @@ import { useToastStore } from '@/store/toast';
 import { iconsBank } from "@/utils/iconMapper";
 import { ref } from 'vue';
 
+// Importar SVGs corretamente para produção
+import SicrediIcon from "@/assets/icons/sicredi.svg";
+import NubankIcon from "@/assets/icons/nubank.svg";
+import CaixaIcon from "@/assets/icons/caixa.svg";
+import BBIcon from "@/assets/icons/bb.svg";
+import MasterCardIcon from "@/assets/icons/mastercard.svg";
+import VisaIcon from "@/assets/icons/visa.svg";
+
 interface Conta {
   id?: number
   name: string
@@ -305,16 +313,15 @@ const selectIcon = (iconName: string) => {
 };
 
 const getBankIconPath = (bankName: string): string => {
-  const iconPath = `/src/assets/icons/`;
   const iconMap: Record<string, string> = {
-    'Sicredi': `${iconPath}sicredi.svg`,
-    'Nubank': `${iconPath}nubank.svg`,
-    'Caixa Economica': `${iconPath}caixa.svg`,
-    'Banco do Brasil': `${iconPath}bb.svg`,
-    'MasterCard': `${iconPath}mastercard.svg`,
-    'Visa': `${iconPath}visa.svg`,
+    'Sicredi': SicrediIcon,
+    'Nubank': NubankIcon,
+    'Caixa Economica': CaixaIcon,
+    'Banco do Brasil': BBIcon,
+    'MasterCard': MasterCardIcon,
+    'Visa': VisaIcon,
   };
-  return iconMap[bankName] || `${iconPath}bb.svg`;
+  return iconMap[bankName] || BBIcon;
 };
 
 const toggleStatus = () => {
