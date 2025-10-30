@@ -128,10 +128,10 @@
                 icon
                 variant="text"
               >
-                <v-avatar
+                <!-- <v-avatar
                   :image="userStore.user?.avatar || 'https://via.placeholder.com/40'"
                   size="32"
-                />
+                /> -->
               </v-btn>
             </template>
 
@@ -391,15 +391,25 @@ const userTypeLabel = computed(() => {
 
 // Função reativa para verificar acesso (usando computed para reatividade)
 const canAccessAdmin = computed(() => {
-  if (!userStore.userData) return false;
+  if (!userStore.userData) {
+    console.log("[canAccessAdmin] userData não carregado");
+    return false;
+  }
   const userRole = (userStore.userData?.type || "user").toUpperCase();
-  return userRole === "ADMIN" || userRole === "FULL";
+  const hasAccess = userRole === "ADMIN" || userRole === "FULL";
+  console.log("[canAccessAdmin] userRole:", userRole, "hasAccess:", hasAccess);
+  return hasAccess;
 });
 
 const canAccessTrader = computed(() => {
-  if (!userStore.userData) return false;
+  if (!userStore.userData) {
+    console.log("[canAccessTrader] userData não carregado");
+    return false;
+  }
   const userRole = (userStore.userData?.type || "user").toUpperCase();
-  return userRole === "TRADER" || userRole === "USER_TRADER" || userRole === "FULL";
+  const hasAccess = userRole === "TRADER" || userRole === "USER_TRADER" || userRole === "FULL";
+  console.log("[canAccessTrader] userRole:", userRole, "hasAccess:", hasAccess);
+  return hasAccess;
 });
 
 // Filtrar adminMenuItems baseado em role do usuário
@@ -439,6 +449,14 @@ onMounted(() => {
     console.log("[MainLayout] userData já estava carregado:", userStore.userData);
   }
 });
+
+// Watch para atualizar o menu quando userData muda
+watch(
+  () => userStore.userData,
+  (newUserData) => {
+    console.log("[MainLayout] userData mudou:", newUserData);
+  }
+);
 </script>
 
 <style scoped lang="scss">
@@ -447,6 +465,7 @@ onMounted(() => {
   flex-direction: column;
   min-height: 100vh;
   background: rgb(var(--v-theme-background));
+  transition: background-color 0.3s ease;
 }
 
 /* ========================================
@@ -732,7 +751,7 @@ onMounted(() => {
   flex: 1;
   margin-left: 250px;
   background: rgb(var(--v-theme-background));
-  transition: margin-left 0.3s ease;
+  transition: margin-left 0.3s ease, background-color 0.3s ease;
 
   @media (max-width: 1024px) {
     margin-left: 0;
@@ -743,6 +762,7 @@ onMounted(() => {
   padding: 2rem;
   min-height: calc(100vh - 120px);
   background: rgb(var(--v-theme-background));
+  transition: background-color 0.3s ease;
 
   @media (max-width: 960px) {
     padding: 1.5rem;

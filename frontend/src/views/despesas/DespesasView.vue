@@ -34,7 +34,7 @@
       elevation="1"
     >
       <v-card-text class="pa-4">
-        <div class="d-flex align-center justify-center gap-4">
+        <div class="d-flex align-center justify-center gap-4 month-nav">
           <v-btn
             icon="mdi-chevron-left"
             color="primary"
@@ -44,8 +44,7 @@
             @click="goToPreviousMonth"
           />
           <div
-            class="text-center"
-            style="min-width: 250px"
+            class="text-center month-display"
           >
             <v-btn
               variant="text"
@@ -1560,6 +1559,42 @@ watch(() => currentMonth.value, () => {
 
 <style scoped lang="scss">
 .despesas-view {
+  .month-nav {
+    padding: 0 1rem;
+
+    @media (max-width: 600px) {
+      padding: 0 0.5rem;
+    }
+
+    @media (max-width: 400px) {
+      padding: 0 0.25rem;
+    }
+  }
+
+  .month-display {
+    min-width: 150px;
+
+    @media (max-width: 600px) {
+      min-width: 120px;
+    }
+
+    @media (max-width: 400px) {
+      min-width: 100px;
+    }
+
+    :deep(.v-btn__content) {
+      font-size: 0.875rem;
+
+      @media (max-width: 600px) {
+        font-size: 0.75rem;
+      }
+
+      @media (max-width: 400px) {
+        font-size: 0.65rem;
+      }
+    }
+  }
+
   .view-header {
     @media (max-width: 600px) {
       .d-flex {

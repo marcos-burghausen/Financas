@@ -17,13 +17,13 @@
 
 <script setup lang="ts">
 import {
-    useAuthStore,
-    useDashboardStore,
-    useExpensesStore,
-    useRevenuesStore,
-    useThemeStore,
-    useUserStore,
-    useWalletsStore,
+  useAuthStore,
+  useDashboardStore,
+  useExpensesStore,
+  useRevenuesStore,
+  useThemeStore,
+  useUserStore,
+  useWalletsStore,
 } from "@/store";
 import { computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
@@ -79,6 +79,7 @@ watch(() => themeStore.theme, (newTheme) => {
 /* Garantir que views também herdam o background */
 .v-main {
   background: rgb(var(--v-theme-background)) !important;
+  transition: background-color 0.3s ease !important;
 }
 
 /* Container principal das views */
@@ -117,5 +118,56 @@ watch(() => themeStore.theme, (newTheme) => {
 .v-theme--dark .receitas-view,
 .v-theme--dark .contas-view {
   background: rgb(var(--v-theme-background)) !important;
+}
+
+/* Garantir que main recebe o tema correto */
+.v-theme--dark main {
+  background: rgb(var(--v-theme-background)) !important;
+}
+
+.v-theme--light main {
+  background: rgb(var(--v-theme-background)) !important;
+}
+
+/* Forçar v-application e v-layout a serem 100% da viewport */
+.v-application {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+.v-layout {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.v-application__wrap {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+/* Remover qualquer restrição de largura que o Vuetify possa adicionar */
+html, body {
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+#app {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+main {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+  background: rgb(var(--v-theme-background)) !important;
+  transition: background-color 0.3s ease !important;
 }
 </style>

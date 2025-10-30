@@ -1,14 +1,14 @@
 <template>
   <div class="dashboard-view">
     <!-- MAIN CONTENT -->
-    <div>
+    <div class="dashboard-container">
       <!-- MONTH NAVIGATION BAR -->
       <v-card
         class="mb-6"
         elevation="1"
       >
         <v-card-text class="pa-4">
-          <div class="d-flex align-center justify-center gap-4">
+          <div class="d-flex align-center justify-center gap-4 month-nav">
             <v-btn
               icon="mdi-chevron-left"
               color="primary"
@@ -18,8 +18,7 @@
               @click="navigationMonth('prev')"
             />
             <div
-              class="text-center"
-              style="min-width: 250px"
+              class="text-center month-display"
             >
               <v-btn
                 variant="text"
@@ -330,7 +329,7 @@
             <v-tabs
               v-model="distribuicaoTab"
               align-tabs="center"
-              class="px-4"
+              class="px-4 distribuicao-tabs"
             >
               <v-tab value="despesas">
                 <v-icon icon="mdi-cash-remove" start size="18" />
@@ -1399,6 +1398,10 @@ watch(() => currentMonth.value, () => {
 .dashboard-view {
   min-height: 100vh;
   background: rgb(var(--v-theme-background));
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* KPI Cards */
@@ -1528,6 +1531,42 @@ watch(() => currentMonth.value, () => {
   gap: 1rem;
 }
 
+/* Dashboard Container - Responsivo para celular */
+.dashboard-container {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  padding: 1rem;
+}
+
+@media (max-width: 480px) {
+  .dashboard-container {
+    padding: 0.5rem;
+  }
+  
+  .kpi-card .kpi-value {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .dashboard-container {
+    padding: 0.25rem;
+  }
+  
+  .kpi-card .kpi-value {
+    font-size: 1rem;
+  }
+  
+  :deep(.v-card) {
+    border-radius: 8px !important;
+  }
+  
+  .transaction-item {
+    padding: 0.75rem;
+  }
+}
+
 /* ApexCharts Custom Tooltip */
 :deep(.apexcharts-tooltip-custom) {
   border: none;
@@ -1551,6 +1590,67 @@ watch(() => currentMonth.value, () => {
   strong {
     font-weight: 600;
     color: #fff;
+  }
+}
+
+/* Month Navigation - Responsivo */
+.month-nav {
+  flex-wrap: wrap;
+  padding: 0 8px;
+}
+
+.month-display {
+  min-width: auto;
+  flex: 1;
+  min-width: 150px;
+}
+
+/* Tabs de Distribuição - Responsivo */
+.distribuicao-tabs {
+  padding: 0 4px !important;
+}
+
+:deep(.distribuicao-tabs .v-tabs__content) {
+  overflow-x: auto;
+}
+
+:deep(.distribuicao-tabs .v-tab) {
+  min-width: auto;
+  flex: 1;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 600px) {
+  .month-nav {
+    padding: 0 4px;
+  }
+  
+  .month-display {
+    min-width: 120px;
+  }
+  
+  :deep(.distribuicao-tabs .v-tab) {
+    font-size: 0.75rem;
+    padding: 0 8px !important;
+  }
+}
+
+@media (max-width: 400px) {
+  .month-nav {
+    padding: 0 2px;
+  }
+  
+  .month-display {
+    min-width: 100px;
+  }
+  
+  :deep(.distribuicao-tabs .v-tab) {
+    font-size: 0.65rem;
+    padding: 0 4px !important;
+  }
+  
+  :deep(.distribuicao-tabs .v-icon) {
+    font-size: 14px !important;
   }
 }
 </style>

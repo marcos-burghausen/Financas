@@ -1484,6 +1484,8 @@ html, body {
   max-width: 100%;
   overflow-x: hidden;
   box-sizing: border-box;
+  background: rgb(var(--v-theme-background));
+  transition: background-color 0.3s ease;
 
   @media (min-width: 600px) {
     padding: 20px;
@@ -1514,6 +1516,11 @@ html, body {
       padding-left: 12px !important;
       padding-right: 12px !important;
     }
+
+    @media (max-width: 400px) {
+      padding-left: 4px !important;
+      padding-right: 4px !important;
+    }
   }
 
   // Garantir que cards dentro das colunas não ultrapassem
@@ -1528,6 +1535,12 @@ html, body {
       margin-left: -6px !important;
       margin-right: -6px !important;
     }
+
+    @media (max-width: 400px) {
+      margin-left: -4px !important;
+      margin-right: -4px !important;
+      gap: 0.5rem !important;
+    }
   }
 }
 
@@ -1541,21 +1554,44 @@ html, body {
     padding-bottom: 16px;
   }
 
+  @media (max-width: 400px) {
+    padding-bottom: 8px;
+  }
+
   h1 {
     word-break: break-word;
     overflow-wrap: break-word;
+  }
+
+  :deep(.v-icon) {
+    @media (max-width: 400px) {
+      font-size: 24px !important;
+      width: 24px !important;
+      height: 24px !important;
+    }
+  }
+
+  p {
+    @media (max-width: 400px) {
+      font-size: 0.65rem !important;
+    }
   }
 }
 
 .kpi-card {
   border-left: 4px solid rgb(var(--v-theme-error));
   transition: all 0.3s ease;
-  min-height: 80px;
+  min-height: 90px;
   width: 100%;
   overflow: hidden;
 
   @media (min-width: 600px) {
+    min-height: 110px;
+  }
+
+  @media (max-width: 400px) {
     min-height: 100px;
+    padding: 0.75rem !important;
   }
 
   &:hover {
@@ -1581,12 +1617,31 @@ html, body {
 
   .flex-shrink-0 {
     flex-shrink: 0;
+    
+    @media (max-width: 400px) {
+      width: 24px !important;
+      height: 24px !important;
+      margin-left: 0.5rem !important;
+    }
   }
 
   .text-no-wrap {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  p {
+    @media (max-width: 400px) {
+      font-size: 0.65rem !important;
+      margin-bottom: 0.25rem !important;
+    }
+  }
+
+  h3 {
+    @media (max-width: 400px) {
+      font-size: 0.9rem !important;
+    }
   }
 }
 
@@ -1610,6 +1665,17 @@ html, body {
     }
   }
 
+  :deep(.v-text-field),
+  :deep(.v-select) {
+    @media (max-width: 400px) {
+      font-size: 0.75rem !important;
+
+      .v-field__input {
+        font-size: 0.75rem !important;
+      }
+    }
+  }
+
   @media (max-width: 599px) {
     .v-text-field,
     .v-select {
@@ -1621,28 +1687,75 @@ html, body {
 
 .cartoes-table {
   width: 100%;
+  min-width: 100%;
   
   :deep(.v-data-table) {
     background: rgb(var(--v-theme-background));
     width: 100%;
+    min-width: 800px;
+
+    @media (max-width: 959px) {
+      min-width: 1000px;
+    }
+
+    @media (max-width: 600px) {
+      min-width: 900px;
+    }
+
+    @media (max-width: 400px) {
+      min-width: 850px;
+    }
   }
 
   :deep(.v-data-table__td) {
     padding: 8px 4px !important;
     word-break: break-word;
+    font-size: 0.75rem !important;
+    white-space: nowrap;
 
     @media (min-width: 600px) {
       padding: 12px 8px !important;
+      font-size: 0.875rem !important;
+    }
+
+    @media (max-width: 400px) {
+      padding: 6px 2px !important;
+      font-size: 0.7rem !important;
     }
   }
 
   :deep(.v-data-table__th) {
     padding: 8px 4px !important;
-    font-size: 0.75rem !important;
+    font-size: 0.7rem !important;
+    white-space: normal !important;
+    word-break: break-word !important;
 
     @media (min-width: 600px) {
       padding: 12px 8px !important;
       font-size: 0.875rem !important;
+    }
+
+    @media (max-width: 400px) {
+      padding: 6px 2px !important;
+      font-size: 0.65rem !important;
+    }
+  }
+
+  :deep(.v-chip) {
+    height: auto !important;
+    min-height: 20px !important;
+    font-size: 0.65rem !important;
+    padding: 2px 6px !important;
+
+    @media (min-width: 600px) {
+      font-size: 0.75rem !important;
+      padding: 4px 8px !important;
+    }
+  }
+
+  :deep(.v-progress-linear) {
+    @media (max-width: 400px) {
+      height: 4px !important;
     }
   }
 
@@ -1654,15 +1767,62 @@ html, body {
 .table-container {
   width: 100%;
   overflow: hidden;
+  border-radius: 4px;
+
+  @media (max-width: 400px) {
+    border-radius: 2px;
+  }
 }
 
 .table-wrapper {
   width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
+  display: block;
 
   @media (max-width: 959px) {
     -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  @media (max-width: 600px) {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05);
+  }
+
+  @media (max-width: 400px) {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.05);
+  }
+
+  /* Scrollbar Firefox */
+  scrollbar-width: thin;
+  
+  /* Scrollbar Chrome/Edge */
+  &::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    @media (max-width: 400px) {
+      background: rgba(0, 0, 0, 0.25);
+    }
   }
 }
 
