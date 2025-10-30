@@ -1,5 +1,26 @@
 <template>
   <v-container fluid class="perfil-panel pa-6">
+    <!-- Loading Overlay -->
+    <v-overlay
+      v-model="loadingProfile"
+      class="align-center justify-center"
+      persistent
+      contained
+    >
+      <div class="text-center">
+        <v-progress-circular
+          indeterminate
+          size="64"
+          width="5"
+          color="primary"
+          class="mb-4"
+        />
+        <div class="text-subtitle-1 text-white mb-1">
+          Carregando perfil...
+        </div>
+      </div>
+    </v-overlay>
+
     <!-- Header -->
     <div class="d-flex align-center justify-space-between mb-6">
       <div>
@@ -431,29 +452,40 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import userService from '@/services/user.service'
+import { useToastStore } from '@/store/toast'
+import { onMounted, ref } from 'vue'
+
+const toastStore = useToastStore()
 
 const activeTab = ref('dados')
 const loading = ref(false)
+const loadingProfile = ref(false)
 
 const userData = ref({
-  nome: 'João Silva',
-  email: 'joao@example.com',
-  type: 'FULL',
-  dataCriacao: '2025-01-15',
-  ultimoAcesso: '2025-10-17T14:30:00'
+  id: 0,
+  nome: '',
+  email: '',
+  type: 'USER',
+  dataCriacao: '',
+  ultimoAcesso: '',
+  telefone: '',
+  cpf: '',
+  dataNascimento: '',
+  profissao: '',
+  biografia: ''
 })
 
 const avatarUrl = ref('')
 
 const formData = ref({
-  nome: userData.value.nome,
-  email: userData.value.email,
-  telefone: '(11) 99999-9999',
-  cpf: '123.456.789-00',
-  dataNascimento: '1990-01-15',
-  profissao: 'Desenvolvedor',
-  biografia: 'Apaixonado por finanças e tecnologia'
+  nome: '',
+  email: '',
+  telefone: '',
+  cpf: '',
+  dataNascimento: '',
+  profissao: '',
+  biografia: ''
 })
 
 const formSeguranca = ref({
@@ -553,32 +585,122 @@ function getTypeLabel(type: string): string {
   return labels[type] || type
 }
 
+async function loadProfile() {
+  try {
+    loadingProfile.value = true
+    const profile = await userService.getProfile()
+    
+    userData.value = {
+      id: profile.id,
+      nome: profile.name,
+      email: profile.email,
+      type: profile.type,
+      dataCriacao: profile.created_at || '',
+      ultimoAcesso: profile.updated_at || '',
+      telefone: profile.phone || '',
+      cpf: profile.cpf || '',
+      dataNascimento: profile.date_of_birth || '',
+      profissao: profile.profession || '',
+      biografia: profile.bio || ''
+    }
+    
+    // Sincronizar formulário com os dados carregados
+    formData.value = {
+      nome: userData.value.nome,
+      email: userData.value.email,
+      telefone: userData.value.telefone,
+      cpf: userData.value.cpf,
+      dataNascimento: userData.value.dataNascimento,
+      profissao: userData.value.profissao,
+      biografia: userData.value.biografia
+    }
+  } catch (error: any) {
+    console.error('Erro ao carregar perfil:', error)
+    toastStore.error('Erro ao carregar perfil do usuário')
+  } finally {
+    loadingProfile.value = false
+  }
+}
+
 async function saveDados() {
   loading.value = true
-  setTimeout(() => {
+  try {
+    await userService.updateProfile({
+      name: formData.value.nome,
+      email: formData.value.email,
+      phone: formData.value.telefone,
+      cpf: formData.value.cpf,
+      date_of_birth: formData.value.dataNascimento,
+      profession: formData.value.profissao,
+      bio: formData.value.biografia
+    })
+    
+    toastStore.success('Dados atualizados com sucesso!')
+    
+    // Atualizar userData
+    userData.value.nome = formData.value.nome
+    userData.value.email = formData.value.email
+    userData.value.telefone = formData.value.telefone
+    userData.value.cpf = formData.value.cpf
+    userData.value.dataNascimento = formData.value.dataNascimento
+    userData.value.profissao = formData.value.profissao
+    userData.value.biografia = formData.value.biografia
+  } catch (error: any) {
+    console.error('Erro ao salvar dados:', error)
+    toastStore.error(error.message || 'Erro ao atualizar dados')
+  } finally {
     loading.value = false
-    // Mock: salvar dados
-  }, 500)
+  }
 }
 
 function resetFormDados() {
   formData.value = {
     nome: userData.value.nome,
     email: userData.value.email,
-    telefone: '(11) 99999-9999',
-    cpf: '123.456.789-00',
-    dataNascimento: '1990-01-15',
-    profissao: 'Desenvolvedor',
-    biografia: 'Apaixonado por finanças e tecnologia'
+    telefone: userData.value.telefone,
+    cpf: userData.value.cpf,
+    dataNascimento: userData.value.dataNascimento,
+    profissao: userData.value.profissao,
+    biografia: userData.value.biografia
   }
 }
 
 async function saveSeguranca() {
-  loading.value = true
-  setTimeout(() => {
-    loading.value = false
+  try {
+    // Validações básicas
+    if (!formSeguranca.value.senhaAtual) {
+      toastStore.error('Digite sua senha atual')
+      return
+    }
+    if (!formSeguranca.value.senhaNova) {
+      toastStore.error('Digite a nova senha')
+      return
+    }
+    if (formSeguranca.value.senhaNova !== formSeguranca.value.confirmarSenha) {
+      toastStore.error('As senhas não conferem')
+      return
+    }
+    if (formSeguranca.value.senhaNova.length < 8) {
+      toastStore.error('A senha deve ter no mínimo 8 caracteres')
+      return
+    }
+
+    loading.value = true
+    
+    await userService.updatePassword({
+      current_password: formSeguranca.value.senhaAtual,
+      password: formSeguranca.value.senhaNova,
+      password_confirmation: formSeguranca.value.confirmarSenha
+    })
+    
+    toastStore.success('Senha alterada com sucesso!')
     resetFormSeguranca()
-  }, 500)
+  } catch (error: any) {
+    console.error('Erro ao alterar senha:', error)
+    toastStore.error(error.message || 'Erro ao alterar senha')
+  } finally {
+    loading.value = false
+  }
 }
 
 function resetFormSeguranca() {
@@ -609,6 +731,11 @@ function resetFormPreferencias() {
     tema: 'light'
   }
 }
+
+// Ciclo de vida
+onMounted(() => {
+  loadProfile()
+})
 </script>
 
 <style scoped lang="scss">
