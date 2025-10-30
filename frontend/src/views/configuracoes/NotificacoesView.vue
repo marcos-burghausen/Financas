@@ -94,7 +94,7 @@
       <v-row>
         <v-col cols="12">
           <v-card elevation="3">
-            <v-card-title class="text-h5 pa-6 bg-primary">
+            <v-card-title class="text-h5 pa-6" style="background: rgb(var(--v-theme-surface));">
               <v-icon icon="mdi-cog" class="mr-2" />
               Configurações de Alertas
             </v-card-title>
@@ -342,7 +342,7 @@
       <v-row class="mt-6">
         <v-col cols="12">
           <v-card elevation="3">
-            <v-card-title class="text-h5 pa-6 bg-success">
+            <v-card-title class="text-h5 pa-6" style="background: rgb(var(--v-theme-surface));">
               <v-icon icon="mdi-flask-outline" class="mr-2" />
               Testes Rápidos de E-mail
             </v-card-title>
@@ -652,7 +652,7 @@ onMounted(() => {
 <style scoped>
 .notifications-view {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: rgb(var(--v-theme-background));
 }
 
 .stat-card {
