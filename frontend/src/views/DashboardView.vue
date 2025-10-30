@@ -289,6 +289,7 @@
                 class="chart-container"
               >
                 <apexchart
+                  :key="`bar-${themeStore.theme}`"
                   type="bar"
                   :options="chartOptions.bar"
                   :series="chartSeries.bar"
@@ -811,12 +812,14 @@
 
 <script setup lang="ts">
 import http from "@/services/http";
+import { useThemeStore } from "@/store/theme";
 import { useToastStore } from "@/store/toast";
 import { useUserStore } from "@/store/user";
 import { computed, onMounted, ref, watch } from "vue";
 
 const userStore = useUserStore();
 const toastStore = useToastStore();
+const themeStore = useThemeStore();
 const loading = ref(true);
 
 // Summary data
@@ -934,10 +937,6 @@ const navigationMonth = (action: "prev" | "next" | "today") => {
     
     currentMonth.value = `${newYear}-${String(newMonth).padStart(2, "0")}`;
   } else if (action === "next") {
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonthNum = now.getMonth() + 1; // 1-12
-    
     const [year, month] = currentMonth.value.split("-");
     const yearNum = parseInt(year, 10);
     const monthNum = parseInt(month, 10);
@@ -951,10 +950,8 @@ const navigationMonth = (action: "prev" | "next" | "today") => {
       nextYear = nextYear + 1;
     }
     
-    // Verificar se não ultrapassa o mês atual
-    if (nextYear < currentYear || (nextYear === currentYear && nextMonth <= currentMonthNum)) {
-      currentMonth.value = `${nextYear}-${String(nextMonth).padStart(2, "0")}`;
-    }
+    // Atualizar sem restrição - usuário pode navegar livremente
+    currentMonth.value = `${nextYear}-${String(nextMonth).padStart(2, "0")}`;
   } else if (action === "today") {
     const now = new Date();
     const year = now.getFullYear();
@@ -1053,7 +1050,6 @@ const loadDashboardData = async () => {
         ...response.data.transacoes_recentes.receitas,
         ...response.data.transacoes_recentes.despesas
       ] || [];
-      console.log(recentTransactions.value);
 
       allTransactions = [
         ...response.data.lancamentos.receitas,
@@ -1113,6 +1109,10 @@ const loadDashboardData = async () => {
     const monthLabel = new Date().toLocaleString("pt-BR", { month: "short" });
     const months = [monthLabel];
     
+    // Cores baseadas no tema
+    const textColor = themeStore.isDark ? "#FFFFFF" : "#000000";
+    const borderColor = themeStore.isDark ? "#424242" : "#E0E0E0";
+
     chartOptions.value.bar = {
       chart: {
         type: "bar",
@@ -1130,10 +1130,37 @@ const loadDashboardData = async () => {
       },
       dataLabels: { enabled: false },
       stroke: { show: true, width: 2, colors: ["transparent"] },
-      xaxis: { categories: months },
-      yaxis: {
-        title: { text: "R$" },
+      xaxis: {
+        categories: months,
         labels: {
+          style: {
+            colors: textColor,
+            fontSize: "12px",
+            fontWeight: 500,
+          },
+        },
+        axisBorder: {
+          color: borderColor,
+        },
+        axisTicks: {
+          color: borderColor,
+        },
+      },
+      yaxis: {
+        title: {
+          text: "R$",
+          style: {
+            color: textColor,
+            fontSize: "12px",
+            fontWeight: 500,
+          },
+        },
+        labels: {
+          style: {
+            colors: textColor,
+            fontSize: "12px",
+            fontWeight: 500,
+          },
           formatter: (value: number) => {
             // Converter centavos para reais (dividir por 100)
             const reais = value / 100;
@@ -1144,6 +1171,12 @@ const loadDashboardData = async () => {
             // Caso contrário, mostrar em reais com 2 casas decimais
             return `R$ ${reais.toFixed(2)}`;
           },
+        },
+        axisBorder: {
+          color: borderColor,
+        },
+        axisTicks: {
+          color: borderColor,
         },
       },
       fill: { opacity: 1 },
@@ -1157,7 +1190,18 @@ const loadDashboardData = async () => {
         },
       },
       colors: ["#4CAF50", "#F44336"],
-      legend: { position: "top", horizontalAlign: "right" },
+      legend: {
+        position: "top",
+        horizontalAlign: "right",
+        labels: {
+          colors: textColor,
+          fontSize: "12px",
+          fontWeight: 500,
+        },
+      },
+      grid: {
+        borderColor: borderColor,
+      },
     };
 
     chartSeries.value.bar = [
@@ -1392,6 +1436,104 @@ onMounted(() => {
 watch(() => currentMonth.value, () => {
   loadDashboardData();
 }, { immediate: false }); // Set to false to avoid double load on mount
+
+// Watch para recarregar o gráfico quando o tema muda
+watch(() => themeStore.theme, () => {
+  // Recalcular toda a configuração do gráfico quando o tema muda
+  const textColor = themeStore.isDark ? "#FFFFFF" : "#000000";
+  const borderColor = themeStore.isDark ? "#424242" : "#E0E0E0";
+  const monthLabel = new Date().toLocaleString("pt-BR", { month: "short" });
+  const months = [monthLabel];
+  
+  // Recriar o objeto completamente para forçar reatividade
+  chartOptions.value.bar = {
+    chart: {
+      type: "bar",
+      height: 350,
+      toolbar: { show: false },
+      sparkline: { enabled: false },
+    },
+    plotOptions: {
+      bar: {
+        horizontal: false,
+        columnWidth: "55%",
+        borderRadius: 5,
+        dataLabels: { position: "top" },
+      },
+    },
+    dataLabels: { enabled: false },
+    stroke: { show: true, width: 2, colors: ["transparent"] },
+    xaxis: {
+      categories: months,
+      labels: {
+        style: {
+          colors: textColor,
+          fontSize: "12px",
+          fontWeight: 500,
+        },
+      },
+      axisBorder: {
+        color: borderColor,
+      },
+      axisTicks: {
+        color: borderColor,
+      },
+    },
+    yaxis: {
+      title: {
+        text: "R$",
+        style: {
+          color: textColor,
+          fontSize: "12px",
+          fontWeight: 500,
+        },
+      },
+      labels: {
+        style: {
+          colors: textColor,
+          fontSize: "12px",
+          fontWeight: 500,
+        },
+        formatter: (value: number) => {
+          const reais = value / 100;
+          if (reais >= 1000) {
+            return `R$ ${(reais / 1000).toFixed(1)}k`;
+          }
+          return `R$ ${reais.toFixed(2)}`;
+        },
+      },
+      axisBorder: {
+        color: borderColor,
+      },
+      axisTicks: {
+        color: borderColor,
+      },
+    },
+    fill: { opacity: 1 },
+    tooltip: {
+      y: {
+        formatter: (val: number) =>
+          new Intl.NumberFormat("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          }).format(val / 100),
+      },
+    },
+    colors: ["#4CAF50", "#F44336"],
+    legend: {
+      position: "top",
+      horizontalAlign: "right",
+      labels: {
+        colors: textColor,
+        fontSize: "12px",
+        fontWeight: 500,
+      },
+    },
+    grid: {
+      borderColor: borderColor,
+    },
+  };
+});
 </script>
 
 <style scoped lang="scss">

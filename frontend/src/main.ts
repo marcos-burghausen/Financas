@@ -68,7 +68,7 @@ const vuetify = createVuetify({
                     onSurface: "#FFFFFF",
                     primary: "#1E88E5",
                     accent: "#82B1FF",
-                    background: "#FFFFFF",
+                    background: "#252525ff",
                     error: "#B00020",
                     info: "#2196F3",
                     variant: "#EEEEEE",

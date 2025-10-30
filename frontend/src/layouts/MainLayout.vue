@@ -392,23 +392,19 @@ const userTypeLabel = computed(() => {
 // Função reativa para verificar acesso (usando computed para reatividade)
 const canAccessAdmin = computed(() => {
   if (!userStore.userData) {
-    console.log("[canAccessAdmin] userData não carregado");
     return false;
   }
   const userRole = (userStore.userData?.type || "user").toUpperCase();
   const hasAccess = userRole === "ADMIN" || userRole === "FULL";
-  console.log("[canAccessAdmin] userRole:", userRole, "hasAccess:", hasAccess);
   return hasAccess;
 });
 
 const canAccessTrader = computed(() => {
   if (!userStore.userData) {
-    console.log("[canAccessTrader] userData não carregado");
     return false;
   }
   const userRole = (userStore.userData?.type || "user").toUpperCase();
   const hasAccess = userRole === "TRADER" || userRole === "USER_TRADER" || userRole === "FULL";
-  console.log("[canAccessTrader] userRole:", userRole, "hasAccess:", hasAccess);
   return hasAccess;
 });
 
@@ -442,11 +438,8 @@ watch(
 onMounted(() => {
   // Se o userData não está carregado, tenta carregar da sessão
   if (!userStore.userData) {
-    console.log("[MainLayout] Carregando userData da sessão...");
     userStore.loadFromSession();
-    console.log("[MainLayout] userData após carregar:", userStore.userData);
   } else {
-    console.log("[MainLayout] userData já estava carregado:", userStore.userData);
   }
 });
 
@@ -454,7 +447,6 @@ onMounted(() => {
 watch(
   () => userStore.userData,
   (newUserData) => {
-    console.log("[MainLayout] userData mudou:", newUserData);
   }
 );
 </script>
@@ -464,13 +456,13 @@ watch(
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: rgb(var(--v-theme-background));
+  // background: rgb(var(--v-theme-background));
   transition: background-color 0.3s ease;
 }
 
 /* ========================================
-   HEADER FIXO GLOBAL
-   ======================================== */
+HEADER FIXO GLOBAL
+======================================== */
 .layout-header {
   position: fixed;
   top: 0;

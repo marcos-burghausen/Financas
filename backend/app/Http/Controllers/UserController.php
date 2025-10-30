@@ -18,7 +18,7 @@ class UserController extends Controller
     }
 
     /**
-     * Atualiza o perfil do usuário (nome e email)
+     * Atualiza o perfil do usuário
      */
     public function updateProfile(Request $request)
     {
@@ -27,12 +27,14 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|max:20',
+            'cpf' => 'nullable|string|max:14|unique:users,cpf,' . $user->id,
+            'date_of_birth' => 'nullable|date',
+            'profession' => 'nullable|string|max:255',
+            'bio' => 'nullable|string|max:1000',
         ]);
 
-        $user->update([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-        ]);
+        $user->update($validated);
 
         return response()->json([
             'message' => 'Perfil atualizado com sucesso!',
@@ -49,7 +51,8 @@ class UserController extends Controller
 
         $validated = $request->validate([
             'current_password' => 'required|string',
-            'new_password' => 'required|string|min:8|confirmed',
+            'password' => 'required|string|min:8',
+            'password_confirmation' => 'required|string|same:password',
         ]);
 
         // Verificar se a senha atual está correta
@@ -61,7 +64,7 @@ class UserController extends Controller
 
         // Atualizar a senha
         $user->update([
-            'password' => Hash::make($validated['new_password']),
+            'password' => Hash::make($validated['password']),
         ]);
 
         return response()->json([

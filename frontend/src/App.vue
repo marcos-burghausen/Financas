@@ -105,13 +105,6 @@ watch(() => themeStore.theme, (newTheme) => {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Transições suaves para tema */
-* {
-  transition-property: background-color, color, border-color;
-  transition-duration: 0.3s;
-  transition-timing-function: ease;
-}
-
 /* Override para backgrounds hardcoded em modo escuro */
 .v-theme--dark .dashboard-view,
 .v-theme--dark .despesas-view,
