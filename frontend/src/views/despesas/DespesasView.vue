@@ -595,6 +595,7 @@
               <v-col
                 cols="12"
                 md="6"
+                class="mt-1"
               >
                 <v-autocomplete
                   v-model="formData.categoria"
@@ -603,13 +604,14 @@
                   prepend-inner-icon="mdi-tag"
                   variant="underlined"
                   hide-details="auto"
-                  class="mb-4"
+                  class="mb-2"
                   :rules="[rules.required]"
                 />
               </v-col>
               <v-col
                 cols="12"
                 md="6"
+                class="mt-1"
               >
                 <v-autocomplete
                   v-model="formData.subcategoria"
@@ -618,7 +620,7 @@
                   prepend-inner-icon="mdi-folder-tag"
                   variant="underlined"
                   hide-details="auto"
-                  class="mb-4"
+                  class="mb-2"
                 />
               </v-col>
             </v-row>
@@ -632,7 +634,6 @@
                 <v-select
                   v-model="formData.conta_id"
                   label="Conta *"
-                  prepend-inner-icon="mdi-bank"
                   variant="underlined"
                   hide-details="auto"
                   :items="contas"
@@ -645,7 +646,7 @@
                     <div class="d-flex align-center gap-2">
                       <v-icon
                         :icon="getBankIcon(item.raw.icon || '')"
-                        size="small"
+                        size="25"
                       />
                       <span>{{ item.raw.name }}</span>
                     </div>
@@ -659,6 +660,7 @@
                         <v-icon
                           :icon="getBankIcon(item.raw.icon || '')"
                           class="me-2"
+                          size="25"
                         />
                       </template>
                     </v-list-item>
@@ -684,11 +686,11 @@
                   "
                   @click="toggleStatus"
                 >
-                  <template #append-inner>
+                  <!-- <template #append-inner>
                     <div :class="formData.status_lancamento === 'EFETIVADA' ? 'switch__check__efetivada' : 'switch__check'">
                       <div :class="formData.status_lancamento === 'EFETIVADA' ? 'switch__check__efetivada--inner' : 'switch__check--inner'" />
                     </div>
-                  </template>
+                  </template> -->
                 </v-text-field>
               </v-col>
             </v-row>
@@ -714,7 +716,7 @@
                   <v-spacer class="m-0 p-0" />
                   <span class="font-weight-medium">
                     {{ displayDataVencimento }}
-                    <v-chip
+                    <!-- <v-chip
                       v-if="dataVencimentoRelativa"
                       size="x-small"
                       class="ms-2"
@@ -722,7 +724,7 @@
                       variant="outlined"
                     >
                       {{ dataVencimentoRelativa }}
-                    </v-chip>
+                    </v-chip> -->
                   </span>
                 </div>
               </template>
@@ -742,7 +744,7 @@
               size="x-small"
               style="color: rgb(var(--v-theme-error))"
               block
-              class="my-4"
+              class="my-3"
               @click="informacoes = !informacoes"
             >
               Mais informações
@@ -757,7 +759,7 @@
             >
               <template #activator="{ props }">
                 <div
-                  class="custom__display__input"
+                  class="custom__display__input mb-4"
                   v-bind="props"
                 >
                   <div class="d-flex align-center text-grey">
@@ -964,7 +966,17 @@ const subcategorias = ref({
   "Outros": ["Outros"],
 });
 
-const contas = ref([]);
+const contas = computed(() => {
+  // Usa dados do store se disponível, senão usa hardcoded como fallback
+  if (walletsStore.walletsData?.contas && walletsStore.walletsData.contas.length > 0) {
+    return walletsStore.walletsData.contas;
+  }
+  // return [
+  //   { id: 1, name: "Conta Principal" },
+  //   { id: 2, name: "Conta Investimento" },
+  //   { id: 3, name: "Poupança" },
+  // ];
+});
 
 const statusOptions = ref([
   "recebida",
@@ -1208,6 +1220,12 @@ const goToNextMonth = () => {
   const date = new Date(parseInt(ano), parseInt(mes) - 1, 1);
   date.setMonth(date.getMonth() + 1);
   currentMonth.value = date.toISOString().slice(0, 7);
+  loadingMonth.value = true;
+  loadDespesas();
+};
+
+const goToCurrentMonth = () => {
+  currentMonth.value = new Date().toISOString().slice(0, 7);
   loadingMonth.value = true;
   loadDespesas();
 };
@@ -1558,7 +1576,19 @@ watch(() => currentMonth.value, () => {
 </script>
 
 <style scoped lang="scss">
-.despesas-view {
+  .custom__display__input {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
   .month-nav {
     padding: 0 1rem;
 
@@ -1572,6 +1602,8 @@ watch(() => currentMonth.value, () => {
   }
 
   .month-display {
+    min-width: auto;
+    flex: 1;
     min-width: 150px;
 
     @media (max-width: 600px) {
@@ -1634,6 +1666,11 @@ watch(() => currentMonth.value, () => {
     }
   }
 
+  .custom__input__container {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+    padding-bottom: 0.5rem;
+  }
+
   .dialog-header {
     padding: 1.5rem;
     border-radius: 4px 4px 0 0;
@@ -1644,5 +1681,4 @@ watch(() => currentMonth.value, () => {
       border-radius: 4px;
     }
   }
-}
 </style>
