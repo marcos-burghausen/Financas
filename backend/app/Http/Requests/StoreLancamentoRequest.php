@@ -24,6 +24,9 @@ class StoreLancamentoRequest extends FormRequest
         $this->merge([
             'valor'             => $this->transformValor(),
             'tipo_lancamento'   => $this->transformTipoLancamento(),
+            'data_vencimento'   => $this->input('data_vencimento'), // Mantém formato YYYY-MM-DD
+            'data_lancamento'   => $this->input('data_lancamento'), // Mantém formato YYYY-MM-DD
+            'data_efetivacao'   => $this->input('data_efetivacao'), // Mantém formato YYYY-MM-DD
             // 'recorrencia'       => $this->transformRecorrencia(),
             // 'status_lancamento' => $this->transformStatus(),
             'tipo_parcela'      => $this->input('tipo_parcela') ? strtoupper($this->input('tipo_parcela')) : null,

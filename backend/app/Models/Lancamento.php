@@ -11,7 +11,10 @@ class Lancamento extends Model
 
     protected $primaryKey = 'id';
     protected $casts = [
-        'is_estorno' => 'boolean'
+        'is_estorno' => 'boolean',
+        'data_vencimento' => 'date',
+        'data_lancamento' => 'date',
+        'data_efetivacao' => 'date',
     ];
 
     protected $fillable = [
