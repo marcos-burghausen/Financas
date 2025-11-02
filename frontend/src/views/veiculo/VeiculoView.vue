@@ -136,7 +136,14 @@
           sm="6"
           lg="4"
         >
-          <v-card class="veiculo-card h-100 transition-all hover-elevation" elevation="1">
+          <v-card 
+            class="veiculo-card h-100 transition-all hover-elevation cursor-pointer" 
+            elevation="1"
+            @click="openHistoricoDialog(veiculo)"
+            role="button"
+            tabindex="0"
+            @keydown.enter="openHistoricoDialog(veiculo)"
+          >
             <!-- Header do Card -->
             <div class="card-header pa-4 d-flex align-center justify-space-between" :style="{ backgroundColor: veiculo.color }">
               <div class="flex-grow-1">
@@ -477,14 +484,15 @@
       </v-card>
     </v-dialog>
 
-    <!-- Dialog: Adicionar/Editar Manutenção -->
-    <v-dialog v-model="dialogManutencaoOpen" max-width="600px" persistent>
+    <!-- Dialog: Adicionar/Editar Manutenção (Ordem de Serviço) -->
+    <v-dialog v-model="dialogManutencaoOpen" max-width="900px" persistent scrollable>
       <v-card>
         <v-card-title class="bg-primary text-white">
-          {{ editingManutencao ? 'Editar Manutenção' : 'Registrar Manutenção' }}
+          {{ editingManutencao ? 'Editar Ordem de Serviço' : 'Nova Ordem de Serviço' }}
         </v-card-title>
         <v-card-text class="pa-6">
           <v-form ref="formManutencao" @submit.prevent="saveManutencao">
+            <!-- Seleção de Veículo -->
             <v-select
               v-model="formManutencaoData.veiculoId"
               :items="veiculos"
@@ -500,6 +508,7 @@
               </template>
             </v-select>
 
+            <!-- Tipo, Data e Quilometragem -->
             <v-row class="mt-2">
               <v-col cols="12" sm="6">
                 <v-select
@@ -524,7 +533,7 @@
             </v-row>
 
             <v-row>
-              <v-col cols="12" sm="6">
+              <v-col cols="12">
                 <v-text-field
                   v-model.number="formManutencaoData.quilometragem"
                   label="Quilometragem (km)"
@@ -535,32 +544,150 @@
                   required
                 />
               </v-col>
+            </v-row>
+
+            <!-- Dados da Oficina -->
+            <v-divider class="my-4" />
+            <h3 class="text-subtitle-1 font-weight-bold mb-3">Dados da Oficina</h3>
+
+            <v-row>
               <v-col cols="12" sm="6">
                 <v-text-field
-                  v-model.number="formManutencaoData.valor"
-                  label="Valor (R$)"
-                  placeholder="Ex: 150.00"
+                  v-model="formManutencaoData.oficina.nome"
+                  label="Nome da Oficina"
+                  placeholder="Ex: Auto Center Brasil"
                   outlined
                   dense
-                  type="number"
-                  step="0.01"
                   required
+                />
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="formManutencaoData.oficina.telefone"
+                  label="Telefone"
+                  placeholder="(11) 3456-7890"
+                  outlined
+                  dense
                 />
               </v-col>
             </v-row>
 
             <v-row>
-              <v-col cols="12">
-                <v-textarea
-                  v-model="formManutencaoData.descricao"
-                  label="Descrição (opcional)"
-                  placeholder="Ex: Troca de óleo, filtros e revisão geral"
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="formManutencaoData.oficina.email"
+                  label="Email"
+                  placeholder="contato@oficina.com"
                   outlined
                   dense
-                  rows="3"
+                  type="email"
+                />
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="formManutencaoData.oficina.endereco"
+                  label="Endereço"
+                  placeholder="Rua, número - Cidade"
+                  outlined
+                  dense
                 />
               </v-col>
             </v-row>
+
+            <!-- Itens da Manutenção -->
+            <v-divider class="my-4" />
+            <div class="d-flex justify-space-between align-center mb-3">
+              <h3 class="text-subtitle-1 font-weight-bold">Itens da Manutenção</h3>
+              <v-btn
+                size="small"
+                color="primary"
+                prepend-icon="mdi-plus"
+                @click="addManutencaoItem"
+              >
+                Adicionar Item
+              </v-btn>
+            </div>
+
+            <div class="items-container">
+              <div
+                v-for="(item, index) in formManutencaoData.itens"
+                :key="index"
+                class="item-card mb-4 pa-4 border rounded"
+              >
+                <div class="d-flex justify-space-between align-center mb-3">
+                  <span class="text-caption font-weight-bold">Item {{ index + 1 }}</span>
+                  <v-btn
+                    v-if="formManutencaoData.itens.length > 1"
+                    icon="mdi-delete"
+                    size="small"
+                    variant="text"
+                    color="error"
+                    @click="removeManutencaoItem(index)"
+                  />
+                </div>
+
+                <v-row>
+                  <v-col cols="12" sm="6">
+                    <v-text-field
+                      v-model="item.nome"
+                      label="Nome do Item"
+                      placeholder="Ex: Óleo 5W30"
+                      outlined
+                      dense
+                      required
+                    />
+                  </v-col>
+                  <v-col cols="12" sm="6">
+                    <v-text-field
+                      v-model="item.descricao"
+                      label="Descrição"
+                      placeholder="Ex: Óleo de motor sintético"
+                      outlined
+                      dense
+                    />
+                  </v-col>
+                </v-row>
+
+                <v-row>
+                  <v-col cols="12" sm="4">
+                    <v-text-field
+                      v-model.number="item.quantidade"
+                      label="Quantidade"
+                      type="number"
+                      step="0.01"
+                      outlined
+                      dense
+                      required
+                    />
+                  </v-col>
+                  <v-col cols="12" sm="4">
+                    <v-text-field
+                      v-model.number="item.valor"
+                      label="Valor Unitário (R$)"
+                      type="number"
+                      step="0.01"
+                      outlined
+                      dense
+                      required
+                    />
+                  </v-col>
+                  <v-col cols="12" sm="4">
+                    <div class="text-right">
+                      <p class="text-caption text-medium-emphasis mb-1">Subtotal</p>
+                      <p class="text-body-2 font-weight-bold">{{ formatCurrency(item.quantidade * item.valor) }}</p>
+                    </div>
+                  </v-col>
+                </v-row>
+              </div>
+            </div>
+
+            <!-- Total -->
+            <v-card class="bg-primary-light mt-4 pa-4">
+              <div class="d-flex justify-space-between align-center">
+                <span class="text-subtitle-1 font-weight-bold">Valor Total da OS:</span>
+                <span class="text-h6 font-weight-bold text-primary">{{ formatCurrency(getTotalManutencao()) }}</span>
+              </div>
+            </v-card>
           </v-form>
         </v-card-text>
         <v-card-actions class="pa-6">
@@ -569,6 +696,256 @@
           <v-btn color="primary" @click="saveManutencao">
             {{ editingManutencao ? 'Atualizar' : 'Registrar' }}
           </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Dialog: Histórico do Veículo -->
+    <v-dialog v-model="dialogHistoricoOpen" max-width="800px">
+      <v-card v-if="veiculoSelecionado">
+        <!-- Header -->
+        <div class="card-header pa-6 d-flex align-center justify-space-between" :style="{ backgroundColor: veiculoSelecionado.color }">
+          <div class="flex-grow-1">
+            <h2 class="text-h5 font-weight-bold text-white mb-1">{{ veiculoSelecionado.marca }} {{ veiculoSelecionado.modelo }}</h2>
+            <p class="text-body-2 text-white-50 mb-0">{{ veiculoSelecionado.placa }} • {{ veiculoSelecionado.ano }}</p>
+          </div>
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            @click="closeHistoricoDialog"
+            class="text-white"
+          />
+        </div>
+
+        <!-- Informações do Veículo -->
+        <v-card-text class="pa-6">
+          <div class="mb-6">
+            <h3 class="text-subtitle-1 font-weight-bold mb-4">Informações do Veículo</h3>
+            <v-row>
+              <v-col cols="12" sm="6">
+                <div class="info-item mb-3">
+                  <p class="text-caption text-medium-emphasis mb-1">Quilometragem Atual</p>
+                  <p class="text-body-1 font-weight-bold">{{ formatNumber(veiculoSelecionado.quilometragem) }} km</p>
+                </div>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <div class="info-item mb-3">
+                  <p class="text-caption text-medium-emphasis mb-1">Combustível</p>
+                  <p class="text-body-1 font-weight-bold">{{ veiculoSelecionado.combustivel }}</p>
+                </div>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <div class="info-item mb-3">
+                  <p class="text-caption text-medium-emphasis mb-1">Última Manutenção</p>
+                  <p class="text-body-1 font-weight-bold">{{ formatDate(veiculoSelecionado.ultimaManutencao) }}</p>
+                </div>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <div class="info-item mb-3">
+                  <p class="text-caption text-medium-emphasis mb-1">Próxima Manutenção</p>
+                  <p class="text-body-1 font-weight-bold">{{ veiculoSelecionado.proximaManutencao }} km</p>
+                </div>
+              </v-col>
+            </v-row>
+          </div>
+
+          <v-divider class="mb-6" />
+
+          <!-- Histórico de Manutenções -->
+          <div>
+            <div class="d-flex align-center justify-space-between mb-4">
+              <h3 class="text-subtitle-1 font-weight-bold">Histórico de Manutenções</h3>
+              <v-chip
+                :color="getManutencaoCount(veiculoSelecionado.id) > 0 ? 'primary' : 'secondary'"
+                label
+                size="small"
+              >
+                {{ getManutencaoCount(veiculoSelecionado.id) }} registros
+              </v-chip>
+            </div>
+
+            <div v-if="getManutencaoVeiculo(veiculoSelecionado.id).length > 0" class="manutencao-list">
+              <div
+                v-for="manutencao in getManutencaoVeiculo(veiculoSelecionado.id)"
+                :key="manutencao.id"
+                class="manutencao-item pa-4 mb-3 cursor-pointer"
+                elevation="0"
+                @click="openOSDetailsDialog(manutencao)"
+                role="button"
+                tabindex="0"
+                @keydown.enter="openOSDetailsDialog(manutencao)"
+              >
+                <div class="d-flex align-center justify-space-between mb-2">
+                  <div class="d-flex align-center gap-2">
+                    <v-icon 
+                      :icon="getTipoIcon(manutencao.tipo)" 
+                      :color="getTipoManutencaoColor(manutencao.tipo)"
+                    />
+                    <div>
+                      <p class="text-body-2 font-weight-bold mb-0">{{ manutencao.tipo }}</p>
+                      <p class="text-caption text-medium-emphasis mb-0">{{ formatDate(manutencao.data) }}</p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-body-2 font-weight-bold text-error mb-0">{{ formatCurrency(calcularTotalOS(manutencao)) }}</p>
+                    <p class="text-caption text-medium-emphasis mb-0">{{ formatNumber(manutencao.quilometragem) }} km</p>
+                  </div>
+                </div>
+                <div class="d-flex align-center gap-2 mt-2">
+                  <v-chip size="small" variant="outlined" v-if="manutencao.oficina">{{ manutencao.oficina.nome }}</v-chip>
+                  <v-chip size="small" color="primary" text-color="white">{{ manutencao.itens ? manutencao.itens.length : 0 }} itens</v-chip>
+                  <v-icon icon="mdi-chevron-right" size="20" class="ml-auto" />
+                </div>
+              </div>
+            </div>
+
+            <div v-else class="text-center pa-6">
+              <v-icon icon="mdi-history" size="48" color="text-disabled" class="mb-2" />
+              <p class="text-body-2 text-medium-emphasis">Nenhuma manutenção registrada</p>
+            </div>
+          </div>
+        </v-card-text>
+
+        <!-- Ações -->
+        <v-card-actions class="pa-6">
+          <v-spacer />
+          <v-btn
+            color="primary"
+            prepend-icon="mdi-wrench"
+            @click="openAddManutencaoForHistorico"
+          >
+            Registrar Manutenção
+          </v-btn>
+          <v-btn
+            variant="outlined"
+            @click="closeHistoricoDialog"
+          >
+            Fechar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Dialog: Detalhes da Ordem de Serviço -->
+    <v-dialog v-model="dialogOSDetailsOpen" max-width="800px" scrollable>
+      <v-card v-if="osDetalhes">
+        <!-- Header -->
+        <div class="bg-primary text-white pa-6">
+          <div class="d-flex align-center justify-space-between mb-3">
+            <h2 class="text-h5 font-weight-bold">Ordem de Serviço #{{ osDetalhes.id }}</h2>
+            <v-btn
+              icon="mdi-close"
+              variant="text"
+              @click="closeOSDetailsDialog"
+              class="text-white"
+            />
+          </div>
+          <p class="text-body-2 text-white-70 mb-0">{{ osDetalhes.tipo }} • {{ formatDate(osDetalhes.data) }}</p>
+        </div>
+
+        <v-card-text class="pa-6">
+          <!-- Informações do Veículo -->
+          <div class="mb-6">
+            <h3 class="text-subtitle-1 font-weight-bold mb-3">Informações do Veículo</h3>
+            <v-row>
+              <v-col cols="12" sm="6">
+                <p class="text-caption text-medium-emphasis mb-1">Veículo</p>
+                <p class="text-body-2 font-weight-bold">{{ getVeiculo(osDetalhes.veiculoId).marca }} {{ getVeiculo(osDetalhes.veiculoId).modelo }}</p>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <p class="text-caption text-medium-emphasis mb-1">Placa</p>
+                <p class="text-body-2 font-weight-bold">{{ getVeiculo(osDetalhes.veiculoId).placa }}</p>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <p class="text-caption text-medium-emphasis mb-1">Quilometragem</p>
+                <p class="text-body-2 font-weight-bold">{{ formatNumber(osDetalhes.quilometragem) }} km</p>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <p class="text-caption text-medium-emphasis mb-1">Data do Serviço</p>
+                <p class="text-body-2 font-weight-bold">{{ formatDate(osDetalhes.data) }}</p>
+              </v-col>
+            </v-row>
+          </div>
+
+          <v-divider class="mb-6" />
+
+          <!-- Dados da Oficina -->
+          <div class="mb-6">
+            <h3 class="text-subtitle-1 font-weight-bold mb-3">Oficina</h3>
+            <v-card elevation="0" variant="outlined" class="pa-4">
+              <v-row>
+                <v-col cols="12" sm="6">
+                  <p class="text-caption text-medium-emphasis mb-1">Nome</p>
+                  <p class="text-body-2 font-weight-bold">{{ osDetalhes.oficina.nome }}</p>
+                </v-col>
+                <v-col cols="12" sm="6">
+                  <p class="text-caption text-medium-emphasis mb-1">Telefone</p>
+                  <p class="text-body-2 font-weight-bold">
+                    <v-icon icon="mdi-phone" size="16" class="mr-1" />
+                    {{ osDetalhes.oficina.telefone || 'Não informado' }}
+                  </p>
+                </v-col>
+                <v-col cols="12" sm="6">
+                  <p class="text-caption text-medium-emphasis mb-1">Email</p>
+                  <p class="text-body-2 font-weight-bold">
+                    <v-icon icon="mdi-email" size="16" class="mr-1" />
+                    {{ osDetalhes.oficina.email || 'Não informado' }}
+                  </p>
+                </v-col>
+                <v-col cols="12" sm="6">
+                  <p class="text-caption text-medium-emphasis mb-1">Endereço</p>
+                  <p class="text-body-2 font-weight-bold">
+                    <v-icon icon="mdi-map-marker" size="16" class="mr-1" />
+                    {{ osDetalhes.oficina.endereco || 'Não informado' }}
+                  </p>
+                </v-col>
+              </v-row>
+            </v-card>
+          </div>
+
+          <v-divider class="mb-6" />
+
+          <!-- Itens da Manutenção -->
+          <div class="mb-6">
+            <h3 class="text-subtitle-1 font-weight-bold mb-3">Itens</h3>
+            <div class="table-responsive">
+              <table class="w-100" style="border-collapse: collapse;">
+                <thead>
+                  <tr style="border-bottom: 2px solid #e0e0e0;">
+                    <th style="text-align: left; padding: 12px; font-weight: bold; font-size: 0.875rem;">Item</th>
+                    <th style="text-align: center; padding: 12px; font-weight: bold; font-size: 0.875rem;">Qtd</th>
+                    <th style="text-align: right; padding: 12px; font-weight: bold; font-size: 0.875rem;">Valor Unit.</th>
+                    <th style="text-align: right; padding: 12px; font-weight: bold; font-size: 0.875rem;">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(item, index) in osDetalhes.itens" :key="index" style="border-bottom: 1px solid #f0f0f0;">
+                    <td style="padding: 12px; vertical-align: top;">
+                      <p class="text-body-2 font-weight-bold mb-1">{{ item.nome }}</p>
+                      <p class="text-caption text-medium-emphasis mb-0">{{ item.descricao }}</p>
+                    </td>
+                    <td style="text-align: center; padding: 12px;">{{ item.quantidade }}</td>
+                    <td style="text-align: right; padding: 12px;">{{ formatCurrency(item.valor) }}</td>
+                    <td style="text-align: right; padding: 12px; font-weight: bold;">{{ formatCurrency(item.quantidade * item.valor) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Total -->
+          <v-card class="bg-primary text-white pa-4">
+            <div class="d-flex justify-space-between align-center">
+              <span class="text-subtitle-1 font-weight-bold">Valor Total:</span>
+              <span class="text-h6 font-weight-bold">{{ formatCurrency(calcularTotalOS(osDetalhes)) }}</span>
+            </div>
+          </v-card>
+        </v-card-text>
+
+        <v-card-actions class="pa-6">
+          <v-btn color="warning" prepend-icon="mdi-pencil" @click="editarOSDetalhes">Editar</v-btn>
+          <v-spacer />
+          <v-btn variant="outlined" @click="closeOSDetailsDialog">Fechar</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -588,8 +965,12 @@ const statusFilterVeiculo = ref('')
 const tipoManutencaoFilter = ref('')
 const dialogVeiculoOpen = ref(false)
 const dialogManutencaoOpen = ref(false)
+const dialogHistoricoOpen = ref(false)
+const dialogOSDetailsOpen = ref(false)
 const editingVeiculo = ref(null)
 const editingManutencao = ref(null)
+const veiculoSelecionado = ref(null)
+const osDetalhes = ref(null)
 
 // Dados Hardcoded - Veículos
 const veiculos = ref([
@@ -634,7 +1015,7 @@ const veiculos = ref([
   },
 ])
 
-// Dados Hardcoded - Manutenções
+// Dados Hardcoded - Manutenções (Ordem de Serviço)
 const manutencoes = ref([
   {
     id: 1,
@@ -642,8 +1023,17 @@ const manutencoes = ref([
     tipo: 'Troca de Óleo',
     data: '2025-09-15',
     quilometragem: 30000,
-    valor: 180.00,
-    descricao: 'Troca de óleo 5W30 e filtro de óleo',
+    oficina: {
+      nome: 'Auto Center Brasil',
+      telefone: '(11) 3456-7890',
+      email: 'contato@autocenterbrasil.com.br',
+      endereco: 'Rua das Flores, 123 - São Paulo, SP'
+    },
+    itens: [
+      { id: 1, nome: 'Óleo 5W30 Sintético', descricao: 'Óleo de motor 5W30 sintético', quantidade: 5, valor: 120.00 },
+      { id: 2, nome: 'Filtro de Óleo', descricao: 'Filtro de óleo original', quantidade: 1, valor: 45.00 },
+      { id: 3, nome: 'Mão de Obra', descricao: 'Serviço de troca', quantidade: 1, valor: 15.00 }
+    ]
   },
   {
     id: 2,
@@ -651,8 +1041,19 @@ const manutencoes = ref([
     tipo: 'Revisão',
     data: '2025-08-01',
     quilometragem: 28000,
-    valor: 450.00,
-    descricao: 'Revisão completa 30 mil km',
+    oficina: {
+      nome: 'Concessionária Toyota',
+      telefone: '(11) 2567-8901',
+      email: 'servicos@toyota-sp.com.br',
+      endereco: 'Av. Paulista, 1000 - São Paulo, SP'
+    },
+    itens: [
+      { id: 1, nome: 'Óleo 5W30 Sintético', descricao: 'Óleo de motor', quantidade: 5, valor: 120.00 },
+      { id: 2, nome: 'Filtro de Óleo', descricao: 'Filtro original', quantidade: 1, valor: 45.00 },
+      { id: 3, nome: 'Filtro de Ar', descricao: 'Filtro de ar motor', quantidade: 1, valor: 85.00 },
+      { id: 4, nome: 'Filtro de Cabine', descricao: 'Filtro ar condicionado', quantidade: 1, valor: 65.00 },
+      { id: 5, nome: 'Revisão Completa', descricao: 'Inspeção visual e testes', quantidade: 1, valor: 135.00 }
+    ]
   },
   {
     id: 3,
@@ -660,8 +1061,17 @@ const manutencoes = ref([
     tipo: 'Troca de Óleo',
     data: '2025-08-20',
     quilometragem: 18000,
-    valor: 200.00,
-    descricao: 'Troca de óleo 0W20 e filtro',
+    oficina: {
+      nome: 'Mecânica do João',
+      telefone: '(11) 9876-5432',
+      email: 'mecanica@joao.com.br',
+      endereco: 'Rua São José, 456 - São Paulo, SP'
+    },
+    itens: [
+      { id: 1, nome: 'Óleo 0W20 Sintético', descricao: 'Óleo de motor 0W20', quantidade: 4, valor: 130.00 },
+      { id: 2, nome: 'Filtro de Óleo', descricao: 'Filtro Honda original', quantidade: 1, valor: 50.00 },
+      { id: 3, nome: 'Mão de Obra', descricao: 'Serviço de troca', quantidade: 1, valor: 20.00 }
+    ]
   },
   {
     id: 4,
@@ -669,8 +1079,17 @@ const manutencoes = ref([
     tipo: 'Pneu',
     data: '2025-07-05',
     quilometragem: 15000,
-    valor: 850.00,
-    descricao: 'Troca de 4 pneus Michelin',
+    oficina: {
+      nome: 'Pneus e Rodas Plus',
+      telefone: '(11) 5432-1098',
+      email: 'vendas@pneusrodas.com.br',
+      endereco: 'Rua Pneus, 789 - São Paulo, SP'
+    },
+    itens: [
+      { id: 1, nome: 'Pneu Michelin Primacy', descricao: 'Pneu 195/55 R16', quantidade: 4, valor: 650.00 },
+      { id: 2, nome: 'Balanceamento', descricao: 'Balanceamento 4 rodas', quantidade: 4, valor: 80.00 },
+      { id: 3, nome: 'Alinhamento', descricao: 'Alinhamento 4 rodas', quantidade: 1, valor: 120.00 }
+    ]
   },
   {
     id: 5,
@@ -678,8 +1097,19 @@ const manutencoes = ref([
     tipo: 'Revisão',
     data: '2025-07-10',
     quilometragem: 50000,
-    valor: 520.00,
-    descricao: 'Revisão completa 50 mil km',
+    oficina: {
+      nome: 'Auto Center Brasil',
+      telefone: '(11) 3456-7890',
+      email: 'contato@autocenterbrasil.com.br',
+      endereco: 'Rua das Flores, 123 - São Paulo, SP'
+    },
+    itens: [
+      { id: 1, nome: 'Óleo Mineral', descricao: 'Óleo de motor', quantidade: 5, valor: 85.00 },
+      { id: 2, nome: 'Filtro de Óleo', descricao: 'Filtro', quantidade: 1, valor: 35.00 },
+      { id: 3, nome: 'Filtro de Ar', descricao: 'Filtro ar', quantidade: 1, valor: 60.00 },
+      { id: 4, nome: 'Velas de Ignição', descricao: 'Jogo de 4 velas', quantidade: 4, valor: 140.00 },
+      { id: 5, nome: 'Revisão Completa', descricao: 'Inspeção e testes', quantidade: 1, valor: 200.00 }
+    ]
   },
 ])
 
@@ -717,8 +1147,15 @@ const formManutencaoData = ref({
   tipo: '',
   data: new Date().toISOString().split('T')[0],
   quilometragem: 0,
-  valor: 0,
-  descricao: '',
+  oficina: {
+    nome: '',
+    telefone: '',
+    email: '',
+    endereco: ''
+  },
+  itens: [
+    { id: 1, nome: '', descricao: '', quantidade: 1, valor: 0 }
+  ]
 })
 
 // Headers da Tabela
@@ -772,6 +1209,48 @@ const summary = computed(() => {
 })
 
 // Funções
+function calcularTotalOS(os) {
+  return os.itens.reduce((sum, item) => sum + (item.quantidade * item.valor), 0)
+}
+
+function getTotalManutencao() {
+  return formManutencaoData.value.itens.reduce((sum, item) => sum + (item.quantidade * item.valor), 0)
+}
+
+function addManutencaoItem() {
+  const maxId = Math.max(...formManutencaoData.value.itens.map(i => i.id || 0), 0)
+  formManutencaoData.value.itens.push({
+    id: maxId + 1,
+    nome: '',
+    descricao: '',
+    quantidade: 1,
+    valor: 0
+  })
+}
+
+function removeManutencaoItem(index) {
+  formManutencaoData.value.itens.splice(index, 1)
+}
+
+function openOSDetailsDialog(manutencao) {
+  osDetalhes.value = JSON.parse(JSON.stringify(manutencao))
+  dialogOSDetailsOpen.value = true
+}
+
+function closeOSDetailsDialog() {
+  dialogOSDetailsOpen.value = false
+  osDetalhes.value = null
+}
+
+function editarOSDetalhes() {
+  if (osDetalhes.value) {
+    editingManutencao.value = osDetalhes.value.id
+    formManutencaoData.value = JSON.parse(JSON.stringify(osDetalhes.value))
+    closeOSDetailsDialog()
+    dialogManutencaoOpen.value = true
+  }
+}
+
 function formatCurrency(value) {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -883,16 +1362,27 @@ function deleteVeiculo(id) {
   }
 }
 
-function openAddManutencaoDialog(veiculo = null) {
-  editingManutencao.value = null
-  formManutencaoData.value = {
-    veiculoId: veiculo?.id || null,
+function resetFormManutencao(veiculoId = null) {
+  return {
+    veiculoId: veiculoId || null,
     tipo: '',
     data: new Date().toISOString().split('T')[0],
     quilometragem: 0,
-    valor: 0,
-    descricao: '',
+    oficina: {
+      nome: '',
+      telefone: '',
+      email: '',
+      endereco: ''
+    },
+    itens: [
+      { id: 1, nome: '', descricao: '', quantidade: 1, valor: 0 }
+    ]
   }
+}
+
+function openAddManutencaoDialog(veiculo = null) {
+  editingManutencao.value = null
+  formManutencaoData.value = resetFormManutencao(veiculo?.id)
   dialogManutencaoOpen.value = true
 }
 
@@ -939,6 +1429,52 @@ function clearFiltersVeiculo() {
 function clearFiltersManutencao() {
   searchManutencao.value = ''
   tipoManutencaoFilter.value = ''
+}
+
+// Funções do Histórico
+function openHistoricoDialog(veiculo) {
+  veiculoSelecionado.value = veiculo
+  dialogHistoricoOpen.value = true
+}
+
+function closeHistoricoDialog() {
+  dialogHistoricoOpen.value = false
+  veiculoSelecionado.value = null
+}
+
+function getManutencaoVeiculo(veiculoId) {
+  return manutencoes.value
+    .filter(m => m.veiculoId === veiculoId)
+    .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
+}
+
+function getManutencaoCount(veiculoId) {
+  return manutencoes.value.filter(m => m.veiculoId === veiculoId).length
+}
+
+function getTipoIcon(tipo) {
+  const icons = {
+    'Troca de Óleo': 'mdi-oil',
+    'Revisão': 'mdi-wrench',
+    'Pneu': 'mdi-tire',
+    'Freios': 'mdi-car-brake-abs',
+    'Filtros': 'mdi-air-filter',
+    'Bateria': 'mdi-car-battery',
+    'Velas': 'mdi-lightning-bolt',
+    'Corrente': 'mdi-link-variant',
+    'Suspensão': 'mdi-car-suspension',
+    'Ar Condicionado': 'mdi-air-conditioner',
+    'Limpeza de Injetor': 'mdi-water-percent',
+    'Alinhamento': 'mdi-roughly-equal',
+  }
+  return icons[tipo] || 'mdi-wrench'
+}
+
+function openAddManutencaoForHistorico() {
+  editingManutencao.value = null
+  formManutencaoData.value = resetFormManutencao(veiculoSelecionado.value.id)
+  closeHistoricoDialog()
+  dialogManutencaoOpen.value = true
 }
 </script>
 
@@ -1006,6 +1542,31 @@ function clearFiltersManutencao() {
 
   .hover-elevation {
     transition: all 0.3s ease;
+  }
+
+  .cursor-pointer {
+    cursor: pointer;
+  }
+
+  .manutencao-item {
+    background: rgb(var(--v-theme-surface));
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 4px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  .info-item {
+    padding: 0.75rem;
+    background: rgb(var(--v-theme-surface));
+    border-radius: 4px;
+  }
+
+  .text-white-50 {
+    color: rgba(255, 255, 255, 0.7);
   }
 }
 </style>
