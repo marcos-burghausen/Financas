@@ -22,6 +22,7 @@ Novo arquivo com tipos TypeScript e serviços para comunicação com a API:
 ```
 
 **Endpoints utilizados:**
+
 - `GET /api/veiculos` - Listar veículos
 - `POST /api/veiculos` - Criar veículo
 - `GET /api/veiculos/{id}` - Obter veículo
@@ -35,11 +36,13 @@ Novo arquivo com tipos TypeScript e serviços para comunicação com a API:
 ### 2. **Atualização da VeiculoView.vue**
 
 #### Mudanças na estrutura:
+
 - Removido: dados hardcoded (3 veículos, 5 manutenções)
 - Adicionado: carregamento dinâmico via API
 - Integrado: axios com interceptadores existentes do projeto
 
 #### Ciclo de vida:
+
 ```
 onMounted → loadData() → loadVeiculos() + loadManutencoes()
                       ↓
@@ -49,21 +52,23 @@ onMounted → loadData() → loadVeiculos() + loadManutencoes()
 ```
 
 #### Operações CRUD:
+
 ```
 Criar Veículo:
   openAddVeiculoDialog() → saveVeiculo() → veiculoService.createVeiculo()
-  
+
 Editar Veículo:
   editVeiculo() → saveVeiculo() → veiculoService.updateVeiculo()
-  
+
 Deletar Veículo:
   deleteVeiculo() → veiculoService.deleteVeiculo()
-  
+
 Criar Manutenção:
   openAddManutencaoDialog() → saveManutencao() → manutencaoService.createManutencao()
 ```
 
 #### Notificações:
+
 - Substituído: `vuetify-use-dialog` (não estava disponível)
 - Implementado: `showToast()` com `v-snackbar` do Vuetify
 - Cores: success (verde) para sucesso, error (vermelho) para erros
@@ -74,14 +79,14 @@ Adicionado tipos para todas as funções:
 
 ```typescript
 // Estados
-const veiculos = ref<Veiculo[]>([])
-const manutencoes = ref<Manutencao[]>([])
+const veiculos = ref<Veiculo[]>([]);
+const manutencoes = ref<Manutencao[]>([]);
 
 // Funções
-function saveVeiculo(): Promise<void>
-function deleteVeiculo(id: number): void
-function formatCurrency(value: number | undefined): string
-function getStatusColor(status: string): string
+function saveVeiculo(): Promise<void>;
+function deleteVeiculo(id: number): void;
+function formatCurrency(value: number | undefined): string;
+function getStatusColor(status: string): string;
 ```
 
 ## Fluxo de Dados
@@ -103,10 +108,12 @@ UI atualizada
 ## Tratamento de Erros
 
 1. **Carregamento de dados:**
+
    - Erro: showToast('Erro ao carregar dados...', 'error')
    - Recuperação: Os dados permanecem vazios até novo carregamento
 
 2. **CRUD operations:**
+
    - Sucesso: showToast('Operação realizada com sucesso!', 'success')
    - Erro: showToast('Erro na operação...', 'error')
    - Recuperação: Recarrega dados via loadVeiculos() ou loadManutencoes()
@@ -118,12 +125,13 @@ UI atualizada
 ## Estados de Carregamento
 
 ```typescript
-const loadingData = ref(false) // Carregamento inicial
-const loading = ref(false)     // Operações de veículo
-const loadingManutencao = ref(false) // Operações de manutenção
+const loadingData = ref(false); // Carregamento inicial
+const loading = ref(false); // Operações de veículo
+const loadingManutencao = ref(false); // Operações de manutenção
 ```
 
 Podem ser usados para desabilitar botões ou mostrar spinners:
+
 ```vue
 <v-btn :disabled="loading" @click="saveVeiculo">
   {{ loading ? 'Salvando...' : 'Salvar' }}
@@ -143,6 +151,7 @@ Podem ser usados para desabilitar botões ou mostrar spinners:
 ## Testes Recomendados
 
 ### Testes Manuais:
+
 1. Criar novo veículo
 2. Editar veículo existente
 3. Deletar veículo
@@ -153,6 +162,7 @@ Podem ser usados para desabilitar botões ou mostrar spinners:
 8. Testar com rede lenta (DevTools)
 
 ### Testes Automatizados:
+
 - Verificar se dados carregam no onMounted
 - Verificar se CRUD calls usam endpoints corretos
 - Verificar se erros são capturados e exibidos
