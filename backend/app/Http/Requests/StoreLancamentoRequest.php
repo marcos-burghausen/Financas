@@ -69,7 +69,7 @@ class StoreLancamentoRequest extends FormRequest
             'invoice_id'           => 'nullable | required_if:tipo_lancamento,CARTAO_CREDITO | exists:credit_card_invoices,id',
             'editScope'            => 'nullable|string|in:apenas esta,esta e as próximas,todas,apenas este mês,mês atual e os próximos',
             'fatura_vigente'       => 'nullable | required_if:tipo_lancamento,CARTAO_CREDITO | regex:/^\d{2}\/\d{4}$/',
-            'cartao_credito_id'    => 'nullable | required_if:tipo_lancamento,CARTAO_CREDITO | exists:cartao_creditos,id',
+            'cartao_credito_id'    => 'nullable | required_if:tipo_lancamento,CARTAO_CREDITO | exists:contas,id',
         ];
     }
 

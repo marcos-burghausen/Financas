@@ -2,16 +2,16 @@
   <div class="cadastro-wrapper">
     <v-container fluid class="cadastro-container">
       <v-row class="align-center justify-center">
-        <v-col cols="12" sm="10" md="8" lg="6">
+        <v-col cols="12" sm="10" md="8" lg="6" style="max-width: 600px;">
           <!-- Card Principal -->
           <v-card elevation="8" rounded="lg" class="cadastro-card">
             <!-- Logo Section -->
-            <div class="logo-section text-center pa-8 bg-success">
-              <div class="mb-4">
+            <div class="logo-section text-center pa-4 bg-success">
+              <div class="mb-2">
                 <v-icon icon="mdi-account-plus" size="64" color="white" />
               </div>
-              <h1 class="text-h4 text-white font-weight-bold mb-2">Criar Conta</h1>
-              <p class="text-white text-opacity-70">Junte-se à nossa comunidade de financas</p>
+              <h1 class="text-h4 text-white font-weight-bold mb-1">Criar Conta</h1>
+              <p class="text-white text-opacity-70 mb-0">Junte-se à nossa comunidade de financas</p>
             </div>
 
             <!-- Formulário -->
@@ -207,7 +207,7 @@
                 <v-checkbox
                   v-model="formData.termos"
                   :rules="[v => !!v || 'Você deve aceitar os termos']"
-                  class="mb-6"
+                  class=""
                 >
                   <template #label>
                     <span class="text-caption">
@@ -239,7 +239,7 @@
                   color="success"
                   size="large"
                   block
-                  class="mb-4"
+                  class="mb-3"
                   :loading="loading"
                 >
                   <v-icon icon="mdi-check-circle" start />
@@ -248,7 +248,7 @@
               </v-form>
 
               <!-- Divider -->
-              <div class="d-flex align-center gap-2 my-6">
+              <div class="d-flex align-center gap-2 my-3">
                 <v-divider />
                 <span class="text-caption text-medium-emphasis">ou</span>
                 <v-divider />
@@ -275,7 +275,7 @@
           </v-card>
 
           <!-- Benefícios -->
-          <v-row class="mt-6 text-center text-white">
+          <!-- <v-row class="mt-6 text-center text-white">
             <v-col cols="12" sm="4">
               <div class="d-flex flex-column align-center">
                 <v-icon icon="mdi-shield-check" size="32" class="mb-2" />
@@ -294,7 +294,7 @@
                 <span class="text-caption font-weight-bold">Eficiente</span>
               </div>
             </v-col>
-          </v-row>
+          </v-row> -->
         </v-col>
       </v-row>
     </v-container>
@@ -885,7 +885,7 @@ async function handleCadastro() {
 
 <style scoped lang="scss">
 .cadastro-wrapper {
-  min-height: 100vh;
+  min-height: 100%;
   background: linear-gradient(135deg, rgb(var(--v-theme-success)) 0%, rgba(var(--v-theme-success), 0.7) 100%);
   padding: 2rem 0;
   position: relative;
@@ -896,7 +896,7 @@ async function handleCadastro() {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  min-height: 100%;
 }
 
 .cadastro-card {

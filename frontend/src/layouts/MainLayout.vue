@@ -285,6 +285,7 @@ const mainMenuItems = [
   { route: "receitas", label: "Receitas", icon: "mdi-cash-plus" },
   { route: "contas", label: "Contas", icon: "mdi-bank" },
   { route: "cartoes", label: "Cartões", icon: "mdi-credit-card" },
+  { route: "veiculos", label: "Veículos", icon: "mdi-car" },
 ];
 
 const controlMenuItems = [

@@ -1047,8 +1047,8 @@ const loadDashboardData = async () => {
 
       // Mapeamento correto de transações recentes
       recentTransactions.value = [
-        ...response.data.transacoes_recentes.receitas,
-        ...response.data.transacoes_recentes.despesas
+        ...response.data.lancamentos.receitas,
+        ...response.data.lancamentos.despesas
       ] || [];
 
       allTransactions = [

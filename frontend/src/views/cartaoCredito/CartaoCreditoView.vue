@@ -1425,6 +1425,8 @@ async function saveTransaction() {
       data_efetivacao: transactionData.value.data_efetivacao,
       observacoes: transactionData.value.observacoes || null,
       tipo_lancamento: 'CARTAO_CREDITO',
+      mesAno: currentMonth.value,
+      status_lancamento: 'EFETIVADA',
       // Status não é enviado para cartão de crédito - vinculado à fatura
     }
 

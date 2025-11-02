@@ -96,6 +96,15 @@ const router = createRouter({
             }
         },
         {
+            path: "/veiculos",
+            name: "veiculos",
+            component: () => import("../views/veiculo/VeiculosView.vue"),
+            meta: {
+                auth: true,
+                layout: MainLayout
+            }
+        },
+        {
             path: "/admin",
             name: "admin",
             component: () => import("../views/admin/AdminPanelView.vue"),

@@ -2,7 +2,7 @@
   <div class="login-wrapper">
     <v-container fluid class="login-container">
       <v-row class="align-center justify-center">
-        <v-col cols="12" sm="10" md="8" lg="6">
+        <v-col cols="12" sm="10" md="8" lg="6" style="max-width: 600px;">
           <!-- Card Principal -->
           <v-card elevation="8" rounded="lg" class="login-card">
             <!-- Logo Section -->

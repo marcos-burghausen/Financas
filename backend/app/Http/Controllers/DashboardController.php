@@ -94,6 +94,7 @@ class DashboardController extends Controller
             // Buscar contas apenas com campos necessários
             $contas = DB::table('contas')
                 ->where('user_id', $user->id)
+                ->where('tipo_conta', '!=', 'Cartao de Crédito')
                 ->where('status_conta', 'Ativo')
                 ->select('id', 'name', 'saldo', 'icon', 'color')
                 ->get();
@@ -115,33 +116,6 @@ class DashboardController extends Controller
                 ->whereMonth('data_vencimento', $mes)
                 ->select('id', 'descricao', 'valor', 'data_vencimento', 'categoria', 'status_lancamento', 'tipo_lancamento')
                 ->orderBy('data_vencimento', 'desc')
-                ->get();
-
-            // ========== TODOS OS LANÇAMENTOS ==========
-            $lancamentosMes = DB::table('lancamentos')
-                ->where('user_id', $user->id)
-                ->where('tipo_lancamento', '!=', 'CARTAO_CREDITO')
-                ->select('id', 'descricao', 'valor', 'data_vencimento', 'categoria', 'status_lancamento', 'tipo_lancamento')
-                ->whereYear('data_vencimento', $ano)
-                ->whereMonth('data_vencimento', $mes)
-                ->orderBy('data_vencimento', 'desc')
-                ->get();
-
-            // ========== TRANSAÇÕES RECENTES (5 ÚLTIMAS DE CADA TIPO) ==========
-            $receitasRecentes = DB::table('lancamentos')
-                ->where('user_id', $user->id)
-                ->where('tipo_lancamento', 'RECEITA')
-                ->select('id', 'descricao', 'valor', 'data_vencimento', 'categoria', 'status_lancamento', 'tipo_lancamento')
-                ->orderBy('data_vencimento', 'desc')
-                ->limit(5)
-                ->get();
-
-            $despesasRecentes = DB::table('lancamentos')
-                ->where('user_id', $user->id)
-                ->where('tipo_lancamento', 'DESPESA')
-                ->select('id', 'descricao', 'valor', 'data_vencimento', 'categoria', 'status_lancamento', 'tipo_lancamento')
-                ->orderBy('data_vencimento', 'desc')
-                ->limit(5)
                 ->get();
 
             // ========== TODOS OS LANÇAMENTOS SEPARADOS POR TIPO ==========
@@ -188,10 +162,6 @@ class DashboardController extends Controller
                     'qtd_pendentes' => (int)($lancamentosPendentes->count() ?? 0),
                     'valor_total_pendente' => (float)$lancamentosPendentes->sum('valor'),
                     'lancamentos' => $lancamentosPendentes,
-                ],
-                'transacoes_recentes' => [
-                    'receitas' => $receitasRecentes,
-                    'despesas' => $despesasRecentes,
                 ],
                 'lancamentos' => [
                     'receitas' => $todosReceitasLancamentos,

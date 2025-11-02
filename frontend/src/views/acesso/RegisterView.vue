@@ -4,6 +4,7 @@
       <!-- Card Principal -->
       <v-card
         class="register-card"
+         style="border: solid 5px red; max-width: 600px;"
         elevation="24"
         rounded="xl"
       >

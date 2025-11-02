@@ -117,7 +117,7 @@ class LancamentoService
                     'qtd_parcelas' => $numParcelas,
                     'num_parcela' => $i,
                     'invoice_id' => $invoiceId,
-                    'status_lancamento' => null, // Status vinculado à fatura, não ao lançamento
+                    'status_lancamento' => 'EFETIVADA', // Status vinculado à fatura, não ao lançamento
                 ]));
             }
         } else {
@@ -129,7 +129,7 @@ class LancamentoService
                 'user_id' => $user->id,
                 'recorrencia' => 'NAO_RECORRENTE',
                 'invoice_id' => $invoiceId,
-                'status_lancamento' => null, // Status vinculado à fatura, não ao lançamento
+                'status_lancamento' => 'EFETIVADA', // Status vinculado à fatura, não ao lançamento
             ]));
         }
 
