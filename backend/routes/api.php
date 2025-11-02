@@ -13,6 +13,8 @@ use App\Http\Controllers\NotificationSettingsController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\VeiculoController;
+use App\Http\Controllers\ManutencaoController;
 use Illuminate\Support\Facades\Route;
 
 // Route::options('{any?}', function () {
@@ -93,6 +95,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/notification-settings/test-limite-cartao', [NotificationSettingsController::class, 'testLimiteCartao']);
     Route::post('/notification-settings/test-estorno', [NotificationSettingsController::class, 'testEstorno']);
     Route::get('/notification-settings/stats', [NotificationSettingsController::class, 'stats']);
+
+    // Rotas de Veículos
+    Route::apiResource('veiculos', VeiculoController::class);
+    Route::apiResource('manutencoes', ManutencaoController::class);
 
     // Rotas de roles e permissões
     Route::get('/roles', [RoleController::class, 'index']); // Listar todas as roles

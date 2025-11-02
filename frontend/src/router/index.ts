@@ -98,7 +98,7 @@ const router = createRouter({
         {
             path: "/veiculos",
             name: "veiculos",
-            component: () => import("../views/veiculo/VeiculosView.vue"),
+            component: () => import("../views/veiculo/VeiculoView.vue"),
             meta: {
                 auth: true,
                 layout: MainLayout
