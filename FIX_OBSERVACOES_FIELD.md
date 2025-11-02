@@ -1,13 +1,17 @@
 # Fix: Observações Field in Maintenance Form
 
 ## Problem
+
 When submitting a new maintenance record, the API returned error:
+
 ```
 Erro ao registrar manutenção: Undefined array key "observacoes"
 ```
 
 ## Root Cause
+
 The frontend form was missing the `observacoes` (observations) field:
+
 1. **Template**: No textarea field for observacoes in the form
 2. **Data Model**: formManutencaoData didn't initialize observacoes
 3. **Submission**: saveManutencao() function didn't include observacoes in POST data
@@ -15,27 +19,35 @@ The frontend form was missing the `observacoes` (observations) field:
 ## Solution
 
 ### 1. Updated resetFormManutencao() Function
+
 **File**: `/frontend/src/views/veiculo/VeiculoView.vue` (lines 1384-1399)
 
 Added initialization of observacoes field:
+
 ```javascript
 function resetFormManutencao(veiculoId: number | null | undefined = null) {
   return {
     veiculoId: veiculoId || null,
-    tipo: '',
-    data: new Date().toISOString().split('T')[0],
+    tipo: "",
+    data: new Date().toISOString().split("T")[0],
     quilometragem: 0,
-    oficina: { /* ... */ },
-    observacoes: '',  // ← NEW FIELD
-    itens: [/* ... */]
-  }
+    oficina: {
+      /* ... */
+    },
+    observacoes: "", // ← NEW FIELD
+    itens: [
+      /* ... */
+    ],
+  };
 }
 ```
 
 ### 2. Added UI Field to Template
+
 **File**: `/frontend/src/views/veiculo/VeiculoView.vue` (after line 570)
 
 Added textarea field for observations:
+
 ```vue
 <!-- Observações -->
 <v-row class="mt-2">
@@ -53,6 +65,7 @@ Added textarea field for observations:
 ```
 
 ### 3. Updated saveManutencao() Function
+
 **File**: `/frontend/src/views/veiculo/VeiculoView.vue` (lines 1419-1470)
 
 Updated both createManutencao and updateManutencao calls to include observacoes:
@@ -68,26 +81,28 @@ manutencaoService.createManutencao({
   oficina_telefone: formManutencaoData.value.oficina.telefone,
   oficina_email: formManutencaoData.value.oficina.email,
   oficina_endereco: formManutencaoData.value.oficina.endereco,
-  observacoes: formManutencaoData.value.observacoes || '',  // ← ADDED
+  observacoes: formManutencaoData.value.observacoes || "", // ← ADDED
   itens: itens,
-})
+});
 
 // For updating maintenance
 manutencaoService.updateManutencao(editingManutencao.value, {
   // ... other fields ...
-  observacoes: formManutencaoData.value.observacoes || '',  // ← ADDED
+  observacoes: formManutencaoData.value.observacoes || "", // ← ADDED
   itens: itens,
-})
+});
 ```
 
 ## Backend Compatibility
 
 The backend ManutencaoController already had correct validation:
+
 ```php
 'observacoes' => 'nullable|string'
 ```
 
 And properly handles the field in model creation:
+
 ```php
 'observacoes' => $validated['observacoes']
 ```
@@ -103,12 +118,15 @@ And properly handles the field in model creation:
    - New maintenance appears in list with observações displayed
 
 ## Files Modified
+
 - `/frontend/src/views/veiculo/VeiculoView.vue`
 
 ## Commit
+
 - **Hash**: 77c4331c
 - **Message**: "fix: Add observacoes field to maintenance form"
 
 ## Related Issues
+
 - Error: "Undefined array key 'observacoes'"
 - Status: ✅ RESOLVED

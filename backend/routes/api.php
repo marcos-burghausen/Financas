@@ -98,7 +98,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Rotas de Veículos
     Route::apiResource('veiculos', VeiculoController::class);
-    Route::apiResource('manutencoes', ManutencaoController::class);
+    Route::apiResource('manutencoes', ManutencaoController::class)->parameters([
+        'manutencoes' => 'manutencao'
+    ]);
 
     // Rotas de roles e permissões
     Route::get('/roles', [RoleController::class, 'index']); // Listar todas as roles

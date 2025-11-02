@@ -23,11 +23,34 @@ class Manutencao extends Model
         'observacoes',
     ];
 
+    protected $appends = ['oficina', 'veiculoId'];
+
     protected $casts = [
         'data' => 'date',
         'quilometragem' => 'integer',
         'valor_total' => 'decimal:2',
     ];
+
+    /**
+     * Get the oficina data as an object
+     */
+    public function getOficinaAttribute()
+    {
+        return (object) [
+            'nome' => $this->oficina_nome,
+            'telefone' => $this->oficina_telefone,
+            'email' => $this->oficina_email,
+            'endereco' => $this->oficina_endereco,
+        ];
+    }
+
+    /**
+     * Get the veiculo_id as veiculoId (camelCase for frontend)
+     */
+    public function getVeiculoIdAttribute()
+    {
+        return $this->attributes['veiculo_id'] ?? null;
+    }
 
     /**
      * Relacionamento com Veiculo

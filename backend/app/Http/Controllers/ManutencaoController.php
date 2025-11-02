@@ -122,8 +122,13 @@ class ManutencaoController extends Controller
      */
     public function show(Manutencao $manutencao)
     {
-        // Verificar se a manutenção pertence a um veículo do usuário autenticado
-        if ($manutencao->veiculo->user_id !== Auth::id()) {
+        // Carregar veiculo se não estiver carregado
+        if (!$manutencao->relationLoaded('veiculo')) {
+            $manutencao->load('veiculo');
+        }
+
+        // Verificar se veiculo existe e se pertence ao usuário
+        if (!$manutencao->veiculo || $manutencao->veiculo->user_id !== Auth::id()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Não autorizado',
@@ -143,8 +148,13 @@ class ManutencaoController extends Controller
      */
     public function update(Request $request, Manutencao $manutencao)
     {
-        // Verificar autorização
-        if ($manutencao->veiculo->user_id !== Auth::id()) {
+        // Carregar veiculo se não estiver carregado
+        if (!$manutencao->relationLoaded('veiculo')) {
+            $manutencao->load('veiculo');
+        }
+
+        // Verificar se veiculo existe e se pertence ao usuário
+        if (!$manutencao->veiculo || $manutencao->veiculo->user_id !== Auth::id()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Não autorizado',
@@ -224,8 +234,13 @@ class ManutencaoController extends Controller
      */
     public function destroy(Manutencao $manutencao)
     {
-        // Verificar autorização
-        if ($manutencao->veiculo->user_id !== Auth::id()) {
+        // Carregar veiculo se não estiver carregado
+        if (!$manutencao->relationLoaded('veiculo')) {
+            $manutencao->load('veiculo');
+        }
+
+        // Verificar se veiculo existe e se pertence ao usuário
+        if (!$manutencao->veiculo || $manutencao->veiculo->user_id !== Auth::id()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Não autorizado',
