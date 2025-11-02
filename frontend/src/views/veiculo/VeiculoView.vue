@@ -213,7 +213,7 @@
                   variant="outlined"
                   size="small"
                   prepend-icon="mdi-wrench"
-                  @click="openAddManutencaoDialog(veiculo)"
+                  @click.stop="openAddManutencaoDialog(veiculo)"
                   class="flex-grow-1"
                 >
                   <span class="text-truncate">Manutenção</span>
@@ -223,14 +223,14 @@
                   variant="outlined"
                   icon="mdi-pencil"
                   size="small"
-                  @click="editVeiculo(veiculo)"
+                  @click.stop="editVeiculo(veiculo)"
                 />
                 <v-btn
                   color="error"
                   variant="outlined"
                   icon="mdi-delete"
                   size="small"
-                  @click="deleteVeiculo(veiculo.id)"
+                  @click.stop="deleteVeiculo(veiculo.id)"
                 />
               </div>
             </v-card-text>
