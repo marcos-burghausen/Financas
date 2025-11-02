@@ -594,6 +594,20 @@
               </v-col>
             </v-row>
 
+            <!-- Observações -->
+            <v-row class="mt-2">
+              <v-col cols="12">
+                <v-textarea
+                  v-model="formManutencaoData.observacoes"
+                  label="Observações"
+                  placeholder="Notas adicionais sobre a manutenção (opcional)"
+                  outlined
+                  dense
+                  rows="3"
+                />
+              </v-col>
+            </v-row>
+
             <!-- Itens da Manutenção -->
             <v-divider class="my-4" />
             <div class="d-flex justify-space-between align-center mb-3">
@@ -1393,6 +1407,7 @@ function resetFormManutencao(veiculoId: number | null | undefined = null) {
       email: '',
       endereco: ''
     },
+    observacoes: '',
     itens: [
       { id: 1, nome: '', descricao: '', quantidade: 1, valor: 0 }
     ]
@@ -1438,6 +1453,7 @@ function saveManutencao() {
         oficina_telefone: formManutencaoData.value.oficina.telefone,
         oficina_email: formManutencaoData.value.oficina.email,
         oficina_endereco: formManutencaoData.value.oficina.endereco,
+        observacoes: formManutencaoData.value.observacoes || '',
         itens: itens,
       }).then(() => {
         showToast('Manutenção atualizada com sucesso!', 'success')
@@ -1460,6 +1476,7 @@ function saveManutencao() {
         oficina_telefone: formManutencaoData.value.oficina.telefone,
         oficina_email: formManutencaoData.value.oficina.email,
         oficina_endereco: formManutencaoData.value.oficina.endereco,
+        observacoes: formManutencaoData.value.observacoes || '',
         itens: itens,
       }).then(() => {
         showToast('Manutenção registrada com sucesso!', 'success')

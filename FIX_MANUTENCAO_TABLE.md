@@ -3,6 +3,7 @@
 ## Problema Identificado
 
 **Erro original:**
+
 ```
 SQLSTATE[42S02]: Base table or view not found: 1146 Table 'Mr_database.manutencaos' doesn't exist
 ```
@@ -12,6 +13,7 @@ O frontend estava recebendo erro 500 ao tentar listar veículos porque o backend
 ## Causa Raiz
 
 O Eloquent ORM do Laravel, por padrão, pluraliza nomes de modelos para determinar o nome da tabela:
+
 - Model: `Manutencao` → Tabela padrão esperada: `manutencaos` ❌
 - Tabela real criada: `manutencoes` ✅
 
@@ -25,7 +27,7 @@ Adicionado atributo explícito no modelo `Manutencao.php`:
 class Manutencao extends Model
 {
     protected $table = 'manutencoes';  // ← Adicionado esta linha
-    
+
     protected $fillable = [
         // ...
     ];
@@ -35,12 +37,14 @@ class Manutencao extends Model
 ## Verificação
 
 ### Teste no Tinker:
+
 ```php
 $veiculos = App\Models\Veiculo::with('manutencoes')->get();
 // Agora funciona sem erro!
 ```
 
 ### Resultado:
+
 ```
 Veículos encontrados: 2
 - Fiat com 0 manutenções
