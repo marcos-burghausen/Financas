@@ -949,16 +949,32 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Snackbar de Notificações -->
+    <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="3000">
+      {{ snackbarMessage }}
+    </v-snackbar>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { manutencaoService, veiculoService } from '@/services/veiculoService'
+import { computed, onMounted, ref } from 'vue'
 
-// Estados
+// Estados de Notificação
+const snackbar = ref(false)
+const snackbarMessage = ref('')
+const snackbarColor = ref('success')
+
+function showToast(message: string, color: string = 'success') {
+  snackbarMessage.value = message
+  snackbarColor.value = color
+  snackbar.value = true
+}
 const tabAtiva = ref('veiculos')
 const loading = ref(false)
 const loadingManutencao = ref(false)
+const loadingData = ref(false)
 const searchVeiculo = ref('')
 const searchManutencao = ref('')
 const statusFilterVeiculo = ref('')
@@ -972,148 +988,103 @@ const editingManutencao = ref(null)
 const veiculoSelecionado = ref(null)
 const osDetalhes = ref(null)
 
-// Dados Hardcoded - Veículos
-const veiculos = ref([
-  {
-    id: 1,
-    marca: 'Toyota',
-    modelo: 'Corolla',
-    placa: 'ABC1234',
-    ano: 2020,
-    quilometragem: 35000,
-    combustivel: 'Gasolina',
-    status: 'ativo',
-    color: '#163dc0',
-    ultimaManutencao: '2025-09-15',
-    proximaManutencao: 40000,
-  },
-  {
-    id: 2,
-    marca: 'Honda',
-    modelo: 'Civic',
-    placa: 'XYZ9876',
-    ano: 2022,
-    quilometragem: 18000,
-    combustivel: 'Gasolina',
-    status: 'ativo',
-    color: '#e63946',
-    ultimaManutencao: '2025-08-20',
-    proximaManutencao: 50000,
-  },
-  {
-    id: 3,
-    marca: 'Volkswagen',
-    modelo: 'Gol',
-    placa: 'DEF5678',
-    ano: 2019,
-    quilometragem: 52000,
-    combustivel: 'Gasolina',
-    status: 'manutenção',
-    color: '#f77f00',
-    ultimaManutencao: '2025-07-10',
-    proximaManutencao: 60000,
-  },
-])
+// Tipos
+interface Veiculo {
+  id?: number
+  marca: string
+  modelo: string
+  placa: string
+  ano: number
+  quilometragem: number
+  combustivel: string
+  proximaManutencao: number
+  status: string
+  color?: string
+  ultimaManutencao?: string
+  manutencoes?: Manutencao[]
+}
 
-// Dados Hardcoded - Manutenções (Ordem de Serviço)
-const manutencoes = ref([
-  {
-    id: 1,
-    veiculoId: 1,
-    tipo: 'Troca de Óleo',
-    data: '2025-09-15',
-    quilometragem: 30000,
-    oficina: {
-      nome: 'Auto Center Brasil',
-      telefone: '(11) 3456-7890',
-      email: 'contato@autocenterbrasil.com.br',
-      endereco: 'Rua das Flores, 123 - São Paulo, SP'
-    },
-    itens: [
-      { id: 1, nome: 'Óleo 5W30 Sintético', descricao: 'Óleo de motor 5W30 sintético', quantidade: 5, valor: 120.00 },
-      { id: 2, nome: 'Filtro de Óleo', descricao: 'Filtro de óleo original', quantidade: 1, valor: 45.00 },
-      { id: 3, nome: 'Mão de Obra', descricao: 'Serviço de troca', quantidade: 1, valor: 15.00 }
-    ]
-  },
-  {
-    id: 2,
-    veiculoId: 1,
-    tipo: 'Revisão',
-    data: '2025-08-01',
-    quilometragem: 28000,
-    oficina: {
-      nome: 'Concessionária Toyota',
-      telefone: '(11) 2567-8901',
-      email: 'servicos@toyota-sp.com.br',
-      endereco: 'Av. Paulista, 1000 - São Paulo, SP'
-    },
-    itens: [
-      { id: 1, nome: 'Óleo 5W30 Sintético', descricao: 'Óleo de motor', quantidade: 5, valor: 120.00 },
-      { id: 2, nome: 'Filtro de Óleo', descricao: 'Filtro original', quantidade: 1, valor: 45.00 },
-      { id: 3, nome: 'Filtro de Ar', descricao: 'Filtro de ar motor', quantidade: 1, valor: 85.00 },
-      { id: 4, nome: 'Filtro de Cabine', descricao: 'Filtro ar condicionado', quantidade: 1, valor: 65.00 },
-      { id: 5, nome: 'Revisão Completa', descricao: 'Inspeção visual e testes', quantidade: 1, valor: 135.00 }
-    ]
-  },
-  {
-    id: 3,
-    veiculoId: 2,
-    tipo: 'Troca de Óleo',
-    data: '2025-08-20',
-    quilometragem: 18000,
-    oficina: {
-      nome: 'Mecânica do João',
-      telefone: '(11) 9876-5432',
-      email: 'mecanica@joao.com.br',
-      endereco: 'Rua São José, 456 - São Paulo, SP'
-    },
-    itens: [
-      { id: 1, nome: 'Óleo 0W20 Sintético', descricao: 'Óleo de motor 0W20', quantidade: 4, valor: 130.00 },
-      { id: 2, nome: 'Filtro de Óleo', descricao: 'Filtro Honda original', quantidade: 1, valor: 50.00 },
-      { id: 3, nome: 'Mão de Obra', descricao: 'Serviço de troca', quantidade: 1, valor: 20.00 }
-    ]
-  },
-  {
-    id: 4,
-    veiculoId: 2,
-    tipo: 'Pneu',
-    data: '2025-07-05',
-    quilometragem: 15000,
-    oficina: {
-      nome: 'Pneus e Rodas Plus',
-      telefone: '(11) 5432-1098',
-      email: 'vendas@pneusrodas.com.br',
-      endereco: 'Rua Pneus, 789 - São Paulo, SP'
-    },
-    itens: [
-      { id: 1, nome: 'Pneu Michelin Primacy', descricao: 'Pneu 195/55 R16', quantidade: 4, valor: 650.00 },
-      { id: 2, nome: 'Balanceamento', descricao: 'Balanceamento 4 rodas', quantidade: 4, valor: 80.00 },
-      { id: 3, nome: 'Alinhamento', descricao: 'Alinhamento 4 rodas', quantidade: 1, valor: 120.00 }
-    ]
-  },
-  {
-    id: 5,
-    veiculoId: 3,
-    tipo: 'Revisão',
-    data: '2025-07-10',
-    quilometragem: 50000,
-    oficina: {
-      nome: 'Auto Center Brasil',
-      telefone: '(11) 3456-7890',
-      email: 'contato@autocenterbrasil.com.br',
-      endereco: 'Rua das Flores, 123 - São Paulo, SP'
-    },
-    itens: [
-      { id: 1, nome: 'Óleo Mineral', descricao: 'Óleo de motor', quantidade: 5, valor: 85.00 },
-      { id: 2, nome: 'Filtro de Óleo', descricao: 'Filtro', quantidade: 1, valor: 35.00 },
-      { id: 3, nome: 'Filtro de Ar', descricao: 'Filtro ar', quantidade: 1, valor: 60.00 },
-      { id: 4, nome: 'Velas de Ignição', descricao: 'Jogo de 4 velas', quantidade: 4, valor: 140.00 },
-      { id: 5, nome: 'Revisão Completa', descricao: 'Inspeção e testes', quantidade: 1, valor: 200.00 }
-    ]
-  },
-])
+interface ManutencaoItem {
+  id?: number | string
+  nome: string
+  descricao?: string
+  quantidade: number
+  valor: number
+}
 
-// Tipos de Manutenção
+interface Manutencao {
+  id?: number
+  veiculo_id?: number
+  veiculoId?: number
+  tipo: string
+  data: string
+  quilometragem: number
+  valor_total?: number
+  oficina_nome?: string
+  oficina_telefone?: string
+  oficina_email?: string
+  oficina_endereco?: string
+  oficina?: {
+    nome: string
+    telefone?: string
+    email?: string
+    endereco?: string
+  }
+  observacoes?: string
+  itens?: ManutencaoItem[]
+}
+
+// Dados - carregados da API
+const veiculos = ref<Veiculo[]>([])
+const manutencoes = ref<Manutencao[]>([])
+
+// Inicializar dados ao montar o componente
+onMounted(async () => {
+  await loadData()
+})
+
+// Funções para carregar dados da API
+async function loadData() {
+  loadingData.value = true
+  try {
+    await Promise.all([loadVeiculos(), loadManutencoes()])
+  } catch (error) {
+    console.error('Erro ao carregar dados:', error)
+    showToast('Erro ao carregar dados. Por favor, tente novamente.', 'error', 'error')
+  } finally {
+    loadingData.value = false
+  }
+}
+
+async function loadVeiculos() {
+  try {
+    const response = await veiculoService.getVeiculos()
+    const data = Array.isArray(response.data) ? response.data : response.data?.data || []
+    veiculos.value = data.map((v: any) => ({
+      ...v,
+      color: getRandomColor(),
+    }))
+  } catch (error) {
+    console.error('Erro ao carregar veículos:', error)
+    throw error
+  }
+}
+
+async function loadManutencoes() {
+  try {
+    const response = await manutencaoService.getManutencoes()
+    const data = Array.isArray(response.data) ? response.data : response.data?.data || []
+    manutencoes.value = data
+  } catch (error) {
+    console.error('Erro ao carregar manutenções:', error)
+    throw error
+  }
+}
+
+function getRandomColor() {
+  const colors = ['#163dc0', '#e63946', '#f77f00', '#2a9d8f', '#e76f51', '#d62828']
+  return colors[Math.floor(Math.random() * colors.length)]
+}
 const tiposManutencao = [
   'Troca de Óleo',
   'Revisão',
@@ -1171,7 +1142,7 @@ const headersManutencao = [
 
 // Computed Properties
 const filteredVeiculos = computed(() => {
-  return veiculos.value.filter((v) => {
+  return veiculos.value.filter((v: Veiculo) => {
     const matchSearch = searchVeiculo.value === '' || 
       `${v.marca} ${v.modelo} ${v.placa}`.toLowerCase().includes(searchVeiculo.value.toLowerCase())
     const matchStatus = statusFilterVeiculo.value === '' || v.status === statusFilterVeiculo.value
@@ -1180,8 +1151,8 @@ const filteredVeiculos = computed(() => {
 })
 
 const filteredManutencoes = computed(() => {
-  return manutencoes.value.filter((m) => {
-    const veiculo = getVeiculo(m.veiculoId)
+  return manutencoes.value.filter((m: Manutencao) => {
+    const veiculo = getVeiculo(m.veiculo_id || m.veiculoId || 0)
     const matchSearch = searchManutencao.value === '' || 
       `${veiculo.marca} ${veiculo.modelo} ${m.tipo}`.toLowerCase().includes(searchManutencao.value.toLowerCase())
     const matchTipo = tipoManutencaoFilter.value === '' || m.tipo === tipoManutencaoFilter.value
@@ -1190,11 +1161,11 @@ const filteredManutencoes = computed(() => {
 })
 
 const summary = computed(() => {
-  const gastoTotal = manutencoes.value.reduce((sum, m) => sum + m.valor, 0)
-  const veiculosAtivos = veiculos.value.filter(v => v.status === 'ativo').length
+  const gastoTotal = manutencoes.value.reduce((sum: number, m: Manutencao) => sum + (m.valor_total || 0), 0)
+  const veiculosAtivos = veiculos.value.filter((v: Veiculo) => v.status === 'ativo').length
   
-  let proximaManutencao = null
-  veiculos.value.forEach((v) => {
+  let proximaManutencao: string | null = null
+  veiculos.value.forEach((v: Veiculo) => {
     const progress = calculateProxManutencaoProgress(v)
     if (progress > 80 && !proximaManutencao) {
       proximaManutencao = `${v.marca} ${v.modelo}`
@@ -1209,16 +1180,16 @@ const summary = computed(() => {
 })
 
 // Funções
-function calcularTotalOS(os) {
-  return os.itens.reduce((sum, item) => sum + (item.quantidade * item.valor), 0)
+function calcularTotalOS(os: Manutencao) {
+  return os.itens?.reduce((sum: number, item: ManutencaoItem) => sum + (item.quantidade * item.valor), 0) || 0
 }
 
 function getTotalManutencao() {
-  return formManutencaoData.value.itens.reduce((sum, item) => sum + (item.quantidade * item.valor), 0)
+  return formManutencaoData.value.itens.reduce((sum: number, item: ManutencaoItem) => sum + (item.quantidade * item.valor), 0)
 }
 
 function addManutencaoItem() {
-  const maxId = Math.max(...formManutencaoData.value.itens.map(i => i.id || 0), 0)
+  const maxId = Math.max(...formManutencaoData.value.itens.map((i: ManutencaoItem) => (typeof i.id === 'number' ? i.id : 0)), 0)
   formManutencaoData.value.itens.push({
     id: maxId + 1,
     nome: '',
@@ -1228,11 +1199,11 @@ function addManutencaoItem() {
   })
 }
 
-function removeManutencaoItem(index) {
+function removeManutencaoItem(index: number) {
   formManutencaoData.value.itens.splice(index, 1)
 }
 
-function openOSDetailsDialog(manutencao) {
+function openOSDetailsDialog(manutencao: Manutencao) {
   osDetalhes.value = JSON.parse(JSON.stringify(manutencao))
   dialogOSDetailsOpen.value = true
 }
@@ -1251,23 +1222,26 @@ function editarOSDetalhes() {
   }
 }
 
-function formatCurrency(value) {
+function formatCurrency(value: number | undefined) {
+  if (!value && value !== 0) return 'R$ 0,00'
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
   }).format(value)
 }
 
-function formatDate(date) {
+function formatDate(date: string | undefined) {
+  if (!date) return '-'
   return new Intl.DateTimeFormat('pt-BR').format(new Date(date))
 }
 
-function formatNumber(value) {
+function formatNumber(value: number | undefined) {
+  if (!value && value !== 0) return '0'
   return new Intl.NumberFormat('pt-BR').format(value)
 }
 
-function getStatusColor(status) {
-  const colors = {
+function getStatusColor(status: string) {
+  const colors: Record<string, string> = {
     ativo: 'success',
     inativo: 'secondary',
     'manutenção': 'error',
@@ -1275,8 +1249,8 @@ function getStatusColor(status) {
   return colors[status] || 'default'
 }
 
-function getStatusLabel(status) {
-  const labels = {
+function getStatusLabel(status: string) {
+  const labels: Record<string, string> = {
     ativo: 'Ativo',
     inativo: 'Inativo',
     'manutenção': 'Em Manutenção',
@@ -1284,8 +1258,8 @@ function getStatusLabel(status) {
   return labels[status] || status
 }
 
-function getTipoManutencaoColor(tipo) {
-  const colors = {
+function getTipoManutencaoColor(tipo: string) {
+  const colors: Record<string, string> = {
     'Troca de Óleo': 'info',
     'Revisão': 'primary',
     'Pneu': 'warning',
@@ -1297,7 +1271,7 @@ function getTipoManutencaoColor(tipo) {
   return colors[tipo] || 'default'
 }
 
-function calculateProxManutencaoProgress(veiculo) {
+function calculateProxManutencaoProgress(veiculo: Veiculo) {
   const proximaManutencao = veiculo.proximaManutencao
   const quilometragem = veiculo.quilometragem
   const baseKm = proximaManutencao - 10000
@@ -1306,8 +1280,8 @@ function calculateProxManutencaoProgress(veiculo) {
   return Math.max(0, Math.min(100, progress))
 }
 
-function getVeiculo(id) {
-  return veiculos.value.find(v => v.id === id) || {}
+function getVeiculo(id: number | undefined): Veiculo {
+  return veiculos.value.find((v: Veiculo) => v.id === id) || { marca: '', modelo: '', placa: '', ano: 0, quilometragem: 0, combustivel: 'Gasolina', proximaManutencao: 0, status: '' }
 }
 
 function openAddVeiculoDialog() {
@@ -1331,38 +1305,83 @@ function closeDialogVeiculo() {
   editingVeiculo.value = null
 }
 
-function editVeiculo(veiculo) {
-  editingVeiculo.value = veiculo.id
+function editVeiculo(veiculo: Veiculo) {
+  editingVeiculo.value = veiculo.id || null
   formVeiculoData.value = { ...veiculo }
   dialogVeiculoOpen.value = true
 }
 
 function saveVeiculo() {
-  if (editingVeiculo.value) {
-    const index = veiculos.value.findIndex(v => v.id === editingVeiculo.value)
-    if (index > -1) {
-      veiculos.value[index] = {
-        ...veiculos.value[index],
-        ...formVeiculoData.value,
-      }
+  loading.value = true
+  try {
+    if (editingVeiculo.value) {
+      // Atualizar veículo existente
+      veiculoService.updateVeiculo(editingVeiculo.value, {
+        marca: formVeiculoData.value.marca,
+        modelo: formVeiculoData.value.modelo,
+        placa: formVeiculoData.value.placa,
+        ano: formVeiculoData.value.ano,
+        quilometragem: formVeiculoData.value.quilometragem,
+        combustivel: formVeiculoData.value.combustivel,
+        proximaManutencao: formVeiculoData.value.proximaManutencao,
+        status: formVeiculoData.value.status,
+      }).then(() => {
+        showToast('Veículo atualizado com sucesso!', 'success')
+        loadVeiculos()
+        closeDialogVeiculo()
+      }).catch((error) => {
+        console.error('Erro ao atualizar veículo:', error)
+        showToast('Erro ao atualizar veículo. Por favor, tente novamente.', 'error')
+      }).finally(() => {
+        loading.value = false
+      })
+    } else {
+      // Criar novo veículo
+      veiculoService.createVeiculo({
+        marca: formVeiculoData.value.marca,
+        modelo: formVeiculoData.value.modelo,
+        placa: formVeiculoData.value.placa,
+        ano: formVeiculoData.value.ano,
+        quilometragem: formVeiculoData.value.quilometragem,
+        combustivel: formVeiculoData.value.combustivel,
+        proximaManutencao: formVeiculoData.value.proximaManutencao,
+        status: formVeiculoData.value.status,
+      }).then(() => {
+        showToast('Veículo criado com sucesso!', 'success')
+        loadVeiculos()
+        closeDialogVeiculo()
+      }).catch((error) => {
+        console.error('Erro ao criar veículo:', error)
+        showToast('Erro ao criar veículo. Por favor, tente novamente.', 'error')
+      }).finally(() => {
+        loading.value = false
+      })
     }
-  } else {
-    veiculos.value.push({
-      id: Math.max(...veiculos.value.map(v => v.id), 0) + 1,
-      ...formVeiculoData.value,
-      ultimaManutencao: new Date().toISOString().split('T')[0],
-    })
+  } catch (error) {
+    console.error('Erro:', error)
+    loading.value = false
   }
-  closeDialogVeiculo()
 }
 
-function deleteVeiculo(id) {
+function deleteVeiculo(id: number) {
   if (confirm('Tem certeza que deseja deletar este veículo?')) {
-    veiculos.value = veiculos.value.filter(v => v.id !== id)
+    loading.value = true
+    veiculoService.deleteVeiculo(id)
+      .then(() => {
+        showToast('Veículo deletado com sucesso!', 'success')
+        loadVeiculos()
+      })
+      .catch((error) => {
+        console.error('Erro ao deletar veículo:', error)
+        showToast('Erro ao deletar veículo. Por favor, tente novamente.', 'error')
+      })
+      .finally(() => {
+        loading.value = false
+      })
   }
 }
 
-function resetFormManutencao(veiculoId = null) {
+function resetFormManutencao(veiculoId: number | null | undefined = null) {
   return {
     veiculoId: veiculoId || null,
     tipo: '',
@@ -1380,7 +1399,7 @@ function resetFormManutencao(veiculoId = null) {
   }
 }
 
-function openAddManutencaoDialog(veiculo = null) {
+function openAddManutencaoDialog(veiculo: Veiculo | null = null) {
   editingManutencao.value = null
   formManutencaoData.value = resetFormManutencao(veiculo?.id)
   dialogManutencaoOpen.value = true
@@ -1391,33 +1410,89 @@ function closeDialogManutencao() {
   editingManutencao.value = null
 }
 
-function editManutencao(manutencao) {
-  editingManutencao.value = manutencao.id
+function editManutencao(manutencao: Manutencao) {
+  editingManutencao.value = manutencao.id || null
   formManutencaoData.value = { ...manutencao }
   dialogManutencaoOpen.value = true
 }
 
 function saveManutencao() {
-  if (editingManutencao.value) {
-    const index = manutencoes.value.findIndex(m => m.id === editingManutencao.value)
-    if (index > -1) {
-      manutencoes.value[index] = {
-        ...manutencoes.value[index],
-        ...formManutencaoData.value,
-      }
+  loadingManutencao.value = true
+  try {
+    // Preparar dados dos itens
+    const itens = formManutencaoData.value.itens.map((item: any) => ({
+      nome: item.nome,
+      descricao: item.descricao || '',
+      quantidade: item.quantidade,
+      valor_unitario: item.valor,
+    }))
+
+    if (editingManutencao.value) {
+      // Atualizar manutenção
+      manutencaoService.updateManutencao(editingManutencao.value, {
+        veiculo_id: formManutencaoData.value.veiculoId,
+        tipo: formManutencaoData.value.tipo,
+        data: formManutencaoData.value.data,
+        quilometragem: formManutencaoData.value.quilometragem,
+        oficina_nome: formManutencaoData.value.oficina.nome,
+        oficina_telefone: formManutencaoData.value.oficina.telefone,
+        oficina_email: formManutencaoData.value.oficina.email,
+        oficina_endereco: formManutencaoData.value.oficina.endereco,
+        itens: itens,
+      }).then(() => {
+        showToast('Manutenção atualizada com sucesso!', 'success')
+        loadManutencoes()
+        closeDialogManutencao()
+      }).catch((error) => {
+        console.error('Erro ao atualizar manutenção:', error)
+        showToast('Erro ao atualizar manutenção. Por favor, tente novamente.', 'error')
+      }).finally(() => {
+        loadingManutencao.value = false
+      })
+    } else {
+      // Criar nova manutenção
+      manutencaoService.createManutencao({
+        veiculo_id: formManutencaoData.value.veiculoId,
+        tipo: formManutencaoData.value.tipo,
+        data: formManutencaoData.value.data,
+        quilometragem: formManutencaoData.value.quilometragem,
+        oficina_nome: formManutencaoData.value.oficina.nome,
+        oficina_telefone: formManutencaoData.value.oficina.telefone,
+        oficina_email: formManutencaoData.value.oficina.email,
+        oficina_endereco: formManutencaoData.value.oficina.endereco,
+        itens: itens,
+      }).then(() => {
+        showToast('Manutenção registrada com sucesso!', 'success')
+        loadManutencoes()
+        closeDialogManutencao()
+      }).catch((error) => {
+        console.error('Erro ao criar manutenção:', error)
+        showToast('Erro ao registrar manutenção. Por favor, tente novamente.', 'error')
+      }).finally(() => {
+        loadingManutencao.value = false
+      })
     }
-  } else {
-    manutencoes.value.push({
-      id: Math.max(...manutencoes.value.map(m => m.id), 0) + 1,
-      ...formManutencaoData.value,
-    })
+  } catch (error) {
+    console.error('Erro:', error)
+    loadingManutencao.value = false
   }
-  closeDialogManutencao()
 }
 
-function deleteManutencao(id) {
+function deleteManutencao(id: number) {
   if (confirm('Tem certeza que deseja deletar este registro de manutenção?')) {
-    manutencoes.value = manutencoes.value.filter(m => m.id !== id)
+    loadingManutencao.value = true
+    manutencaoService.deleteManutencao(id)
+      .then(() => {
+        showToast('Manutenção deletada com sucesso!', 'success')
+        loadManutencoes()
+      })
+      .catch((error) => {
+        console.error('Erro ao deletar manutenção:', error)
+        showToast('Erro ao deletar manutenção. Por favor, tente novamente.', 'error')
+      })
+      .finally(() => {
+        loadingManutencao.value = false
+      })
   }
 }
 
@@ -1432,7 +1507,7 @@ function clearFiltersManutencao() {
 }
 
 // Funções do Histórico
-function openHistoricoDialog(veiculo) {
+function openHistoricoDialog(veiculo: Veiculo) {
   veiculoSelecionado.value = veiculo
   dialogHistoricoOpen.value = true
 }
@@ -1442,18 +1517,18 @@ function closeHistoricoDialog() {
   veiculoSelecionado.value = null
 }
 
-function getManutencaoVeiculo(veiculoId) {
+function getManutencaoVeiculo(veiculoId: number | undefined) {
   return manutencoes.value
-    .filter(m => m.veiculoId === veiculoId)
-    .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
+    .filter((m: Manutencao) => (m.veiculo_id || m.veiculoId) === veiculoId)
+    .sort((a: Manutencao, b: Manutencao) => new Date(b.data).getTime() - new Date(a.data).getTime())
 }
 
-function getManutencaoCount(veiculoId) {
-  return manutencoes.value.filter(m => m.veiculoId === veiculoId).length
+function getManutencaoCount(veiculoId: number | undefined) {
+  return manutencoes.value.filter((m: Manutencao) => (m.veiculo_id || m.veiculoId) === veiculoId).length
 }
 
-function getTipoIcon(tipo) {
-  const icons = {
+function getTipoIcon(tipo: string) {
+  const icons: Record<string, string> = {
     'Troca de Óleo': 'mdi-oil',
     'Revisão': 'mdi-wrench',
     'Pneu': 'mdi-tire',
@@ -1472,7 +1547,9 @@ function getTipoIcon(tipo) {
 
 function openAddManutencaoForHistorico() {
   editingManutencao.value = null
-  formManutencaoData.value = resetFormManutencao(veiculoSelecionado.value.id)
+  if (veiculoSelecionado.value) {
+    formManutencaoData.value = resetFormManutencao(veiculoSelecionado.value.id)
+  }
   closeHistoricoDialog()
   dialogManutencaoOpen.value = true
 }
