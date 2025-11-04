@@ -15,6 +15,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\VeiculoController;
 use App\Http\Controllers\ManutencaoController;
+use App\Http\Controllers\BudgetController;
 use Illuminate\Support\Facades\Route;
 
 // Route::options('{any?}', function () {
@@ -62,6 +63,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/lancamentos/{id}', [LancamentoController::class, 'editLancamento']);
     Route::patch('/lancamentos/{id}', [LancamentoController::class, 'receivedLancamento']);
     Route::delete('/lancamentos/{id}', [LancamentoController::class, 'deleteLancamento']);
+
+    // Rotas de Orçamentos
+    Route::apiResource('budgets', BudgetController::class);
+    Route::get('/budgets-categorias', [BudgetController::class, 'getCategorias']);
 
     Route::post('/wallet', [WalletsController::class, 'saveWallet']);
     Route::get('/wallet', [WalletsController::class, 'getWallets']);

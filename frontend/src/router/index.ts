@@ -87,6 +87,15 @@ const router = createRouter({
             }
         },
         {
+            path: "/orcamento",
+            name: "orcamento",
+            component: () => import("../views/orcamento/OrcamentoView.vue"),
+            meta: {
+                auth: true,
+                layout: MainLayout
+            }
+        },
+        {
             path: "/cartoes",
             name: "cartoes",
             component: () => import("../views/cartaoCredito/CartaoCreditoView.vue"),

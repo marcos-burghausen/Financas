@@ -75,7 +75,10 @@ class SanctumAuthController extends Controller
         ];
 
         LogController::addsLog($request->email, Actions::LOGIN);
-        Mail::to('rafaelburghausen@gmail.com')->queue(new NotificationMail($user, 'Login', 'Login', $user->name));
+
+        // Temporariamente desabilitado devido a timeout SMTP
+        // TODO: Configurar SMTP corretamente ou usar driver 'log'
+        // Mail::to('rafaelburghausen@gmail.com')->queue(new NotificationMail($user, 'Login', 'Login', $user->name));
 
         return response()->json($loginData);
     }

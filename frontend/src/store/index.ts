@@ -1,5 +1,6 @@
 // src/store/index.ts
 export * from "./auth";
+export * from "./budget";
 export * from "./categories";
 export * from "./dashboard";
 export * from "./data";

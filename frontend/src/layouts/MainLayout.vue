@@ -283,6 +283,7 @@ const mainMenuItems = [
   { route: "dashboard", label: "Dashboard", icon: "mdi-view-dashboard" },
   { route: "despesas", label: "Despesas", icon: "mdi-cash-remove" },
   { route: "receitas", label: "Receitas", icon: "mdi-cash-plus" },
+  { route: "orcamento", label: "Orçamento", icon: "mdi-chart-pie" },
   { route: "contas", label: "Contas", icon: "mdi-bank" },
   { route: "cartoes", label: "Cartões", icon: "mdi-credit-card" },
   { route: "veiculos", label: "Veículos", icon: "mdi-car" },
