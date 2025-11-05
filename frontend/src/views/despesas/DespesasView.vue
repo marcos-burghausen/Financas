@@ -945,6 +945,7 @@ const tipoCalculoParcela = ref("total");
 const tempParcelaInicial = ref(1);
 const tempNumParcelas = ref(2);
 const tempPeriodicidade = ref("Mensal");
+const mesAno = userStore.getMesAno?.() || new Date().toISOString().slice(0, 7);
 
 // Mock data
 const despesas = ref([]);
@@ -1375,27 +1376,27 @@ const deleteDespesa = async (id: number) => {
 };
 
 const efetivarDespesa = async (despesa: any) => {
+  console.log(despesa);
   try {
     loading.value = true;
-    // ✅ Converter valor para centavos (inteiro) para enviar ao backend
-    let valorCentavos = despesa.valor;
+    // ✅ ENVIAR VALOR COMO STRING - backend faz a conversão
+    // NÃO converter para centavos! O backend multiplica por 100 automaticamente
+    let valorString = despesa.valor;
 
-    if (typeof despesa.valor === "string") {
-      // Se for string "10,00", converte para 1000
-      valorCentavos = Math.round(parseFloat(despesa.valor.replace(",", ".")) * 100);
-    } else if (typeof despesa.valor === "number") {
-      // Se já for número, assume que é centavos, mantém como está
-      valorCentavos = despesa.valor;
+    if (typeof despesa.valor === "number") {
+      // Se for número (centavos), converter para string formatada "10,00"
+      valorString = (despesa.valor / 100).toFixed(2).replace(".", ",");
     }
     
     const payload = {
       ...despesa,
-      valor: valorCentavos, // ✅ Enviar valor em centavos (número inteiro)
+      valor: valorString, // STRING formatada "10,00"
       status_lancamento: "EFETIVADA",
       data_vencimento: formatDateForBackend(despesa.data_vencimento),
       data_lancamento: formatDateForBackend(despesa.data_lancamento),
       data_efetivacao: formatDateForBackend(despesa.data_efetivacao),
-      tipo_lancamento: "Despesa"
+      tipo_lancamento: "Despesa",
+      mesAno: mesAno,
     };
 
     await despesasService.update(despesa.id, payload);
@@ -1425,13 +1426,17 @@ const saveDespesa = async () => {
     };
 
     // Obter mesAno no formato YYYY-MM
-    const mesAno = userStore.getMesAno?.() || new Date().toISOString().slice(0, 7);
+    
+
+    // ✅ ENVIAR VALOR COMO STRING FORMATADA "10,00" - backend faz a conversão
+    // NÃO enviar em centavos! O backend multiplica por 100 automaticamente
+    // Se você enviar 1000, o backend faz 1000 * 100 = 100000
 
     // ✅ Construir payload com TODOS os campos esperados pelo backend
     const payload: any = {
       // Campos obrigatórios
       descricao: formData.value.descricao,
-      valor: formData.value.valor,  // STRING formatada "10,00", backend faz conversão
+      valor: formData.value.valor,  // STRING formatada "10,00" - deixar para backend converter
       tipo_lancamento: "Despesa",   // ✅ "Despesa" (backend transforma para DESPESA)
       recorrencia: recorrenciaMap[formData.value.recorrencia] || "NAO_RECORRENTE",
       status_lancamento: formData.value.status_lancamento || "PENDENTE",
@@ -1508,7 +1513,6 @@ const loadDespesas = async () => {
     loading.value = true;
     const mesAno = currentMonth.value;
     const data = await despesasService.list(mesAno);
-    console.log(data);
     
     if (data && data.length > 0) {
       despesas.value = data.map((r: any) => ({

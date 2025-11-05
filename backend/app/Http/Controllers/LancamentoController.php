@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 use App\Models\Lancamento;
+use App\Models\Conta;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -257,8 +258,61 @@ class LancamentoController extends Controller
 
             DB::beginTransaction();
 
+            // ✅ Capturar status ANTES e DEPOIS
+            $statusAnterior = $lancamento->status_lancamento;
+            $statusNovo = $request->input('status_lancamento'); // Status do frontend
+
+            Log::info("=== EDITANDO LANÇAMENTO {$id} ===");
+            Log::info("Status anterior: {$statusAnterior}");
+            Log::info("Status novo (input): {$statusNovo}");
+            Log::info("Tipo lançamento: {$lancamento->tipo_lancamento}");
+            Log::info("Valor: {$lancamento->valor}");
+            Log::info("Conta ID: {$lancamento->conta_id}");
+
+            // ✅ Se o status mudou, recalcular o saldo da conta ANTES de salvar
+            if ($statusAnterior !== $statusNovo) {
+                Log::info("STATUS MUDOU! De {$statusAnterior} para {$statusNovo}");
+
+                if (in_array($lancamento->tipo_lancamento, ['RECEITA', 'DESPESA']) && $lancamento->conta_id) {
+                    $conta = Conta::find($lancamento->conta_id);
+
+                    Log::info("Saldo da conta ANTES: {$conta->saldo}");
+
+                    if ($conta) {
+                        // 1. REVERTER o efeito do status anterior (desfazer a operação antiga)
+                        if ($statusAnterior === 'EFETIVADA') {
+                            if ($lancamento->tipo_lancamento === 'RECEITA') {
+                                $conta->saldo -= $lancamento->valor; // Remover receita
+                                Log::info("Revertendo RECEITA EFETIVADA: subtraindo {$lancamento->valor}");
+                            } else { // DESPESA
+                                $conta->saldo += $lancamento->valor; // Devolver despesa
+                                Log::info("Revertendo DESPESA EFETIVADA: adicionando {$lancamento->valor}");
+                            }
+                        }
+
+                        // 2. APLICAR o novo status (fazer a nova operação)
+                        if ($statusNovo === 'EFETIVADA') {
+                            if ($lancamento->tipo_lancamento === 'RECEITA') {
+                                $conta->saldo += $lancamento->valor; // Adicionar receita
+                                Log::info("Aplicando RECEITA EFETIVADA: adicionando {$lancamento->valor}");
+                            } else { // DESPESA
+                                $conta->saldo -= $lancamento->valor; // Subtrair despesa
+                                Log::info("Aplicando DESPESA EFETIVADA: subtraindo {$lancamento->valor}");
+                            }
+                        }
+
+                        Log::info("Saldo da conta DEPOIS: {$conta->saldo}");
+                        $conta->save();
+                    }
+                }
+            } else {
+                Log::info("Status não mudou, mantendo saldo anterior");
+            }
+
             // ✅ Usar validated() para aplicar transformações do StoreLancamentoRequest
-            $lancamento->update($request->validated());
+            $validatedData = $request->validated();
+            Log::info("Dados validados: ", $validatedData);
+            $lancamento->update($validatedData);
 
             DB::commit();
 
