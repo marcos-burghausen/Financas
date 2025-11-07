@@ -179,9 +179,11 @@ trait UserDataTrait
                             ->with('lancamentos')
                             ->first();
 
-                        $valorEmAberto = CreditCardInvoice::where('conta_id', $cartao->id)
-                            ->where('status_fatura', '!=', 'PAGA')
-                            ->sum(DB::raw('total_fatura - valor_pago'));
+                        // Para cartões, usar apenas o valor da fatura vigente (mês atual)
+                        // não de todas as faturas futuras (importante para lançamentos fixos)
+                        $valorEmAberto = $faturaVigente && $faturaVigente->status_fatura !== 'PAGA'
+                            ? ($faturaVigente->total_fatura - $faturaVigente->valor_pago)
+                            : 0;
 
                         $cartao->total_fatura_vigente = $faturaVigente ? $faturaVigente->total_fatura : 0;
                         $cartao->lancamentos_fatura_vigente = $faturaVigente ? $faturaVigente->lancamentos : [];

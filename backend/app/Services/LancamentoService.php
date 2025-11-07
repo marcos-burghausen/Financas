@@ -120,14 +120,38 @@ class LancamentoService
                     'status_lancamento' => 'EFETIVADA', // Status vinculado à fatura, não ao lançamento
                 ]));
             }
+        } elseif ($data['recorrencia'] === 'FIXA') {
+            // Criar lançamentos fixos de cartão para os próximos 12 meses
+            $groupId = Str::uuid();
+            $dataLancamentoOriginal = Carbon::parse($data['data_lancamento']);
+
+            for ($i = 0; $i < 12; $i++) {
+                $competenciaDate = (clone $dataLancamentoOriginal)->addMonthsNoOverflow($i);
+                $invoiceId = $this->invoiceService->getOrCreateInvoiceId($conta->id, $competenciaDate, $user->id);
+
+                if (!isset($faturasAfetadas[$invoiceId])) {
+                    $faturasAfetadas[$invoiceId] = CreditCardInvoice::find($invoiceId);
+                }
+
+                // Primeiro lançamento EFETIVADO, demais PENDENTES
+                $statusLancamento = ($i === 0) ? 'EFETIVADA' : 'PENDENTE';
+
+                Lancamento::create(array_merge($data, [
+                    'user_id' => $user->id,
+                    'installment_group_id' => $groupId,
+                    'invoice_id' => $invoiceId,
+                    'status_lancamento' => $statusLancamento,
+                    'data_vencimento' => $competenciaDate->format('Y-m-d'),
+                ]));
+            }
         } else {
+            // Lançamento único (não recorrente)
             $faturaDateObject = Carbon::createFromLocaleFormat('!m/Y', 'pt_BR', $data['fatura_vigente'] ?? $data['fatura']);
             $invoiceId = $this->invoiceService->getOrCreateInvoiceId($conta->id, $faturaDateObject, $user->id);
             $faturasAfetadas[$invoiceId] = CreditCardInvoice::find($invoiceId);
 
             Lancamento::create(array_merge($data, [
                 'user_id' => $user->id,
-                'recorrencia' => 'NAO_RECORRENTE',
                 'invoice_id' => $invoiceId,
                 'status_lancamento' => 'EFETIVADA', // Status vinculado à fatura, não ao lançamento
             ]));
