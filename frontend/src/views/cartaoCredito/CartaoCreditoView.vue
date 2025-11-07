@@ -230,6 +230,102 @@
       </div>
     </v-card>
 
+    <!-- Tabela de Lançamentos de Cartão -->
+    <v-card class="mb-4 mb-md-6 table-container" elevation="1">
+      <v-card-title class="pa-4 pa-md-6 d-flex align-center justify-space-between">
+        <div class="d-flex align-center gap-2">
+          <v-icon icon="mdi-credit-card-plus" color="error" :size="$vuetify.display.xs ? 24 : 28" />
+          <span :class="$vuetify.display.xs ? 'text-h6' : 'text-h5'">Lançamentos no Cartão</span>
+        </div>
+        <v-chip v-if="lancamentosCartao.length > 0" :color="lancamentosCartao.length > 0 ? 'success' : 'default'" size="small">
+          {{ lancamentosCartao.length }} {{ lancamentosCartao.length === 1 ? 'lançamento' : 'lançamentos' }}
+        </v-chip>
+      </v-card-title>
+
+      <div class="table-wrapper">
+        <v-data-table
+          :items="lancamentosCartao"
+          :headers="lancamentosHeaders"
+          :loading="loading"
+          class="lancamentos-table"
+          density="comfortable"
+          :mobile-breakpoint="$vuetify.display.xs ? 9999 : 0"
+          no-data-text="Nenhum lançamento encontrado"
+        >
+          <template #item.descricao="{ item }">
+            <div class="d-flex align-center gap-2">
+              <v-icon 
+                :icon="item.recorrencia === 'FIXA' ? 'mdi-refresh' : item.recorrencia === 'PARCELADO' ? 'mdi-credit-card-multiple' : 'mdi-cash'" 
+                :color="item.recorrencia === 'FIXA' ? 'info' : item.recorrencia === 'PARCELADO' ? 'warning' : 'success'" 
+                :size="$vuetify.display.xs ? 16 : 20" 
+              />
+              <div class="min-width-0">
+                <div class="font-weight-bold text-truncate">{{ item.descricao }}</div>
+                <div class="text-caption text-medium-emphasis text-truncate d-none d-sm-block">
+                  {{ item.categoria }}{{ item.subcategoria ? ' • ' + item.subcategoria : '' }}
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <template #item.valor="{ item }">
+            <div class="text-right font-weight-bold" :class="$vuetify.display.xs ? 'text-caption' : 'text-body-2'">
+              {{ formatCurrency(Number(item.valor) || 0) }}
+            </div>
+          </template>
+
+          <template #item.data_vencimento="{ item }">
+            <div class="text-center">
+              <div class="font-weight-bold" :class="$vuetify.display.xs ? 'text-caption' : 'text-body-2'">
+                {{ formatDate(item.data_vencimento || '') }}
+              </div>
+            </div>
+          </template>
+
+          <template #item.recorrencia="{ item }">
+            <v-chip
+              :color="item.recorrencia === 'FIXA' ? 'info' : item.recorrencia === 'PARCELADO' ? 'warning' : 'success'"
+              label
+              size="small"
+            >
+              {{ recorrenciaBackendToFrontend(item.recorrencia || 'NAO_RECORRENTE') }}
+            </v-chip>
+          </template>
+
+          <template #item.status_lancamento="{ item }">
+            <v-chip
+              :color="item.status_lancamento === 'EFETIVADA' ? 'success' : 'warning'"
+              label
+              size="small"
+            >
+              {{ item.status_lancamento === 'EFETIVADA' ? 'Paga' : 'Pendente' }}
+            </v-chip>
+          </template>
+
+          <template #item.actions="{ item }">
+            <div class="d-flex gap-1 justify-center">
+              <v-btn
+                icon="mdi-pencil"
+                variant="text"
+                :size="$vuetify.display.xs ? 'x-small' : 'small'"
+                color="primary"
+                title="Editar lançamento"
+                @click="editLancamento(item)"
+              />
+              <v-btn
+                icon="mdi-delete"
+                variant="text"
+                :size="$vuetify.display.xs ? 'x-small' : 'small'"
+                color="error"
+                title="Excluir lançamento"
+                @click="deleteLancamento(item.id)"
+              />
+            </div>
+          </template>
+        </v-data-table>
+      </div>
+    </v-card>
+
     <!-- Form Cartão Component -->
     
     <!-- Form Cartão Dialog -->
@@ -453,7 +549,7 @@
       <v-card class="dialog-card">
         <v-card-title class="pa-4 pa-md-6 pb-3 pb-md-4 d-flex align-center justify-space-between">
           <span :class="$vuetify.display.xs ? 'text-h6' : 'text-h5'">
-            Adicionar Lançamento - {{ selectedCartao?.name }}
+            {{ isEditingLancamento ? 'Editar Lançamento' : 'Adicionar Lançamento' }} - {{ selectedCartao?.name }}
           </span>
           <v-btn
             v-if="$vuetify.display.xs"
@@ -760,7 +856,66 @@
             :size="$vuetify.display.xs ? 'default' : 'large'"
             class="flex-grow-1 flex-sm-grow-0"
           >
-            Adicionar
+            {{ isEditingLancamento ? 'Salvar' : 'Adicionar' }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- DIALOG: Edição Recorrente (igual ao DespesasView) -->
+    <v-dialog
+      v-model="showRecurrentEditDialog"
+      max-width="500"
+      persistent
+    >
+      <v-card>
+        <v-card-title class="pa-6 pb-4">
+          <div class="d-flex align-center gap-3">
+            <v-icon icon="mdi-refresh" color="info" size="28" />
+            <div>
+              <h3 class="text-h6 mb-1">Lançamento Recorrente</h3>
+              <p class="text-caption text-medium-emphasis mb-0">
+                Este é um lançamento recorrente. Como deseja editá-lo?
+              </p>
+            </div>
+          </div>
+        </v-card-title>
+
+        <v-card-text class="pa-6 pt-0">
+          <v-radio-group
+            v-model="selectedEditScope"
+            class="edit-scope-radio-group"
+          >
+            <v-radio
+              v-for="option in editScopeOptions"
+              :key="option.value"
+              :value="option.value"
+              class="edit-scope-radio mb-3"
+            >
+              <template #label>
+                <div class="ml-2">
+                  <div class="font-weight-medium text-body-1">{{ option.title }}</div>
+                  <div class="text-caption text-medium-emphasis">{{ option.subtitle }}</div>
+                </div>
+              </template>
+            </v-radio>
+          </v-radio-group>
+        </v-card-text>
+
+        <v-card-actions class="pa-6 pt-0">
+          <v-spacer />
+          <v-btn
+            variant="outlined"
+            @click="cancelRecurrentEdit"
+          >
+            Cancelar
+          </v-btn>
+          <v-btn
+            color="primary"
+            :disabled="!selectedEditScope"
+            @click="selectEditScope"
+          >
+            Continuar
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -858,6 +1013,7 @@ interface Cartao {
 // State
 const cartoes = ref<Cartao[]>([])
 const contas = ref<Conta[]>([])
+const lancamentosCartao = ref<any[]>([])
 const search = ref('')
 const bandueiraFilter = ref('')
 const statusFilter = ref('')
@@ -885,6 +1041,15 @@ const headers = [
   { title: 'Disponível', key: 'disponivel', align: 'end' as const, width: '130px' },
   { title: 'Vencimento', key: 'data_vencimento', align: 'center' as const, width: '140px' },
   { title: 'Status', key: 'status_fatura', align: 'center' as const, width: '100px' },
+  { title: 'Ações', key: 'actions', sortable: false, align: 'center' as const, width: '100px' }
+]
+
+const lancamentosHeaders = [
+  { title: 'Descrição', key: 'descricao', align: 'start' as const },
+  { title: 'Valor', key: 'valor', align: 'end' as const, width: '120px' },
+  { title: 'Vencimento', key: 'data_vencimento', align: 'center' as const, width: '140px' },
+  { title: 'Recorrência', key: 'recorrencia', align: 'center' as const, width: '120px' },
+  { title: 'Status', key: 'status_lancamento', align: 'center' as const, width: '100px' },
   { title: 'Ações', key: 'actions', sortable: false, align: 'center' as const, width: '100px' }
 ]
 
@@ -918,6 +1083,19 @@ const transactionData = ref({
   data_efetivacao: null,
   observacoes: '',
 })
+
+// Estado para edição de lançamentos (similar ao DespesasView)
+const editingLancamentoId = ref<number | null>(null)
+const isEditingLancamento = ref(false)
+
+// Dialog para edição recorrente (igual ao DespesasView)
+const showRecurrentEditDialog = ref(false)
+const selectedEditScope = ref('')
+const editScopeOptions = [
+  { value: 'apenas_esta', title: 'Atualizar apenas esta', subtitle: 'Modificar somente este lançamento' },
+  { value: 'esta_e_proximas', title: 'Atualizar esta e próximas', subtitle: 'Modificar este e todos os próximos lançamentos' },
+  { value: 'todas', title: 'Atualizar todas', subtitle: 'Modificar todos os lançamentos da série' }
+]
 
 // Refs para date pickers do transaction dialog
 const menuDataVencimentoTransaction = ref(false)
@@ -1158,6 +1336,18 @@ const loadCartoes = async () => {
   }
 }
 
+const loadLancamentosCartao = async () => {
+  try {
+    const mesAno = currentMonth.value;
+    const response = await http.get(`/lancamentos?mesAno=${mesAno}&tipo_lancamento=CARTAO_CREDITO`)
+    lancamentosCartao.value = response.data || []
+    console.log('Lançamentos de cartão carregados:', lancamentosCartao.value)
+  } catch (error: any) {
+    console.error('Erro ao carregar lançamentos de cartão:', error)
+    toastStore.error('Erro ao carregar lançamentos de cartão')
+  }
+}
+
 const loadContas = async () => {
   try {
     const mesAno = currentMonth.value;
@@ -1317,6 +1507,107 @@ function clearFilters() {
   statusFilter.value = ''
 }
 
+// Função para mapear recorrência do backend para frontend (igual ao DespesasView)
+function recorrenciaBackendToFrontend(recorrencia: string): string {
+  const mapping: { [key: string]: string } = {
+    'NAO_RECORRENTE': 'Não recorrente',
+    'FIXA': 'Fixa',
+    'PARCELADO': 'Parcelado'
+  }
+  return mapping[recorrencia] || recorrencia
+}
+
+// Função para detectar se é lançamento recorrente (igual ao DespesasView)
+function detectRecurrentEdit(recorrencia: string): boolean {
+  return recorrencia === 'FIXA' || recorrencia === 'PARCELADO'
+}
+
+// Função completa para editar lançamento (igual ao DespesasView)
+function editLancamento(lancamento: any) {
+  console.log('Editando lançamento:', lancamento)
+  
+  // Definir modo de edição
+  editingLancamentoId.value = lancamento.id
+  isEditingLancamento.value = true
+  
+  // Mapear recorrência para formato frontend
+  const recorrenciaFrontend = recorrenciaBackendToFrontend(lancamento.recorrencia || 'NAO_RECORRENTE')
+  
+  // Preencher dados do formulário
+  transactionData.value = {
+    descricao: lancamento.descricao || '',
+    valor: formatCurrencyInput(String((lancamento.valor || 0) / 100)), // Converter de centavos para formato visual
+    recorrencia: recorrenciaFrontend,
+    categoria: lancamento.categoria || '',
+    subcategoria: lancamento.subcategoria || '',
+    conta_id: lancamento.conta_id || null, // Manter o conta_id original do lançamento
+    data_vencimento: lancamento.data_vencimento || new Date().toISOString().split('T')[0],
+    data_lancamento: lancamento.data_lancamento || new Date().toISOString().split('T')[0],
+    data_efetivacao: lancamento.data_efetivacao || null,
+    observacoes: lancamento.observacoes || '',
+  }
+
+  // Configurar parcelas se for parcelado
+  if (lancamento.recorrencia === 'PARCELADO') {
+    tempNumParcelasTransaction.value = lancamento.qtd_parcelas || 2
+    tempParcelaInicialTransaction.value = lancamento.num_parcela || 1
+  }
+
+  // Encontrar cartão vinculado através do credit_card_invoice_id ou outro campo
+  // Para cartão de crédito, vamos assumir que está no campo credit_card_id ou similar
+  const cartaoVinculado = cartoes.value.find(c => c.id === lancamento.credit_card_id)
+  if (cartaoVinculado) {
+    selectedCartao.value = cartaoVinculado
+  }
+
+  // Verificar se é recorrente para mostrar dialog de escolha
+  if (detectRecurrentEdit(lancamento.recorrencia || 'NAO_RECORRENTE')) {
+    // É recorrente - mostrar dialog de opções
+    showRecurrentEditDialog.value = true
+  } else {
+    // Não é recorrente - abrir diretamente o formulário de edição
+    transactionDialogOpen.value = true
+  }
+}
+
+// Função para cancelar edição recorrente
+function cancelRecurrentEdit() {
+  showRecurrentEditDialog.value = false
+  selectedEditScope.value = ''
+  editingLancamentoId.value = null
+  isEditingLancamento.value = false
+}
+
+// Função para selecionar escopo de edição (igual ao DespesasView)
+function selectEditScope() {
+  if (!selectedEditScope.value) {
+    toastStore.error('Selecione uma opção de edição')
+    return
+  }
+
+  // Fechar dialog de seleção e abrir formulário de edição
+  showRecurrentEditDialog.value = false
+  transactionDialogOpen.value = true
+}
+
+// Função para excluir lançamento
+async function deleteLancamento(id: number) {
+  if (confirm('Tem certeza que deseja excluir este lançamento?')) {
+    try {
+      loading.value = true
+      await http.delete(`/lancamentos/${id}`)
+      toastStore.success('Lançamento excluído com sucesso!')
+      await loadLancamentosCartao()
+      await loadCartoes() // Recarregar cartões para atualizar valores
+    } catch (error: any) {
+      console.error('Erro ao excluir lançamento:', error)
+      toastStore.error(error.message || 'Erro ao excluir lançamento')
+    } finally {
+      loading.value = false
+    }
+  }
+}
+
 // Funções auxiliares para formulário de lançamento
 function formatDataBr(data: string | null): string {
   if (!data) return 'Não definido'
@@ -1336,7 +1627,7 @@ function openAddTransactionDialog(cartao: Cartao) {
     recorrencia: 'Não recorrente',
     categoria: '',
     subcategoria: '',
-    conta_id: (cartao.conta_pai_id as number | null) ?? null, // Pré-preencher com conta vinculada do cartão
+    conta_id: cartao.id, // Usar o ID do próprio cartão, não da conta pai
     data_vencimento: new Date().toISOString().split('T')[0],
     data_lancamento: new Date().toISOString().split('T')[0],
     data_efetivacao: null,
@@ -1348,11 +1639,31 @@ function openAddTransactionDialog(cartao: Cartao) {
 function closeTransactionDialog() {
   transactionDialogOpen.value = false
   selectedCartao.value = null
+  
+  // Limpar estados de edição
+  editingLancamentoId.value = null
+  isEditingLancamento.value = false
+  selectedEditScope.value = ''
+  
   // Reset recurrence state
   tempParcelaInicialTransaction.value = 1
   tempNumParcelasTransaction.value = 2
   tempPeriodicidadeTransaction.value = "Mensal"
   tipoCalculoParcelaTransaction.value = "total"
+  
+  // Reset form data
+  transactionData.value = {
+    descricao: '',
+    valor: '0,00',
+    recorrencia: 'Não recorrente',
+    categoria: '',
+    subcategoria: '',
+    conta_id: null,
+    data_vencimento: new Date().toISOString().split('T')[0],
+    data_lancamento: new Date().toISOString().split('T')[0],
+    data_efetivacao: null,
+    observacoes: '',
+  }
 }
 
 function selecionarRecorrenciaTransaction(item: string) {
@@ -1397,12 +1708,6 @@ async function saveTransaction() {
 
     loading.value = true
 
-    // Converter valor formatado para centavos
-    const valorCentavos = parseInt(
-      transactionData.value.valor.replace(/\D/g, ''),
-      10
-    )
-
     // Mapear recorrência para formato da API (MAIÚSCULAS)
     const recorrenciaMap: { [key: string]: string } = {
       "Não recorrente": "NAO_RECORRENTE",
@@ -1410,7 +1715,7 @@ async function saveTransaction() {
       "Parcelado": "PARCELADO",
     }
 
-    // Preparar payload completo (similar ao DespesasView)
+    // Preparar payload completo
     const payload: any = {
       cartao_credito_id: selectedCartao.value.id,
       descricao: transactionData.value.descricao,
@@ -1427,7 +1732,6 @@ async function saveTransaction() {
       tipo_lancamento: 'CARTAO_CREDITO',
       mesAno: currentMonth.value,
       status_lancamento: 'EFETIVADA',
-      // Status não é enviado para cartão de crédito - vinculado à fatura
     }
 
     // Se for parcelado, adicionar dados de parcelas
@@ -1443,14 +1747,27 @@ async function saveTransaction() {
       payload.periodicidade = null
     }
 
+    // Se estiver editando, incluir editScope para lançamentos recorrentes
+    if (isEditingLancamento.value && selectedEditScope.value) {
+      payload.editScope = selectedEditScope.value
+    }
+
     console.log("Payload enviado:", payload)
 
-    // Enviar para API
-    await http.post('/lancamentos', payload)
+    let response
+    if (isEditingLancamento.value && editingLancamentoId.value) {
+      // Editar lançamento existente
+      response = await http.put(`/lancamentos/${editingLancamentoId.value}`, payload)
+      toastStore.success('Lançamento atualizado com sucesso!')
+    } else {
+      // Criar novo lançamento
+      response = await http.post('/lancamentos', payload)
+      toastStore.success('Lançamento adicionado com sucesso!')
+    }
 
-    toastStore.success('Lançamento adicionado com sucesso!')
     closeTransactionDialog()
     await loadCartoes()
+    await loadLancamentosCartao()
   } catch (error: any) {
     console.error('Erro ao salvar lançamento:', error)
     toastStore.error(error.message || 'Erro ao salvar lançamento')
@@ -1464,12 +1781,14 @@ onMounted(() => {
   currentMonth.value = getCurrentMonth();
   loadingMonth.value = true;
   loadContas();
-  loadCartoes()
+  loadCartoes();
+  loadLancamentosCartao();
 })
 
 watch(() => currentMonth.value, () => {
   loadContas();
   loadCartoes();
+  loadLancamentosCartao();
 }, { immediate: true });
 </script>
 
@@ -2076,6 +2395,36 @@ html, body {
 
   :deep(.v-input__control) {
     min-height: auto !important;
+  }
+}
+
+// ✅ Estilos para dialog de edição recorrente (igual ao DespesasView)
+.edit-scope-radio-group {
+  :deep(.v-radio) {
+    margin-bottom: 0.5rem !important;
+  }
+}
+
+.edit-scope-radio {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: rgb(var(--v-theme-primary));
+    background: rgba(var(--v-theme-primary), 0.02);
+  }
+
+  :deep(.v-selection-control__wrapper) {
+    margin-top: 0 !important;
+  }
+
+  :deep(.v-radio .v-selection-control__input:hover) {
+    .v-selection-control__overlay {
+      opacity: 0.08;
+      background: rgb(var(--v-theme-primary));
+    }
   }
 }
 

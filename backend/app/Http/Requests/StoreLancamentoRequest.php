@@ -27,8 +27,8 @@ class StoreLancamentoRequest extends FormRequest
             'data_vencimento'   => $this->input('data_vencimento'), // Mantém formato YYYY-MM-DD
             'data_lancamento'   => $this->input('data_lancamento'), // Mantém formato YYYY-MM-DD
             'data_efetivacao'   => $this->input('data_efetivacao'), // Mantém formato YYYY-MM-DD
-            // 'recorrencia'       => $this->transformRecorrencia(),
-            // 'status_lancamento' => $this->transformStatus(),
+            'recorrencia'       => $this->transformRecorrencia(),
+            'status_lancamento' => $this->transformStatus(),
             'tipo_parcela'      => $this->input('tipo_parcela') ? strtoupper($this->input('tipo_parcela')) : null,
             'periodicidade'     => $this->input('periodicidade') ? strtoupper($this->input('periodicidade')) : null,
             // Renomear fatura para fatura_vigente se for cartão de crédito
@@ -67,7 +67,7 @@ class StoreLancamentoRequest extends FormRequest
             // mesAno não é obrigatório para CARTAO_CREDITO (usa fatura_vigente)
             'mesAno'               => 'nullable | required_unless:tipo_lancamento,CARTAO_CREDITO | string | regex:/^\d{4}-\d{2}$/',
             'invoice_id'           => 'nullable | required_if:tipo_lancamento,CARTAO_CREDITO | exists:credit_card_invoices,id',
-            'editScope'            => 'nullable|string|in:apenas esta,esta e as próximas,todas,apenas este mês,mês atual e os próximos',
+            'editScope'            => 'nullable|string|in:apenas_esta,esta_e_proximas,todas',
             'fatura_vigente'       => 'nullable | required_if:tipo_lancamento,CARTAO_CREDITO | regex:/^\d{2}\/\d{4}$/',
             'cartao_credito_id'    => 'nullable | required_if:tipo_lancamento,CARTAO_CREDITO | exists:contas,id',
         ];
@@ -103,20 +103,36 @@ class StoreLancamentoRequest extends FormRequest
 
     private function transformRecorrencia(): string
     {
+        $valor = $this->input('recorrencia');
+
+        // Se já estiver em formato MAIÚSCULO (FIXA, PARCELADO, etc), retorna como está
+        if (in_array($valor, ['NAO_RECORRENTE', 'PARCELADO', 'FIXA'])) {
+            return $valor;
+        }
+
+        // Senão, transforma do formato PT
         $map = [
             'Não recorrente' => 'NAO_RECORRENTE',
             'Parcelado' => 'PARCELADO',
             'Fixa' => 'FIXA',
         ];
-        return $map[$this->input('recorrencia')] ?? 'NAO_RECORRENTE';
+        return $map[$valor] ?? 'NAO_RECORRENTE';
     }
 
-    // private function transformStatus(): string
-    // {
-    //     $map = [
-    //         'Pendente' => 'PENDENTE',
-    //         'Efetivada' => 'EFETIVADA',
-    //     ];
-    //     return $map[$this->input('status_lancamento')] ?? 'PENDENTE';
-    // }
+    private function transformStatus(): string
+    {
+        $valor = $this->input('status_lancamento');
+
+        // Se já estiver em formato MAIÚSCULO (PENDENTE, EFETIVADA), retorna como está
+        if (in_array($valor, ['PENDENTE', 'EFETIVADA'])) {
+            return $valor;
+        }
+
+        // Senão, transforma do formato PT
+        $map = [
+            'Pendente' => 'PENDENTE',
+            'Efetivada' => 'EFETIVADA',
+        ];
+        return $map[$valor] ?? 'PENDENTE';
+    }
 }

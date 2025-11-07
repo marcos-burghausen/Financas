@@ -346,7 +346,7 @@
               size="x-small"
               variant="text"
               color="error"
-              @click="deleteReceita(item.id)"
+              @click="deleteReceita(item)"
             />
           </div>
         </template>
@@ -896,11 +896,154 @@
         </div>
       </div>
     </v-overlay>
+
+    <!-- ✅ Dialog de Confirmação de Exclusão -->
+    <v-dialog
+      v-model="deleteDialog"
+      max-width="500"
+      persistent
+    >
+      <v-card>
+        <v-card-title class="text-h5 d-flex align-center">
+          <v-icon
+            color="error"
+            class="mr-3"
+          >
+            mdi-delete-alert
+          </v-icon>
+          Confirmar Exclusão
+        </v-card-title>
+        
+        <v-card-text class="pb-0">
+          <div class="text-body-1 mb-4">
+            Tem certeza que deseja excluir esta receita?
+          </div>
+          
+          <v-alert
+            type="warning"
+            variant="tonal"
+            class="mb-4"
+          >
+            <div class="font-weight-medium mb-2">
+              {{ itemToDelete?.descricao }}
+            </div>
+            <div class="text-caption">
+              Esta ação não pode ser desfeita. Se a receita estiver efetivada, 
+              o valor será automaticamente revertido do saldo da conta.
+            </div>
+          </v-alert>
+        </v-card-text>
+
+        <v-card-actions class="px-6 pb-6">
+          <v-spacer />
+          <v-btn
+            color="grey"
+            variant="text"
+            @click="cancelDelete"
+            :disabled="loading"
+          >
+            Cancelar
+          </v-btn>
+          <v-btn
+            color="error"
+            variant="flat"
+            @click="confirmDelete"
+            :loading="loading"
+          >
+            <v-icon left>mdi-delete</v-icon>
+            Excluir
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Dialog de Edição Recorrente -->
+    <v-dialog v-model="editRecurrentDialog" max-width="500px" persistent>
+      <v-card>
+        <v-card-title class="headline d-flex align-center">
+          <v-icon color="success" class="mr-2">mdi-sync</v-icon>
+          Receita Recorrente
+        </v-card-title>
+        
+        <v-card-text>
+          <div class="text-body-1 mb-4">
+            Esta é uma receita recorrente. Como deseja aplicar as alterações?
+          </div>
+          
+          <v-radio-group v-model="editScope" column>
+            <v-radio
+              label="Atualizar apenas esta receita"
+              value="apenas_esta"
+              color="primary"
+            >
+              <template v-slot:label>
+                <div>
+                  <div class="text-body-2 font-weight-medium">Atualizar apenas esta receita</div>
+                  <div class="text-caption text-medium-emphasis">
+                    Apenas esta receita será alterada, as demais permanecerão inalteradas
+                  </div>
+                </div>
+              </template>
+            </v-radio>
+            
+            <v-radio
+              label="Atualizar esta e as próximas"
+              value="esta_e_proximas"
+              color="warning"
+            >
+              <template v-slot:label>
+                <div>
+                  <div class="text-body-2 font-weight-medium">Atualizar esta e as próximas</div>
+                  <div class="text-caption text-medium-emphasis">
+                    Esta receita e todas as futuras da mesma recorrência serão alteradas
+                  </div>
+                </div>
+              </template>
+            </v-radio>
+            
+            <v-radio
+              label="Atualizar todas"
+              value="todas"
+              color="error"
+            >
+              <template v-slot:label>
+                <div>
+                  <div class="text-body-2 font-weight-medium">Atualizar todas</div>
+                  <div class="text-caption text-medium-emphasis">
+                    Todas as receitas desta recorrência serão alteradas
+                  </div>
+                </div>
+              </template>
+            </v-radio>
+          </v-radio-group>
+        </v-card-text>
+        
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="grey"
+            variant="text"
+            @click="cancelEditRecurrent"
+          >
+            Cancelar
+          </v-btn>
+          <v-btn
+            color="success"
+            variant="flat"
+            @click="selectEditScope"
+            :disabled="!editScope"
+          >
+            Confirmar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useLancamentos } from "@/composables/useLancamentos";
+import contasService from "@/services/contas.service";
 import receitasService from "@/services/receitas.service";
 import { useRevenuesStore } from "@/store/revenues";
 import { useToastStore } from "@/store/toast";
@@ -933,6 +1076,16 @@ const menuDataVencimento = ref(false);
 const menuDataLancamento = ref(false);
 const menuDataEfetivacao = ref(false);
 
+// ✅ Dialog de confirmação de exclusão
+const deleteDialog = ref(false);
+const itemToDelete = ref<{id: number, descricao: string} | null>(null);
+
+// Edit Recurrent Dialog State
+const editRecurrentDialog = ref(false);
+const editScope = ref<string>('');
+const isRecurrentEdit = ref(false);
+const tempPayload = ref<any>(null);
+
 // Recurrence State
 const openRecorrenciaModal = ref(false);
 const openParcelas = ref(false);
@@ -964,15 +1117,11 @@ const subcategorias = ref({
 });
 
 const contas = computed(() => {
-  // Usa dados do store se disponível, senão usa hardcoded como fallback
+  // Usa dados do store se disponível, senão retorna array vazio
   if (walletsStore.walletsData?.contas && walletsStore.walletsData.contas.length > 0) {
     return walletsStore.walletsData.contas;
   }
-  // return [
-  //   { id: 1, name: "Conta Principal" },
-  //   { id: 2, name: "Conta Investimento" },
-  //   { id: 3, name: "Poupança" },
-  // ];
+  return []; // ✅ Retorna array vazio ao invés de undefined
 });
 
 const statusOptions = ref([
@@ -1348,27 +1497,53 @@ const editReceita = (receita: any) => {
     ? (receita.valor / 100).toFixed(2).replace(".", ",")
     : receita.valor;
   
+  // ✅ Converter recorrência do formato backend para frontend
+  const recorrenciaBackendToFrontend: { [key: string]: string } = {
+    "NAO_RECORRENTE": "Não recorrente",
+    "FIXA": "Fixa", 
+    "PARCELADO": "Parcelado"
+  };
+  
+  const recorrenciaFormatada = recorrenciaBackendToFrontend[receita.recorrencia] || receita.recorrencia;
+  
   formData.value = { 
     ...receita,
-    valor: valorFormatado // ✅ Exibir valor formatado no formulário
+    valor: valorFormatado, // ✅ Exibir valor formatado no formulário
+    recorrencia: recorrenciaFormatada // ✅ Converter recorrência para formato frontend
   };
   dialog.value = true;
 };
 
-const deleteReceita = async (id: number) => {
-  if (confirm("Tem certeza que deseja deletar esta receita?")) {
-    try {
-      loading.value = true;
-      await receitasService.delete(id);
-      toastStore.success("Receita deletada com sucesso!");
-      await loadReceitas();
-    } catch (error: any) {
-      console.error("Erro ao deletar receita:", error);
-      toastStore.error(error.message || "Erro ao deletar receita");
-    } finally {
-      loading.value = false;
-    }
+const deleteReceita = (item: any) => {
+  // Abrir dialog de confirmação com dados da receita
+  itemToDelete.value = {
+    id: item.id,
+    descricao: item.descricao
+  };
+  deleteDialog.value = true;
+};
+
+const confirmDelete = async () => {
+  if (!itemToDelete.value) return;
+  
+  try {
+    loading.value = true;
+    await receitasService.delete(itemToDelete.value.id);
+    toastStore.success("Receita deletada com sucesso!");
+    await loadReceitas();
+  } catch (error: any) {
+    console.error("Erro ao deletar receita:", error);
+    toastStore.error(error.message || "Erro ao deletar receita");
+  } finally {
+    loading.value = false;
+    deleteDialog.value = false;
+    itemToDelete.value = null;
   }
+};
+
+const cancelDelete = () => {
+  deleteDialog.value = false;
+  itemToDelete.value = null;
 };
 
 const efetivarReceita = async (receita: any) => {
@@ -1414,11 +1589,31 @@ const saveReceita = async () => {
       throw new Error("Preencha todos os campos obrigatórios");
     }
 
+    // Verificar se é uma edição de receita recorrente  
+    // Verificar tanto formato frontend ("Fixa") quanto backend ("FIXA")
+    const isRecurrent = editingId.value && (
+      formData.value.recorrencia === "Fixa" || 
+      formData.value.recorrencia === "FIXA" ||
+      formData.value.recorrencia === "Parcelado" || 
+      formData.value.recorrencia === "PARCELADO"
+    );
+    
+    if (isRecurrent) {
+      // Se é uma edição recorrente e não temos scope definido, mostrar dialog
+      if (!isRecurrentEdit.value) {
+        await prepareRecurrentEdit();
+        return;
+      }
+    }
+
     // Mapear recorrência para formato da API (MAIÚSCULAS)
     const recorrenciaMap: { [key: string]: string } = {
       "Não recorrente": "NAO_RECORRENTE",
+      "NAO_RECORRENTE": "NAO_RECORRENTE",
       "Fixa": "FIXA",
+      "FIXA": "FIXA",
       "Parcelado": "PARCELADO",
+      "PARCELADO": "PARCELADO",
     };
 
     // Obter mesAno no formato YYYY-MM
@@ -1466,7 +1661,11 @@ const saveReceita = async () => {
 
     console.log("Payload enviado:", payload);
 
-    if (editingId.value && formData.value.recorrencia === "Não recorrente") {
+    // ✅ Verificar se é recorrência não recorrente (tanto formato PT quanto ENUM)
+    const isNaoRecorrente = formData.value.recorrencia === "Não recorrente" || 
+                           formData.value.recorrencia === "NAO_RECORRENTE";
+
+    if (editingId.value && isNaoRecorrente) {
       // ATUALIZAR apenas se for Não recorrente
       await receitasService.update(editingId.value, payload);
       toastStore.success("Receita atualizada com sucesso!");
@@ -1497,6 +1696,112 @@ const resetFilters = () => {
   searchText.value = "";
   selectedStatus.value = "";
   selectedCategoria.value = "";
+};
+
+// Preparar edição recorrente
+const prepareRecurrentEdit = async () => {
+  loading.value = false; // Parar loading para mostrar dialog
+  
+  // Mapear recorrência para formato da API (MAIÚSCULAS)
+  const recorrenciaMap: { [key: string]: string } = {
+    "Não recorrente": "NAO_RECORRENTE",
+    "Fixa": "FIXA",
+    "Parcelado": "PARCELADO",
+  };
+
+  // Obter mesAno no formato YYYY-MM
+  const mesAno = userStore.getMesAno?.() || new Date().toISOString().slice(0, 7);
+
+  // Preparar payload
+  tempPayload.value = {
+    descricao: formData.value.descricao,
+    valor: formData.value.valor,
+    tipo_lancamento: "Receita",
+    recorrencia: recorrenciaMap[formData.value.recorrencia] || "NAO_RECORRENTE",  
+    status_lancamento: formData.value.status_lancamento || "PENDENTE",
+    categoria: formData.value.categoria,
+    subcategoria: formData.value.subcategoria,
+    conta_id: formData.value.conta_id,
+    data_vencimento: formatDateForBackend(formData.value.data_vencimento),
+    data_lancamento: formatDateForBackend(formData.value.data_lancamento),
+    mesAno: mesAno,
+    id: editingId.value,
+    invoice_id: null,
+    is_estorno: false,
+    original_lancamento_id: null,
+    data_efetivacao: formatDateForBackend(formData.value.data_efetivacao),
+    observacoes: formData.value.observacoes || null,
+    fatura: null,
+    cartao_id: null,
+    user_id: null,
+  };
+
+  // Se for parcelado, adicionar dados de parcelas
+  if (formData.value.recorrencia === "Parcelado") {
+    tempPayload.value.qtd_parcelas = tempNumParcelas.value;
+    tempPayload.value.num_parcela = tempParcelaInicial.value;
+    tempPayload.value.tipo_parcela = tipoCalculoParcela.value?.toLowerCase() || "total";
+    tempPayload.value.periodicidade = tempPeriodicidade.value?.toUpperCase() || "MENSAL";
+  }
+
+  // Mostrar dialog de escolha de escopo
+  editRecurrentDialog.value = true;
+  editScope.value = '';
+};
+
+// Confirmar edição recorrente
+const selectEditScope = async () => {
+  if (!editScope.value || !tempPayload.value) {
+    return;
+  }
+
+  editRecurrentDialog.value = false;
+  isRecurrentEdit.value = true;
+  loading.value = true;
+
+  try {
+    // Adicionar o escopo ao payload
+    const payload = {
+      ...tempPayload.value,
+      editScope: editScope.value
+    };
+
+    console.log("Payload com escopo enviado:", payload);
+
+    // Atualizar receita recorrente
+    const response = await receitasService.update(editingId.value, payload);
+    
+    // Verificar se é resposta de edição recorrente com contagem
+    if (response && typeof response === 'object' && 'updated_count' in response) {
+      const count = (response as any).updated_count;
+      const message = (response as any).success || `${count} lançamento(s) atualizado(s) com sucesso!`;
+      toastStore.success(message);
+    } else {
+      toastStore.success("Receita recorrente atualizada com sucesso!");
+    }
+
+    // Fechar modal e recarregar dados
+    dialog.value = false;
+    await loadReceitas();
+  } catch (error: any) {
+    console.error("Erro ao salvar receita recorrente:", error);
+    toastStore.error(error.message || "Erro ao salvar receita recorrente");
+  } finally {
+    loading.value = false;
+    // Reset states
+    isRecurrentEdit.value = false;
+    editScope.value = '';
+    tempPayload.value = null;
+  }
+};
+
+// Cancelar edição recorrente  
+const cancelEditRecurrent = () => {
+  editRecurrentDialog.value = false;
+  editScope.value = '';
+  tempPayload.value = null;
+  isRecurrentEdit.value = false;
+  loading.value = false;
 };
 
 // Carregar receitas da API
@@ -1558,11 +1863,28 @@ watch(() => formData.value.data_efetivacao, (newVal) => {
 });
 
 // Watch for local month changes
-onMounted(() => {
+onMounted(async () => {
   // Reset to current month on mount to ensure fresh data
   currentMonth.value = new Date().toISOString().slice(0, 7);
   // Ativar loading ao carregar página
   loadingMonth.value = true;
+  
+  // ✅ Carregar contas explicitamente
+  try {
+    const contasData = await contasService.list();
+    console.log("Contas carregadas:", contasData);
+    if (contasData && contasData.length > 0) {
+      // Atualizar o walletsStore com as contas carregadas
+      const currentWalletData = walletsStore.walletsData || { contas: [], cartoes: [], contas_names: [], saldo_inicial: 0, saldo_atual: 0, categories: [] };
+      walletsStore.setWalletsData({
+        ...currentWalletData,
+        contas: contasData
+      });
+    }
+  } catch (error) {
+    console.error("Erro ao carregar contas:", error);
+  }
+  
   // Load data after resetting the month
   loadReceitas();
 });

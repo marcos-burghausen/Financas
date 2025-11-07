@@ -246,7 +246,6 @@ class LancamentoController extends Controller
     {
         try {
             $lancamento = Lancamento::find($id);
-
             if (!$lancamento) {
                 return response()->json(['error' => 'Lançamento não encontrado.'], 404);
             }
@@ -258,59 +257,83 @@ class LancamentoController extends Controller
 
             DB::beginTransaction();
 
-            // ✅ Capturar status ANTES e DEPOIS
+            // ✅ Primeiro validar os dados para aplicar transformações
+            $validatedData = $request->validated();
+
+            // ✅ Verificar se é uma edição recorrente com escopo específico
+            $editScope = $request->input('editScope');
+            if ($editScope && in_array($lancamento->recorrencia, ['FIXA', 'PARCELADO'])) {
+                return $this->handleRecurrentEdit($lancamento, $validatedData, $editScope);
+            }
+
+            // ✅ Capturar dados ANTES e DEPOIS (APÓS validação/transformação)
             $statusAnterior = $lancamento->status_lancamento;
-            $statusNovo = $request->input('status_lancamento'); // Status do frontend
+            $valorAnterior = $lancamento->valor;
+            $contaAnterior = $lancamento->conta_id;
+            $tipoAnterior = $lancamento->tipo_lancamento;
+
+            $statusNovo = $validatedData['status_lancamento'];
+            $valorNovo = $validatedData['valor'];
+            $contaNova = $validatedData['conta_id'];
+            $tipoNovo = $validatedData['tipo_lancamento'];
 
             Log::info("=== EDITANDO LANÇAMENTO {$id} ===");
-            Log::info("Status anterior: {$statusAnterior}");
-            Log::info("Status novo (input): {$statusNovo}");
-            Log::info("Tipo lançamento: {$lancamento->tipo_lancamento}");
-            Log::info("Valor: {$lancamento->valor}");
-            Log::info("Conta ID: {$lancamento->conta_id}");
+            Log::info("Status: {$statusAnterior} → {$statusNovo}");
+            Log::info("Valor: {$valorAnterior} → {$valorNovo}");
+            Log::info("Conta: {$contaAnterior} → {$contaNova}");
+            Log::info("Tipo: {$tipoAnterior} → {$tipoNovo}");
 
-            // ✅ Se o status mudou, recalcular o saldo da conta ANTES de salvar
-            if ($statusAnterior !== $statusNovo) {
-                Log::info("STATUS MUDOU! De {$statusAnterior} para {$statusNovo}");
+            // ✅ Verificar se alguma mudança afeta o saldo das contas
+            $afetaSaldo = ($statusAnterior !== $statusNovo) ||
+                ($valorAnterior !== $valorNovo) ||
+                ($contaAnterior !== $contaNova) ||
+                ($tipoAnterior !== $tipoNovo);
 
-                if (in_array($lancamento->tipo_lancamento, ['RECEITA', 'DESPESA']) && $lancamento->conta_id) {
-                    $conta = Conta::find($lancamento->conta_id);
+            if ($afetaSaldo && in_array($tipoAnterior, ['RECEITA', 'DESPESA'])) {
+                Log::info("DETECTADA MUDANÇA QUE AFETA SALDO!");
 
-                    Log::info("Saldo da conta ANTES: {$conta->saldo}");
+                // 1. REVERTER o efeito do lançamento antigo (se estava efetivado)
+                if ($statusAnterior === 'EFETIVADA' && $contaAnterior) {
+                    $contaAntiga = Conta::find($contaAnterior);
+                    if ($contaAntiga) {
+                        Log::info("Saldo da conta {$contaAnterior} ANTES da reversão: {$contaAntiga->saldo}");
 
-                    if ($conta) {
-                        // 1. REVERTER o efeito do status anterior (desfazer a operação antiga)
-                        if ($statusAnterior === 'EFETIVADA') {
-                            if ($lancamento->tipo_lancamento === 'RECEITA') {
-                                $conta->saldo -= $lancamento->valor; // Remover receita
-                                Log::info("Revertendo RECEITA EFETIVADA: subtraindo {$lancamento->valor}");
-                            } else { // DESPESA
-                                $conta->saldo += $lancamento->valor; // Devolver despesa
-                                Log::info("Revertendo DESPESA EFETIVADA: adicionando {$lancamento->valor}");
-                            }
+                        if ($tipoAnterior === 'RECEITA') {
+                            $contaAntiga->saldo -= $valorAnterior; // Remover receita antiga
+                            Log::info("Revertendo RECEITA EFETIVADA: subtraindo {$valorAnterior}");
+                        } else { // DESPESA
+                            $contaAntiga->saldo += $valorAnterior; // Devolver despesa antiga
+                            Log::info("Revertendo DESPESA EFETIVADA: adicionando {$valorAnterior}");
                         }
 
-                        // 2. APLICAR o novo status (fazer a nova operação)
-                        if ($statusNovo === 'EFETIVADA') {
-                            if ($lancamento->tipo_lancamento === 'RECEITA') {
-                                $conta->saldo += $lancamento->valor; // Adicionar receita
-                                Log::info("Aplicando RECEITA EFETIVADA: adicionando {$lancamento->valor}");
-                            } else { // DESPESA
-                                $conta->saldo -= $lancamento->valor; // Subtrair despesa
-                                Log::info("Aplicando DESPESA EFETIVADA: subtraindo {$lancamento->valor}");
-                            }
+                        Log::info("Saldo da conta {$contaAnterior} DEPOIS da reversão: {$contaAntiga->saldo}");
+                        $contaAntiga->save();
+                    }
+                }
+
+                // 2. APLICAR o efeito do novo lançamento (se for efetivado)
+                if ($statusNovo === 'EFETIVADA' && $contaNova && in_array($tipoNovo, ['RECEITA', 'DESPESA'])) {
+                    $contaNova_obj = Conta::find($contaNova);
+                    if ($contaNova_obj) {
+                        Log::info("Saldo da conta {$contaNova} ANTES da aplicação: {$contaNova_obj->saldo}");
+
+                        if ($tipoNovo === 'RECEITA') {
+                            $contaNova_obj->saldo += $valorNovo; // Adicionar receita nova
+                            Log::info("Aplicando RECEITA EFETIVADA: adicionando {$valorNovo}");
+                        } else { // DESPESA
+                            $contaNova_obj->saldo -= $valorNovo; // Subtrair despesa nova
+                            Log::info("Aplicando DESPESA EFETIVADA: subtraindo {$valorNovo}");
                         }
 
-                        Log::info("Saldo da conta DEPOIS: {$conta->saldo}");
-                        $conta->save();
+                        Log::info("Saldo da conta {$contaNova} DEPOIS da aplicação: {$contaNova_obj->saldo}");
+                        $contaNova_obj->save();
                     }
                 }
             } else {
-                Log::info("Status não mudou, mantendo saldo anterior");
+                Log::info("Nenhuma mudança afeta o saldo das contas");
             }
 
-            // ✅ Usar validated() para aplicar transformações do StoreLancamentoRequest
-            $validatedData = $request->validated();
+            // ✅ Atualizar o lançamento com os dados já validados
             Log::info("Dados validados: ", $validatedData);
             $lancamento->update($validatedData);
 
@@ -383,6 +406,35 @@ class LancamentoController extends Controller
 
             DB::beginTransaction();
 
+            // ✅ Se o lançamento estava EFETIVADO, reverter o saldo da conta ANTES de deletar
+            if (
+                $lancamento->status_lancamento === 'EFETIVADA' &&
+                in_array($lancamento->tipo_lancamento, ['RECEITA', 'DESPESA']) &&
+                $lancamento->conta_id
+            ) {
+
+                $conta = Conta::find($lancamento->conta_id);
+                if ($conta) {
+                    Log::info("=== DELETANDO LANÇAMENTO EFETIVADO {$id} ===");
+                    Log::info("Tipo: {$lancamento->tipo_lancamento}, Valor: {$lancamento->valor}, Conta: {$lancamento->conta_id}");
+                    Log::info("Saldo da conta ANTES da exclusão: {$conta->saldo}");
+
+                    // Reverter o efeito do lançamento na conta
+                    if ($lancamento->tipo_lancamento === 'RECEITA') {
+                        $conta->saldo -= $lancamento->valor; // Remover receita
+                        Log::info("Revertendo RECEITA EFETIVADA: subtraindo {$lancamento->valor}");
+                    } else { // DESPESA
+                        $conta->saldo += $lancamento->valor; // Devolver despesa
+                        Log::info("Revertendo DESPESA EFETIVADA: adicionando {$lancamento->valor}");
+                    }
+
+                    Log::info("Saldo da conta DEPOIS da exclusão: {$conta->saldo}");
+                    $conta->save();
+                }
+            } else {
+                Log::info("Deletando lançamento {$id} - Status: {$lancamento->status_lancamento} (sem impacto no saldo)");
+            }
+
             $lancamento->delete();
 
             DB::commit();
@@ -422,9 +474,27 @@ class LancamentoController extends Controller
 
             for ($i = 0; $i < $data['qtd_parcelas']; $i++) {
                 $lancamento = new Lancamento($data);
-                $lancamento->num_parcela = $i + 1;
+
+                // Configurar campos específicos de parcela
+                $lancamento->installment_group_id = $groupId;
+                $lancamento->qtd_parcelas = $data['qtd_parcelas']; // Campo correto do banco
+                $lancamento->num_parcela = $i + 1; // Campo correto do banco
                 $lancamento->data_vencimento = date('Y-m-d', strtotime("+$i month", strtotime($data['data_vencimento'])));
+
+                // Configurar valor da parcela
+                $valorParcela = $valorBaseParcela;
+                if ($i == 0 && $resto > 0) {
+                    $valorParcela += $resto; // Primeira parcela leva o resto
+                }
+                $lancamento->valor = $valorParcela;
+
+                // Configurar descrição com numeração
+                $descricaoBase = $data['descricao'];
+                $lancamento->descricao = $descricaoBase . ' (' . ($i + 1) . '/' . $data['qtd_parcelas'] . ')';
+
                 $lancamento->save();
+
+                Log::info("Parcela {$lancamento->num_parcela}/{$data['qtd_parcelas']} criada: {$lancamento->descricao}, valor: {$valorParcela}");
             }
         } else {
             Lancamento::create($data);
@@ -473,5 +543,393 @@ class LancamentoController extends Controller
             $refundLancamento->pago = true;
             $refundLancamento->save();
         }
+    }
+
+    /**
+     * Lidar com edições recorrentes com escopo específico
+     */
+    private function handleRecurrentEdit($lancamento, $validatedData, $editScope): JsonResponse
+    {
+        try {
+            Log::info("=== EDITANDO LANÇAMENTO RECORRENTE {$lancamento->id} COM ESCOPO: {$editScope} ===");
+
+            switch ($editScope) {
+                case 'apenas_esta':
+                    // Atualizar apenas este lançamento
+                    return $this->updateSingleRecurrentLancamento($lancamento, $validatedData);
+
+                case 'esta_e_proximas':
+                    // Atualizar este e os próximos da mesma recorrência
+                    return $this->updateCurrentAndFutureRecurrentLancamentos($lancamento, $validatedData);
+
+                case 'todas':
+                    // Atualizar todos os lançamentos da mesma recorrência
+                    return $this->updateAllRecurrentLancamentos($lancamento, $validatedData);
+
+                default:
+                    return response()->json(['error' => 'Escopo de edição inválido.'], 400);
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Erro ao editar lançamento recorrente: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Ocorreu um erro ao atualizar o lançamento recorrente.'], 500);
+        }
+    }
+
+    /**
+     * Atualizar apenas um lançamento recorrente (quebrar recorrência)
+     */
+    private function updateSingleRecurrentLancamento($lancamento, $validatedData): JsonResponse
+    {
+        // NÃO quebrar a recorrência - apenas atualizar este lançamento específico
+        // Manter installment_group_id, recorrencia, e outras propriedades da série
+
+        // Remover campos que não devem ser alterados para manter a série intacta
+        unset($validatedData['recorrencia']);
+        unset($validatedData['installment_group_id']);
+        unset($validatedData['qtd_parcelas']);
+        unset($validatedData['num_parcela']);
+        unset($validatedData['tipo_parcela']);
+        unset($validatedData['periodicidade']);
+
+        // Aplicar a lógica normal de edição com cálculo de saldo (sem commit pois já há transação ativa)
+        $this->updateLancamentoWithBalanceCalculation($lancamento, $validatedData, false);
+
+        // Fazer commit da transação principal
+        DB::commit();
+
+        return response()->json([
+            'success' => 'Lançamento atualizado com sucesso!',
+            'data' => $lancamento
+        ], 200);
+    }
+
+    /**
+     * Atualizar este e os próximos lançamentos recorrentes
+     */
+    private function updateCurrentAndFutureRecurrentLancamentos($lancamento, $validatedData): JsonResponse
+    {
+        $grupoId = $lancamento->installment_group_id;
+        $dataAtual = $lancamento->data_vencimento;
+
+        if (!$grupoId) {
+            return response()->json(['error' => 'Lançamento não possui grupo de recorrência.'], 400);
+        }
+
+        // Buscar todos os lançamentos do mesmo grupo a partir desta data
+        $lancamentosFuturos = Lancamento::where('installment_group_id', $grupoId)
+            ->where('data_vencimento', '>=', $dataAtual)
+            ->where('user_id', auth()->id())
+            ->get();
+
+        if ($lancamentosFuturos->count() == 0) {
+            return response()->json([
+                'warning' => 'Nenhum lançamento futuro encontrado para atualizar.',
+                'updated_count' => 0
+            ], 200);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $updatedCount = 0;
+            foreach ($lancamentosFuturos as $futuroLancamento) {
+                Log::info("Processando lançamento {$futuroLancamento->id} - valor atual: {$futuroLancamento->valor}");
+
+                // Capturar dados ANTES da alteração para calcular saldo
+                $statusAnterior = $futuroLancamento->status_lancamento;
+                $valorAnterior = $futuroLancamento->valor;
+                $contaAnterior = $futuroLancamento->conta_id;
+                $tipoAnterior = $futuroLancamento->tipo_lancamento;
+
+                $statusNovo = $validatedData['status_lancamento'];
+                $valorNovo = $validatedData['valor'];
+                $contaNova = $validatedData['conta_id'];
+                $tipoNovo = $validatedData['tipo_lancamento'];
+
+                Log::info("Status: {$statusAnterior} → {$statusNovo}, Valor: {$valorAnterior} → {$valorNovo}");
+
+                // 1. REVERTER o efeito do lançamento anterior (se estava efetivado)
+                if ($statusAnterior === 'EFETIVADA' && $contaAnterior && in_array($tipoAnterior, ['RECEITA', 'DESPESA'])) {
+                    if ($tipoAnterior === 'RECEITA') {
+                        DB::statement('UPDATE contas SET saldo = saldo - ? WHERE id = ?', [$valorAnterior, $contaAnterior]);
+                        Log::info("Revertendo RECEITA EFETIVADA: subtraindo {$valorAnterior} da conta {$contaAnterior}");
+                    } else { // DESPESA
+                        DB::statement('UPDATE contas SET saldo = saldo + ? WHERE id = ?', [$valorAnterior, $contaAnterior]);
+                        Log::info("Revertendo DESPESA EFETIVADA: adicionando {$valorAnterior} à conta {$contaAnterior}");
+                    }
+                }
+
+                // 2. PREPARAR descrição preservando numeração para parcelas
+                $descricaoFinal = $validatedData['descricao'];
+
+                // Se for parcelado, preservar a numeração original de cada parcela
+                if ($futuroLancamento->recorrencia === 'PARCELADO' && $futuroLancamento->num_parcela && $futuroLancamento->qtd_parcelas) {
+                    // Extrair descrição base removendo a numeração atual
+                    $descricaoBase = preg_replace('/\s*\(\d+\/\d+\)$/', '', $validatedData['descricao']);
+                    // Aplicar a numeração correta desta parcela
+                    $descricaoFinal = $descricaoBase . ' (' . $futuroLancamento->num_parcela . '/' . $futuroLancamento->qtd_parcelas . ')';
+
+                    Log::info("Preservando numeração: '{$validatedData['descricao']}' → '{$descricaoFinal}'");
+                }
+
+                // ATUALIZAR o lançamento
+                $result = DB::update(
+                    "UPDATE lancamentos SET valor = ?, descricao = ?, status_lancamento = ?, updated_at = NOW() WHERE id = ?",
+                    [$valorNovo, $descricaoFinal, $statusNovo, $futuroLancamento->id]
+                );
+
+                // 3. APLICAR o efeito do novo lançamento (se for efetivado)
+                if ($statusNovo === 'EFETIVADA' && $contaNova && in_array($tipoNovo, ['RECEITA', 'DESPESA'])) {
+                    if ($tipoNovo === 'RECEITA') {
+                        DB::statement('UPDATE contas SET saldo = saldo + ? WHERE id = ?', [$valorNovo, $contaNova]);
+                        Log::info("Aplicando RECEITA EFETIVADA: adicionando {$valorNovo} à conta {$contaNova}");
+                    } else { // DESPESA
+                        DB::statement('UPDATE contas SET saldo = saldo - ? WHERE id = ?', [$valorNovo, $contaNova]);
+                        Log::info("Aplicando DESPESA EFETIVADA: subtraindo {$valorNovo} da conta {$contaNova}");
+                    }
+                }
+
+                // COMMIT explícito após cada lançamento completo
+                DB::statement('COMMIT');
+
+                Log::info("Lançamento {$futuroLancamento->id} atualizado com sucesso");
+
+                if ($result > 0) {
+                    $updatedCount++;
+                }
+            }
+            Log::info("Total de lançamentos atualizados com sucesso: {$updatedCount}");
+
+            return response()->json([
+                'success' => 'Lançamentos recorrentes atualizados com sucesso!',
+                'updated_count' => $updatedCount
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error("Erro ao atualizar lançamentos futuros: " . $e->getMessage());
+            Log::error("Stack trace: " . $e->getTraceAsString());
+            return response()->json(['error' => 'Erro ao atualizar lançamentos: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Atualizar todos os lançamentos recorrentes
+     */
+    private function updateAllRecurrentLancamentos($lancamento, $validatedData): JsonResponse
+    {
+        $grupoId = $lancamento->installment_group_id;
+
+        if (!$grupoId) {
+            return response()->json(['error' => 'Lançamento não possui grupo de recorrência.'], 400);
+        }
+
+        // Buscar todos os lançamentos do mesmo grupo
+        $todosLancamentos = Lancamento::where('installment_group_id', $grupoId)
+            ->where('user_id', auth()->id())
+            ->get();
+
+        if ($todosLancamentos->count() == 0) {
+            return response()->json([
+                'warning' => 'Nenhum lançamento encontrado para atualizar.',
+                'updated_count' => 0
+            ], 200);
+        }
+
+        try {
+            $updatedCount = 0;
+            foreach ($todosLancamentos as $grupoLancamento) {
+                Log::info("Processando lançamento {$grupoLancamento->id} - valor atual: {$grupoLancamento->valor}");
+
+                // Capturar dados ANTES da alteração para calcular saldo
+                $statusAnterior = $grupoLancamento->status_lancamento;
+                $valorAnterior = $grupoLancamento->valor;
+                $contaAnterior = $grupoLancamento->conta_id;
+                $tipoAnterior = $grupoLancamento->tipo_lancamento;
+
+                $statusNovo = $validatedData['status_lancamento'];
+                $valorNovo = $validatedData['valor'];
+                $contaNova = $validatedData['conta_id'];
+                $tipoNovo = $validatedData['tipo_lancamento'];
+
+                Log::info("Status: {$statusAnterior} → {$statusNovo}, Valor: {$valorAnterior} → {$valorNovo}");
+
+                // 1. REVERTER o efeito do lançamento anterior (se estava efetivado)
+                if ($statusAnterior === 'EFETIVADA' && $contaAnterior && in_array($tipoAnterior, ['RECEITA', 'DESPESA'])) {
+                    if ($tipoAnterior === 'RECEITA') {
+                        DB::statement('UPDATE contas SET saldo = saldo - ? WHERE id = ?', [$valorAnterior, $contaAnterior]);
+                        Log::info("Revertendo RECEITA EFETIVADA: subtraindo {$valorAnterior} da conta {$contaAnterior}");
+                    } else { // DESPESA
+                        DB::statement('UPDATE contas SET saldo = saldo + ? WHERE id = ?', [$valorAnterior, $contaAnterior]);
+                        Log::info("Revertendo DESPESA EFETIVADA: adicionando {$valorAnterior} à conta {$contaAnterior}");
+                    }
+                }
+
+                // 2. PREPARAR descrição preservando numeração para parcelas
+                $descricaoFinal = $validatedData['descricao'];
+
+                // Se for parcelado, preservar a numeração original de cada parcela
+                if ($grupoLancamento->recorrencia === 'PARCELADO' && $grupoLancamento->num_parcela && $grupoLancamento->qtd_parcelas) {
+                    // Extrair descrição base removendo a numeração atual
+                    $descricaoBase = preg_replace('/\s*\(\d+\/\d+\)$/', '', $validatedData['descricao']);
+                    // Aplicar a numeração correta desta parcela
+                    $descricaoFinal = $descricaoBase . ' (' . $grupoLancamento->num_parcela . '/' . $grupoLancamento->qtd_parcelas . ')';
+
+                    Log::info("Preservando numeração: '{$validatedData['descricao']}' → '{$descricaoFinal}'");
+                }
+
+                // ATUALIZAR o lançamento
+                $result = DB::update(
+                    "UPDATE lancamentos SET valor = ?, descricao = ?, status_lancamento = ?, updated_at = NOW() WHERE id = ?",
+                    [$valorNovo, $descricaoFinal, $statusNovo, $grupoLancamento->id]
+                );
+
+                // 3. APLICAR o efeito do novo lançamento (se for efetivado)
+                if ($statusNovo === 'EFETIVADA' && $contaNova && in_array($tipoNovo, ['RECEITA', 'DESPESA'])) {
+                    if ($tipoNovo === 'RECEITA') {
+                        DB::statement('UPDATE contas SET saldo = saldo + ? WHERE id = ?', [$valorNovo, $contaNova]);
+                        Log::info("Aplicando RECEITA EFETIVADA: adicionando {$valorNovo} à conta {$contaNova}");
+                    } else { // DESPESA
+                        DB::statement('UPDATE contas SET saldo = saldo - ? WHERE id = ?', [$valorNovo, $contaNova]);
+                        Log::info("Aplicando DESPESA EFETIVADA: subtraindo {$valorNovo} da conta {$contaNova}");
+                    }
+                }
+
+                // COMMIT explícito após cada lançamento completo
+                DB::statement('COMMIT');
+
+                Log::info("Lançamento {$grupoLancamento->id} atualizado com sucesso");
+
+                if ($result > 0) {
+                    $updatedCount++;
+                }
+            }
+
+            Log::info("Total de lançamentos atualizados com sucesso: {$updatedCount}");
+
+            return response()->json([
+                'success' => 'Todos os lançamentos recorrentes atualizados com sucesso!',
+                'updated_count' => $updatedCount
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error("Erro ao atualizar todos os lançamentos: " . $e->getMessage());
+            Log::error("Stack trace: " . $e->getTraceAsString());
+            return response()->json(['error' => 'Erro ao atualizar lançamentos: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Atualizar lançamento com cálculo de saldo (extraído da lógica existente)
+     */
+    private function updateLancamentoWithBalanceCalculation($lancamento, $validatedData, $commitTransaction = true): ?JsonResponse
+    {
+        try {
+            Log::info("=== INICIANDO updateLancamentoWithBalanceCalculation ===");
+            Log::info("Lançamento ID: {$lancamento->id}, Commit: " . ($commitTransaction ? 'true' : 'false'));
+
+            if ($commitTransaction) {
+                DB::beginTransaction();
+            }
+
+            $this->updateSingleLancamentoData($lancamento, $validatedData);
+
+            Log::info("updateSingleLancamentoData concluído para lançamento {$lancamento->id}");
+
+            if ($commitTransaction) {
+                DB::commit();
+                Log::info("Transação individual commitada para lançamento {$lancamento->id}");
+                return response()->json([
+                    'success' => 'Lançamento atualizado com sucesso!',
+                    'data' => $lancamento
+                ], 200);
+            }
+
+            Log::info("Processamento concluído sem commit para lançamento {$lancamento->id}");
+            // Não retornar resposta JSON quando dentro de uma transação
+            return null;
+        } catch (\Exception $e) {
+            Log::error("Erro em updateLancamentoWithBalanceCalculation: " . $e->getMessage());
+            Log::error("Stack trace: " . $e->getTraceAsString());
+            if ($commitTransaction) {
+                DB::rollBack();
+            }
+            throw $e;
+        }
+    }
+
+    /**
+     * Atualizar um lançamento individual com cálculos de saldo
+     */
+    private function updateSingleLancamentoData($lancamento, $validatedData): void
+    {
+        // Capturar dados ANTES e DEPOIS
+        $statusAnterior = $lancamento->status_lancamento;
+        $valorAnterior = $lancamento->valor;
+        $contaAnterior = $lancamento->conta_id;
+        $tipoAnterior = $lancamento->tipo_lancamento;
+
+        $statusNovo = $validatedData['status_lancamento'];
+        $valorNovo = $validatedData['valor'];
+        $contaNova = $validatedData['conta_id'];
+        $tipoNovo = $validatedData['tipo_lancamento'];
+
+        Log::info("=== EDITANDO LANÇAMENTO {$lancamento->id} ===");
+        Log::info("Status: {$statusAnterior} → {$statusNovo}");
+        Log::info("Valor: {$valorAnterior} → {$valorNovo}");
+        Log::info("Conta: {$contaAnterior} → {$contaNova}");
+        Log::info("Tipo: {$tipoAnterior} → {$tipoNovo}");
+
+        // Verificar se alguma mudança afeta o saldo das contas
+        $afetaSaldo = ($statusAnterior !== $statusNovo) ||
+            ($valorAnterior !== $valorNovo) ||
+            ($contaAnterior !== $contaNova) ||
+            ($tipoAnterior !== $tipoNovo);
+
+        if ($afetaSaldo) {
+            Log::info("Mudanças detectadas que afetam saldo - aplicando lógica de reversão/aplicação");
+
+            // 1. REVERTER o efeito do lançamento anterior (se estava efetivado)
+            if ($statusAnterior === 'EFETIVADA' && $contaAnterior && in_array($tipoAnterior, ['RECEITA', 'DESPESA'])) {
+                $contaAntiga = Conta::find($contaAnterior);
+                if ($contaAntiga) {
+                    Log::info("Saldo da conta {$contaAnterior} ANTES da reversão: {$contaAntiga->saldo}");
+
+                    if ($tipoAnterior === 'RECEITA') {
+                        $contaAntiga->saldo -= $valorAnterior; // Reverter receita anterior
+                        Log::info("Revertendo RECEITA EFETIVADA: subtraindo {$valorAnterior}");
+                    } else { // DESPESA
+                        $contaAntiga->saldo += $valorAnterior; // Reverter despesa anterior
+                        Log::info("Revertendo DESPESA EFETIVADA: adicionando {$valorAnterior}");
+                    }
+
+                    Log::info("Saldo da conta {$contaAnterior} DEPOIS da reversão: {$contaAntiga->saldo}");
+                    $contaAntiga->save();
+                }
+            }
+
+            // 2. APLICAR o efeito do novo lançamento (se for efetivado)
+            if ($statusNovo === 'EFETIVADA' && $contaNova && in_array($tipoNovo, ['RECEITA', 'DESPESA'])) {
+                $contaNova_obj = Conta::find($contaNova);
+                if ($contaNova_obj) {
+                    Log::info("Saldo da conta {$contaNova} ANTES da aplicação: {$contaNova_obj->saldo}");
+
+                    if ($tipoNovo === 'RECEITA') {
+                        $contaNova_obj->saldo += $valorNovo; // Adicionar receita nova
+                        Log::info("Aplicando RECEITA EFETIVADA: adicionando {$valorNovo}");
+                    } else { // DESPESA
+                        $contaNova_obj->saldo -= $valorNovo; // Subtrair despesa nova
+                        Log::info("Aplicando DESPESA EFETIVADA: subtraindo {$valorNovo}");
+                    }
+
+                    Log::info("Saldo da conta {$contaNova} DEPOIS da aplicação: {$contaNova_obj->saldo}");
+                    $contaNova_obj->save();
+                }
+            }
+        } else {
+            Log::info("Nenhuma mudança afeta o saldo das contas");
+        }
+
+        // Atualizar o lançamento
+        Log::info("Dados validados: ", $validatedData);
+        $lancamento->update($validatedData);
     }
 }
